@@ -83,7 +83,6 @@ for file_path in csv_files:
                 mz2 = df.loc[j, 'm/z']
                 ccs1 = df.loc[i, 'CCS']
                 ccs2 = df.loc[j, 'CCS']
-                #thanks Anna!
                 intensity1 = df.loc[i, intensity_column]
                 intensity2 = df.loc[j, intensity_column]
 
@@ -170,8 +169,50 @@ for file_path in csv_files:
                     break
         return df.drop(list(indices_to_remove))
 
+    def neutral_losses(df, neutral_loss_masses, ppm_tolerance=10):
+    
+        print("Neutral loss masses being used:", neutral_loss_masses)
+
+    # Sort DataFrame by m/z and reset index
+        df = df.sort_values(by='m/z').reset_index(drop=True)
+    
+    # Set to keep track of rows to retain
+        indices_to_keep = set(df.index)
+    
+    # Iterate over each row in the DataFrame
+        for i in range(len(df)):
+            if i not in indices_to_keep:
+                continue  # Skip if the row has already been excluded
+            mz1 = df.loc[i, 'm/z']
+            RT1 = df.loc[i, 'Retention Time']
+        
+        # Iterate over potential matches where mass j is greater than mass i
+            for j in range(i + 1, len(df)):
+                mz2 = df.loc[j, 'm/z']
+                RT2 = df.loc[j, 'Retention Time']
+            
+            # Ensure the retention time difference is within the tolerance (0.25 minutes)
+                RT_diff = abs(RT1 - RT2)
+                if RT_diff > 0.25:
+                    continue  # Skip if retention times differ too much
+            
+            # Calculate the mass difference (j - i)
+                mass_difference = abs(mz2 - mz1)
+            
+            # Check if the mass difference matches any of the neutral loss masses
+                for neutral_mz in neutral_loss_masses:
+                    ppm_diff = abs((mass_difference - neutral_mz) / neutral_mz) * 1e6
+                    if ppm_diff <= ppm_tolerance:
+                        # If a match is found, discard row i (the smaller mass)
+                        indices_to_keep.discard(i)
+                        break  # Stop checking once we find a match for this pair
+    
+    # Return the filtered DataFrame with only the indices that were not discarded
+        return df.loc[list(indices_to_keep)].reset_index(drop=True)
+
     # Apply the removal of reference rows
     filtered_df = remove_reference_rows(filtered_df, reference_mz, reference_ccs)
+    filtered_df = neutral_losses(filtered_df, neutral_loss_masses)
 
     # Final filter to remove rows scored as E - only now are the "non-PFAS" features eliminated - ensures any biomolecule junk that may interfere with signal is considered by the smear filter
     filtered_df = filtered_df[~filtered_df['Score'].isin(['E'])]
