@@ -173,8 +173,6 @@ for file_path in csv_files:
 
     def neutral_losses(df, neutral_loss_masses, ppm_tolerance=10):
     
-        print("Neutral loss masses being used:", neutral_loss_masses)
-
     # Sort DataFrame by m/z and reset index
         df = df.sort_values(by='m/z').reset_index(drop=True)
     
@@ -185,6 +183,8 @@ for file_path in csv_files:
         for i in range(len(df)):
             if i not in indices_to_keep:
                 continue  # Skip if the row has already been excluded
+            if df.loc[i, 'Score'] in ['A', 'A-', 'A+', 'E']:
+                continue  # Skip this row if the score is 'E or A'
             mz1 = df.loc[i, 'm/z']
             RT1 = df.loc[i, 'Retention Time']
         
@@ -193,7 +193,7 @@ for file_path in csv_files:
                 mz2 = df.loc[j, 'm/z']
                 RT2 = df.loc[j, 'Retention Time']
             
-            # Ensure the retention time difference is within the tolerance (0.25 minutes)
+            # Ensure the retention time difference is within the tolerance (0.2 minutes)
                 RT_diff = abs(RT1 - RT2)
                 if RT_diff > 0.1 and mz2-mz1 > 100:
                     continue  # Skip if retention times differ too much
@@ -211,6 +211,7 @@ for file_path in csv_files:
     
     # Return the filtered DataFrame with only the indices that were not discarded
         return df.loc[list(indices_to_keep)].reset_index(drop=True)
+
 
     # Apply the removal of reference rows
     filtered_df = remove_reference_rows(filtered_df, reference_mz, reference_ccs)
