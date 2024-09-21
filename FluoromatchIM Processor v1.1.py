@@ -3,7 +3,7 @@ import os
 import glob
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
-directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004 test'
+directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004 test
 
 # Use glob to find all CSV files in the directory with "_FIN" in their name - All the fluoromatch files will end in _FIN if you use the code edit I used
 csv_files = glob.glob(os.path.join(directory_path, '*_FIN*.csv'))
