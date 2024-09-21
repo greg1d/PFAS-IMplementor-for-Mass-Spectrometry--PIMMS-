@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import glob
+import time
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
 directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004 test'
@@ -45,6 +46,7 @@ def match_external_library(mz_value, library_masses, library_preferred_names, pp
 for file_path in csv_files:
     # Load the CSV file
     df = pd.read_csv(file_path)
+    start_time = time.time()  # Start timing the process
 
     # Convert the 'Name_or_Class' column to string to avoid AttributeError
     df['Name_or_Class'] = df['Name_or_Class'].astype(str)
@@ -193,7 +195,7 @@ for file_path in csv_files:
             
             # Ensure the retention time difference is within the tolerance (0.25 minutes)
                 RT_diff = abs(RT1 - RT2)
-                if RT_diff > 0.25:
+                if RT_diff > 0.1 and mz2-mz1 > 100:
                     continue  # Skip if retention times differ too much
             
             # Calculate the mass difference (j - i)
@@ -312,7 +314,8 @@ for file_path in csv_files:
         tentative_df_with_match.to_excel(writer, sheet_name='Tentative (EPA match)', index=False)
         filtered_no_match_df.to_excel(writer, sheet_name='Tentative (No EPA match)', index=False)
     print(f"Filtered data saved to {filtered_output_path}.")
-
+    elapsed_time = time.time() - start_time
+    print(f"{elapsed_time:.1f} seconds")
 # Define the output path for the combined summary spreadsheet - spits a summary of the count for each file you hand it
 summary_output_path = os.path.join(directory_path, 'Classification_Summary.xlsx')
 
