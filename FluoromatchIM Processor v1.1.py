@@ -213,9 +213,54 @@ for file_path in csv_files:
         return df.loc[list(indices_to_keep)].reset_index(drop=True)
 
 
+    def adducts_and_n_mers(df):
+    # Sort DataFrame by m/z and reset index
+        df = df.sort_values(by='m/z').reset_index(drop=True)
+
+    # Set to keep track of rows to retain
+        indices_to_keep = set(df.index)
+
+    # Iterate over each row in the DataFrame
+        for i in range(len(df)):
+            if i not in indices_to_keep:
+                continue  # Skip if the row has already been excluded
+            if df.loc[i, 'Score'] == 'E':
+                continue  # Skip if the score is 'E'
+
+            mz1 = df.loc[i, 'm/z']
+            RT1 = df.loc[i, 'Retention Time']
+
+        # Iterate over potential matches where mass j is greater than mass i
+            for j in range(i + 1, len(df)):
+                mz2 = df.loc[j, 'm/z']
+                RT2 = df.loc[j, 'Retention Time']
+
+            # Ensure the retention time difference is within 0.2 minutes
+                RT_diff = abs(RT1 - RT2)
+                if RT_diff > 0.2:
+                    continue  # Skip if retention times differ too much
+
+            # Check the three conditions
+                if abs(mz2 - (mz1 + 21.981945)) <= 0.01:
+                    indices_to_keep.discard(j)  # Exclude j if j = i + 21.981945
+                    continue
+
+                if abs(mz2 - (2 * mz1 + 1.007825)) <= 0.01:
+                    indices_to_keep.discard(j)  # Exclude j if j = 2i + 1.007825
+                    continue
+
+                if abs(mz2 - (2 * mz1 + 21.981945)) <= 0.01:
+                    indices_to_keep.discard(j)  # Exclude j if j = 2i + 21.981945
+                    continue
+
+    # Return the filtered DataFrame with only the indices that were not discarded
+        return df.loc[list(indices_to_keep)].reset_index(drop=True)
+
     # Apply the removal of reference rows
     filtered_df = remove_reference_rows(filtered_df, reference_mz, reference_ccs)
     filtered_df = neutral_losses(filtered_df, neutral_loss_masses)
+    filtered_df = adducts_and_n_mers(filtered_df)
+
 
     # Final filter to remove rows scored as E - only now are the "non-PFAS" features eliminated - ensures any biomolecule junk that may interfere with signal is considered by the smear filter
     filtered_df = filtered_df[~filtered_df['Score'].isin(['E'])]
