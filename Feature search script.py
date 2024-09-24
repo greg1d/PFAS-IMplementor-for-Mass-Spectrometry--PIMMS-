@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from matplotlib.backend_bases import MouseButton
+from matplotlib.widgets import RectangleSelector
 
 # Define the directory containing the Excel files
 directory_path = r'F:\Twins Project (2.24-)\Non-target work\All Features Master 2'
@@ -25,6 +26,16 @@ sheet_mapping = {
     2: 'Tentative (EPA match)',
     3: 'Tentative (No EPA match)'
 }
+
+def toggle_selector(event):
+    if event.key == 't':
+        if toggle_selector.RS.active:
+            print('RectangleSelector deactivated.')
+            toggle_selector.RS.set_active(False)
+        else:
+            print('RectangleSelector activated.')
+            toggle_selector.RS.set_active(True)
+
 
 # Function to perform the search with ppm error for m/z and Name_or_Class search
 def search_feature(name_or_class=None, mz_value=None, ppm_error=10, sheet_options=None, result_tree=None):
@@ -153,7 +164,8 @@ def visualize_ccs_vs_rt(result_df):
 
     # Plot the Gaussian KDE overlay on the same axes
     sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=False, alpha=1)
-
+    ax.set_xlim(result_df['Retention Time'].min() - 0.1, result_df['Retention Time'].max() + 0.1)
+    ax.set_ylim(result_df['CCS'].min() - 0.1, result_df['CCS'].max() + 0.1)
     # Add a color bar to indicate intensity
     fig.colorbar(ax.collections[0], label='Intensity')
 
@@ -181,8 +193,25 @@ def visualize_ccs_vs_rt(result_df):
                     f"Intensity: {point['Intensity']}")
             print(info)
             messagebox.showinfo("Selected Point Info", info)
-
+    
     fig.canvas.mpl_connect('pick_event', onpick)
+
+    def line_select_callback(event1, event2):
+        x1, y1 = event1.xdata, event1.ydata
+        x2, y2 = event2.xdata, event2.ydata
+        ax.set_xlim(min(x1, x2), max(x1, x2))
+        ax.set_ylim(min(y1, y2), max(y1, y2))
+        plt.draw()
+
+    toggle_selector.RS = RectangleSelector(ax, line_select_callback,
+                                           drawtype='box', useblit=True,
+                                           button=[1],  # Left mouse button
+                                           minspanx=5, minspany=5,
+                                           spancoords='pixels',
+                                           interactive=True)
+    
+    fig.canvas.mpl_connect('key_press_event', toggle_selector)
+
     plt.tight_layout()
     plt.show()
 
