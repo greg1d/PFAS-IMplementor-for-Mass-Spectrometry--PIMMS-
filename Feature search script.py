@@ -171,8 +171,8 @@ def visualize_ccs_vs_rt(result_df):
     # Plot the Gaussian KDE overlay on the same axes
     sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=False, alpha=1)
     global original_xlim, original_ylim
-    original_xlim = (result_df['Retention Time'].min() - 0.1, result_df['Retention Time'].max() + 0.1)
-    original_ylim = (result_df['CCS'].min() - 0.1, result_df['CCS'].max() + 0.1)
+    original_xlim = (result_df['Retention Time'].min() - 0.2, result_df['Retention Time'].max() + 0.2)
+    original_ylim = (result_df['CCS'].min() - 3, result_df['CCS'].max() + 3)
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
     # Add a color bar to indicate intensity
@@ -193,16 +193,21 @@ def visualize_ccs_vs_rt(result_df):
     # Interactive click function to show point data
     def onpick(event):
         ind = event.ind
-        points = result_df.iloc[ind]
-        for _, point in points.iterrows():
-            info = (f"File: {point['File']}\n"
-                    f"Retention Time: {point['Retention Time']}\n"
-                    f"CCS: {point['CCS']}\n"
-                    f"m/z: {point['m/z']}\n"
-                    f"Intensity: {point['Intensity']}")
-            print(info)
-            messagebox.showinfo("Selected Point Info", info)
-    
+        selected_points = result_df.iloc[ind]
+        info = ""
+        for _, point in selected_points.iterrows():
+            point_info = (f"File: {point['File']}\n"
+                          f"Retention Time: {point['Retention Time']}\n"
+                          f"CCS: {point['CCS']}\n"
+                          f"m/z: {point['m/z']}\n"
+                          f"Intensity: {point['Intensity']}\n\n")
+            info += point_info
+        
+        # Display all selected points in one dialog box
+        if info:
+            messagebox.showinfo("Selected Points Info", info)
+
+    # Connect the pick event for selecting points
     fig.canvas.mpl_connect('pick_event', onpick)
 
     def line_select_callback(event1, event2):
@@ -214,7 +219,7 @@ def visualize_ccs_vs_rt(result_df):
 
     toggle_selector.RS = RectangleSelector(ax, line_select_callback,
                                            drawtype='box', useblit=True,
-                                           button=[1],  # Left mouse button
+                                           button=[3],  # right mouse button
                                            minspanx=5, minspany=5,
                                            spancoords='pixels',
                                            interactive=True)
