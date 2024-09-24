@@ -42,7 +42,7 @@ def reset_zoom(event, ax, original_xlim, original_ylim):
         plt.draw()
 
 # Function to perform the search with ppm error for m/z and Name_or_Class search
-def search_feature(name_or_class=None, mz_value=None, ppm_error=10, sheet_options=None, result_tree=None):
+def search_feature(name_or_class=None, mz_value=None, ppm_error=None, sheet_options=None, result_tree=None):
     results = []
     
     # Iterate over each Excel file found
@@ -150,7 +150,7 @@ def visualize_ccs_vs_mz(result_df):
     plt.show()
 
 # Function to visualize CCS vs Retention Time
-def visualize_ccs_vs_rt(result_df):
+def visualize_ccs_vs_rt(result_df, name_or_class=None, mz_value=None):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
         return
@@ -173,13 +173,28 @@ def visualize_ccs_vs_rt(result_df):
     original_ylim = (result_df['CCS'].min() - 3, result_df['CCS'].max() + 3)
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
+    font_properties = {'family': 'Arial', 'size': 10, 'weight': 'bold'}
+    
+    if name_or_class and name_or_class.strip():  # Check if name_or_class is not empty or just spaces
+        search_filter = name_or_class.title()
+    elif mz_value is not None:  # Ensure mz_value is not None
+        search_filter = f"m/z = {mz_value}"
+    else:
+        search_filter = "No Filter"
+    ax.set_title(f"CCS vs Retention Time with {search_filter}", fontdict={'fontsize': 10, 'fontweight': 'bold', 'fontname': 'Arial'})
+
     # Add a color bar to indicate intensity
     fig.colorbar(ax.collections[0], label='Intensity')
 
     # Set titles and labels
-    ax.set_title('CCS vs Retention Time with Gaussian Distribution')
-    ax.set_xlabel('Retention Time')
-    ax.set_ylabel('CCS')
+    ax.set_xlabel('Retention Time', fontdict=font_properties)
+    ax.set_ylabel('CCS', fontdict=font_properties)
+
+    # Adjust tick label size and font
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_fontname('Arial')
+        label.set_fontweight('bold')
 
     # Add grey marker shapes to the legend (without plotting points again)
     for sheet_type, marker in marker_shapes.items():
