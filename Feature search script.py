@@ -113,7 +113,7 @@ def visualize_ccs_vs_mz(result_df):
         return
 
     fig, ax = plt.subplots()
-    scatter = ax.scatter(result_df['m/z'], result_df['CCS'], c=result_df['Intensity'], cmap='viridis', picker=True)
+    scatter = ax.scatter(result_df['m/z'], result_df['CCS'], c=result_df['Intensity'], cmap='flare', picker=True)
     fig.colorbar(scatter, label='Intensity')
     ax.set_title('CCS vs m/z')
     ax.set_xlabel('m/z')
@@ -141,13 +141,13 @@ def visualize_ccs_vs_rt(result_df):
         return
     
     # Create a figure and axes
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(5, 5))
     
     # Plot the Gaussian KDE overlay on the same axes
-    sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Blues', fill=True, alpha=0.5)
+    sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=False, alpha=1)
 
     # Overlay the scatter plot on the same axes
-    scatter = ax.scatter(result_df['Retention Time'], result_df['CCS'], c=result_df['Intensity'], cmap='viridis', picker=True, s = 10)
+    scatter = ax.scatter(result_df['Retention Time'], result_df['CCS'], c=result_df['Intensity'], cmap='flare', picker=True, s = 10)
     
     # Add a color bar to indicate intensity
     fig.colorbar(scatter, label='Intensity')
