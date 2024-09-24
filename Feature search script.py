@@ -106,35 +106,6 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=10, sheet_option
         messagebox.showinfo("No Matches", "No matches found.")
         return None
 
-# Function to visualize CCS vs m/z
-def visualize_ccs_vs_mz(result_df):
-    if result_df is None or result_df.empty:
-        messagebox.showwarning("No Data", "No data available to visualize.")
-        return
-
-    fig, ax = plt.subplots()
-    scatter = ax.scatter(result_df['m/z'], result_df['CCS'], c=result_df['Intensity'], cmap='flare', picker=True)
-    fig.colorbar(scatter, label='Intensity')
-    ax.set_title('CCS vs m/z')
-    ax.set_xlabel('m/z')
-    ax.set_ylabel('CCS')
-
-    # Interactive click function to show point data
-    def onpick(event):
-        ind = event.ind
-        points = result_df.iloc[ind]
-        for _, point in points.iterrows():
-            info = (f"File: {point['File']}\n"
-                    f"Retention Time: {point['Retention Time']}\n"
-                    f"CCS: {point['CCS']}\n"
-                    f"m/z: {point['m/z']}\n"
-                    f"Intensity: {point['Intensity']}")
-        messagebox.showinfo("Selected Point Info", info)
-
-    fig.canvas.mpl_connect('pick_event', onpick)
-    plt.show()
-
-# Function to visualize CCS vs Retention Time
 def visualize_ccs_vs_rt(result_df):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
@@ -142,20 +113,32 @@ def visualize_ccs_vs_rt(result_df):
     
     # Create a figure and axes
     fig, ax = plt.subplots(figsize=(5, 5))
-    
+
+    # Define marker shapes and categories
+    marker_shapes = {'Likely': 's', 'Tentative (EPA match)': '^', 'Tentative (No EPA match)': 'o'}
+
+    # Plot each category with different marker shapes
+    for sheet_type, marker in marker_shapes.items():
+        subset = result_df[result_df['Sheet'] == sheet_type]
+        ax.scatter(subset['Retention Time'], subset['CCS'], c=subset['Intensity'], cmap='flare', marker=marker, picker=True, s=25)
+
     # Plot the Gaussian KDE overlay on the same axes
     sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=False, alpha=1)
 
-    # Overlay the scatter plot on the same axes
-    scatter = ax.scatter(result_df['Retention Time'], result_df['CCS'], c=result_df['Intensity'], cmap='flare', picker=True, s = 10)
-    
     # Add a color bar to indicate intensity
-    fig.colorbar(scatter, label='Intensity')
-    
+    fig.colorbar(ax.collections[0], label='Intensity')
+
     # Set titles and labels
     ax.set_title('CCS vs Retention Time with Gaussian Distribution')
     ax.set_xlabel('Retention Time')
     ax.set_ylabel('CCS')
+
+    # Add grey marker shapes to the legend (without plotting points again)
+    for sheet_type, marker in marker_shapes.items():
+        ax.scatter([], [], label=sheet_type, marker=marker, color='gray')
+    
+    # Position the legend outside the plot to avoid overlapping with points
+    ax.legend(loc='upper left')
 
     # Interactive click function to show point data
     def onpick(event):
@@ -171,6 +154,7 @@ def visualize_ccs_vs_rt(result_df):
             messagebox.showinfo("Selected Point Info", info)
 
     fig.canvas.mpl_connect('pick_event', onpick)
+    plt.tight_layout()
     plt.show()
 
 # Function to initiate a search using the GUI inputs
@@ -182,6 +166,13 @@ def search_button_click():
         mz_value = float(mz_value) if mz_value else None
     except ValueError:
         messagebox.showerror("Error", "Invalid m/z value")
+        return
+
+    # Get the user-defined ppm tolerance value
+    try:
+        ppm_tolerance = int(ppm_entry.get())  # User-defined PPM error
+    except ValueError:
+        messagebox.showerror("Error", "Invalid PPM value")
         return
     
     sheet_options = []
@@ -196,7 +187,7 @@ def search_button_click():
         messagebox.showerror("Error", "Please select at least one sheet to search")
         return
 
-    result_df = search_feature(name_or_class, mz_value, sheet_options=sheet_options, result_tree=result_tree)
+    result_df = search_feature(name_or_class, mz_value, ppm_error=ppm_tolerance, sheet_options=sheet_options, result_tree=result_tree)
     
     # Enable visualization buttons once search is performed
     if result_df is not None:
@@ -206,6 +197,7 @@ def search_button_click():
         ccs_vs_rt_button.config(state=tk.NORMAL)
         ccs_vs_rt_button.result_df = result_df
 
+#
 # Create the GUI window
 window = tk.Tk()
 window.title("Search Feature Tool")
@@ -219,18 +211,24 @@ tk.Label(window, text="m/z Value:").grid(row=1, column=0, padx=10, pady=10)
 mz_entry = tk.Entry(window, width=30)
 mz_entry.grid(row=1, column=1, padx=10, pady=10)
 
+# Label and input field for PPM tolerance
+tk.Label(window, text="PPM Tolerance:").grid(row=2, column=0, padx=10, pady=10)
+ppm_entry = tk.Entry(window, width=30)
+ppm_entry.grid(row=2, column=1, padx=10, pady=10)
+ppm_entry.insert(0, "10")  # Default value for ppm
+
 # Checkboxes for sheet selection
 likely_var = tk.IntVar()
 epa_var = tk.IntVar()
 no_epa_var = tk.IntVar()
 
-tk.Checkbutton(window, text="Likely", variable=likely_var).grid(row=2, column=0, padx=10, pady=10)
-tk.Checkbutton(window, text="Tentative (EPA Match)", variable=epa_var).grid(row=2, column=1, padx=10, pady=10)
-tk.Checkbutton(window, text="Tentative (No EPA Match)", variable=no_epa_var).grid(row=2, column=2, padx=10, pady=10)
+tk.Checkbutton(window, text="Likely", variable=likely_var).grid(row=3, column=0, padx=10, pady=10)
+tk.Checkbutton(window, text="Tentative (EPA Match)", variable=epa_var).grid(row=3, column=1, padx=10, pady=10)
+tk.Checkbutton(window, text="Tentative (No EPA Match)", variable=no_epa_var).grid(row=3, column=2, padx=10, pady=10)
 
 # Button to initiate the search
 search_button = tk.Button(window, text="Search", command=search_button_click)
-search_button.grid(row=3, column=1, padx=10, pady=10)
+search_button.grid(row=4, column=1, padx=10, pady=10)
 
 # Treeview to display search results
 columns = ('File', 'Sheet', 'Name_or_Class', 'm/z', 'DT', 'CCS', 'Retention Time', 'Intensity')
@@ -239,14 +237,14 @@ for col in columns:
     result_tree.heading(col, text=col)
     result_tree.column(col, width=100)
 
-result_tree.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+result_tree.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
 # Buttons to visualize CCS vs m/z and CCS vs Retention Time
 ccs_vs_mz_button = tk.Button(window, text="Visualize CCS vs m/z", state=tk.DISABLED, command=lambda: visualize_ccs_vs_mz(ccs_vs_mz_button.result_df))
-ccs_vs_mz_button.grid(row=5, column=0, padx=10, pady=10)
+ccs_vs_mz_button.grid(row=6, column=0, padx=10, pady=10)
 
 ccs_vs_rt_button = tk.Button(window, text="Visualize CCS vs Retention Time", state=tk.DISABLED, command=lambda: visualize_ccs_vs_rt(ccs_vs_rt_button.result_df))
-ccs_vs_rt_button.grid(row=5, column=2, padx=10, pady=10)
+ccs_vs_rt_button.grid(row=6, column=2, padx=10, pady=10)
 
 # Start the GUI event loop
 window.mainloop()
