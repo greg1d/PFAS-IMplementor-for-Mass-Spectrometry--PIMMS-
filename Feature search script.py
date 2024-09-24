@@ -139,11 +139,21 @@ def visualize_ccs_vs_rt(result_df):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
         return
+    
+    # Create a figure and axes
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Plot the Gaussian KDE overlay on the same axes
+    sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Blues', fill=True, alpha=0.5)
 
-    fig, ax = plt.subplots()
-    scatter = ax.scatter(result_df['Retention Time'], result_df['CCS'], c=result_df['Intensity'], cmap='viridis', picker=True)
+    # Overlay the scatter plot on the same axes
+    scatter = ax.scatter(result_df['Retention Time'], result_df['CCS'], c=result_df['Intensity'], cmap='viridis', picker=True, s = 10)
+    
+    # Add a color bar to indicate intensity
     fig.colorbar(scatter, label='Intensity')
-    ax.set_title('CCS vs Retention Time')
+    
+    # Set titles and labels
+    ax.set_title('CCS vs Retention Time with Gaussian Distribution')
     ax.set_xlabel('Retention Time')
     ax.set_ylabel('CCS')
 
