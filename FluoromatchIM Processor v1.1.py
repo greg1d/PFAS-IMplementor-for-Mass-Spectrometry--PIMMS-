@@ -212,7 +212,6 @@ for file_path in csv_files:
     # Return the filtered DataFrame with only the indices that were not discarded
         return df.loc[list(indices_to_keep)].reset_index(drop=True)
 
-
     def adducts_and_n_mers(df):
     # Sort DataFrame by m/z and reset index
         df = df.sort_values(by='m/z').reset_index(drop=True)
