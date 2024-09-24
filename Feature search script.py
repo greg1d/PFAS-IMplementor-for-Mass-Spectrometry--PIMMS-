@@ -9,6 +9,7 @@ import seaborn as sns
 import numpy as np
 from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
+from functools import partial
 
 # Define the directory containing the Excel files
 directory_path = r'F:\Twins Project (2.24-)\Non-target work\All Features Master 2'
@@ -36,6 +37,11 @@ def toggle_selector(event):
             print('RectangleSelector activated.')
             toggle_selector.RS.set_active(True)
 
+def reset_zoom(event, ax, original_xlim, original_ylim):
+    if event.key == 'r':
+        ax.set_xlim(original_xlim)
+        ax.set_ylim(original_ylim)
+        plt.draw()
 
 # Function to perform the search with ppm error for m/z and Name_or_Class search
 def search_feature(name_or_class=None, mz_value=None, ppm_error=10, sheet_options=None, result_tree=None):
@@ -164,8 +170,11 @@ def visualize_ccs_vs_rt(result_df):
 
     # Plot the Gaussian KDE overlay on the same axes
     sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=False, alpha=1)
-    ax.set_xlim(result_df['Retention Time'].min() - 0.1, result_df['Retention Time'].max() + 0.1)
-    ax.set_ylim(result_df['CCS'].min() - 0.1, result_df['CCS'].max() + 0.1)
+    global original_xlim, original_ylim
+    original_xlim = (result_df['Retention Time'].min() - 0.1, result_df['Retention Time'].max() + 0.1)
+    original_ylim = (result_df['CCS'].min() - 0.1, result_df['CCS'].max() + 0.1)
+    ax.set_xlim(original_xlim)
+    ax.set_ylim(original_ylim)
     # Add a color bar to indicate intensity
     fig.colorbar(ax.collections[0], label='Intensity')
 
@@ -211,6 +220,7 @@ def visualize_ccs_vs_rt(result_df):
                                            interactive=True)
     
     fig.canvas.mpl_connect('key_press_event', toggle_selector)
+    fig.canvas.mpl_connect('key_press_event', lambda event: reset_zoom(event, ax, original_xlim, original_ylim))
 
     plt.tight_layout()
     plt.show()
