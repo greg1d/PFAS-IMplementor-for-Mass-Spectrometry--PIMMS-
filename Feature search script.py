@@ -106,6 +106,35 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=10, sheet_option
         messagebox.showinfo("No Matches", "No matches found.")
         return None
 
+# Function to visualize CCS vs m/z
+def visualize_ccs_vs_mz(result_df):
+    if result_df is None or result_df.empty:
+        messagebox.showwarning("No Data", "No data available to visualize.")
+        return
+
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(result_df['m/z'], result_df['CCS'], c=result_df['Intensity'], cmap='flare', picker=True)
+    fig.colorbar(scatter, label='Intensity')
+    ax.set_title('CCS vs m/z')
+    ax.set_xlabel('m/z')
+    ax.set_ylabel('CCS')
+
+    # Interactive click function to show point data
+    def onpick(event):
+        ind = event.ind
+        points = result_df.iloc[ind]
+        for _, point in points.iterrows():
+            info = (f"File: {point['File']}\n"
+                    f"Retention Time: {point['Retention Time']}\n"
+                    f"CCS: {point['CCS']}\n"
+                    f"m/z: {point['m/z']}\n"
+                    f"Intensity: {point['Intensity']}")
+        messagebox.showinfo("Selected Point Info", info)
+
+    fig.canvas.mpl_connect('pick_event', onpick)
+    plt.show()
+
+# Function to visualize CCS vs Retention Time
 def visualize_ccs_vs_rt(result_df):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
@@ -136,10 +165,10 @@ def visualize_ccs_vs_rt(result_df):
     # Add grey marker shapes to the legend (without plotting points again)
     for sheet_type, marker in marker_shapes.items():
         ax.scatter([], [], label=sheet_type, marker=marker, color='gray')
-    
-    # Position the legend outside the plot to avoid overlapping with points
-    ax.legend(loc='upper left')
 
+    # Position the legend horizontally within the plot's width
+    ax.legend(loc='upper center', ncol=2, fancybox=True, shadow=False, mode='expand',
+              fontsize=8, handletextpad=0.3)  
     # Interactive click function to show point data
     def onpick(event):
         ind = event.ind
