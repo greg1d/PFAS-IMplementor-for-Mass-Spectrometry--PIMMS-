@@ -4,6 +4,10 @@ import glob
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from matplotlib.backend_bases import MouseButton
 
 # Define the directory containing the Excel files
 directory_path = r'F:\Twins Project (2.24-)\Non-target work\All Features Master 2'
@@ -102,6 +106,63 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=10, sheet_option
         messagebox.showinfo("No Matches", "No matches found.")
         return None
 
+# Function to visualize CCS vs m/z
+def visualize_ccs_vs_mz(result_df):
+    if result_df is None or result_df.empty:
+        messagebox.showwarning("No Data", "No data available to visualize.")
+        return
+
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(result_df['m/z'], result_df['CCS'], c=result_df['Intensity'], cmap='viridis', picker=True)
+    fig.colorbar(scatter, label='Intensity')
+    ax.set_title('CCS vs m/z')
+    ax.set_xlabel('m/z')
+    ax.set_ylabel('CCS')
+
+    # Interactive click function to show point data
+    def onpick(event):
+        ind = event.ind
+        points = result_df.iloc[ind]
+        for _, point in points.iterrows():
+            info = (f"File: {point['File']}\n"
+                    f"Retention Time: {point['Retention Time']}\n"
+                    f"CCS: {point['CCS']}\n"
+                    f"m/z: {point['m/z']}\n"
+                    f"Intensity: {point['Intensity']}")
+        messagebox.showinfo("Selected Point Info", info)
+
+    fig.canvas.mpl_connect('pick_event', onpick)
+    plt.show()
+
+# Function to visualize CCS vs Retention Time
+def visualize_ccs_vs_rt(result_df):
+    if result_df is None or result_df.empty:
+        messagebox.showwarning("No Data", "No data available to visualize.")
+        return
+
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(result_df['Retention Time'], result_df['CCS'], c=result_df['Intensity'], cmap='viridis', picker=True)
+    fig.colorbar(scatter, label='Intensity')
+    ax.set_title('CCS vs Retention Time')
+    ax.set_xlabel('Retention Time')
+    ax.set_ylabel('CCS')
+
+    # Interactive click function to show point data
+    def onpick(event):
+        ind = event.ind
+        points = result_df.iloc[ind]
+        for _, point in points.iterrows():
+            info = (f"File: {point['File']}\n"
+                    f"Retention Time: {point['Retention Time']}\n"
+                    f"CCS: {point['CCS']}\n"
+                    f"m/z: {point['m/z']}\n"
+                    f"Intensity: {point['Intensity']}")
+            print(info)
+            messagebox.showinfo("Selected Point Info", info)
+
+    fig.canvas.mpl_connect('pick_event', onpick)
+    plt.show()
+
 # Function to initiate a search using the GUI inputs
 def search_button_click():
     name_or_class = name_class_entry.get()
@@ -125,7 +186,15 @@ def search_button_click():
         messagebox.showerror("Error", "Please select at least one sheet to search")
         return
 
-    search_feature(name_or_class, mz_value, sheet_options=sheet_options, result_tree=result_tree)
+    result_df = search_feature(name_or_class, mz_value, sheet_options=sheet_options, result_tree=result_tree)
+    
+    # Enable visualization buttons once search is performed
+    if result_df is not None:
+        ccs_vs_mz_button.config(state=tk.NORMAL)
+        ccs_vs_mz_button.result_df = result_df
+
+        ccs_vs_rt_button.config(state=tk.NORMAL)
+        ccs_vs_rt_button.result_df = result_df
 
 # Create the GUI window
 window = tk.Tk()
@@ -161,6 +230,13 @@ for col in columns:
     result_tree.column(col, width=100)
 
 result_tree.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+
+# Buttons to visualize CCS vs m/z and CCS vs Retention Time
+ccs_vs_mz_button = tk.Button(window, text="Visualize CCS vs m/z", state=tk.DISABLED, command=lambda: visualize_ccs_vs_mz(ccs_vs_mz_button.result_df))
+ccs_vs_mz_button.grid(row=5, column=0, padx=10, pady=10)
+
+ccs_vs_rt_button = tk.Button(window, text="Visualize CCS vs Retention Time", state=tk.DISABLED, command=lambda: visualize_ccs_vs_rt(ccs_vs_rt_button.result_df))
+ccs_vs_rt_button.grid(row=5, column=2, padx=10, pady=10)
 
 # Start the GUI event loop
 window.mainloop()
