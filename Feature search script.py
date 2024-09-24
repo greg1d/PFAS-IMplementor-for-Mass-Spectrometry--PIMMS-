@@ -6,10 +6,8 @@ from tkinter import filedialog, messagebox
 from tkinter import ttk
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
-from matplotlib.backend_bases import MouseButton
 from matplotlib.widgets import RectangleSelector
-from functools import partial
+from matplotlib.ticker import FormatStrFormatter
 
 # Define the directory containing the Excel files
 directory_path = r'F:\Twins Project (2.24-)\Non-target work\All Features Master 2'
@@ -203,12 +201,34 @@ def visualize_ccs_vs_rt(result_df):
                           f"Intensity: {point['Intensity']}\n\n")
             info += point_info
         
-        # Display all selected points in one dialog box
+        # Display all selected points in a text box for easy copying
         if info:
-            messagebox.showinfo("Selected Points Info", info)
+            dialog_box(info)
+
+    # Function to create a dialog box with copyable content
+    def dialog_box(info):
+        top = tk.Toplevel()
+        top.title("Selected Points Info")
+        top.geometry("800x400")  # Set the width and height as desired
+
+        # Create a scrollable text widget
+        text_box = tk.Text(top, wrap='word', height=15, width=60)
+        text_box.insert('1.0', info)  # Insert the info into the text widget
+        text_box.config(state=tk.NORMAL)  # Set to NORMAL to allow copying
+        text_box.pack(expand=True, fill='both')
+
+        # Add a scrollbar
+        scrollbar = tk.Scrollbar(text_box, command=text_box.yview)
+        scrollbar.pack(side='right', fill='y')
+        text_box.config(yscrollcommand=scrollbar.set)
+
+        # Add a close button
+        close_button = tk.Button(top, text="Close", command=top.destroy)
+        close_button.pack(pady=5)
 
     # Connect the pick event for selecting points
     fig.canvas.mpl_connect('pick_event', onpick)
+
 
     def line_select_callback(event1, event2):
         x1, y1 = event1.xdata, event1.ydata
