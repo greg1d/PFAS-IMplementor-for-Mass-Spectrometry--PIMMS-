@@ -102,9 +102,9 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=None, sheet_opti
         
         # Set the plot title based on the search filter
         if name_or_class:
-            search_filter = f"Name/Class = {name_or_class.title()}"
+            search_filter = f"for '{name_or_class}'"
         elif mz_value is not None:  # Ensure mz_value is not None
-            search_filter = f"m/z = {mz_value}"
+            search_filter = f"at {mz_value}"
         else:
             search_filter = "No Filter"
 
@@ -185,7 +185,7 @@ def visualize_ccs_vs_rt(result_df, search_filter="No Filter"):
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
     font_properties = {'family': 'Arial', 'size': 10, 'weight': 'bold'}
-    ax.set_title(f"CCS vs Retention Time with {search_filter}", fontdict={'fontsize': 10, 'fontweight': 'bold', 'fontname': 'Arial'})
+    ax.set_title(f"CCS vs Retention Time {search_filter}", fontdict={'fontsize': 10, 'fontweight': 'bold', 'fontname': 'Arial'})
 
 
     # Add a color bar to indicate intensity
