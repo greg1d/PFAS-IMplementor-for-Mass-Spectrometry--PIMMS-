@@ -100,6 +100,17 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=None, sheet_opti
         result_df = pd.DataFrame(results)
         result_df = result_df.sort_values(by='Intensity', ascending=False)
         
+        # Set the plot title based on the search filter
+        if name_or_class:
+            search_filter = f"Name/Class = {name_or_class.title()}"
+        elif mz_value is not None:  # Ensure mz_value is not None
+            search_filter = f"m/z = {mz_value}"
+        else:
+            search_filter = "No Filter"
+
+        # Function to visualize CCS vs Retention Time with the generated filter title
+        visualize_ccs_vs_rt(result_df, search_filter=search_filter)
+        
         # Display the results in the GUI
         if result_tree:
             for row in result_tree.get_children():
@@ -150,7 +161,7 @@ def visualize_ccs_vs_mz(result_df):
     plt.show()
 
 # Function to visualize CCS vs Retention Time
-def visualize_ccs_vs_rt(result_df, name_or_class=None, mz_value=None):
+def visualize_ccs_vs_rt(result_df, search_filter="No Filter"):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
         return
@@ -174,14 +185,8 @@ def visualize_ccs_vs_rt(result_df, name_or_class=None, mz_value=None):
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
     font_properties = {'family': 'Arial', 'size': 10, 'weight': 'bold'}
-    
-    if name_or_class and name_or_class.strip():  # Check if name_or_class is not empty or just spaces
-        search_filter = name_or_class.title()
-    elif mz_value is not None:  # Ensure mz_value is not None
-        search_filter = f"m/z = {mz_value}"
-    else:
-        search_filter = "No Filter"
     ax.set_title(f"CCS vs Retention Time with {search_filter}", fontdict={'fontsize': 10, 'fontweight': 'bold', 'fontname': 'Arial'})
+
 
     # Add a color bar to indicate intensity
     fig.colorbar(ax.collections[0], label='Intensity')
