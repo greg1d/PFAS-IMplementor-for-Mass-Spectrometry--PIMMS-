@@ -108,9 +108,6 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=None, sheet_opti
         else:
             search_filter = "No Filter"
 
-        # Function to visualize CCS vs Retention Time with the generated filter title
-        visualize_ccs_vs_rt(result_df, search_filter=search_filter)
-        
         # Display the results in the GUI
         if result_tree:
             for row in result_tree.get_children():
@@ -185,8 +182,16 @@ def visualize_ccs_vs_rt(result_df, search_filter="No Filter"):
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
     font_properties = {'family': 'Arial', 'size': 10, 'weight': 'bold'}
-    ax.set_title(f"CCS vs Retention Time {search_filter}", fontdict={'fontsize': 10, 'fontweight': 'bold', 'fontname': 'Arial'})
-
+    if name_class_entry.get():  # If name_class_entry is not empty
+        title = f"for '{name_class_entry.get()}'"
+    elif mz_entry.get():  # If name_class_entry is empty but mz_entry has a value
+        ppm_tolerance = int(ppm_entry.get())  # User-defined PPM error
+        title = f"at {mz_entry.get()} with PPM tolerance {ppm_tolerance}"
+    else:
+        title = "No Filter"
+    
+# Set the plot title using the defined logic
+    ax.set_title(f"CCS vs Retention Time {title}", fontdict={'fontsize': 10, 'fontweight': 'bold', 'fontname': 'Arial'})
 
     # Add a color bar to indicate intensity
     fig.colorbar(ax.collections[0], label='Intensity')
