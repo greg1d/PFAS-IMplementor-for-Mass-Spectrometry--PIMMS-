@@ -175,7 +175,7 @@ def visualize_ccs_vs_rt(result_df):
     original_ylim = (result_df['CCS'].min() - 3, result_df['CCS'].max() + 3)
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
-    def custom_format(x, pos):
+    def custom_format(x):
     # Check if the number has decimal places
         if int(x) == x:  # If the number is an integer
             return f'{int(x)}'  # Display as an integer with no decimals
