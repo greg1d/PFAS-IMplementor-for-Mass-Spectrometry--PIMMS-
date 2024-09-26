@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.widgets import RectangleSelector
 from matplotlib.ticker import FormatStrFormatter
+import matplotlib.ticker as mtick
 
 # Define the directory containing the Excel files
 directory_path = r'F:\Twins Project (2.24-)\Non-target work\All Features Master 2'
@@ -100,13 +101,6 @@ def search_feature(name_or_class=None, mz_value=None, ppm_error=None, sheet_opti
         result_df = pd.DataFrame(results)
         result_df = result_df.sort_values(by='Intensity', ascending=False)
         
-        # Set the plot title based on the search filter
-        if name_or_class:
-            search_filter = f"for '{name_or_class}'"
-        elif mz_value is not None:  # Ensure mz_value is not None
-            search_filter = f"at {mz_value}"
-        else:
-            search_filter = "No Filter"
 
         # Display the results in the GUI
         if result_tree:
@@ -158,7 +152,7 @@ def visualize_ccs_vs_mz(result_df):
     plt.show()
 
 # Function to visualize CCS vs Retention Time
-def visualize_ccs_vs_rt(result_df, search_filter="No Filter"):
+def visualize_ccs_vs_rt(result_df):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
         return
@@ -172,21 +166,35 @@ def visualize_ccs_vs_rt(result_df, search_filter="No Filter"):
     # Plot each category with different marker shapes
     for sheet_type, marker in marker_shapes.items():
         subset = result_df[result_df['Sheet'] == sheet_type]
-        ax.scatter(subset['Retention Time'], subset['CCS'], c=subset['Intensity'], cmap='flare', marker=marker, picker=True, s=25)
+        ax.scatter(subset['Retention Time'], subset['CCS'], c=subset['Intensity'], cmap='flare', marker=marker, picker=True, s=25, zorder=2)
 
     # Plot the Gaussian KDE overlay on the same axes
-    sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=False, alpha=1)
+    sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=True, alpha=1, zorder=1)
     global original_xlim, original_ylim
     original_xlim = (result_df['Retention Time'].min() - 0.2, result_df['Retention Time'].max() + 0.2)
     original_ylim = (result_df['CCS'].min() - 3, result_df['CCS'].max() + 3)
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
+    def custom_format(x, pos):
+    # Check if the number has decimal places
+        if int(x) == x:  # If the number is an integer
+            return f'{int(x)}'  # Display as an integer with no decimals
+        elif x * 10 == int(x * 10):  # If the number has 1 decimal place
+            return f'{x:.1f}'  # Display with 1 decimal place
+        elif x * 100 == int(x * 100):  # If the number has 2 decimal places
+            return f'{x:.2f}'  # Display with 2 decimal places
+        elif x * 1000 == int(x * 1000):  # If the number has 3 decimal places
+            return f'{x:.3f}'  # Display with 3 decimal places
+        else:  # For numbers with more decimal places
+            return f'{x:.4f}'  # Display with 4 decimal places
+    ax.yaxis.set_major_formatter(mtick.FuncFormatter(custom_format))
+    ax.xaxis.set_major_formatter(mtick.FuncFormatter(custom_format))
     font_properties = {'family': 'Arial', 'size': 10, 'weight': 'bold'}
     if name_class_entry.get():  # If name_class_entry is not empty
         title = f"for '{name_class_entry.get()}'"
     elif mz_entry.get():  # If name_class_entry is empty but mz_entry has a value
         ppm_tolerance = int(ppm_entry.get())  # User-defined PPM error
-        title = f"at {mz_entry.get()} with PPM tolerance {ppm_tolerance}"
+        title = f"at {mz_entry.get()} with {ppm_tolerance} PPM"
     else:
         title = "No Filter"
     
@@ -197,8 +205,8 @@ def visualize_ccs_vs_rt(result_df, search_filter="No Filter"):
     fig.colorbar(ax.collections[0], label='Intensity')
 
     # Set titles and labels
-    ax.set_xlabel('Retention Time', fontdict=font_properties)
-    ax.set_ylabel('CCS', fontdict=font_properties)
+    ax.set_xlabel('Retention Time (min)', fontdict=font_properties)
+    ax.set_ylabel(r'$\mathbf{CCS\ (\mathrm{\AA^2})}$', fontdict=font_properties)
 
     # Adjust tick label size and font
     ax.tick_params(axis='both', which='major', labelsize=10)
