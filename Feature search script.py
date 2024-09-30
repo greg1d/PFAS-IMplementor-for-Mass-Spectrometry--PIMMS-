@@ -260,6 +260,7 @@ def visualize_ccs_vs_rt(result_df):
     if result_df is None or result_df.empty:
         messagebox.showwarning("No Data", "No data available to visualize.")
         return
+    plotted_df = pd.DataFrame(columns=result_df.columns)
     
     # Create a figure and axes
     fig, ax = plt.subplots(figsize=(5, 5))
@@ -271,6 +272,7 @@ def visualize_ccs_vs_rt(result_df):
     for sheet_type, marker in marker_shapes.items():
         subset = result_df[result_df['Sheet'] == sheet_type]
         ax.scatter(subset['Retention Time'], subset['CCS'], c=subset['Intensity'], cmap='flare', marker=marker, picker=True, s=25, zorder=2)
+        plotted_df = pd.concat([plotted_df, subset], ignore_index=True)
 
     # Plot the Gaussian KDE overlay on the same axes
     sns.kdeplot(x=result_df['Retention Time'], y=result_df['CCS'], ax=ax, cmap='Greys', fill=True, alpha=1, zorder=1)
@@ -327,10 +329,17 @@ def visualize_ccs_vs_rt(result_df):
               fontsize=8, handletextpad=0.3)  
     # Interactive click function to show point data
     def onpick(event):
+        thisline = event.artist
+        xdata = thisline.get_xdata()
+        ydata = thisline.get_ydata()
+        points = tuple(zip(xdata[ind], ydata[ind]))
+
         ind = event.ind
-        selected_points = result_df.iloc[ind]
+        selected_points = plotted_df.iloc[ind]  # Now referencing the combined plotted_df DataFrame
+        print(points)  # Debugging the selected indices
+
         info = ""
-        for _, point in selected_points.iterrows():
+        for _, point in selected_points.irterrows():
             point_info = (f"File: {point['File']}\n"
                           f"Retention Time: {point['Retention Time']}\n"
                           f"CCS: {point['CCS']}\n"
