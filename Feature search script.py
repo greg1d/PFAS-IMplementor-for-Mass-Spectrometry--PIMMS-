@@ -329,14 +329,9 @@ def visualize_ccs_vs_rt(result_df):
               fontsize=8, handletextpad=0.3)  
     # Interactive click function to show point data
     def onpick(event):
-        thisline = event.artist
-        xdata = thisline.get_xdata()
-        ydata = thisline.get_ydata()
-        points = tuple(zip(xdata[ind], ydata[ind]))
-
         ind = event.ind
         selected_points = plotted_df.iloc[ind]  # Now referencing the combined plotted_df DataFrame
-        print(points)  # Debugging the selected indices
+        print(ind)  # Debugging the selected indices
 
         info = ""
         for _, point in selected_points.irterrows():
