@@ -5,7 +5,7 @@ from sklearn.metrics import confusion_matrix
 
 # File paths
 true_data_path = r"F:\Twins Project (2.24-)\Non-target work\Model development\9Cl-PF3ONS (Skyline).xlsx"
-results_folder = r"F:\Twins Project (2.24-)\Non-target work\Model development\results"
+results_folder = r"F:\Twins Project (2.24-)\Non-target work\Model development\Results\Results data folder"
 
 # Create an empty DataFrame to store results
 result_data = []
@@ -56,12 +56,12 @@ true_data_df['Sample'] = true_data_df['Sample'].apply(extract_sample_number)
 # Merge the true data with the model result data on the sample number
 merged_df = pd.merge(true_data_df[['Sample', 'Presence']], result_df, on='Sample', how='left')
 
-# Fill NaN values in '9Cl-PF3ONS_Present' (for missing predictions) with 0
-merged_df['9Cl-PF3ONS_Present'].fillna(0, inplace=True)
+# Drop rows where there is no entry from the results folder (NaN in '9Cl-PF3ONS_Present')
+merged_df.dropna(subset=['9Cl-PF3ONS_Present'], inplace=True)
 
-# Calculate confusion matrix
-y_true = merged_df['Presence']
-y_pred = merged_df['9Cl-PF3ONS_Present']
+# Calculate confusion matrix using only the valid data
+y_true = merged_df['Presence'].astype(int)
+y_pred = merged_df['9Cl-PF3ONS_Present'].astype(int)
 tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
 # Print the confusion matrix and Type I / Type II errors

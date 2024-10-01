@@ -4,7 +4,7 @@ import glob
 import time
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
-directory_path = r'F:\Twins Project (2.24-)\Non-target work\2019-2020 2'
+directory_path = r'F:\Twins Project (2.24-)\Non-target work\Model development\Results\Optimization Data set'
 
 # Use glob to find all CSV files in the directory with "_FIN" in their name - All the fluoromatch files will end in _FIN if you use the code edit I used
 csv_files = glob.glob(os.path.join(directory_path, '*_FIN*.csv'))
@@ -346,7 +346,7 @@ for file_path in csv_files:
 
     # Define the output path for the filtered data
     filtered_output_path = os.path.join(directory_path, f'{header_name}_fluoromatch_processed.xlsx')
-    directory_path2 = r'F:\Twins Project (2.24-)\Non-target work\All Features Master'
+    directory_path2 = r'F:\Twins Project (2.24-)\Non-target work\Model development\Results'
     filtered_output_path2 = os.path.join(directory_path2, f'{header_name}_fluoromatch_processed.xlsx')
 
     # Save the filtered data to a new Excel file with three sheets: likely, tentative_with_match, tentative_without_match
