@@ -5,7 +5,7 @@ from sklearn.metrics import confusion_matrix
 
 # File paths
 true_data_path = r"F:\Twins Project (2.24-)\Non-target work\Model development\9Cl-PF3ONS (Skyline).xlsx"
-results_folder = r"F:\Twins Project (2.24-)\Non-target work\Model development\Results\Results data folder"
+results_folder = r"F:\Twins Project (2.24-)\Non-target work\Model development\Results\Full Data Set"
 
 # Create an empty DataFrame to store results
 result_data = []
