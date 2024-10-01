@@ -9,6 +9,11 @@ results_folder = r"F:\Twins Project (2.24-)\Non-target work\Model development\re
 # Create an empty DataFrame to store results
 result_data = []
 
+# Function to extract only the numeric part of the sample names (e.g., "7292" from "303 B4 7292")
+def extract_sample_number(sample_name):
+    match = re.search(r'\d+$', sample_name)
+    return match.group(0) if match else None
+
 # Function to extract only the numeric part of the filename
 def extract_numeric_part(filename):
     match = re.search(r'\d+', filename)
@@ -36,13 +41,22 @@ for root, dirs, files in os.walk(results_folder):
             result = check_9Cl_PF3ONS_in_file(file_path)
             if result is not None:
                 numeric_part = extract_numeric_part(file)
-                result_data.append({"File": numeric_part, "9Cl-PF3ONS_Present": result})
+                result_data.append({"Sample": numeric_part, "9Cl-PF3ONS_Present": result})
 
 # Convert results to a DataFrame
 result_df = pd.DataFrame(result_data)
 
-# Save the results to an Excel file
-output_path = r"F:\Twins Project (2.24-)\Non-target work\Model development\9Cl_PF3ONS_results.xlsx"
-result_df.to_excel(output_path, index=False)
+# Load the true data (Skyline) file
+true_data_df = pd.read_excel(true_data_path)
 
-print(f"Results saved to {output_path}")
+# Extract sample number from the "Sample Name" column in the true data
+true_data_df['Sample'] = true_data_df['Sample'].apply(extract_sample_number)
+
+# Merge the true data with the model result data on the sample number
+merged_df = pd.merge(true_data_df[['Sample', 'Presence']], result_df, on='Sample', how='left')
+
+# Save the merged results to an Excel file
+output_path = r"F:\Twins Project (2.24-)\Non-target work\Model development\9Cl_PF3ONS_comparison_results.xlsx"
+merged_df.to_excel(output_path, index=False)
+
+print(f"Comparison results saved to {output_path}")
