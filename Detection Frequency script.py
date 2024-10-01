@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
 # Define the directory containing the Excel files
-directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004'
+directory_path = r'F:\Twins Project (2.24-)\Non-target work\2021'
 
 # Find all Excel files in the directory that end with "fluoromatch_processed.xlsx"
 excel_files = glob.glob(os.path.join(directory_path, '*fluoromatch_processed.xlsx'))
@@ -45,7 +45,7 @@ for file_path in excel_files:
     unique_chemicals_in_file = set()
     
     try:
-        df = pd.read_excel(file_path, sheet_name='Tentative (EPA match)')
+        df = pd.read_excel(file_path, sheet_name='Likely')
         
         if 'Name_or_Class' in df.columns and 'CCS' in df.columns and 'Retention Time' in df.columns:
             df.dropna(subset=['Name_or_Class']).apply(lambda row: process_chemicals(row['Name_or_Class'], row['CCS'], row['Retention Time'], file_name, unique_chemicals_in_file), axis=1)
@@ -86,7 +86,7 @@ for col in ccs_cols + rt_cols:
     z_scores[col] = (col_values - col_mean) / col_std
 
 # Define the output path for the results
-output_path = os.path.join(directory_path, 'chemical_detection_summary_with_ccs_rt_and_frequency.xlsx')
+output_path = os.path.join(directory_path, 'Likely chemical_detection_summary_with_ccs_rt_and_frequency.xlsx')
 
 # Save the results to a new Excel file
 final_df.to_excel(output_path, index=False)
