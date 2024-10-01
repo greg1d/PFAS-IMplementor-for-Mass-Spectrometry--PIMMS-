@@ -4,7 +4,7 @@ import glob
 import time
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
-directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004 test'
+directory_path = r'F:\Twins Project (2.24-)\Non-target work\2019-2020 2'
 
 # Use glob to find all CSV files in the directory with "_FIN" in their name - All the fluoromatch files will end in _FIN if you use the code edit I used
 csv_files = glob.glob(os.path.join(directory_path, '*_FIN*.csv'))
@@ -183,7 +183,7 @@ for file_path in csv_files:
         for i in range(len(df)):
             if i not in indices_to_keep:
                 continue  # Skip if the row has already been excluded
-            if df.loc[i, 'Score'] in ['A', 'A-', 'A+', 'E']:
+            if df.loc[i, 'Score'] in ['E']:
                 continue  # Skip this row if the score is 'E or A'
             mz1 = df.loc[i, 'm/z']
             RT1 = df.loc[i, 'Retention Time']

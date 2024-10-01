@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
 # Define the directory containing the Excel files
-directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004 test'
+directory_path = r'F:\Twins Project (2.24-)\Non-target work\2003-2004'
 
 # Find all Excel files in the directory that end with "fluoromatch_processed.xlsx"
 excel_files = glob.glob(os.path.join(directory_path, '*fluoromatch_processed.xlsx'))
