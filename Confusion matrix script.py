@@ -59,9 +59,12 @@ merged_df = pd.merge(true_data_df[['Sample', 'Presence']], result_df, on='Sample
 # Drop rows where there is no entry from the results folder (NaN in '9Cl-PF3ONS_Present')
 merged_df.dropna(subset=['9Cl-PF3ONS_Present'], inplace=True)
 
+# Rename columns for better clarity
+merged_df.rename(columns={'Presence': 'Skyline', '9Cl-PF3ONS_Present': 'Model'}, inplace=True)
+
 # Calculate confusion matrix using only the valid data
-y_true = merged_df['Presence'].astype(int)
-y_pred = merged_df['9Cl-PF3ONS_Present'].astype(int)
+y_true = merged_df['Skyline'].astype(int)
+y_pred = merged_df['Model'].astype(int)
 tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
 # Print the confusion matrix and Type I / Type II errors

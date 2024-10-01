@@ -257,7 +257,6 @@ for file_path in csv_files:
 
     # Apply the removal of reference rows
     filtered_df = remove_reference_rows(filtered_df, reference_mz, reference_ccs)
-    filtered_df = neutral_losses(filtered_df, neutral_loss_masses)
     filtered_df = adducts_and_n_mers(filtered_df)
 
 
@@ -346,7 +345,7 @@ for file_path in csv_files:
 
     # Define the output path for the filtered data
     filtered_output_path = os.path.join(directory_path, f'{header_name}_fluoromatch_processed.xlsx')
-    directory_path2 = r'F:\Twins Project (2.24-)\Non-target work\Model development\Results'
+    directory_path2 = r'F:\Twins Project (2.24-)\Non-target work\Model development\Results\Results data folder'
     filtered_output_path2 = os.path.join(directory_path2, f'{header_name}_fluoromatch_processed.xlsx')
 
     # Save the filtered data to a new Excel file with three sheets: likely, tentative_with_match, tentative_without_match
