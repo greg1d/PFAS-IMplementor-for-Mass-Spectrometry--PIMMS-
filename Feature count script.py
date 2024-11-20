@@ -1,8 +1,11 @@
 import os
+
 import pandas as pd
 
 # Directory containing the fluoromatch processed CSV files
-directory_path = r'F:\Twins Project (2.24-)\Non-target work\Processed Data\New method\2003-2004'
+directory_path = (
+    r"F:\Twins Project (2.24-)\Non-target work\Processed Data\New method\2003-2004"
+)
 
 # Initialize an empty list to store summary data
 summary_data = []
@@ -17,9 +20,11 @@ for file in os.listdir(directory_path):
         xls = pd.ExcelFile(file_path)
 
         # Read the Likely, Tentative (EPA library match), and Tentative (No library match) sheets
-        likely_df = pd.read_excel(xls, sheet_name='Likely')
-        tentative_df_with_match = pd.read_excel(xls, sheet_name='Tentative (EPA match)')
-        tentative_df_without_match = pd.read_excel(xls, sheet_name='Tentative (No EPA match)')
+        likely_df = pd.read_excel(xls, sheet_name="Likely")
+        tentative_df_with_match = pd.read_excel(xls, sheet_name="Tentative (EPA match)")
+        tentative_df_without_match = pd.read_excel(
+            xls, sheet_name="Tentative (No EPA match)"
+        )
 
         # Count the number of detections in each sheet
         likely_count = likely_df.shape[0]
@@ -33,18 +38,20 @@ for file in os.listdir(directory_path):
         print(f"Tentative (No EPA match): {tentative_without_match_count}")
 
         # Append the classification counts to the summary_data list
-        summary_data.append({
-            'Header': header_name,
-            'Likely': likely_count,
-            'Tentative (EPA match)': tentative_with_match_count,
-            'Tentative (No EPA match)': tentative_without_match_count
-        })
+        summary_data.append(
+            {
+                "Header": header_name,
+                "Likely": likely_count,
+                "Tentative (EPA match)": tentative_with_match_count,
+                "Tentative (No EPA match)": tentative_without_match_count,
+            }
+        )
 
 # Convert the summary_data list into a DataFrame
 summary_df = pd.DataFrame(summary_data)
 
 # Export the summary DataFrame to a CSV file
-output_path = os.path.join(directory_path, 'classification_summary.csv')
+output_path = os.path.join(directory_path, "classification_summary.csv")
 summary_df.to_csv(output_path, index=False)
 
 print(f"Classification summary saved to {output_path}")

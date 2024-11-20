@@ -1,6 +1,7 @@
 import os
-import pandas as pd
 import shutil
+
+import pandas as pd
 
 # File paths
 organization_sheet = r"F:\Twins Project (2.24-)\Non-target work\Year organizing script\Year catagorization for samples.xlsx"
@@ -12,14 +13,14 @@ year_data = pd.read_excel(organization_sheet)
 
 # Create folders based on year and copy the files
 for _, row in year_data.iterrows():
-    sample_name = str(row['Sample'])  # Sample number
-    year = str(row['Visit Date Year'])  # Year
-    
+    sample_name = str(row["Sample"])  # Sample number
+    year = str(row["Visit Date Year"])  # Year
+
     # Create a folder for each year (e.g., 2005, 2006)
     year_folder = os.path.join(sorted_folder_base, year)
     if not os.path.exists(year_folder):
         os.makedirs(year_folder)
-    
+
     # Find the corresponding file in the unsorted folder
     for file in os.listdir(unsorted_folder):
         # Ensure exact matching by checking if the filename starts with the sample number followed by a delimiter
