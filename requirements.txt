@@ -1,0 +1,13 @@
+pandas
+matplotlib
+seaborn
+tkinter
+glob
+os
+numpy
+sys
+subprocess
+openpyxl
+sklearn
+time
+shutil
