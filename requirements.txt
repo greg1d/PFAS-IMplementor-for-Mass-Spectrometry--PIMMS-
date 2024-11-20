@@ -8,6 +8,5 @@ numpy
 sys
 subprocess
 openpyxl
-sklearn
 time
 shutil
