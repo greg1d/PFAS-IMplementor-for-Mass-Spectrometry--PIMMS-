@@ -5,7 +5,9 @@ import time
 import pandas as pd
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
-directory_path = r"F:\Twins Project (2.24-)\Non-target work\Processed Data\New method\2007-2008 with missing file"
+directory_path = (
+    r"F:\Twins Project (2.24-)\Non-target work\Model development\Results\Full Data Set"
+)
 
 # Use glob to find all CSV files in the directory with "_FIN" in their name - All the fluoromatch files will end in _FIN if you use the code edit I used
 csv_files = glob.glob(os.path.join(directory_path, "*_FIN*.csv"))
@@ -411,7 +413,7 @@ for file_path in csv_files:
     filtered_output_path = os.path.join(
         directory_path, f"{header_name}_fluoromatch_processed.xlsx"
     )
-    directory_path2 = r"F:\Twins Project (2.24-)\Non-target work\All Features Master"
+    directory_path2 = r"F:\Twins Project (2.24-)\Non-target work\Model development\Results\Results data folder"
     filtered_output_path2 = os.path.join(
         directory_path2, f"{header_name}_fluoromatch_processed.xlsx"
     )
