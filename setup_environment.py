@@ -1,12 +1,14 @@
 import subprocess
 import sys
 
+
 def install_with_pip(package):
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         return True
     except subprocess.CalledProcessError:
         return False
+
 
 def is_installed_with_pip(package):
     try:
@@ -15,10 +17,12 @@ def is_installed_with_pip(package):
     except ImportError:
         return False
 
+
 def install(package):
     if not install_with_pip(package):
         return False
     return True
+
 
 def check_and_install_packages(requirements_file):
     with open(requirements_file, "r") as file:
@@ -44,6 +48,7 @@ def check_and_install_packages(requirements_file):
         print("#" * 100)
         print("Nothing to add - you're all good")
         print("#" * 100)
+
 
 if __name__ == "__main__":
     requirements_file = "requirements.txt"
