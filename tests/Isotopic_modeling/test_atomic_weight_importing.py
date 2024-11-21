@@ -20,7 +20,7 @@ from Atomic_weight_importing import (
 )
 
 
-def test_atomic_weight_importing():
+def test_atomic_number_55():
     # Define the paths
     file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
     csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
@@ -30,20 +30,17 @@ def test_atomic_weight_importing():
     isotope_data = parse_isotope_data(data)
     isotope_data = add_elemental_symbol(isotope_data, csv_path)
 
-    # Check if the DataFrame is not empty
-    assert not isotope_data.empty, "The DataFrame is empty"
+    # Check if the relevant rows for Atomic Number 55 are present
+    relevant_rows = isotope_data[isotope_data["Atomic Number"] == 55]
+    assert not relevant_rows.empty, "No relevant rows found for Atomic Number 55"
 
-    # Check if the Elemental Symbol column is present
+    # Check if the Elemental Symbol for Atomic Number 55 is Cs
     assert (
-        "Elemental Symbol" in isotope_data.columns
-    ), "Elemental Symbol column is missing"
+        relevant_rows["Elemental Symbol"].iloc[0] == "Cs"
+    ), "Elemental Symbol for Atomic Number 55 is not Cs"
 
-    # Check if the relevant rows for Atomic Number 80 are present
-    relevant_rows = isotope_data[isotope_data["Atomic Number"] == 80]
-    assert not relevant_rows.empty, "No relevant rows found for Atomic Number 80"
-
-    # Print the relevant rows for Atomic Number 80
-    print("Relevant rows for Atomic Number 80:")
+    # Print the relevant rows for Atomic Number 55
+    print("Relevant rows for Atomic Number 55:")
     print(relevant_rows.to_string())
 
 

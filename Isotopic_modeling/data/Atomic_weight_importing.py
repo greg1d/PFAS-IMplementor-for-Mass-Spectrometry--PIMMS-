@@ -1,132 +1,104 @@
-"""
-# Citations
-
-- [DOI: 10.1351/PAC-REP-10-06-02](https://doi.org/10.1351/PAC-REP-10-06-02)
-- J. S. Coursey, D. J. Schwab, J. J. Tsai, and R. A. Dragoset
-- NIST Physical Measurement Laboratory
-- [IOP Science Article](https://iopscience.iop.org/article/10.1088/1674-1137/36/12/003)
-- [CIAAW Atomic Weights](https://www.ciaaw.org/atomic-weights.htm)
-"""
-
 import os
-import pandas as pd
-import re
+import sys
+import pytest
 
-
-def read_isotope_data(file_path):
-    """Read the isotope data from the given file path."""
-    with open(file_path, "r") as file:
-        data = file.read()
-    return data
-
-
-def parse_isotope_data(data):
-    """Parse the isotope data from the given string."""
-    # Define regex patterns for each field
-    patterns = {
-        "Atomic Number": re.compile(r"Atomic Number = (\d+)"),
-        "Atomic Symbol": re.compile(r"Atomic Symbol = (\w+)"),
-        "Mass Number": re.compile(r"Mass Number = (\d+)"),
-        "Relative Atomic Mass": re.compile(r"Relative Atomic Mass = ([\d.]+)"),
-        "Isotopic Composition": re.compile(r"Isotopic Composition = ([\d.]+)"),
-        "Standard Atomic Weight": re.compile(r"Standard Atomic Weight = ([\d.,\[\]]+)"),
-        "Notes": re.compile(r"Notes = (\w*)"),
-    }
-
-    # Initialize lists to store the parsed data
-    data_dict = {key: [] for key in patterns.keys()}
-
-    # Split the data into lines
-    lines = data.split("\n")
-
-    # Process the lines in chunks corresponding to each data point
-    chunk_size = 8  # Each data point is composed of 7 lines followed by a blank line
-    for i in range(0, len(lines), chunk_size):
-        chunk = lines[i : i + chunk_size]
-        for key, pattern in patterns.items():
-            for line in chunk:
-                if line.strip() == "":
-                    continue  # Skip blank lines
-                match = pattern.search(line)
-                if match:
-                    value = match.group(1)
-                    if key in ["Relative Atomic Mass", "Isotopic Composition"]:
-                        value = re.sub(
-                            r"\(.*\)", "", value
-                        ).strip()  # Remove values in parentheses
-                    if key == "Isotopic Composition" and value == "":
-                        value = None  # Treat empty isotopic composition as None
-                    data_dict[key].append(value)
-                    break
-            else:
-                data_dict[key].append(None)  # Append None if no match is found
-
-    # Debug: Print the parsed data dictionary
-    print("Parsed Data Dictionary:")
-    for key, values in data_dict.items():
-        print(f"{key}: {values}")
-
-    # Create a DataFrame from the parsed data
-    df = pd.DataFrame(data_dict)
-
-    # Exclude rows with empty Isotopic Composition
-    df = df[df["Isotopic Composition"].notna()]
-
-    # Drop the Notes column
-    df = df.drop(columns=["Notes"])
-
-    return df
-
-
-def add_elemental_symbol(df, csv_path):
-    """Add the Elemental Symbol column to the DataFrame based on the Atomic Number."""
-    # Read the CSV file
-    atomic_numbers_df = pd.read_csv(csv_path)
-
-    # Debug: Print rows with None in Atomic Number column
-    print("Rows with None in Atomic Number column:")
-    print(df[df["Atomic Number"].isna()])
-
-    # Ensure both columns have the same data type
-    df = df.dropna(subset=["Atomic Number"])  # Drop rows where Atomic Number is None
-    df["Atomic Number"] = df["Atomic Number"].astype(int)
-    atomic_numbers_df["AtomicNumber"] = atomic_numbers_df["AtomicNumber"].astype(int)
-
-    # Merge the DataFrame with the atomic numbers DataFrame
-    df = df.merge(
-        atomic_numbers_df, left_on="Atomic Number", right_on="AtomicNumber", how="left"
-    )
-
-    # Rename the Symbol column to Elemental Symbol
-    df = df.rename(columns={"Symbol": "Elemental Symbol"})
-
-    # Drop the AtomicNumber column
-    df = df.drop(columns=["AtomicNumber"])
-
-    # Reorder columns to place Elemental Symbol as the second column
-    cols = df.columns.tolist()
-    cols.insert(1, cols.pop(cols.index("Elemental Symbol")))
-    df = df[cols]
-
-    # Print the entire dataset
-    print(df.to_string())
-
-    return df
-
-
-# Example usage
+# Add the directory containing the script to the sys.path
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, "Isotopic modelling values (NIST).txt")
-csv_path = os.path.join(current_dir, "Atomic numbers for elements.csv")
+script_dir = os.path.abspath(os.path.join(current_dir, "../../Isotopic_modeling/data"))
+sys.path.append(script_dir)
 
-data = read_isotope_data(file_path)
-isotope_data = parse_isotope_data(data)
-isotope_data = add_elemental_symbol(isotope_data, csv_path)
+# Debug: Print the sys.path and script_dir
+print("sys.path:")
+for path in sys.path:
+    print(path)
+print(f"script_dir: {script_dir}")
 
-# Print all data
-print(isotope_data.to_string())
+from Atomic_weight_importing import (
+    read_isotope_data,
+    parse_isotope_data,
+    add_elemental_symbol,
+)
 
-# Print relevant rows for atomic weight of 80
-relevant_rows = isotope_data[isotope_data["Atomic Number"] == 80]
-print("Relevant rows for Atomic Number 80:")
-print(relevant_rows.to_string())
+
+def test_atomic_weight_importing():
+    # Define the paths
+    file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
+    csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
+
+    # Read and parse the data
+    data = read_isotope_data(file_path)
+    isotope_data = parse_isotope_data(data)
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+
+    # Check if the DataFrame is not empty
+    assert not isotope_data.empty, "The DataFrame is empty"
+
+    # Check if the Elemental Symbol column is present
+    assert (
+        "Elemental Symbol" in isotope_data.columns
+    ), "Elemental Symbol column is missing"
+
+    # Check if the relevant rows for Atomic Number 80 are present
+    relevant_rows = isotope_data[isotope_data["Atomic Number"] == 80]
+    assert not relevant_rows.empty, "No relevant rows found for Atomic Number 80"
+
+    # Print the relevant rows for Atomic Number 80
+    print("Relevant rows for Atomic Number 80:")
+    print(relevant_rows.to_string())
+
+
+def test_atomic_number_55():
+    # Define the paths
+    file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
+    csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
+
+    # Read and parse the data
+    data = read_isotope_data(file_path)
+    isotope_data = parse_isotope_data(data)
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+
+    # Check if the relevant rows for Atomic Number 55 are present
+    relevant_rows = isotope_data[isotope_data["Atomic Number"] == 55]
+    assert not relevant_rows.empty, "No relevant rows found for Atomic Number 55"
+
+    # Check if the Elemental Symbol for Atomic Number 55 is Cs
+    assert (
+        relevant_rows["Elemental Symbol"].iloc[0] == "Cs"
+    ), "Elemental Symbol for Atomic Number 55 is not Cs"
+
+    # Print the relevant rows for Atomic Number 55
+    print("Relevant rows for Atomic Number 55:")
+    print(relevant_rows.to_string())
+
+
+def test_isotopic_composition_hg_196():
+    # Define the paths
+    file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
+    csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
+
+    # Read and parse the data
+    data = read_isotope_data(file_path)
+    isotope_data = parse_isotope_data(data)
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+
+    # Check if the relevant rows for Elemental Symbol Hg and Mass Number 196 are present
+    relevant_rows = isotope_data[
+        (isotope_data["Elemental Symbol"] == "Hg")
+        & (isotope_data["Mass Number"] == 196)
+    ]
+    assert (
+        not relevant_rows.empty
+    ), "No relevant rows found for Elemental Symbol Hg with Mass Number 196"
+
+    # Check if the Isotopic Composition for Elemental Symbol Hg with Mass Number 196 is 0.0015
+    assert (
+        relevant_rows["Isotopic Composition"].iloc[0] == "0.0015"
+    ), "Isotopic Composition for Elemental Symbol Hg with Mass Number 196 is not 0.0015"
+
+    # Print the relevant rows for Elemental Symbol Hg with Mass Number 196
+    print("Relevant rows for Elemental Symbol Hg with Mass Number 196:")
+    print(relevant_rows.to_string())
+
+
+if __name__ == "__main__":
+    pytest.main()
