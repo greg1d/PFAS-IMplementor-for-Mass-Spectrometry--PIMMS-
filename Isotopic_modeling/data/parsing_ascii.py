@@ -29,23 +29,34 @@ def parse_isotope_data(data):
     # Split the data into lines
     lines = data.split("\n")
 
-    # Parse each line
-    for line in lines:
+    # Process the lines in chunks corresponding to each data point
+    chunk_size = 7  # Each data point is composed of 7 lines
+    for i in range(0, len(lines), chunk_size):
+        chunk = lines[i : i + chunk_size]
         for key, pattern in patterns.items():
-            match = pattern.search(line)
-            if match:
-                data_dict[key].append(match.group(1))
+            for line in chunk:
+                match = pattern.search(line)
+                if match:
+                    value = match.group(1)
+                    if key == "Isotopic Composition" and value == "":
+                        value = None  # Treat empty isotopic composition as None
+                    data_dict[key].append(value)
+                    break
+            else:
+                data_dict[key].append(None)  # Append None if no match is found
 
     # Create a DataFrame from the parsed data
     df = pd.DataFrame(data_dict)
+
+    # Exclude rows with empty Isotopic Composition
+    df = df[df["Isotopic Composition"].notna()]
 
     return df
 
 
 # Example usage
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, "Isotopic modelling values (NIST).txt")
-print(file_path)
+file_path = os.path.join(current_dir, "Test for import.txt")
 data = read_isotope_data(file_path)
 isotope_data = parse_isotope_data(data)
 
