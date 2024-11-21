@@ -1,3 +1,15 @@
+"""
+# Citations
+
+Coursey, J. S.; Schwab, D. J.; Tsai, J. J.; Dragoset, R. A. Atomic Weights and Isotopic Compositions. Pure Appl. Chem. 2011, 83 (2), 359–396. https://doi.org/10.1351/PAC-REP-10-06-02.
+
+Coursey, J. S.; Schwab, D. J.; Tsai, J. J.; Dragoset, R. A. NIST Physical Measurement Laboratory: Atomic Weights and Isotopic Compositions - Relative Atomic Masses. National Institute of Standards and Technology, 2010. https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses.
+
+Qian, Y.; He, Z.; Wu, Q. Atomic Masses and Isotopic Compositions. Chin. Phys. C 2012, 36 (12), 1141–1145. https://doi.org/10.1088/1674-1137/36/12/003.
+
+Commission on Isotopic Abundances and Atomic Weights (CIAAW). Standard Atomic Weights. IUPAC Commission on Isotopic Abundances and Atomic Weights. https://www.ciaaw.org/atomic-weights.htm.
+"""
+
 import os
 import pandas as pd
 import re
