@@ -1,7 +1,7 @@
 FROM continuumio/miniconda3
 
 # Install system packages
-RUN apt-get update && apt-get install -y python3-tk
+RUN apt-get update && apt-get install -y python3-tk bash
 
 # Create a conda environment with Python 3.13
 RUN conda create -n myenv python=3.13 -y
