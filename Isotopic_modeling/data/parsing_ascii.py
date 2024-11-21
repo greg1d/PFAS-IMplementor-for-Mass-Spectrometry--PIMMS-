@@ -17,8 +17,8 @@ def parse_isotope_data(data):
         "Atomic Number": re.compile(r"Atomic Number = (\d+)"),
         "Atomic Symbol": re.compile(r"Atomic Symbol = (\w+)"),
         "Mass Number": re.compile(r"Mass Number = (\d+)"),
-        "Relative Atomic Mass": re.compile(r"Relative Atomic Mass = ([\d.()#]+)"),
-        "Isotopic Composition": re.compile(r"Isotopic Composition = ([\d.()#]*)"),
+        "Relative Atomic Mass": re.compile(r"Relative Atomic Mass = ([\d.]+)"),
+        "Isotopic Composition": re.compile(r"Isotopic Composition = ([\d.]+)"),
         "Standard Atomic Weight": re.compile(r"Standard Atomic Weight = ([\d.,\[\]]+)"),
         "Notes": re.compile(r"Notes = (\w+)"),
     }
@@ -38,6 +38,10 @@ def parse_isotope_data(data):
                 match = pattern.search(line)
                 if match:
                     value = match.group(1)
+                    if key in ["Relative Atomic Mass", "Isotopic Composition"]:
+                        value = re.sub(
+                            r"\(.*\)", "", value
+                        ).strip()  # Remove values in parentheses
                     if key == "Isotopic Composition" and value == "":
                         value = None  # Treat empty isotopic composition as None
                     data_dict[key].append(value)
