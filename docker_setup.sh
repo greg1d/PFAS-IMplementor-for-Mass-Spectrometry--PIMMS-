@@ -4,29 +4,17 @@
 IMAGE_NAME="gregkudzin/my-python-app"
 CONTAINER_NAME="PIMMS"
 
-# Log in to Docker Hub
-echo "Logging in to Docker Hub..."
-docker login
+# Build the Docker image
+docker build . -t $IMAGE_NAME
 
-# Pull the Docker image from Docker Hub
-echo "Pulling Docker image from Docker Hub..."
-docker pull $IMAGE_NAME
-
-# Stop and remove any existing container with the same name
-echo "Stopping and removing any existing container with the name $CONTAINER_NAME..."
-docker stop $CONTAINER_NAME || true
-docker rm $CONTAINER_NAME || true
+# Get the current directory
+CURRENT_DIR=$(pwd)
 
 # Run the Docker container
-echo "Running the Docker container..."
-docker run -d --name $CONTAINER_NAME $IMAGE_NAME
-
-# Verify the container is running
-echo "Verifying the container is running..."
-docker ps
-
-# Access the running container (optional)
-# Uncomment the following line if you want to access the container immediately after running it
-# docker exec -it $CONTAINER_NAME /bin/sh
-
-echo "Docker setup complete."
+docker run -it --rm \
+    --name $CONTAINER_NAME \
+    -p 8787:8787 \
+    -e DISPLAY=$DISPLAY \
+    -v "$CURRENT_DIR":/home/work \
+    --workdir /home/work \
+    $IMAGE_NAME
