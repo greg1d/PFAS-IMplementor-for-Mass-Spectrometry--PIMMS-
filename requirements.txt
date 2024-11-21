@@ -1,12 +1,5 @@
 pandas
 matplotlib
 seaborn
-tkinter
-glob
-os
 numpy
-sys
-subprocess
 openpyxl
-time
-shutil

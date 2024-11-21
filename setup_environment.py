@@ -8,20 +8,6 @@ def install_with_pip(package):
     except subprocess.CalledProcessError:
         return False
 
-def install_with_conda(package):
-    try:
-        subprocess.check_call(["conda", "install", "-y", package])
-        return True
-    except subprocess.CalledProcessError:
-        return False
-
-def is_installed_with_conda(package):
-    try:
-        output = subprocess.check_output(["conda", "list", package])
-        return package in str(output)
-    except subprocess.CalledProcessError:
-        return False
-
 def is_installed_with_pip(package):
     try:
         __import__(package)
@@ -31,8 +17,7 @@ def is_installed_with_pip(package):
 
 def install(package):
     if not install_with_pip(package):
-        if not install_with_conda(package):
-            return False
+        return False
     return True
 
 def check_and_install_packages(requirements_file):
@@ -42,7 +27,7 @@ def check_and_install_packages(requirements_file):
     installed_any = False
     installed_packages = []
     for package in required_packages:
-        if is_installed_with_conda(package) or is_installed_with_pip(package):
+        if is_installed_with_pip(package):
             print(f"{package} is already installed.")
         else:
             if install(package):
