@@ -125,3 +125,8 @@ isotope_data = add_elemental_symbol(isotope_data, csv_path)
 
 # Print all data
 print(isotope_data.to_string())
+
+# Print relevant rows for atomic weight of 80
+relevant_rows = isotope_data[isotope_data["Atomic Number"] == 80]
+print("Relevant rows for Atomic Number 80:")
+print(relevant_rows.to_string())
