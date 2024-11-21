@@ -1,6 +1,5 @@
 import os
 import sys
-import pandas as pd
 import pytest
 
 # Add the directory containing the script to the sys.path
