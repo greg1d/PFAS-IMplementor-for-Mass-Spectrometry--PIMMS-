@@ -3,12 +3,18 @@ import sys
 import pandas as pd
 import pytest
 
-# Add the parent directory to the sys.path
+# Add the directory containing the script to the sys.path
 current_dir = os.path.dirname(__file__)
-parent_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.append(parent_dir)
+script_dir = os.path.abspath(os.path.join(current_dir, "../../Isotopic_modeling/data"))
+sys.path.append(script_dir)
 
-from Isotopic_modeling.data.Atomic_weight_importing import (
+# Debug: Print the sys.path and script_dir
+print("sys.path:")
+for path in sys.path:
+    print(path)
+print(f"script_dir: {script_dir}")
+
+from Atomic_weight_importing import (
     read_isotope_data,
     parse_isotope_data,
     add_elemental_symbol,
@@ -17,12 +23,8 @@ from Isotopic_modeling.data.Atomic_weight_importing import (
 
 def test_atomic_weight_importing():
     # Define the paths
-    file_path = os.path.join(
-        current_dir, "../../Isotopic_modeling/data/Isotopic modelling values (NIST).txt"
-    )
-    csv_path = os.path.join(
-        current_dir, "../../Isotopic_modeling/data/Atomic numbers for elements.csv"
-    )
+    file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
+    csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
 
     # Read and parse the data
     data = read_isotope_data(file_path)
