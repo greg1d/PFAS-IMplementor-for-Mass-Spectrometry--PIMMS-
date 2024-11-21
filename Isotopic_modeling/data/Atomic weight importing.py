@@ -1,15 +1,11 @@
 """
 # Citations
 
-Coursey, J. S.; Schwab, D. J.; Tsai, J. J.; Dragoset, R. A. Pure Appl. Chem. 2011, 83, 359. https://doi.org/10.1351/PAC-REP-10-06-02.
-
-Coursey, J. S.; Schwab, D. J.; Tsai, J. J.; Dragoset, R. A. NIST Physical Measurement Laboratory, 2010. https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses.
-
-Qian, Y.; He, Z.; Wu, Q. Chin. Phys. C 2012, 36, 1141. https://doi.org/10.1088/1674-1137/36/12/003.
-
-CIAAW. IUPAC Commission on Isotopic Abundances and Atomic Weights. https://www.ciaaw.org/atomic-weights.htm.
-
-https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
+- [DOI: 10.1351/PAC-REP-10-06-02](https://doi.org/10.1351/PAC-REP-10-06-02)
+- J. S. Coursey, D. J. Schwab, J. J. Tsai, and R. A. Dragoset
+- NIST Physical Measurement Laboratory
+- [IOP Science Article](https://iopscience.iop.org/article/10.1088/1674-1137/36/12/003)
+- [CIAAW Atomic Weights](https://www.ciaaw.org/atomic-weights.htm)
 """
 
 import os
@@ -34,7 +30,7 @@ def parse_isotope_data(data):
         "Relative Atomic Mass": re.compile(r"Relative Atomic Mass = ([\d.]+)"),
         "Isotopic Composition": re.compile(r"Isotopic Composition = ([\d.]+)"),
         "Standard Atomic Weight": re.compile(r"Standard Atomic Weight = ([\d.,\[\]]+)"),
-        "Notes": re.compile(r"Notes = (\w+)"),
+        "Notes": re.compile(r"Notes = (\w*)"),
     }
 
     # Initialize lists to store the parsed data
@@ -44,11 +40,13 @@ def parse_isotope_data(data):
     lines = data.split("\n")
 
     # Process the lines in chunks corresponding to each data point
-    chunk_size = 7  # Each data point is composed of 7 lines
+    chunk_size = 8  # Each data point is composed of 7 lines followed by a blank line
     for i in range(0, len(lines), chunk_size):
         chunk = lines[i : i + chunk_size]
         for key, pattern in patterns.items():
             for line in chunk:
+                if line.strip() == "":
+                    continue  # Skip blank lines
                 match = pattern.search(line)
                 if match:
                     value = match.group(1)
@@ -63,6 +61,11 @@ def parse_isotope_data(data):
             else:
                 data_dict[key].append(None)  # Append None if no match is found
 
+    # Debug: Print the parsed data dictionary
+    print("Parsed Data Dictionary:")
+    for key, values in data_dict.items():
+        print(f"{key}: {values}")
+
     # Create a DataFrame from the parsed data
     df = pd.DataFrame(data_dict)
 
@@ -75,11 +78,50 @@ def parse_isotope_data(data):
     return df
 
 
+def add_elemental_symbol(df, csv_path):
+    """Add the Elemental Symbol column to the DataFrame based on the Atomic Number."""
+    # Read the CSV file
+    atomic_numbers_df = pd.read_csv(csv_path)
+
+    # Debug: Print rows with None in Atomic Number column
+    print("Rows with None in Atomic Number column:")
+    print(df[df["Atomic Number"].isna()])
+
+    # Ensure both columns have the same data type
+    df = df.dropna(subset=["Atomic Number"])  # Drop rows where Atomic Number is None
+    df["Atomic Number"] = df["Atomic Number"].astype(int)
+    atomic_numbers_df["AtomicNumber"] = atomic_numbers_df["AtomicNumber"].astype(int)
+
+    # Merge the DataFrame with the atomic numbers DataFrame
+    df = df.merge(
+        atomic_numbers_df, left_on="Atomic Number", right_on="AtomicNumber", how="left"
+    )
+
+    # Rename the Symbol column to Elemental Symbol
+    df = df.rename(columns={"Symbol": "Elemental Symbol"})
+
+    # Drop the AtomicNumber column
+    df = df.drop(columns=["AtomicNumber"])
+
+    # Reorder columns to place Elemental Symbol as the second column
+    cols = df.columns.tolist()
+    cols.insert(1, cols.pop(cols.index("Elemental Symbol")))
+    df = df[cols]
+
+    # Print the entire dataset
+    print(df.to_string())
+
+    return df
+
+
 # Example usage
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, "Test for import.txt")
+file_path = os.path.join(current_dir, "Isotopic modelling values (NIST).txt")
+csv_path = os.path.join(current_dir, "Atomic numbers for elements.csv")
+
 data = read_isotope_data(file_path)
 isotope_data = parse_isotope_data(data)
+isotope_data = add_elemental_symbol(isotope_data, csv_path)
 
 # Print all data
 print(isotope_data.to_string())
