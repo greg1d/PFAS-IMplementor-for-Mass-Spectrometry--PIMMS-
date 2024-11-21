@@ -20,6 +20,33 @@ from Atomic_weight_importing import (
 )
 
 
+def test_atomic_weight_importing():
+    # Define the paths
+    file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
+    csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
+
+    # Read and parse the data
+    data = read_isotope_data(file_path)
+    isotope_data = parse_isotope_data(data)
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+
+    # Check if the DataFrame is not empty
+    assert not isotope_data.empty, "The DataFrame is empty"
+
+    # Check if the Elemental Symbol column is present
+    assert (
+        "Elemental Symbol" in isotope_data.columns
+    ), "Elemental Symbol column is missing"
+
+    # Check if the relevant rows for Atomic Number 80 are present
+    relevant_rows = isotope_data[isotope_data["Atomic Number"] == 80]
+    assert not relevant_rows.empty, "No relevant rows found for Atomic Number 80"
+
+    # Print the relevant rows for Atomic Number 80
+    print("Relevant rows for Atomic Number 80:")
+    print(relevant_rows.to_string())
+
+
 def test_atomic_number_55():
     # Define the paths
     file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
@@ -41,6 +68,35 @@ def test_atomic_number_55():
 
     # Print the relevant rows for Atomic Number 55
     print("Relevant rows for Atomic Number 55:")
+    print(relevant_rows.to_string())
+
+
+def test_isotopic_composition_hg_196():
+    # Define the paths
+    file_path = os.path.join(script_dir, "Isotopic modelling values (NIST).txt")
+    csv_path = os.path.join(script_dir, "Atomic numbers for elements.csv")
+
+    # Read and parse the data
+    data = read_isotope_data(file_path)
+    isotope_data = parse_isotope_data(data)
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+
+    # Check if the relevant rows for Elemental Symbol Hg and Mass Number 196 are present
+    relevant_rows = isotope_data[
+        (isotope_data["Elemental Symbol"] == "Hg")
+        & (isotope_data["Mass Number"] == 196)
+    ]
+    assert (
+        not relevant_rows.empty
+    ), "No relevant rows found for Elemental Symbol Hg with Mass Number 196"
+
+    # Check if the Isotopic Composition for Elemental Symbol Hg with Mass Number 196 is 0.0015
+    assert (
+        relevant_rows["Isotopic Composition"].iloc[0] == "0.0015"
+    ), "Isotopic Composition for Elemental Symbol Hg with Mass Number 196 is not 0.0015"
+
+    # Print the relevant rows for Elemental Symbol Hg with Mass Number 196
+    print("Relevant rows for Elemental Symbol Hg with Mass Number 196:")
     print(relevant_rows.to_string())
 
 
