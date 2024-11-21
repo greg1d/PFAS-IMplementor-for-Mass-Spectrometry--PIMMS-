@@ -8,6 +8,8 @@ Coursey, J. S.; Schwab, D. J.; Tsai, J. J.; Dragoset, R. A. NIST Physical Measur
 Qian, Y.; He, Z.; Wu, Q. Chin. Phys. C 2012, 36, 1141. https://doi.org/10.1088/1674-1137/36/12/003.
 
 CIAAW. IUPAC Commission on Isotopic Abundances and Atomic Weights. https://www.ciaaw.org/atomic-weights.htm.
+
+https://gist.github.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee
 """
 
 import os
