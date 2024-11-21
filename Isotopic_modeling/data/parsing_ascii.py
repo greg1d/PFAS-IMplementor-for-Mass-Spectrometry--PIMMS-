@@ -51,6 +51,9 @@ def parse_isotope_data(data):
     # Exclude rows with empty Isotopic Composition
     df = df[df["Isotopic Composition"].notna()]
 
+    # Drop the Notes column
+    df = df.drop(columns=["Notes"])
+
     return df
 
 
