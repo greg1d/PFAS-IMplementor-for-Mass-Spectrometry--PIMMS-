@@ -19,4 +19,4 @@ EXPOSE 80
 ENV NAME=PIMMS
 
 # Use conda run to execute the command within the conda environment
-CMD ["conda", "run", "-n", "myenv", "/bin/sh", "-c", "python setup_environment.py && tail -f /dev/null"]
+CMD ["conda", "run", "-n", "myenv", "/bin/sh", "-c", "python --version && python setup_environment.py && tail -f /dev/null"]
