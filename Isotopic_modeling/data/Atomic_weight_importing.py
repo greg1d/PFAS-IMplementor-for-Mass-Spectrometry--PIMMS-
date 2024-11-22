@@ -9,8 +9,9 @@
 """
 
 import os
-import pandas as pd
 import re
+
+import pandas as pd
 
 
 def read_isotope_data(file_path):
