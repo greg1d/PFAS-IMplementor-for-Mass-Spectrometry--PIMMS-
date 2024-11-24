@@ -1,24 +1,17 @@
 import pandas as pd
 
+# Define the mass error in ppm as a constant
+MASS_ERROR_PPM = 10
 
-def calculate_mass_error(mass, mass_error_ppm):
-    """
-    Calculate the mass error and the corresponding mass range.
 
-    Parameters:
-    mass (float): The actual mass.
-    mass_error_ppm (float): The mass error in parts per million (ppm).
-
-    Returns:
-    tuple: A tuple containing the lower and upper bounds of the mass range.
-    """
+def calculate_mass_error(mass, mass_error_ppm=MASS_ERROR_PPM):
     mass_error = mass * mass_error_ppm * 1e-6
     lower_bound = mass - mass_error
     upper_bound = mass + mass_error
     return lower_bound, upper_bound
 
 
-def parse_and_sort_csv(file_path, mass_error_ppm):
+def parse_and_sort_csv(file_path, mass_error_ppm=MASS_ERROR_PPM):
     print(file_path)
     df = pd.read_csv(file_path)
     # Check if 'm/z' column exists
@@ -28,23 +21,42 @@ def parse_and_sort_csv(file_path, mass_error_ppm):
     # Sort the DataFrame by the 'm/z' column
     sorted_df = df.sort_values(by="m/z")
 
-    # Calculate the mass error in absolute terms
-    sorted_df["mass_error"] = sorted_df["m/z"] * mass_error_ppm * 1e-6
+    # Calculate the mass error in absolute terms using the calculate_mass_error function
+    sorted_df["mass_error"] = sorted_df["m/z"].apply(
+        lambda x: calculate_mass_error(x, mass_error_ppm)[1] - x
+    )
 
     return sorted_df
 
 
-# User-defined variable for mass error in ppm
-mass_error_ppm = 10
+def are_peaks_related(
+    mass1, mass2, mass_error_ppm1=MASS_ERROR_PPM, mass_error_ppm2=MASS_ERROR_PPM, z=1
+):
+    _, upper_bound1 = calculate_mass_error(mass1, mass_error_ppm1)
+    _, upper_bound2 = calculate_mass_error(mass2, mass_error_ppm2)
+    separation = abs(mass1 - mass2)
+    acceptable_error1 = upper_bound1 - mass1
+    acceptable_error2 = upper_bound2 - mass2
+    print(separation)
+    print(acceptable_error1)
+    print(acceptable_error2)
+    lower_bound = (separation - (acceptable_error1 + acceptable_error2)) / z
+    upper_bound = (separation + (acceptable_error1 + acceptable_error2)) / z
+    return lower_bound < separation < upper_bound
 
-# Example usage of the calculate_mass_error function
-actual_mass = 200
-lower_bound, upper_bound = calculate_mass_error(actual_mass, mass_error_ppm)
-print(
-    f"Mass range for {actual_mass} with {mass_error_ppm} ppm error: {lower_bound} to {upper_bound}"
-)
 
-# Use the function with the specified CSV file and mass error
-sorted_df = parse_and_sort_csv(
-    "Isotopic_modeling/data/dummy blank subtracted file.csv", mass_error_ppm
-)
+def find_related_peaks(mass1, mass2, z_range, mass_error_ppm=MASS_ERROR_PPM):
+    related_z = []
+    for z in z_range:
+        if are_peaks_related(mass1, mass2, mass_error_ppm, mass_error_ppm, z):
+            related_z.append(z)
+    return related_z
+
+
+# Example usage
+mass1 = 100
+mass2 = 101
+z_range = range(1, 5)  # This will check for z = 1, 2, 3, 4
+
+related_z = find_related_peaks(mass1, mass2, z_range)
+print(f"Charge states where the peaks are related: {related_z}")
