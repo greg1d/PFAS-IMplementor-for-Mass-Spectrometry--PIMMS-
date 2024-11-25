@@ -20,37 +20,35 @@ if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
 def run_scc():
-    # List of directories to include in the scc count
-    base_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
-    directories_to_count = [os.path.join(base_directory, d) for d in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, d))]
+    # Path to the directory to be counted
+    target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     
-    gitignore_path = os.path.join(base_directory, ".gitignore")
-    exclude_dirs = []
-    if os.path.exists(gitignore_path):
-        with open(gitignore_path, "r") as gitignore_file:
-            for line in gitignore_file:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    exclude_dirs.append(os.path.join(base_directory, line.rstrip('/')))
-    
-    # Debugging statement to show which directories are included in the gitignore
-    
-    # Remove directories included in the gitignore
-    directories_to_count = [d for d in directories_to_count if d not in exclude_dirs]
-    
-    # Debugging statement to show which directories are actually being counted
-                
     # Full path to the scc executable
-    scc_path = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Packages/scc.exe"  # Replace with the actual path to scc.exe
+    scc_path = "scc"  # Use the Linux-compatible version of scc
 
     # Build the command for scc
-    scc_command = [scc_path, "--no-cocomo"]
-    for exclude_dir in exclude_dirs:
-        scc_command.extend(["--exclude-dir", exclude_dir])
-    scc_command.extend(directories_to_count)
+    scc_command = [scc_path, "--no-cocomo", target_directory]
+
+    # Print the command being executed
+    print("Running command:", " ".join(scc_command))
 
     result = subprocess.run(scc_command, capture_output=True, text=True)
     output = result.stdout
+    error_output = result.stderr
+
+    # Print the output of the command
+    print("scc output:")
+    print(output)
+
+    # Print the error output of the command
+    if error_output:
+        print("scc error output:")
+        print(error_output)
+
+    # Check if the output is empty
+    if not output:
+        print("Error: No output from scc command")
+        return 0, {}
 
     # Extract relevant data (e.g., lines of code)
     lines_of_code = 0
@@ -62,20 +60,28 @@ def run_scc():
         "Others": 0
     }
     for line in output.splitlines():
+        print(f"Processing line: {line}")  # Debugging line to print each line of output
         if "Total" in line:
             parts = line.split()
-            lines_of_code = int(parts[2])  # Assuming the 5th column is lines of code
+            try:
+                lines_of_code = int(parts[2])  # Assuming the 3rd column is lines of code
+            except ValueError:
+                print(f"Skipping line due to ValueError: {line}")
         elif "Language" not in line and "Files" not in line:
             parts = line.split()
             if len(parts) > 4:
                 language = parts[0]
-                code_lines = int(parts[2])  # Assuming the 5th column is lines of code
-                if language in language_data:
-                    language_data[language] += code_lines
-                else:
-                    language_data["Others"] += code_lines
+                try:
+                    code_lines = int(parts[2])  # Assuming the 3rd column is lines of code
+                    if language in language_data:
+                        language_data[language] += code_lines
+                    else:
+                        language_data["Others"] += code_lines
+                except ValueError:
+                    print(f"Skipping line due to ValueError: {line}")
 
     return lines_of_code, language_data
+
 
 def save_data(lines_of_code, language_data):
     # Get the current date
