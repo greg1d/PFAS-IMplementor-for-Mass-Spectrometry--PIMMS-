@@ -11,7 +11,7 @@ from scipy.interpolate import make_interp_spline
 # Set paths
 output_folder = r"..\LOC tracking outputs"
 output_file = os.path.join(output_folder, "code_metrics.xlsx")
-font_path = os.path.join(os.path.dirname(__file__), "Formatting", "Normative Pro Bold", "NormativePro-Bold.otf")
+font_path = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Formatting/NormativePro-Bold.otf"
 font_prop = font_manager.FontProperties(fname=font_path)
 font_manager.fontManager.addfont(font_path)
 mpl.rc('font', family=font_prop.get_name())
@@ -21,7 +21,7 @@ if not os.path.exists(output_folder):
 
 def run_scc():
     # List of directories to include in the scc count
-    base_directory = r"C:\Users\grego\HTML Projects\CV website project"
+    base_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     directories_to_count = [os.path.join(base_directory, d) for d in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, d))]
     
     gitignore_path = os.path.join(base_directory, ".gitignore")
