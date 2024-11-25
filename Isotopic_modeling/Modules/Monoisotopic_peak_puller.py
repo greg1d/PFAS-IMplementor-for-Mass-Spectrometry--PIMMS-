@@ -32,17 +32,14 @@ def parse_and_sort_csv(file_path, mass_error_ppm=MASS_ERROR_PPM):
 def are_peaks_related(
     mass1, mass2, mass_error_ppm1=MASS_ERROR_PPM, mass_error_ppm2=MASS_ERROR_PPM, z=1
 ):
-    _, upper_bound1 = calculate_mass_error(mass1, mass_error_ppm1)
-    _, upper_bound2 = calculate_mass_error(mass2, mass_error_ppm2)
+    lower_bound1, upper_bound1 = calculate_mass_error(mass1, mass_error_ppm1)
+    lower_bound2, upper_bound2 = calculate_mass_error(mass2, mass_error_ppm2)
     separation = abs(mass1 - mass2)
-    acceptable_error1 = upper_bound1 - mass1
-    acceptable_error2 = upper_bound2 - mass2
-    print(separation)
-    print(acceptable_error1)
-    print(acceptable_error2)
-    lower_bound = (separation - (acceptable_error1 + acceptable_error2)) / z
-    upper_bound = (separation + (acceptable_error1 + acceptable_error2)) / z
-    return lower_bound < separation < upper_bound
+    maximum_separation = (upper_bound2-lower_bound1)/z
+    minimum_separation = (lower_bound2-upper_bound1)/z
+    print(maximum_separation)
+    print(minimum_separation)
+    return separation <= maximum_separation and separation >= minimum_separation
 
 
 def find_related_peaks(mass1, mass2, z_range, mass_error_ppm=MASS_ERROR_PPM):
@@ -56,7 +53,7 @@ def find_related_peaks(mass1, mass2, z_range, mass_error_ppm=MASS_ERROR_PPM):
 # Example usage
 mass1 = 100
 mass2 = 101
-z_range = range(1, 5)  # This will check for z = 1, 2, 3, 4
+z_range = range(1, 3)  # This will check for z = 1, 2, 3, 4
 
 related_z = find_related_peaks(mass1, mass2, z_range)
 print(f"Charge states where the peaks are related: {related_z}")
