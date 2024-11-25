@@ -117,17 +117,11 @@ def add_elemental_symbol(df, csv_path):
 
 # Example usage
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, "Isotopic modelling values (NIST).txt")
-csv_path = os.path.join(current_dir, "Atomic numbers for elements.csv")
+file_path = r"data/Isotopic modelling values (NIST).txt"
+csv_path = r"data/Atomic numbers for elements.csv"
 
 data = read_isotope_data(file_path)
 isotope_data = parse_isotope_data(data)
 isotope_data = add_elemental_symbol(isotope_data, csv_path)
 
-# Print all data
-print(isotope_data.to_string())
 
-# Print relevant rows for atomic weight of 80
-relevant_rows = isotope_data[isotope_data["Atomic Number"] == 80]
-print("Relevant rows for Atomic Number 80:")
-print(relevant_rows.to_string())
