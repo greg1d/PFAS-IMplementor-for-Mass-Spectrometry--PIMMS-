@@ -19,10 +19,14 @@ mpl.rc('font', family=font_prop.get_name())
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
-def run_scc():
+def run_scc(exclude_dirs=None):
     if exclude_dirs is None:
-        exclude_dirs = []    
-        
+        exclude_dirs = [
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Formatting",
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Packages",
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.devcontainer",
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.vscode"
+        ]
     target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     
     # Full path to the scc executable
