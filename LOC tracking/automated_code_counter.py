@@ -41,7 +41,7 @@ def run_scc():
     # Debugging statement to show which directories are actually being counted
                 
     # Full path to the scc executable
-    scc_path = r"C:\Users\grego\go\bin\scc.exe"  # Replace with the actual path to scc.exe
+    scc_path = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Packages/scc.exe"  # Replace with the actual path to scc.exe
 
     # Build the command for scc
     scc_command = [scc_path, "--no-cocomo"]
