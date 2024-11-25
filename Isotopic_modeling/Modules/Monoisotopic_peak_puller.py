@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 # Define the mass error in ppm as a constant
 MASS_ERROR_PPM = 10
