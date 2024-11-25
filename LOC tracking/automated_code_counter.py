@@ -25,7 +25,9 @@ def run_scc(exclude_dirs=None):
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Formatting",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Packages",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.devcontainer",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.vscode"
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.vscode",
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Isotopic_modeling/data"
+
         ]
     target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     
