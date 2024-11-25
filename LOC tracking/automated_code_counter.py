@@ -20,7 +20,9 @@ if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
 def run_scc():
-    # Path to the directory to be counted
+    if exclude_dirs is None:
+        exclude_dirs = []    
+        
     target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     
     # Full path to the scc executable
