@@ -26,16 +26,24 @@ def run_scc(exclude_dirs=None):
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Packages",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.devcontainer",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.vscode",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Isotopic_modeling/data"
-
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data",
         ]
     target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
+    directories_to_count = [d for d in os.listdir(target_directory) if os.path.isdir(os.path.join(target_directory, d)) and os.path.join(target_directory, d) not in exclude_dirs]
+    
+    # Print directories being counted
+    print("Directories being counted:")
+    for d in directories_to_count:
+        print(d)
     
     # Full path to the scc executable
     scc_path = "scc"  # Use the Linux-compatible version of scc
 
     # Build the command for scc
-    scc_command = [scc_path, "--no-cocomo", target_directory]
+    scc_command = [scc_path, "--no-cocomo"]
+    for exclude_dir in exclude_dirs:
+        scc_command.extend(["--exclude-dir", exclude_dir])
+    scc_command.extend(directories_to_count)
 
     # Print the command being executed
     print("Running command:", " ".join(scc_command))
@@ -67,6 +75,7 @@ def run_scc(exclude_dirs=None):
         "Python": 0,
         "Others": 0
     }
+    directories_processed = set()
     for line in output.splitlines():
         print(f"Processing line: {line}")  # Debugging line to print each line of output
         if "Total" in line:
@@ -75,21 +84,31 @@ def run_scc(exclude_dirs=None):
                 lines_of_code = int(parts[2])  # Assuming the 3rd column is lines of code
             except ValueError:
                 print(f"Skipping line due to ValueError: {line}")
-        elif "Language" not in line and "Files" not in line:
+        elif "Language" not in line and "Files" not in line and "───" not in line:
             parts = line.split()
             if len(parts) > 4:
                 language = parts[0]
+                if language in ["Plain Text", "CSV"]:
+                    print(f"Skipping {language} file: {parts[-1]}")
+                    continue
                 try:
                     code_lines = int(parts[2])  # Assuming the 3rd column is lines of code
                     if language in language_data:
                         language_data[language] += code_lines
                     else:
                         language_data["Others"] += code_lines
+                    file_path = parts[-1]  # Assuming the last column is the file path
+                    directory = os.path.dirname(file_path)
+                    directories_processed.add(directory)
                 except ValueError:
                     print(f"Skipping line due to ValueError: {line}")
 
-    return lines_of_code, language_data
+    # Print the list of directories processed
+    print("Directories processed:")
+    for directory in directories_processed:
+        print(directory)
 
+    return lines_of_code, language_data
 
 def save_data(lines_of_code, language_data):
     # Get the current date
