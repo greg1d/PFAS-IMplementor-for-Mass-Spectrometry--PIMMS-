@@ -2,29 +2,18 @@ import pandas as pd
 from tqdm import tqdm
 
 
+def parse_and_sort_csv(file_path, mass_error_ppm):
+    # Placeholder for the actual implementation of parsing and sorting the CSV file
+    df = pd.read_csv(file_path)
+    df = df.sort_values(by=["m/z"])
+    return df
+
+
 def calculate_mass_error(mass, mass_error_ppm, z=1):
     mass_error = mass * mass_error_ppm * 1e-6
     lower_bound = mass_error / z
     upper_bound = mass_error / z
     return lower_bound, upper_bound
-
-
-def parse_and_sort_csv(file_path, mass_error_ppm):
-    print(file_path)
-    df = pd.read_csv(file_path)
-    # Check if 'm/z' column exists
-    if "m/z" not in df.columns:
-        raise ValueError("The CSV file does not contain an 'm/z' column.")
-
-    # Sort the DataFrame by the 'm/z' column
-    sorted_df = df.sort_values(by="m/z")
-
-    # Calculate the mass error in absolute terms using the calculate_mass_error function
-    sorted_df["mass_error"] = sorted_df["m/z"].apply(
-        lambda x: calculate_mass_error(x, mass_error_ppm)[1] - x
-    )
-
-    return sorted_df
 
 
 def are_peaks_related(mass1, mass2, mass_error_ppm1, mass_error_ppm2, z, M):
@@ -50,13 +39,10 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     parent_child_baby_relationships = []
 
     for i in tqdm(range(len(masses)), desc="Processing peaks"):
-        if (
-            masses[i] in child_peaks
-            or masses[i] in parent_peaks
-            or masses[i] in completed_features
-        ):
+        if masses[i] in completed_features:
             continue
-        current_group = []
+        current_group = [masses[i]]
+        first_child_z = None
         for j in range(i + 1, len(masses)):
             mass1 = masses[i]
             mass2 = masses[j]
@@ -64,6 +50,8 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
             comparisons.append(f"Peak {mass1} compared with Peak {mass2}")
             match_found = False
             for z in z_range:
+                if first_child_z is not None and z != first_child_z:
+                    continue
                 for M in M_range:
                     if (mass1, mass2) in identified_features or (
                         mass2,
@@ -87,6 +75,8 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
                             (mass1, mass2, "parent-child")
                         )
                         current_group.append(mass2)
+                        if first_child_z is None:
+                            first_child_z = z
                         match_found = True
                         break  # Break the loop once a related peak is found
                 if match_found:
@@ -95,8 +85,11 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
         # Identify the "baby" peak as the highest mass peak in the current group
         if current_group:
             baby_peak = max(current_group)
-            parent_child_baby_relationships.append((mass1, baby_peak, "baby"))
+            parent_child_baby_relationships.append((masses[i], baby_peak, "baby"))
             completed_features.update(current_group)
-            completed_features.add(mass1)
+            completed_features.add(masses[i])
+            # Mark the entire group as completed
+            for peak in current_group:
+                completed_features.add(peak)
 
     return related_peaks, iteration_count, comparisons, parent_child_baby_relationships
