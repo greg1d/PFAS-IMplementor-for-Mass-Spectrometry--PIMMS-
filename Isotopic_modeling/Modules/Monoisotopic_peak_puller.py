@@ -37,6 +37,7 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     comparisons = []
     completed_features = set()
     parent_child_baby_relationships = []
+    collapsed_features = {}
 
     for i in tqdm(range(len(masses)), desc="Processing peaks"):
         if masses[i] in completed_features:
@@ -92,11 +93,22 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
         # Identify the "baby" peak as the highest mass peak in the current group
         if current_group:
             baby_peak = max(current_group)
-            parent_child_baby_relationships.append((masses[i], baby_peak, "baby"))
+            if len(current_group) == 1:
+                parent_child_baby_relationships.append((masses[i], baby_peak, "loner"))
+                collapsed_features[masses[i]] = current_group
+            else:
+                parent_child_baby_relationships.append((masses[i], baby_peak, "baby"))
+                collapsed_features[masses[i]] = current_group
             completed_features.update(current_group)
             completed_features.add(masses[i])
             # Mark the entire group as completed
             for peak in current_group:
                 completed_features.add(peak)
 
-    return related_peaks, iteration_count, comparisons, parent_child_baby_relationships
+    return (
+        related_peaks,
+        iteration_count,
+        comparisons,
+        parent_child_baby_relationships,
+        collapsed_features,
+    )
