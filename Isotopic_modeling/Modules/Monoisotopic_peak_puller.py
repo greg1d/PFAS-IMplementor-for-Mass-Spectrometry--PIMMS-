@@ -43,15 +43,25 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     related_peaks = []
     identified_features = set()
     child_peaks = set()
+    parent_peaks = set()
     parent_child_charge_states = {}
+    comparisons = []
+    completed_features = set()
+    parent_child_baby_relationships = []
 
     for i in tqdm(range(len(masses)), desc="Processing peaks"):
-        if masses[i] in child_peaks:
+        if (
+            masses[i] in child_peaks
+            or masses[i] in parent_peaks
+            or masses[i] in completed_features
+        ):
             continue
+        current_group = []
         for j in range(i + 1, len(masses)):
             mass1 = masses[i]
             mass2 = masses[j]
             iteration_count += 1
+            comparisons.append(f"Peak {mass1} compared with Peak {mass2}")
             match_found = False
             for z in z_range:
                 for M in M_range:
@@ -71,10 +81,22 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
                         related_peaks.append((mass1, mass2, z, M, "collapsed feature"))
                         identified_features.add((mass1, mass2))
                         child_peaks.add(mass2)
+                        parent_peaks.add(mass1)
                         parent_child_charge_states[mass2] = z
+                        parent_child_baby_relationships.append(
+                            (mass1, mass2, "parent-child")
+                        )
+                        current_group.append(mass2)
                         match_found = True
                         break  # Break the loop once a related peak is found
                 if match_found:
                     break
 
-    return related_peaks
+        # Identify the "baby" peak as the highest mass peak in the current group
+        if current_group:
+            baby_peak = max(current_group)
+            parent_child_baby_relationships.append((mass1, baby_peak, "baby"))
+            completed_features.update(current_group)
+            completed_features.add(mass1)
+
+    return related_peaks, iteration_count, comparisons, parent_child_baby_relationships
