@@ -42,6 +42,7 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     related_peaks = []
     identified_features = set()
     child_peaks = set()
+    parent_child_charge_states = {}
 
     for i in range(len(masses)):
         if masses[i] in child_peaks:
@@ -58,12 +59,18 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
                         mass1,
                     ) in identified_features:
                         continue
+                    if (
+                        mass2 in parent_child_charge_states
+                        and parent_child_charge_states[mass2] != z
+                    ):
+                        continue
                     if are_peaks_related(
                         mass1, mass2, mass_error_ppm, mass_error_ppm, z, M
                     ):
                         related_peaks.append((mass1, mass2, z, M, "collapsed feature"))
                         identified_features.add((mass1, mass2))
                         child_peaks.add(mass2)
+                        parent_child_charge_states[mass2] = z
                         match_found = True
                         break  # Break the loop once a related peak is found
                 if match_found:
