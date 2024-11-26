@@ -1,4 +1,5 @@
 import pandas as pd
+from tqdm import tqdm
 
 
 def calculate_mass_error(mass, mass_error_ppm, z=1):
@@ -44,7 +45,7 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     child_peaks = set()
     parent_child_charge_states = {}
 
-    for i in range(len(masses)):
+    for i in tqdm(range(len(masses)), desc="Processing peaks"):
         if masses[i] in child_peaks:
             continue
         for j in range(i + 1, len(masses)):
