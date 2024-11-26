@@ -43,9 +43,15 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
             continue
         current_group = [masses[i]]
         first_child_z = None
+        max_mass_difference = None
         for j in range(i + 1, len(masses)):
             mass1 = masses[i]
             mass2 = masses[j]
+            if (
+                max_mass_difference is not None
+                and (mass2 - mass1) > max_mass_difference
+            ):
+                break
             iteration_count += 1
             comparisons.append(f"Peak {mass1} compared with Peak {mass2}")
             match_found = False
@@ -77,6 +83,7 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
                         current_group.append(mass2)
                         if first_child_z is None:
                             first_child_z = z
+                            max_mass_difference = M_range[-1] / z
                         match_found = True
                         break  # Break the loop once a related peak is found
                 if match_found:
