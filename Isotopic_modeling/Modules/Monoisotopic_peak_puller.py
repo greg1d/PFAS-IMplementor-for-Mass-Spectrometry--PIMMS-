@@ -32,12 +32,6 @@ def are_peaks_related(mass1, mass2, mass_error_ppm1, mass_error_ppm2, z, M):
     separation = abs(mass1 - mass2)
     maximum_separation = upper_bound2 + lower_bound1 + M / z
     minimum_separation = -lower_bound2 - upper_bound1 + M / z
-
-    # Print bounds to 5 decimal places
-
-    print(f"Maximum Separation: {maximum_separation:.5f}")
-    print(f"Minimum Separation: {minimum_separation:.5f}")
-    print(f"Separation: {separation:.5f}")
     return separation <= maximum_separation and separation >= minimum_separation
 
 
@@ -46,8 +40,12 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     masses = sorted_df["m/z"].values
     iteration_count = 0
     related_peaks = []
+    identified_features = set()
+    child_peaks = set()
 
     for i in range(len(masses)):
+        if masses[i] in child_peaks:
+            continue
         for j in range(i + 1, len(masses)):
             mass1 = masses[i]
             mass2 = masses[j]
@@ -55,13 +53,20 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
             match_found = False
             for z in z_range:
                 for M in M_range:
+                    if (mass1, mass2) in identified_features or (
+                        mass2,
+                        mass1,
+                    ) in identified_features:
+                        continue
                     if are_peaks_related(
                         mass1, mass2, mass_error_ppm, mass_error_ppm, z, M
                     ):
                         related_peaks.append((mass1, mass2, z, M, "collapsed feature"))
+                        identified_features.add((mass1, mass2))
+                        child_peaks.add(mass2)
                         match_found = True
                         break  # Break the loop once a related peak is found
                 if match_found:
-                    break  # Break the outer loop if a match is found
-    print(f"Number of iterations: {iteration_count}")
+                    break
+
     return related_peaks
