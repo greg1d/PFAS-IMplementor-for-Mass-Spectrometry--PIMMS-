@@ -1,5 +1,6 @@
 import os
 import sys
+
 import pytest
 
 # Add the directory containing the script to the sys.path
@@ -14,9 +15,9 @@ for path in sys.path:
 print(f"script_dir: {script_dir}")
 
 from Atomic_weight_importing import (
-    read_isotope_data,
-    parse_isotope_data,
     add_elemental_symbol,
+    parse_isotope_data,
+    read_isotope_data,
 )
 
 
