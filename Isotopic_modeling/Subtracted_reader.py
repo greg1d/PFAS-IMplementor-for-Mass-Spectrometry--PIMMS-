@@ -51,15 +51,14 @@ def main():
     print(f"Number of collapsed features: {collapsed_features_count}")
 
     # Allow searching by collapsed feature
-    search_feature = float(
-        input("Enter the parent peak mass to search for its collapsed feature: ")
-    )
-    if search_feature in collapsed_features:
+    collapsed_feature_keys = list(collapsed_features.keys())
+    if len(collapsed_feature_keys) >= 1:
+        second_collapsed_feature_key = collapsed_feature_keys[0]
         print(
-            f"Peaks in Collapsed Feature with Parent Peak {search_feature}: {collapsed_features[search_feature]}"
+            f"Peaks in the 2nd Collapsed Feature: {collapsed_features[second_collapsed_feature_key]}"
         )
     else:
-        print(f"Collapsed Feature with Parent Peak {search_feature} not found.")
+        print("There are less than 2 collapsed features.")
 
 
 if __name__ == "__main__":
