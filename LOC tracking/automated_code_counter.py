@@ -1,17 +1,18 @@
 import os
 import subprocess
-import pandas as pd
-import matplotlib.pyplot as plt
 from datetime import datetime
-from matplotlib import font_manager
+
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from matplotlib import font_manager
 from scipy.interpolate import make_interp_spline
 
 # Set paths
 output_folder = r"LOC tracking outputs"
 output_file = os.path.join(output_folder, "code_metrics.xlsx")
-font_path = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Formatting/NormativePro-Bold.otf"
+font_path = r"Formatting/NormativePro-Bold.otf"
 font_prop = font_manager.FontProperties(fname=font_path)
 font_manager.fontManager.addfont(font_path)
 mpl.rc("font", family=font_prop.get_name())
@@ -28,8 +29,10 @@ def run_scc(exclude_dirs=None):
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.devcontainer",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.vscode",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data",
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/LOC tracking outputs",
+            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.pytest_cache",
         ]
-    target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
+    target_directory = r"/workspaces/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     directories_to_count = [
         d
         for d in os.listdir(target_directory)
@@ -43,7 +46,7 @@ def run_scc(exclude_dirs=None):
         print(d)
 
     # Full path to the scc executable
-    scc_path = "scc"  # Use the Linux-compatible version of scc
+    scc_path = r"Packages/scc"  # Use the Linux-compatible version of scc
 
     # Build the command for scc
     scc_command = [scc_path, "--no-cocomo"]
