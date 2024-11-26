@@ -32,7 +32,7 @@ def run_scc(exclude_dirs=None):
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/LOC tracking outputs",
             r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.pytest_cache",
         ]
-    target_directory = r"/workspaces/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
+    target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     directories_to_count = [
         d
         for d in os.listdir(target_directory)
