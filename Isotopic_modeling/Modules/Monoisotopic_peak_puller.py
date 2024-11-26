@@ -58,7 +58,7 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
                     if are_peaks_related(
                         mass1, mass2, mass_error_ppm, mass_error_ppm, z, M
                     ):
-                        related_peaks.append((mass1, mass2, z, M))
+                        related_peaks.append((mass1, mass2, z, M, "collapsed feature"))
                         match_found = True
                         break  # Break the loop once a related peak is found
                 if match_found:
