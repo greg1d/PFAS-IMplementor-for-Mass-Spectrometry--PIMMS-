@@ -10,12 +10,11 @@ import seaborn as sns
 from matplotlib.widgets import RectangleSelector
 
 # Define the directory containing the Excel files
-directory_path = r"F:\Twins Project (2.24-)\Non-target work\Processed Data\New method\fluoromatch only files"
+directory_path = "data for visualizer"
 
 # Define the directory to save the search results
 output_directory = (
-    r"F:\Twins Project (2.24-)\Non-target work\All Features Master\Search Results"
-)
+"data for visualizer")
 os.makedirs(output_directory, exist_ok=True)  # Create the directory if it doesn't exist
 
 # Find all Excel files in the directory
@@ -89,7 +88,7 @@ def search_feature(
                     mz_match = df  # If m/z is not specified, consider all rows
 
                 # If Name_or_Class search is provided, further filter the result
-                if name_or_class is not None:
+                if name_or_class:
                     mz_match = mz_match[
                         mz_match["Name_or_Class"].str.contains(
                             name_or_class, na=False, case=False, regex=False
@@ -153,7 +152,6 @@ def search_feature(
     else:
         messagebox.showinfo("No Matches", "No matches found.")
         return None
-
 
 # Function to visualize CCS vs m/z
 def visualize_ccs_vs_mz(result_df):
