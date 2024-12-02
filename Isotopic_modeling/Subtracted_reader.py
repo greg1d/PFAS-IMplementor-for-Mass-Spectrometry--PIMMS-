@@ -1,68 +1,46 @@
-from Modules.Monoisotopic_peak_puller import find_related_peaks_in_csv
-from tqdm import tqdm
-import time
+import pandas as pd
 
 
 def main():
-    file_path = "data\Dummy test blank subtracted data.csv"  # Update this path to your local CSV file
-    z_range = range(1, 5)  # This will check for z = 1 to 99
-    M_range = range(1, 5)  # This will check for M = 1 to 5
-    mass_error_ppm = 10  # Define the mass error in ppm
+    # Read the CSV file
+    df = pd.read_csv("data\Edited full blank subtracted data set.csv")
 
-    # Start the progress bar
-    with tqdm(total=100, desc="Processing peaks") as pbar:
-        start_time = time.time()
+    # Sort the DataFrame by the "m/z" column
+    df = df.sort_values(by="m/z")
 
-        (
-            related_peaks,
-            iteration_count,
-            comparisons,
-            parent_child_baby_relationships,
-            collapsed_features,
-        ) = find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm)
+    # Extract the "m/z", "RT", and "CCS" columns as lists
+    array = df["m/z"].tolist()
+    rt_array = df["RT"].tolist()
+    ccs_array = df["CCS"].tolist()
 
-        # Simulate progress update
-        pbar.update(100)
+    z_range = range(1, 4)  # User-defined range for z from 1 to 3
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+    identified_features = set()
+    groups = []
 
-    # Print the number of calculations
-    print(f"Number of calculations: {iteration_count}")
-    print("Summary of comparisons:")
-    for comparison in comparisons:
-        print(comparison)
-    # Print the parent, child, and baby peaks
-    collapsed_features_count = 0
-    unique_parents = set()
-    for relationship in parent_child_baby_relationships:
-        if relationship[2] == "parent-child":
-            print(f"Parent peak: {relationship[0]}, Child peak: {relationship[1]}")
-            unique_parents.add(relationship[0])
-        elif relationship[2] == "baby":
-            print(f"Baby peak: {relationship[1]}")
-        elif relationship[2] == "loner":
-            print(
-                f"Loner peak: {relationship[1]} (related to Parent peak: {relationship[0]})"
+    for i in range(len(array)):
+        if array[i] not in identified_features:
+            group = expand_group(
+                array, rt_array, ccs_array, array[i], rt_array[i], ccs_array[i], z_range
             )
-            unique_parents.add(relationship[0])
+            if len(group) >= 2:  # Only add groups with more than 2 features
+                groups.append(group)
+                identified_features.update(group)
 
-    collapsed_features_count = len(unique_parents)
+    print(f"Number of groups identified: {len(groups)}")
 
-    # Print the number of collapsed features
-    print(f"Number of collapsed features: {collapsed_features_count}")
+    print("Groups of related peaks:")
+    for group in groups:
+        if len(group) >= 2:
+            print(f"Group: {sorted(group)}")
 
-    # Allow searching by collapsed feature
-    collapsed_feature_keys = list(collapsed_features.keys())
-    if len(collapsed_feature_keys) >= 1:
-        second_collapsed_feature_key = collapsed_feature_keys[0]
-        print(
-            f"Peaks in the 2nd Collapsed Feature: {collapsed_features[second_collapsed_feature_key]}"
-        )
-    else:
-        print("There are less than 2 collapsed features.")
+    total_features = len(array)
+    grouped_features = sum(len(group) for group in groups if len(group) >= 2)
+    unrelated_features = total_features - grouped_features
 
-    print(f"Script completed in {elapsed_time:.2f} seconds")
+    print(
+        f"Number of unrelated features: {unrelated_features}"
+    )  # Print the identified features
 
 
 if __name__ == "__main__":

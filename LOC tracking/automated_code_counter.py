@@ -24,15 +24,9 @@ if not os.path.exists(output_folder):
 def run_scc(exclude_dirs=None):
     if exclude_dirs is None:
         exclude_dirs = [
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Formatting",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/Packages",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.devcontainer",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.vscode",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/LOC tracking outputs",
-            r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/.pytest_cache",
+            r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\data",
         ]
-    target_directory = r"/root/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
+    target_directory = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
     directories_to_count = [
         d
         for d in os.listdir(target_directory)
@@ -46,7 +40,11 @@ def run_scc(exclude_dirs=None):
         print(d)
 
     # Full path to the scc executable
-    scc_path = r"Packages/scc"  # Use the Linux-compatible version of scc
+    scc_path = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\Packages\scc"  # Use the Windows-compatible version of scc
+
+    # Check if the scc executable exists
+    if not os.path.isfile(scc_path):
+        raise FileNotFoundError(f"scc executable not found at {scc_path}")
 
     # Build the command for scc
     scc_command = [scc_path, "--no-cocomo"]

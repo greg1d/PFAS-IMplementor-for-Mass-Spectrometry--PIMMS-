@@ -97,7 +97,7 @@ def expand_group(
 # Example usage
 def main():
     # Read the CSV file
-    df = pd.read_csv("data\Edited full blank subtracted data set.csv")
+    df = pd.read_csv("data\Dummy test blank subtracted data.csv")
 
     # Sort the DataFrame by the "m/z" column
     df = df.sort_values(by="m/z")
@@ -117,14 +117,24 @@ def main():
             group = expand_group(
                 array, rt_array, ccs_array, array[i], rt_array[i], ccs_array[i], z_range
             )
-            groups.append(group)
-            identified_features.update(group)
+            if len(group) >= 2:  # Only add groups with more than 2 features
+                groups.append(group)
+                identified_features.update(group)
+
+    print(f"Number of groups identified: {len(groups)}")
 
     print("Groups of related peaks:")
     for group in groups:
-        print(f"Group: {sorted(group)}")
+        if len(group) >= 2:
+            print(f"Group: {sorted(group)}")
 
-    print(f"Number of groups identified: {len(groups)}")
+    total_features = len(array)
+    grouped_features = sum(len(group) for group in groups if len(group) >= 2)
+    unrelated_features = total_features - grouped_features
+
+    print(
+        f"Number of unrelated features: {unrelated_features}"
+    )  # Print the identified features
 
 
 if __name__ == "__main__":
