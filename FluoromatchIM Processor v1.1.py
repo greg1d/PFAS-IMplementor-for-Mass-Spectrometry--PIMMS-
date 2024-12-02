@@ -5,7 +5,7 @@ import time
 import pandas as pd
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
-directory_path = r"D:\2023 gators\PIMMS data\PIMMS Processing"
+directory_path = r"F:\Twins Project (2.24-)\Non-target work\Processed Data\Test folder"
 
 # Use glob to find all CSV files in the directory with "_FIN" in their name - All the fluoromatch files will end in _FIN if you use the code edit I used
 csv_files = glob.glob(os.path.join(directory_path, "*_FIN*.csv"))
@@ -14,6 +14,12 @@ csv_files = glob.glob(os.path.join(directory_path, "*_FIN*.csv"))
 epa_library_path = (
     r"F:\Twins Project (2.24-)\Non-target work\Import Folder\Kauffman M_H Library.xlsx"
 )
+
+if not os.path.exists(epa_library_path):
+    print(f"File not found: {epa_library_path}")
+else:
+    print(f"File found: {epa_library_path}")
+
 epa_library = pd.read_excel(epa_library_path)
 library_masses = epa_library["MONOISOTOPIC MASS"].values
 library_preferred_names = epa_library.set_index("MONOISOTOPIC MASS")[
