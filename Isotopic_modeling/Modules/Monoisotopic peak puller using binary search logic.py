@@ -94,7 +94,6 @@ def main():
 
     z_range = range(1, 4)  # User-defined range for z from 1 to 3
 
-    total_calculations = 0
     identified_features = set()
     groups = []
 
@@ -103,7 +102,6 @@ def main():
             group = expand_group(array, rt_array, array[i], z_range)
             groups.append(group)
             identified_features.update(group)
-
     print("Groups of related peaks:")
     for group in groups:
         print(f"Group: {sorted(group)}")
