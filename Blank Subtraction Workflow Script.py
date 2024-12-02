@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load the Excel file
-file_path = r"F:\Twins Project (2.24-)\Non-target work\Processed Data\New method\2007-2008 with missing file\All Samples.xlsx"
+file_path = r"D:\2023 gators\PIMMS data\PIMMS Processing\All features.xlsx"
 df = pd.read_excel(file_path)
 
 # Identify sample and blank columns

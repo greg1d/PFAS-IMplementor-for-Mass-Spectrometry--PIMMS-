@@ -1,15 +1,14 @@
 import glob
 import os
-
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
 # Define the directory containing the Excel files
-directory_path = r"F:\Twins Project (2.24-)\Non-target work\Processed Data\Test folder"
+directory_path = r"D:\2023 gators\PIMMS data\PIMMS Processing\Fluoromatch files only"
 
 # Find all Excel files in the directory that end with "fluoromatch_processed.xlsx"
-excel_files = glob.glob(os.path.join(directory_path, "*fluoromatch_processed.xlsx"))
+excel_files = glob.glob(os.path.join(directory_path, "*PIMMS_processed.xlsx"))
 
 # Initialize an empty dictionary to store the chemical counts and CCS/RT data
 chemical_counts = {}
@@ -50,7 +49,7 @@ for file_path in excel_files:
     unique_chemicals_in_file = set()
 
     try:
-        df = pd.read_excel(file_path, sheet_name="Likely")
+        df = pd.read_excel(file_path, sheet_name="Tentative (EPA match)")
 
         if (
             "Name_or_Class" in df.columns

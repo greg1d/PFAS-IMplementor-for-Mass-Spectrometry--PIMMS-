@@ -2,7 +2,7 @@ import glob
 import os
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import pandas as pd
@@ -23,6 +23,12 @@ excel_files = glob.glob(os.path.join(directory_path, "*.xlsx"))
 
 # Define a mapping for sheet options
 sheet_mapping = {1: "Likely", 2: "Tentative (EPA match)", 3: "Tentative (No EPA match)"}
+print("Loading visualizer...")
+with tqdm(total=100, desc="Loading visualizer") as pbar:
+    # Simulate some loading steps
+    for _ in range(10):
+        # Simulate a loading step
+        pbar.update(10)
 
 
 def toggle_selector(event):

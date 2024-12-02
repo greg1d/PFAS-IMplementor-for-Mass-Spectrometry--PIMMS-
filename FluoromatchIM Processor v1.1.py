@@ -5,7 +5,7 @@ import time
 import pandas as pd
 
 # Define the directory containing the CSV files - specify where all your fluoromatch files are
-directory_path = r"F:\Twins Project (2.24-)\Non-target work\Processed Data\New method\2007-2008 with missing file"
+directory_path = r"D:\2023 gators\PIMMS data\PIMMS Processing"
 
 # Use glob to find all CSV files in the directory with "_FIN" in their name - All the fluoromatch files will end in _FIN if you use the code edit I used
 csv_files = glob.glob(os.path.join(directory_path, "*_FIN*.csv"))
@@ -44,7 +44,7 @@ all_summaries = pd.DataFrame()
 
 # Define the function to match with the external library and return all potential matches
 def match_external_library(
-    mz_value, library_masses, library_preferred_names, ppm_threshold=10
+    mz_value, library_masses, library_preferred_names, ppm_threshold=30
 ):
     matches = []
     for mass in library_masses:
@@ -217,7 +217,7 @@ for file_path in csv_files:
             for ref_mz, ref_ccs in zip(reference_mz, reference_ccs):
                 ppm_diff = abs(mz - ref_mz) / ref_mz * 1e6
                 ccs_diff = abs(ccs - ref_ccs) / ref_ccs * 100
-                if ppm_diff < 10 and ccs_diff < 2:
+                if ppm_diff < 30 and ccs_diff < 2:
                     indices_to_remove.add(i)
                     break
         return df.drop(list(indices_to_remove))
@@ -409,11 +409,11 @@ for file_path in csv_files:
 
     # Define the output path for the filtered data
     filtered_output_path = os.path.join(
-        directory_path, f"{header_name}_fluoromatch_processed.xlsx"
+        directory_path, f"{header_name}_PIMMS_processed.xlsx"
     )
     directory_path2 = r"F:\Twins Project (2.24-)\Non-target work\All Features Master"
     filtered_output_path2 = os.path.join(
-        directory_path2, f"{header_name}_fluoromatch_processed.xlsx"
+        directory_path2, f"{header_name}_PIMMS_processed.xlsx"
     )
 
     # Save the filtered data to a new Excel file with three sheets: likely, tentative_with_match, tentative_without_match
