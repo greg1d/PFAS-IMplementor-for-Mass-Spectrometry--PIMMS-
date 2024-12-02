@@ -1,3 +1,4 @@
+# FILE: peak_analysis.py
 import bisect
 import pandas as pd
 
@@ -58,9 +59,6 @@ def expand_group(
             selected_z = z
 
     # Report the i array point if exactly 2 peaks are identified
-    if peak_count[i] >= 2:
-        print(f"More than 2 peaks identified from array point {array[i]}")
-        print(f"Charges of identified peaks: {peak_charges[i]}")
 
     # Second iteration: expand the group with the same charge `selected_z` and incrementing M
     if selected_z is not None and candidate_peaks:
@@ -68,7 +66,6 @@ def expand_group(
         highest_charge_peak = max(candidate_peaks, key=lambda x: x[1])
         selected_z = highest_charge_peak[1]
         new_i = array.index(highest_charge_peak[0])
-        print("new I", array[new_i], "RT:", rt_array[new_i], "CCS:", ccs_array[new_i])
         group.append(array[new_i])
         while True:
             new_peaks, _ = find_peaks_within_bounds(
@@ -82,11 +79,10 @@ def expand_group(
                     and abs(rt_array[array.index(new_peak)] - initial_rt) <= 0.2
                     and abs(ccs_array[array.index(new_peak)] - initial_ccs)
                     / initial_ccs
-                    <= 0.02
+                    <= 0.2
                 ):
                     identified_features.add(new_peak)
                     group.append(new_peak)
-                    print(f"Peak: {new_peak}, Charge: {selected_z}, M: 1")
             new_i = array.index(
                 new_peaks[-1]
             )  # Update new_i to the last identified peak
@@ -94,10 +90,9 @@ def expand_group(
     return group
 
 
-# Example usage
-def main():
+def analyze_peaks(file_path, z_range, mass_error_ppm=10):
     # Read the CSV file
-    df = pd.read_csv("data\Dummy test blank subtracted data.csv")
+    df = pd.read_csv(file_path)
 
     # Sort the DataFrame by the "m/z" column
     df = df.sort_values(by="m/z")
@@ -107,35 +102,27 @@ def main():
     rt_array = df["RT"].tolist()
     ccs_array = df["CCS"].tolist()
 
-    z_range = range(1, 4)  # User-defined range for z from 1 to 3
-
     identified_features = set()
     groups = []
 
     for i in range(len(array)):
         if array[i] not in identified_features:
             group = expand_group(
-                array, rt_array, ccs_array, array[i], rt_array[i], ccs_array[i], z_range
+                array,
+                rt_array,
+                ccs_array,
+                array[i],
+                rt_array[i],
+                ccs_array[i],
+                z_range,
+                mass_error_ppm,
             )
             if len(group) >= 2:  # Only add groups with more than 2 features
                 groups.append(group)
                 identified_features.update(group)
 
-    print(f"Number of groups identified: {len(groups)}")
-
-    print("Groups of related peaks:")
-    for group in groups:
-        if len(group) >= 2:
-            print(f"Group: {sorted(group)}")
-
     total_features = len(array)
     grouped_features = sum(len(group) for group in groups if len(group) >= 2)
     unrelated_features = total_features - grouped_features
 
-    print(
-        f"Number of unrelated features: {unrelated_features}"
-    )  # Print the identified features
-
-
-if __name__ == "__main__":
-    main()
+    return groups, unrelated_features
