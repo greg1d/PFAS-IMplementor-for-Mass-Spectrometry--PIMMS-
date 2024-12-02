@@ -23,39 +23,49 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
     return peaks_within_bounds, j_end - j_start
 
 
-def expand_group(array, initial_peak, z_range, M_range, mass_error_ppm=10):
+def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
     group = [initial_peak]
     identified_features = set(group)
     i = array.index(initial_peak)
-    # Determine the charge value of the first peak
 
-    # Iterate through all z values first with M=1
+    # First iteration: work through all charges to identify all candidate peaks
+    candidate_peaks = set()
+    selected_z = None
     for z in z_range:
         peaks, _ = find_peaks_within_bounds(array, z, 1, i, mass_error_ppm)
         for peak in peaks:
             if peak not in identified_features:
+                candidate_peaks.add((peak, z))
+        if peaks and selected_z is None:
+            selected_z = z
+
+    # Second iteration: expand the group with the same charge `selected_z` and incrementing M
+    if selected_z is not None:
+        for peak, z in candidate_peaks:
+            if peak not in identified_features:
                 identified_features.add(peak)
                 group.append(peak)
-                print(f"Peak: {peak}, Charge: {z}")
-                # Continue expanding the group with the new peak
-                for new_z in z_range:
-                    for new_M in M_range:
-                        new_peaks, _ = find_peaks_within_bounds(
-                            array, new_z, new_M, array.index(peak), mass_error_ppm
-                        )
-                        for new_peak in new_peaks:
-                            if new_peak not in identified_features:
-                                # Debugging statement to check if the charge is 2
-                                identified_features.add(new_peak)
-                                group.append(new_peak)
+                print(f"Peak: {peak}, Charge: {selected_z}, M: 1")
+                M = 2
+                while True:
+                    new_peaks, _ = find_peaks_within_bounds(
+                        array, selected_z, M, array.index(peak), mass_error_ppm
+                    )
+                    if not new_peaks:
+                        break
+                    for new_peak in new_peaks:
+                        if new_peak not in identified_features:
+                            identified_features.add(new_peak)
+                            group.append(new_peak)
+                            print(f"Peak: {new_peak}, Charge: {selected_z}, M: {M}")
+                    M += 1
 
     return group
 
 
 # Example usage
-array = [102, 102.5, 100000]
-z_range = range(1, 4)  # User-defined range for z from 1 to 10
-M_range = range(1, 4)  # User-defined range for M from 1 to 10
+array = [102, 102.33333333, 103, 104, 110, 111, 100000]
+z_range = range(1, 4)  # User-defined range for z from 1 to 3
 
 total_calculations = 0
 identified_features = set()
@@ -63,10 +73,9 @@ groups = []
 
 for i in range(len(array)):
     if array[i] not in identified_features:
-        group = expand_group(array, array[i], z_range, M_range)
+        group = expand_group(array, array[i], z_range)
         groups.append(group)
         identified_features.update(group)
-
 
 print("Groups of related peaks:")
 for group in groups:
