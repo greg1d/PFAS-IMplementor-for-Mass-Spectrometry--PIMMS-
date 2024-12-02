@@ -54,6 +54,7 @@ def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
         selected_z = highest_charge_peak[1]
         new_i = array.index(highest_charge_peak[0])
         print("new I", array[new_i])
+        group.append(array[new_i])
         while True:
             new_peaks, _ = find_peaks_within_bounds(
                 array, selected_z, 1, new_i, mass_error_ppm
@@ -69,12 +70,11 @@ def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
             new_i = array.index(
                 new_peaks[-1]
             )  # Update new_i to the last identified peak
-
     return group
 
 
 # Example usage
-array = [102, 102.5, 103, 104, 110, 111, 100000]
+array = [102, 103, 104, 110, 111, 100000]
 z_range = range(1, 4)  # User-defined range for z from 1 to 3
 
 total_calculations = 0
