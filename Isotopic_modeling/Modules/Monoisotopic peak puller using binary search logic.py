@@ -53,6 +53,7 @@ def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
         highest_charge_peak = max(candidate_peaks, key=lambda x: x[1])
         selected_z = highest_charge_peak[1]
         new_i = array.index(highest_charge_peak[0])
+        print("new I", array[new_i])
         while True:
             new_peaks, _ = find_peaks_within_bounds(
                 array, selected_z, 1, new_i, mass_error_ppm
