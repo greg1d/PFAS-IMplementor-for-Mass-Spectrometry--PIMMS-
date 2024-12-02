@@ -1,5 +1,4 @@
 import pandas as pd
-from tqdm import tqdm
 
 
 def parse_and_sort_csv(file_path, mass_error_ppm):
@@ -39,7 +38,7 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
     parent_child_baby_relationships = []
     collapsed_features = {}
 
-    for i in tqdm(range(len(masses)), desc="Processing peaks"):
+    for i in range(len(masses)):
         if masses[i] in completed_features:
             continue
         current_group = [masses[i]]
