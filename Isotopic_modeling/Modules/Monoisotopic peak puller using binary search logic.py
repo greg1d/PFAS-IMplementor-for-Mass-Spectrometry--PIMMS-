@@ -23,7 +23,16 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
     return peaks_within_bounds, j_end - j_start
 
 
-def expand_group(array, rt_array, initial_peak, z_range, mass_error_ppm=10):
+def expand_group(
+    array,
+    rt_array,
+    ccs_array,
+    initial_peak,
+    initial_rt,
+    initial_ccs,
+    z_range,
+    mass_error_ppm=10,
+):
     group = [initial_peak]
     identified_features = set(group)
     i = array.index(initial_peak)
@@ -38,7 +47,9 @@ def expand_group(array, rt_array, initial_peak, z_range, mass_error_ppm=10):
         for peak in peaks:
             if (
                 peak not in identified_features
-                and abs(rt_array[array.index(peak)] - rt_array[i]) <= 0.2
+                and abs(rt_array[array.index(peak)] - initial_rt) <= 0.2
+                and abs(ccs_array[array.index(peak)] - initial_ccs) / initial_ccs
+                <= 0.02
             ):
                 candidate_peaks.add((peak, z))
                 peak_count[i] += 1
@@ -57,7 +68,7 @@ def expand_group(array, rt_array, initial_peak, z_range, mass_error_ppm=10):
         highest_charge_peak = max(candidate_peaks, key=lambda x: x[1])
         selected_z = highest_charge_peak[1]
         new_i = array.index(highest_charge_peak[0])
-        print("new I", array[new_i], "RT:", rt_array[new_i])
+        print("new I", array[new_i], "RT:", rt_array[new_i], "CCS:", ccs_array[new_i])
         group.append(array[new_i])
         while True:
             new_peaks, _ = find_peaks_within_bounds(
@@ -68,7 +79,10 @@ def expand_group(array, rt_array, initial_peak, z_range, mass_error_ppm=10):
             for new_peak in new_peaks:
                 if (
                     new_peak not in identified_features
-                    and abs(rt_array[array.index(new_peak)] - rt_array[new_i]) <= 0.2
+                    and abs(rt_array[array.index(new_peak)] - initial_rt) <= 0.2
+                    and abs(ccs_array[array.index(new_peak)] - initial_ccs)
+                    / initial_ccs
+                    <= 0.02
                 ):
                     identified_features.add(new_peak)
                     group.append(new_peak)
@@ -83,14 +97,15 @@ def expand_group(array, rt_array, initial_peak, z_range, mass_error_ppm=10):
 # Example usage
 def main():
     # Read the CSV file
-    df = pd.read_csv("data/Dummy test blank subtracted data.csv")
+    df = pd.read_csv("data\Edited full blank subtracted data set.csv")
 
     # Sort the DataFrame by the "m/z" column
     df = df.sort_values(by="m/z")
 
-    # Extract the "m/z" and "RT" columns as lists
+    # Extract the "m/z", "RT", and "CCS" columns as lists
     array = df["m/z"].tolist()
     rt_array = df["RT"].tolist()
+    ccs_array = df["CCS"].tolist()
 
     z_range = range(1, 4)  # User-defined range for z from 1 to 3
 
@@ -99,12 +114,17 @@ def main():
 
     for i in range(len(array)):
         if array[i] not in identified_features:
-            group = expand_group(array, rt_array, array[i], z_range)
+            group = expand_group(
+                array, rt_array, ccs_array, array[i], rt_array[i], ccs_array[i], z_range
+            )
             groups.append(group)
             identified_features.update(group)
+
     print("Groups of related peaks:")
     for group in groups:
         print(f"Group: {sorted(group)}")
+
+    print(f"Number of groups identified: {len(groups)}")
 
 
 if __name__ == "__main__":
