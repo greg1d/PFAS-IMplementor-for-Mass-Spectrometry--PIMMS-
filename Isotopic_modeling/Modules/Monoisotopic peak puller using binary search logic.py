@@ -1,4 +1,5 @@
 import bisect
+import pandas as pd
 
 
 def calculate_mass_error(mass, mass_error_ppm=10, z=1):
@@ -22,7 +23,7 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
     return peaks_within_bounds, j_end - j_start
 
 
-def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
+def expand_group(array, rt_array, initial_peak, z_range, mass_error_ppm=10):
     group = [initial_peak]
     identified_features = set(group)
     i = array.index(initial_peak)
@@ -35,7 +36,10 @@ def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
     for z in z_range:
         peaks, _ = find_peaks_within_bounds(array, z, 1, i, mass_error_ppm)
         for peak in peaks:
-            if peak not in identified_features:
+            if (
+                peak not in identified_features
+                and abs(rt_array[array.index(peak)] - rt_array[i]) <= 0.2
+            ):
                 candidate_peaks.add((peak, z))
                 peak_count[i] += 1
                 peak_charges[i].append(z)
@@ -48,12 +52,12 @@ def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
         print(f"Charges of identified peaks: {peak_charges[i]}")
 
     # Second iteration: expand the group with the same charge `selected_z` and incrementing M
-    if selected_z is not None:
+    if selected_z is not None and candidate_peaks:
         # Find the peak with the highest charge
         highest_charge_peak = max(candidate_peaks, key=lambda x: x[1])
         selected_z = highest_charge_peak[1]
         new_i = array.index(highest_charge_peak[0])
-        print("new I", array[new_i])
+        print("new I", array[new_i], "RT:", rt_array[new_i])
         group.append(array[new_i])
         while True:
             new_peaks, _ = find_peaks_within_bounds(
@@ -62,31 +66,48 @@ def expand_group(array, initial_peak, z_range, mass_error_ppm=10):
             if not new_peaks:
                 break
             for new_peak in new_peaks:
-                if new_peak not in identified_features:
+                if (
+                    new_peak not in identified_features
+                    and abs(rt_array[array.index(new_peak)] - rt_array[new_i]) <= 0.2
+                ):
                     identified_features.add(new_peak)
                     group.append(new_peak)
                     print(f"Peak: {new_peak}, Charge: {selected_z}, M: 1")
-
             new_i = array.index(
                 new_peaks[-1]
             )  # Update new_i to the last identified peak
+
     return group
 
 
 # Example usage
-array = [102, 103, 104, 110, 111, 100000]
-z_range = range(1, 4)  # User-defined range for z from 1 to 3
+def main():
+    # Read the CSV file
+    df = pd.read_csv("data/Dummy test blank subtracted data.csv")
 
-total_calculations = 0
-identified_features = set()
-groups = []
+    # Sort the DataFrame by the "m/z" column
+    df = df.sort_values(by="m/z")
 
-for i in range(len(array)):
-    if array[i] not in identified_features:
-        group = expand_group(array, array[i], z_range)
-        groups.append(group)
-        identified_features.update(group)
+    # Extract the "m/z" and "RT" columns as lists
+    array = df["m/z"].tolist()
+    rt_array = df["RT"].tolist()
 
-print("Groups of related peaks:")
-for group in groups:
-    print(f"Group: {sorted(group)}")
+    z_range = range(1, 4)  # User-defined range for z from 1 to 3
+
+    total_calculations = 0
+    identified_features = set()
+    groups = []
+
+    for i in range(len(array)):
+        if array[i] not in identified_features:
+            group = expand_group(array, rt_array, array[i], z_range)
+            groups.append(group)
+            identified_features.update(group)
+
+    print("Groups of related peaks:")
+    for group in groups:
+        print(f"Group: {sorted(group)}")
+
+
+if __name__ == "__main__":
+    main()
