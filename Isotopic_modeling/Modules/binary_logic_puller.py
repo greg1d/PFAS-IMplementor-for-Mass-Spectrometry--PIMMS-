@@ -1,5 +1,5 @@
-# FILE: peak_analysis.py
 import bisect
+
 import pandas as pd
 
 
@@ -57,6 +57,10 @@ def expand_group(
                 candidate_peaks.add((peak, z))
                 peak_count[i] += 1
                 peak_charges[i].append(z)
+                # Debugging statement to print RT values of the rows being compared
+                print(
+                    f"Comparing RT values: Initial RT = {initial_rt}, Peak RT = {rt_array[array.index(peak)]}"
+                )
         if peaks and selected_z is None:
             selected_z = z
 
@@ -136,3 +140,64 @@ def analyze_peaks(file_path, z_range, mass_error_ppm=10):
     unrelated_features = total_features - grouped_features
 
     return groups, unrelated_features, total_calculations
+
+
+def main():
+    file_path = "data/Edited full blank subtracted data set.csv"  # Update this path to your local CSV file
+    z_range = range(1, 5)  # This will check for z = 1 to 5
+    mass_error_ppm = 10  # Define the mass error in ppm
+
+    # Load the data to get RT, CCS, and ID values
+    data_df = pd.read_csv(file_path)
+    rt_ccs_mapping = (
+        data_df.groupby("m/z")[["RT", "CCS", "ID"]]
+        .agg(lambda x: x.iloc[0])
+        .to_dict("index")
+    )
+
+    # Run the operation
+    groups, unrelated_features, total_calculations = analyze_peaks(
+        file_path, z_range, mass_error_ppm
+    )
+
+    # Print the number of groups identified
+    print(f"Number of groups identified: {len(groups)}")
+
+    # Print the groups of related peaks
+    print("Groups of related peaks:")
+    for idx, group in enumerate(groups):
+        print(f"Group {idx + 1}: {sorted(group)}")
+
+    # Print the number of unrelated features
+    print(f"Number of unrelated features: {unrelated_features}")
+
+    # Print the number of calculations performed
+    print(f"Number of calculations performed: {total_calculations}")
+
+    print("Script completed")
+
+    # Export the results to a CSV file
+    results = []
+    for idx, group in enumerate(groups):
+        for peak in group:
+            # Extract RT, CCS, and ID values from the mapping
+            rt_value = rt_ccs_mapping.get(peak, {}).get("RT", "N/A")
+            ccs_value = rt_ccs_mapping.get(peak, {}).get("CCS", "N/A")
+            id_value = rt_ccs_mapping.get(peak, {}).get("ID", "N/A")
+            results.append(
+                {
+                    "Group": idx + 1,
+                    "Peak": peak,
+                    "RT": rt_value,
+                    "CCS": ccs_value,
+                    "ID": id_value,
+                }
+            )
+
+    results_df = pd.DataFrame(results)
+    results_df.to_csv("analyzed_peaks_results.csv", index=False)
+    print("Results saved to analyzed_peaks_results.csv")
+
+
+if __name__ == "__main__":
+    main()
