@@ -1,5 +1,5 @@
-# FILE: peak_analysis.py
 import bisect
+
 import pandas as pd
 
 
@@ -28,14 +28,16 @@ def expand_group(
     array,
     rt_array,
     ccs_array,
+    id_array,
     initial_peak,
     initial_rt,
     initial_ccs,
+    initial_id,
     z_range,
     mass_error_ppm=10,
 ):
-    group = [initial_peak]
-    identified_features = set(group)
+    group = [(initial_peak, initial_id)]
+    identified_features = set([initial_id])
     i = array.index(initial_peak)
     peak_count = {i: 0}
     peak_charges = {i: []}
@@ -48,15 +50,20 @@ def expand_group(
         peaks, calc = find_peaks_within_bounds(array, z, 1, i, mass_error_ppm)
         calculations += calc
         for peak in peaks:
+            peak_id = id_array[array.index(peak)]
             if (
-                peak not in identified_features
+                peak_id not in identified_features
                 and abs(rt_array[array.index(peak)] - initial_rt) <= 0.2
                 and abs(ccs_array[array.index(peak)] - initial_ccs) / initial_ccs
                 <= 0.02
             ):
-                candidate_peaks.add((peak, z))
+                candidate_peaks.add((peak, peak_id, z))
                 peak_count[i] += 1
                 peak_charges[i].append(z)
+                # Debugging statement to print RT values of the rows being compared
+                print(
+                    f"Comparing RT values: Initial RT = {initial_rt}, Peak RT = {rt_array[array.index(peak)]}"
+                )
         if peaks and selected_z is None:
             selected_z = z
 
@@ -68,11 +75,11 @@ def expand_group(
     # Second iteration: expand the group with the same charge `selected_z` and incrementing M
     if selected_z is not None and candidate_peaks:
         # Find the peak with the highest charge
-        highest_charge_peak = max(candidate_peaks, key=lambda x: x[1])
-        selected_z = highest_charge_peak[1]
+        highest_charge_peak = max(candidate_peaks, key=lambda x: x[2])
+        selected_z = highest_charge_peak[2]
         new_i = array.index(highest_charge_peak[0])
         print("new I", array[new_i], "RT:", rt_array[new_i], "CCS:", ccs_array[new_i])
-        group.append(array[new_i])
+        group.append((array[new_i], id_array[new_i]))
         while True:
             new_peaks, calc = find_peaks_within_bounds(
                 array, selected_z, 1, new_i, mass_error_ppm
@@ -81,15 +88,16 @@ def expand_group(
             if not new_peaks:
                 break
             for new_peak in new_peaks:
+                new_peak_id = id_array[array.index(new_peak)]
                 if (
-                    new_peak not in identified_features
+                    new_peak_id not in identified_features
                     and abs(rt_array[array.index(new_peak)] - initial_rt) <= 0.2
                     and abs(ccs_array[array.index(new_peak)] - initial_ccs)
                     / initial_ccs
                     <= 0.02
                 ):
-                    identified_features.add(new_peak)
-                    group.append(new_peak)
+                    identified_features.add(new_peak_id)
+                    group.append((new_peak, new_peak_id))
                     print(f"Peak: {new_peak}, Charge: {selected_z}, M: 1")
             new_i = array.index(
                 new_peaks[-1]
@@ -105,31 +113,34 @@ def analyze_peaks(file_path, z_range, mass_error_ppm=10):
     # Sort the DataFrame by the "m/z" column
     df = df.sort_values(by="m/z")
 
-    # Extract the "m/z", "RT", and "CCS" columns as lists
+    # Extract the "m/z", "RT", "CCS", and "ID" columns as lists
     array = df["m/z"].tolist()
     rt_array = df["RT"].tolist()
     ccs_array = df["CCS"].tolist()
+    id_array = df["ID"].tolist()
 
     identified_features = set()
     groups = []
     total_calculations = 0
 
     for i in range(len(array)):
-        if array[i] not in identified_features:
+        if id_array[i] not in identified_features:
             group, calculations = expand_group(
                 array,
                 rt_array,
                 ccs_array,
+                id_array,
                 array[i],
                 rt_array[i],
                 ccs_array[i],
+                id_array[i],
                 z_range,
                 mass_error_ppm,
             )
             total_calculations += calculations
             if len(group) >= 2:  # Only add groups with more than 2 features
                 groups.append(group)
-                identified_features.update(group)
+                identified_features.update([id for _, id in group])
 
     total_features = len(array)
     grouped_features = sum(len(group) for group in groups if len(group) >= 2)

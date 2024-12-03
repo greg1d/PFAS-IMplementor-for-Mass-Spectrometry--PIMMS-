@@ -2,7 +2,6 @@ import pandas as pd
 
 
 def parse_and_sort_csv(file_path, mass_error_ppm):
-    # Placeholder for the actual implementation of parsing and sorting the CSV file
     df = pd.read_csv(file_path)
     df = df.sort_values(by=["m/z"])
     return df
@@ -111,3 +110,44 @@ def find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm):
         parent_child_baby_relationships,
         collapsed_features,
     )
+
+
+def main():
+    file_path = "data/Edited full blank subtracted data set.csv"  # Update this path to your local CSV file
+    z_range = range(1, 5)  # This will check for z = 1 to 5
+    M_range = range(1, 2)  # This will check for M = 1 to 10
+    mass_error_ppm = 10  # Define the mass error in ppm
+
+    # Run the operation
+    (
+        related_peaks,
+        iteration_count,
+        comparisons,
+        parent_child_baby_relationships,
+        collapsed_features,
+    ) = find_related_peaks_in_csv(file_path, z_range, M_range, mass_error_ppm)
+
+    # Print the results
+    print("Results:")
+    print(f"Number of related peaks: {len(related_peaks)}")
+    print(f"Number of iterations: {iteration_count}")
+    print(f"Number of comparisons: {len(comparisons)}")
+    print(
+        f"Number of parent-child-baby relationships: {len(parent_child_baby_relationships)}"
+    )
+    print(f"Number of collapsed features: {len(collapsed_features)}")
+
+    # Save the results to a CSV file
+    results_df = pd.DataFrame(
+        {
+            "Parent Peak": [rel[0] for rel in parent_child_baby_relationships],
+            "Child/Baby Peak": [rel[1] for rel in parent_child_baby_relationships],
+            "Relationship Type": [rel[2] for rel in parent_child_baby_relationships],
+        }
+    )
+    results_df.to_csv("collapsed_features_results.csv", index=False)
+    print("Results saved to collapsed_features_results.csv")
+
+
+if __name__ == "__main__":
+    main()
