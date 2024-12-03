@@ -3,8 +3,8 @@ from Modules.binary_logic_puller import analyze_peaks
 
 
 def main():
-    file_path = "data/Edited full blank subtracted data set.csv"  # Update this path to your local CSV file
-    z_range = range(1, 5)  # This will check for z = 1 to 5
+    file_path = "data\Testing data set.csv"  # Update this path to your local CSV file
+    z_range = range(1, 20)  # This will check for z = 1 to 5
     mass_error_ppm = 10  # Define the mass error in ppm
 
     # Load the data to get RT, CCS, and ID values
