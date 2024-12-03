@@ -1,8 +1,12 @@
+import time
+
 import pandas as pd
 from Modules.binary_logic_puller import analyze_peaks
 
 
 def main():
+    start_time = time.time()  # Start the timer
+
     file_path = "data\Testing data set.csv"  # Update this path to your local CSV file
     z_range = range(1, 20)  # This will check for z = 1 to 5
     mass_error_ppm = 10  # Define the mass error in ppm
@@ -53,6 +57,9 @@ def main():
     results_df = pd.DataFrame(results)
     results_df.to_csv("analyzed_peaks_results.csv", index=False)
     print("Results saved to analyzed_peaks_results.csv")
+    end_time = time.time()  # End the timer
+    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    print(f"Time taken to run the script: {elapsed_time:.2f} seconds")
 
 
 if __name__ == "__main__":
