@@ -1,13 +1,28 @@
 import time
 
+import numpy as np
 import pandas as pd
 from Modules.binary_logic_puller import analyze_peaks
 
 
+def generate_data(num_rows):
+    np.random.seed(0)  # For reproducibility
+    ids = np.arange(1, num_rows + 1)
+    ccs = np.round(np.random.uniform(10, 200, num_rows), 2)
+    rt = np.round(np.random.uniform(0, 5, num_rows), 3)
+    mz = np.round(np.random.uniform(50, 1700, num_rows), 4)
+    data = {"ID": ids, "CCS": ccs, "RT": rt, "m/z": mz}
+    return pd.DataFrame(data)
+
+
 def main():
     start_time = time.time()  # Start the timer
+    num_rows = 100000
+    data_df = generate_data(num_rows)
 
-    file_path = "data\Testing data set.csv"  # Update this path to your local CSV file
+    file_path = "data\Testing data set.csv"
+    data_df.to_csv(file_path, index=False)
+    # Update this path to your local CSV file
     z_range = range(1, 20)  # This will check for z = 1 to 5
     mass_error_ppm = 10  # Define the mass error in ppm
 
