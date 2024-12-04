@@ -64,17 +64,9 @@ def expand_group(
                 candidate_peaks.add((peak, peak_id, z))
                 peak_count[i] += 1
                 peak_charges[i].append(z)
-                # Debugging statement to print RT values of the rows being compared
-                print(
-                    f"Comparing RT values: Initial RT = {initial_rt}, Peak RT = {rt_array[array.index(peak)]}"
-                )
+
         if peaks and selected_z is None:
             selected_z = z
-
-    # Report the i array point if exactly 2 peaks are identified
-    if peak_count[i] >= 2:
-        print(f"More than 2 peaks identified from array point {array[i]}")
-        print(f"Charges of identified peaks: {peak_charges[i]}")
 
     # Second iteration: expand the group with the same charge `selected_z` and incrementing M
     if selected_z is not None and candidate_peaks:
@@ -82,7 +74,6 @@ def expand_group(
         highest_charge_peak = max(candidate_peaks, key=lambda x: x[2])
         selected_z = highest_charge_peak[2]
         new_i = array.index(highest_charge_peak[0])
-        print("new I", array[new_i], "RT:", rt_array[new_i], "CCS:", ccs_array[new_i])
         group.append((array[new_i], id_array[new_i], demp_array[new_i]))
         while True:
             new_peaks, calc = find_peaks_within_bounds(
@@ -105,7 +96,6 @@ def expand_group(
                     group.append(
                         (new_peak, new_peak_id, demp_array[array.index(new_peak)])
                     )
-                    print(f"Peak: {new_peak}, Charge: {selected_z}, M: 1")
             new_i = array.index(
                 new_peaks[-1]
             )  # Update new_i to the last identified peak
