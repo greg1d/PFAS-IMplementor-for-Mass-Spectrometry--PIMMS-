@@ -25,9 +25,23 @@ def print_cef(root):
         print("No content to display.")
         return
 
+    for compound in root.iter("Compound"):
+        mppid = compound.attrib.get("mppid")
+        if mppid:
+            print(f"ID: {mppid}")
+
+    for location in root.iter("Location"):
+        rt = location.attrib.get("rt")
+        ccs = location.attrib.get("ccs")
+        print(f"rt: {rt}, ccs: {ccs}")
+
     for mspeaks in root.iter("MSPeaks"):
         for peak in mspeaks:
-            print(f"Tag: {peak.tag}, Attributes: {peak.attrib}, Text: {peak.text}")
+            x = peak.attrib.get("x")
+            y = peak.attrib.get("y")
+            z = peak.attrib.get("z")
+            s = peak.attrib.get("s")
+            print(f"m/z: {x}, Intensity: {y}, Charge: {z}, Ion type: {s}")
 
 
 # Example usage
