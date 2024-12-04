@@ -86,7 +86,6 @@ def main():
         print(f"Total calculations performed: {total_calculations}")
 
         end_time = time.time()  # End the timer
-        print(f"Execution time: {end_time - start_time} seconds")
 
         results_df = pd.DataFrame(results)
         results_df.to_csv("analyzed_peaks_results.csv", index=False)
