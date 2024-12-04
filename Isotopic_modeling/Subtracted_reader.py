@@ -18,7 +18,7 @@ def main():
 
     # Run the operation
     groups, unrelated_features, total_calculations = analyze_peaks(
-        file_path, z_range, mass_error_ppm
+        file_path, z_range, mass_error_ppm, rt_tolerance, ccs_tolerance
     )
 
     # Print the number of groups identified
