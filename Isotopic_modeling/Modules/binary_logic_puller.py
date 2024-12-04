@@ -29,16 +29,18 @@ def expand_group(
     rt_array,
     ccs_array,
     id_array,
+    demp_array,
     initial_peak,
     initial_rt,
     initial_ccs,
     initial_id,
+    initial_demp,
     z_range,
     mass_error_ppm=10,
     rt_tolerance=0.2,
     ccs_tolerance=0.02,
 ):
-    group = [(initial_peak, initial_id)]
+    group = [(initial_peak, initial_id, initial_demp)]
     identified_features = set([initial_id])
     i = array.index(initial_peak)
     peak_count = {i: 0}
@@ -81,7 +83,7 @@ def expand_group(
         selected_z = highest_charge_peak[2]
         new_i = array.index(highest_charge_peak[0])
         print("new I", array[new_i], "RT:", rt_array[new_i], "CCS:", ccs_array[new_i])
-        group.append((array[new_i], id_array[new_i]))
+        group.append((array[new_i], id_array[new_i], demp_array[new_i]))
         while True:
             new_peaks, calc = find_peaks_within_bounds(
                 array, selected_z, 1, new_i, mass_error_ppm
@@ -100,7 +102,9 @@ def expand_group(
                     <= ccs_tolerance
                 ):
                     identified_features.add(new_peak_id)
-                    group.append((new_peak, new_peak_id))
+                    group.append(
+                        (new_peak, new_peak_id, demp_array[array.index(new_peak)])
+                    )
                     print(f"Peak: {new_peak}, Charge: {selected_z}, M: 1")
             new_i = array.index(
                 new_peaks[-1]
@@ -118,11 +122,15 @@ def analyze_peaks(
     # Sort the DataFrame by the "m/z" column
     df = df.sort_values(by="m/z")
 
-    # Extract the "m/z", "RT", "CCS", and "ID" columns as lists
+    # Extract the "m/z", "RT", "CCS", "ID" columns as lists
     array = df["m/z"].tolist()
     rt_array = df["RT"].tolist()
     ccs_array = df["CCS"].tolist()
     id_array = df["ID"].tolist()
+
+    # Find the column that contains ".d.DeMP"
+    demp_column = [col for col in df.columns if ".d.DeMP" in col][0]
+    demp_array = df[demp_column].tolist()
 
     identified_features = set()
     groups = []
@@ -135,10 +143,12 @@ def analyze_peaks(
                 rt_array,
                 ccs_array,
                 id_array,
+                demp_array,
                 array[i],
                 rt_array[i],
                 ccs_array[i],
                 id_array[i],
+                demp_array[i],
                 z_range,
                 mass_error_ppm,
                 rt_tolerance,
@@ -147,7 +157,7 @@ def analyze_peaks(
             total_calculations += calculations
             if len(group) >= 2:  # Only add groups with more than 2 features
                 groups.append(group)
-                identified_features.update([id for _, id in group])
+                identified_features.update([id for _, id, _ in group])
 
     total_features = len(array)
     grouped_features = sum(len(group) for group in groups if len(group) >= 2)
