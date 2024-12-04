@@ -35,6 +35,8 @@ def expand_group(
     initial_id,
     z_range,
     mass_error_ppm=10,
+    rt_tolerance=0.2,
+    ccs_tolerance=0.02,
 ):
     group = [(initial_peak, initial_id)]
     identified_features = set([initial_id])
@@ -53,9 +55,9 @@ def expand_group(
             peak_id = id_array[array.index(peak)]
             if (
                 peak_id not in identified_features
-                and abs(rt_array[array.index(peak)] - initial_rt) <= 0.2
+                and abs(rt_array[array.index(peak)] - initial_rt) <= rt_tolerance
                 and abs(ccs_array[array.index(peak)] - initial_ccs) / initial_ccs
-                <= 0.02
+                <= ccs_tolerance
             ):
                 candidate_peaks.add((peak, peak_id, z))
                 peak_count[i] += 1
@@ -91,10 +93,11 @@ def expand_group(
                 new_peak_id = id_array[array.index(new_peak)]
                 if (
                     new_peak_id not in identified_features
-                    and abs(rt_array[array.index(new_peak)] - initial_rt) <= 0.2
+                    and abs(rt_array[array.index(new_peak)] - initial_rt)
+                    <= rt_tolerance
                     and abs(ccs_array[array.index(new_peak)] - initial_ccs)
                     / initial_ccs
-                    <= 0.02
+                    <= ccs_tolerance
                 ):
                     identified_features.add(new_peak_id)
                     group.append((new_peak, new_peak_id))
@@ -106,7 +109,9 @@ def expand_group(
     return group, calculations
 
 
-def analyze_peaks(file_path, z_range, mass_error_ppm=10):
+def analyze_peaks(
+    file_path, z_range, mass_error_ppm=10, rt_tolerance=0.2, ccs_tolerance=0.02
+):
     # Read the CSV file
     df = pd.read_csv(file_path)
 
@@ -136,6 +141,8 @@ def analyze_peaks(file_path, z_range, mass_error_ppm=10):
                 id_array[i],
                 z_range,
                 mass_error_ppm,
+                rt_tolerance,
+                ccs_tolerance,
             )
             total_calculations += calculations
             if len(group) >= 2:  # Only add groups with more than 2 features

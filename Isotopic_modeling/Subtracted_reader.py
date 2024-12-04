@@ -9,8 +9,9 @@ def main():
 
     file_path = "data\Edited full blank subtracted data set.csv"  # Update this path to your local CSV file
     z_range = range(1, 20)  # This will check for z = 1 to 5
-    mass_error_ppm = 10  # Define the mass error in ppm
-
+    mass_error_ppm = 10
+    rt_tolerance = 0.2
+    ccs_tolerance = 0.02
     # Load the data to get RT, CCS, and ID values
     data_df = pd.read_csv(file_path)
     rt_ccs_mapping = data_df.set_index("ID").to_dict("index")
