@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<CEF version="1.0.0.0">
+  <CompoundList instrumentConfiguration="">
+    <Compound mppid="13380" algo="FindByMolecularFeature">
+      <Location m="403.89730" rt="0.820" rts="0.041" rte="4.990" a="414" y="0" v="50" dt="22.5895385742188" ccs="168.924621582031" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="79.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="402.88792" y="50.00" z="1" s="M-H" />
+          <p x="403.88792" y="50.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+  </CompoundList>
+</CEF>
