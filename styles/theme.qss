@@ -1,8 +1,10 @@
 QMainWindow {
-    background-color: #2d2d2d;
+    background: rgb(218, 215, 205); /* Light grey background */
+    background-image: radial-gradient(circle, rgba(128, 128, 128, 0.5) 1px, rgba(0, 0, 0, 0) 1px);
+    background-size: 20px 20px;
     color: #ffffff;
     font-family: Arial;
-    font-size: 12pt;
+    font-size: 20pt;
 }
 
 QPushButton {
