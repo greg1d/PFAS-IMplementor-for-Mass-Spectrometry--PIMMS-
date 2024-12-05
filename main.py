@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QLabel,
 )
 from PyQt6.QtCore import QFile, QTextStream
+from modules.drag_drop_widget import DragDropWidget  # Import the DragDropWidget class
 
 
 class HomeWindow(QMainWindow):
@@ -47,10 +48,12 @@ class HomeWindow(QMainWindow):
 
     def create_data_importing_tab(self):
         layout = QVBoxLayout()
+        drag_drop_widget = DragDropWidget()
         convert_button = QPushButton("Convert CEF Files")
         settings_button = QPushButton("Settings")
 
         # Add widgets to layout
+        layout.addWidget(drag_drop_widget)
         layout.addWidget(convert_button)
         layout.addWidget(settings_button)
 
