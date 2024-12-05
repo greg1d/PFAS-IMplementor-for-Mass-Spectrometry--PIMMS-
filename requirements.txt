@@ -1,9 +1,0 @@
-pandas
-matplotlib
-seaborn
-numpy
-openpyxl
-requests
-pytest
-scipy
-tqdm
