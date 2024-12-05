@@ -5,6 +5,7 @@ from tkinter import filedialog
 from tkinterdnd2 import TkinterDnD, DND_FILES
 from tkinter import ttk
 from PIL import Image, ImageTk
+import cef_to_feather  # Import the conversion script
 
 # Show the tkinter version
 print(f"Tkinter version: {tk.TkVersion}")
@@ -76,6 +77,12 @@ def main():
                     # Process the content as needed
                     file_listbox.insert(tk.END, file_path)
 
+    def on_import_samples():
+        if folder_path:
+            cef_to_feather.convert_cef_to_feather(folder_path)
+        else:
+            print("No folder selected for importing samples.")
+
     # Use TkinterDnD for drag-and-drop functionality
     root = TkinterDnD.Tk()
     root.title("PIMMS v1.2")
@@ -116,6 +123,12 @@ def main():
 
     file_listbox = tk.Listbox(data_importing_frame, width=50, height=10)
     file_listbox.pack(pady=10, expand=True, fill="both")
+
+    # Add the "Import added samples" button
+    import_button = ttk.Button(
+        data_importing_frame, text="Import added samples", command=on_import_samples
+    )
+    import_button.pack(pady=10)
 
     # Create the Sample Treatment page
     sample_treatment_frame = ttk.Frame(notebook)
