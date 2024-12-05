@@ -2,15 +2,10 @@
 
 ```mermaid
 graph TD
-    A[Start] --> B[Do Something]
-    B --> C{Decision: Is it working?}
-    C -->|Yes| D[Finish]
-    C -->|No| E[Fix the Issue]
-    E --> B
+    A[Profiler steps<br><ol><li>Import files to Agilent MassHunter Mass Profiler</li><li>File>Export Each Sample to CEF...</li><li>Select no on choosing averaged values across all samples</li></ol>] --> B[Read individual files and store into data base]
 
-    style A fill:#ff0000,stroke:#333,stroke-width:2px
-    style B fill:#ffff00,stroke:#333,stroke-width:2px
-    style C fill:#ffff00,stroke:#333,stroke-width:2px
-    style D fill:#00ff00,stroke:#333,stroke-width:2px
-    style E fill:#ff0000,stroke:#333,stroke-width:2px
+
+    style A fill:#A2AAAD,stroke:#333,stroke-width:2px,color:#000000,font-weight:bold
+    style B fill:#A2AAAD,stroke:#333,stroke-width:2px,color:#000000,font-weight:bold
+
 ```

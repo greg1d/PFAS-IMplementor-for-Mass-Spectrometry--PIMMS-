@@ -1,5 +1,21 @@
-import xml.etree.ElementTree as ET
-import sqlite3
+import os
+import json
+import tkinter as tk
+from tkinter import filedialog
+from tkinterdnd2 import TkinterDnD, DND_FILES
+from tkinter import ttk
+from PIL import Image, ImageTk
+
+# Show the tkinter version
+print(f"Tkinter version: {tk.TkVersion}")
+
+CONFIG_FILE = "config.json"
+ICON_PATH = r"Application formatting\Icon.png"  # Path to your .png icon file
+
+
+def browse_folder():
+    folder_path = filedialog.askdirectory(title="Select Folder Containing CEF Files")
+    return folder_path
 
 
 def read_cef(file_path):
@@ -12,150 +28,106 @@ def read_cef(file_path):
         return None
 
 
-def parse_cef(content):
-    try:
-        root = ET.fromstring(content)
-        return root
-    except ET.ParseError as e:
-        print(f"Error parsing CEF content: {e}")
-        return None
+def process_cef_files_in_folder(folder_path):
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".cef"):
+            file_path = os.path.join(folder_path, filename)
+            print(f"Processing file: {file_path}")
+            content = read_cef(file_path)
+            if content:
+                # Process the content as needed
+                pass
 
 
-def clear_database(db_path):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    cursor.execute("DROP TABLE IF EXISTS Compounds")
-    cursor.execute("DROP TABLE IF EXISTS Locations")
-    cursor.execute("DROP TABLE IF EXISTS MSPeaks")
-
-    conn.commit()
-    conn.close()
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as file:
+            return json.load(file)
+    return {}
 
 
-def store_data_in_db(root, db_path):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+def save_config(config):
+    with open(CONFIG_FILE, "w") as file:
+        json.dump(config, file)
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Compounds (
-            id INTEGER PRIMARY KEY,
-            mppid TEXT UNIQUE
-        )
-    """)
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Locations (
-            id INTEGER PRIMARY KEY,
-            compound_id INTEGER,
-            m REAL,
-            rt REAL,
-            ccs REAL,
-            mz REAL,
-            UNIQUE(compound_id, m, rt, ccs, mz),
-            FOREIGN KEY (compound_id) REFERENCES Compounds (id)
-        )
-    """)
+def main():
+    config = load_config()
+    folder_path = config.get("folder_path")
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS MSPeaks (
-            id INTEGER PRIMARY KEY,
-            location_id INTEGER,
-            x REAL,
-            y REAL,
-            z INTEGER,
-            s TEXT,
-            UNIQUE(location_id, x, y, z, s),
-            FOREIGN KEY (location_id) REFERENCES Locations (id)
-        )
-    """)
-
-    for compound in root.iter("Compound"):
-        mppid = compound.attrib.get("mppid")
-        cursor.execute("SELECT id FROM Compounds WHERE mppid = ?", (mppid,))
-        compound_id = cursor.fetchone()
-
-        if compound_id is None:
-            cursor.execute("INSERT INTO Compounds (mppid) VALUES (?)", (mppid,))
-            compound_id = cursor.lastrowid
+    def on_select_folder():
+        nonlocal folder_path
+        folder_path = browse_folder()
+        if folder_path:
+            config["folder_path"] = folder_path
+            save_config(config)
+            print(f"Folder path selected: {folder_path}")
+            process_cef_files_in_folder(folder_path)
         else:
-            compound_id = compound_id[0]
+            print("No folder selected.")
 
-        for location in compound.iter("Location"):
-            m = location.attrib.get("m")
-            rt = location.attrib.get("rt")
-            ccs = location.attrib.get("ccs")
-            mz = location.attrib.get("mz")
-            cursor.execute(
-                "SELECT id FROM Locations WHERE compound_id = ? AND m = ? AND rt = ? AND ccs = ? AND mz = ?",
-                (compound_id, m, rt, ccs, mz),
-            )
-            location_id = cursor.fetchone()
+    def on_drop(event):
+        files = root.tk.splitlist(event.data)
+        for file_path in files:
+            if file_path.endswith(".cef"):
+                print(f"Processing dropped file: {file_path}")
+                content = read_cef(file_path)
+                if content:
+                    # Process the content as needed
+                    file_listbox.insert(tk.END, file_path)
 
-            if location_id is None:
-                cursor.execute(
-                    "INSERT INTO Locations (compound_id, m, rt, ccs, mz) VALUES (?, ?, ?, ?, ?)",
-                    (compound_id, m, rt, ccs, mz),
-                )
-                location_id = cursor.lastrowid
-            else:
-                location_id = location_id[0]
+    # Use TkinterDnD for drag-and-drop functionality
+    root = TkinterDnD.Tk()
+    root.title("PIMMS v1.2")
 
-            for spectrum in compound.iter("Spectrum"):
-                for mspeaks in spectrum.iter("MSPeaks"):
-                    for peak in mspeaks.iter("p"):
-                        x = peak.attrib.get("x")
-                        y = peak.attrib.get("y")
-                        z = peak.attrib.get("z")
-                        s = peak.attrib.get("s")
-                        cursor.execute(
-                            "SELECT id FROM MSPeaks WHERE location_id = ? AND x = ? AND y = ? AND z = ? AND s = ?",
-                            (location_id, x, y, z, s),
-                        )
-                        peak_id = cursor.fetchone()
+    # Load and set the icon using Pillow for better quality
+    if os.path.exists(ICON_PATH):
+        icon_image = Image.open(ICON_PATH)
+        icon_photo = ImageTk.PhotoImage(icon_image)
+        root.iconphoto(True, icon_photo)
 
-                        if peak_id is None:
-                            cursor.execute(
-                                "INSERT INTO MSPeaks (location_id, x, y, z, s) VALUES (?, ?, ?, ?, ?)",
-                                (location_id, x, y, z, s),
-                            )
+    # Set the theme using ttk.Style
+    style = ttk.Style(root)
+    style.theme_use("clam")  # You can choose from 'clam', 'alt', 'default', 'classic'
 
-    conn.commit()
-    conn.close()
+    # Create a notebook for tabs
+    notebook = ttk.Notebook(root)
+    notebook.pack(expand=True, fill="both")
 
+    # Create the Data Importing page
+    data_importing_frame = ttk.Frame(notebook)
+    notebook.add(data_importing_frame, text="Data Importing")
 
-def read_data_from_db(db_path):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+    label = ttk.Label(data_importing_frame, text="Drag and drop files here to process")
+    label.pack(pady=10)
 
-    # Read data from Compounds table
-    cursor.execute("SELECT * FROM Compounds")
-    compounds = cursor.fetchall()
-    print("Compounds:")
-    for compound in compounds:
-        print(compound)
+    drop_area_frame = ttk.Frame(
+        data_importing_frame, relief="ridge", width=400, height=200
+    )
+    drop_area_frame.pack(pady=20, expand=True, fill="both")
+    drop_area_frame.pack_propagate(
+        False
+    )  # Prevent the frame from resizing to fit its contents
 
-    # Read data from Locations table
-    cursor.execute("SELECT * FROM Locations")
-    locations = cursor.fetchall()
-    print("\nLocations:")
-    for location in locations:
-        print(location)
+    drop_area = ttk.Label(drop_area_frame, text="Drag and drop CEF files here")
+    drop_area.pack(expand=True, fill="both")
+    drop_area.drop_target_register(DND_FILES)
+    drop_area.dnd_bind("<<Drop>>", on_drop)
 
-    # Read data from MSPeaks table
-    cursor.execute("SELECT * FROM MSPeaks")
-    mspeaks = cursor.fetchall()
-    print("\nMSPeaks:")
-    for peak in mspeaks:
-        print(peak)
+    file_listbox = tk.Listbox(data_importing_frame, width=50, height=10)
+    file_listbox.pack(pady=10, expand=True, fill="both")
 
-    conn.close()
+    # Create the Sample Treatment page
+    sample_treatment_frame = ttk.Frame(notebook)
+    notebook.add(sample_treatment_frame, text="Sample Treatment")
+
+    sample_treatment_label = ttk.Label(
+        sample_treatment_frame, text="Sample Treatment Page"
+    )
+    sample_treatment_label.pack(pady=10)
+
+    root.mainloop()
 
 
-# Example usage
-file_path = "data/getting isotopic peaks to work/test CEF file.cef"
-content = read_cef(file_path)
-root = parse_cef(content)
-clear_database("cef_data.db")
-store_data_in_db(root, "cef_data.db")
-read_data_from_db("cef_data.db")
+if __name__ == "__main__":
+    main()
