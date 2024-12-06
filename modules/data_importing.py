@@ -13,14 +13,18 @@ from PyQt6.QtWidgets import (
 
 
 class DragDropListWidget(QListWidget):
-    def __init__(self):
+    def __init__(self, update_callback=None, other_hub=None):
         super().__init__()
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
-        self.dropped_files = []  # Store the list of dropped files
+        self.dropped_files = (
+            set()
+        )  # Store the set of dropped files to prevent duplicates
         self.setMouseTracking(True)  # Enable mouse tracking
+        self.update_callback = update_callback  # Callback to update the file list
+        self.other_hub = other_hub  # Reference to the other hub
 
         # Set the stylesheet
         self.setStyleSheet("""
@@ -54,30 +58,57 @@ class DragDropListWidget(QListWidget):
 
     def dropEvent(self, event: QDropEvent):
         if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-            urls = event.mimeData().urls()
-            files = [url.toLocalFile() for url in urls]
+            files = [url.toLocalFile() for url in event.mimeData().urls()]
             self.add_files(files)
+            event.acceptProposedAction()
 
     def add_files(self, files):
+        new_files = []
         for file in files:
+            if file not in self.dropped_files and (
+                self.other_hub is None or file not in self.other_hub.dropped_files
+            ):
+                new_files.append(file)
+        self.dropped_files.update(new_files)
+        for file in new_files:
             item = QListWidgetItem(file)
             self.addItem(item)
+        if self.update_callback:
+            self.update_callback()
 
     def get_selected_files(self):
         return [item.text() for item in self.selectedItems()]
 
-    def remove_selected_files(self):
+    def remove_selected_item(self):
         for item in self.selectedItems():
             self.takeItem(self.row(item))
+            self.dropped_files.remove(item.text())
+        if self.update_callback:
+            self.update_callback()
+
+    def clear_all_items(self):
+        self.clear()
+        self.dropped_files.clear()
+        if self.update_callback:
+            self.update_callback()
 
 
 def create_data_importing_tab(tab_widget, main_window):
     main_layout = QVBoxLayout()
 
     # Create two hubs
-    source_hub = DragDropListWidget()
-    target_hub = DragDropListWidget()
+    file_hub = DragDropListWidget(
+        update_callback=lambda: update_file_list(file_list, file_hub)
+    )
+    processing_hub = DragDropListWidget(
+        update_callback=lambda: update_file_list(processing_list, processing_hub),
+        other_hub=file_hub,
+    )
+    file_hub.other_hub = processing_hub  # Set the reference to the other hub
+
+    # Create file lists
+    file_list = QListWidget()
+    processing_list = QListWidget()
 
     # Create buttons
     browse_button = QPushButton("Browse")
@@ -89,32 +120,32 @@ def create_data_importing_tab(tab_widget, main_window):
     # Create a horizontal layout for the hubs
     hubs_layout = QHBoxLayout()
 
-    # Create a vertical layout for the source hub and its label
-    source_layout = QVBoxLayout()
-    source_label = QLabel("File Hub")
-    source_label.setStyleSheet(
+    # Create a vertical layout for the file hub and its label
+    file_layout = QVBoxLayout()
+    file_label = QLabel("File Hub")
+    file_label.setStyleSheet(
         "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
     )
-    source_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    source_layout.addWidget(source_label)
-    source_layout.addWidget(source_hub)
-    source_layout.addWidget(browse_button)
+    file_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    file_layout.addWidget(file_label)
+    file_layout.addWidget(file_hub)
+    file_layout.addWidget(browse_button)
 
-    # Create a vertical layout for the target hub and its label
-    target_layout = QVBoxLayout()
-    target_label = QLabel("Importing Hub")
-    target_label.setStyleSheet(
+    # Create a vertical layout for the processing hub and its label
+    processing_layout = QVBoxLayout()
+    processing_label = QLabel("Processing Hub")
+    processing_label.setStyleSheet(
         "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
     )
-    target_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    target_layout.addWidget(target_label)
-    target_layout.addWidget(target_hub)
+    processing_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    processing_layout.addWidget(processing_label)
+    processing_layout.addWidget(processing_hub)
 
-    # Add the source and target layouts to the hubs layout
-    hubs_layout.addLayout(source_layout)
-    hubs_layout.addLayout(target_layout)
+    # Add the file and processing layouts to the hubs layout
+    hubs_layout.addLayout(file_layout)
+    hubs_layout.addLayout(processing_layout)
 
-    # Add the hubs layout to the main layout
+    # Add the hubs layout and lists layout to the main layout
     main_layout.addLayout(hubs_layout)
 
     # Add buttons to the main layout
@@ -127,29 +158,36 @@ def create_data_importing_tab(tab_widget, main_window):
     tab_widget.setLayout(main_layout)
 
     # Connect buttons
-    browse_button.clicked.connect(lambda: browse_files(source_hub))
-    move_button.clicked.connect(lambda: move_files(source_hub, target_hub))
-    remove_button.clicked.connect(lambda: remove_files(target_hub))
+    browse_button.clicked.connect(lambda: browse_files(file_hub))
+    move_button.clicked.connect(lambda: move_files(file_hub, processing_hub))
+    remove_button.clicked.connect(lambda: remove_files(processing_hub))
     convert_button.clicked.connect(
-        lambda: main_window.convert_files(target_hub.get_selected_files())
+        lambda: main_window.convert_files(processing_hub.get_selected_files())
     )
     settings_button.clicked.connect(main_window.open_settings)
 
 
-def browse_files(source_hub):
+def update_file_list(list_widget, hub_widget):
+    list_widget.clear()
+    for file in hub_widget.dropped_files:
+        list_widget.addItem(file)
+    print(f"Files in {hub_widget.objectName()}: {hub_widget.dropped_files}")
+
+
+def browse_files(file_hub):
     files, _ = QFileDialog.getOpenFileNames(None, "Select Files")
     if files:
-        source_hub.add_files(files)
+        file_hub.add_files(files)
 
 
-def move_files(source_hub, target_hub):
-    selected_files = source_hub.get_selected_files()
-    target_hub.add_files(selected_files)
-    source_hub.remove_selected_files()
+def move_files(file_hub, processing_hub):
+    selected_files = file_hub.get_selected_files()
+    processing_hub.add_files(selected_files)
+    file_hub.remove_selected_item()
 
 
-def remove_files(target_hub):
-    target_hub.remove_selected_files()
+def remove_files(processing_hub):
+    processing_hub.remove_selected_item()
 
 
 def open_settings():
