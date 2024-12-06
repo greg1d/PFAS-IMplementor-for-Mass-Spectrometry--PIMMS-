@@ -1,10 +1,11 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
 from PyQt6.QtCore import QFile, QTextStream
-from modules.data_importing import (
-    create_data_importing_tab,
-    open_settings,
-)
-from modules.cef_conversion import convert_files  # Import the convert_files function
+from modules.data_importing import create_data_importing_tab, open_settings
+from modules.cef_conversion import (
+    convert_files,
+    cleanup_temp_dir,
+)  # Import the cleanup_temp_dir function
+import atexit
 
 
 class HomeWindow(QMainWindow):
@@ -25,8 +26,8 @@ class HomeWindow(QMainWindow):
         # Set the tab widget as the central widget
         self.setCentralWidget(self.tabs)
 
-    def convert_files(self):
-        convert_files()
+    def convert_files(self, dropped_files):
+        convert_files(dropped_files)
 
     def open_settings(self):
         open_settings()
@@ -52,6 +53,9 @@ if __name__ == "__main__":
     # Initialize the main window
     main_window = HomeWindow()
     main_window.show()
+
+    # Register the cleanup function to be called on exit
+    atexit.register(cleanup_temp_dir)
 
     # Run the application
     sys.exit(app.exec())

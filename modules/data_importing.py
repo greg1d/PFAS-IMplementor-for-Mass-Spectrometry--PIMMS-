@@ -17,7 +17,9 @@ def create_data_importing_tab(tab_widget, main_window):
     tab_widget.setLayout(layout)
 
     # Connect buttons
-    convert_button.clicked.connect(main_window.convert_files)
+    convert_button.clicked.connect(
+        lambda: main_window.convert_files(drag_drop_widget.dropped_files)
+    )
     settings_button.clicked.connect(main_window.open_settings)
 
 

@@ -10,7 +10,7 @@ class DragDropWidget(QListWidget):
             QListWidget.SelectionMode.ExtendedSelection
         )  # Enable multiple selection
         self.setMouseTracking(True)  # Enable mouse tracking
-        self.current_hover_item = None  # Track the currently hovered item
+        self.dropped_files = []  # Store the list of dropped files
         self.setStyleSheet("""
             QListWidget::item {
                 background-color: white;
@@ -22,6 +22,7 @@ class DragDropWidget(QListWidget):
                 background-color: #DAD7CD;
             }
         """)
+        print("DragDropWidget initialized")
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
@@ -37,6 +38,7 @@ class DragDropWidget(QListWidget):
             for file in files:
                 item = QListWidgetItem(file)
                 self.addItem(item)
+                self.dropped_files.append(file)  # Add the dropped file to the list
             event.acceptProposedAction()
 
     def contextMenuEvent(self, event):
@@ -49,3 +51,4 @@ class DragDropWidget(QListWidget):
     def remove_selected_item(self):
         for item in self.selectedItems():
             self.takeItem(self.row(item))
+            self.dropped_files.remove(item.text())  # Remove the file from the list
