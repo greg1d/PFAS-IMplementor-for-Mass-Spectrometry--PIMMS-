@@ -8,3 +8,5 @@ pytest
 scipy
 tqdm
 PyQt6
+watchdog
+pyarrow
