@@ -1,6 +1,7 @@
 import pandas as pd
 import pyarrow.feather as feather
 import os
+import xml.etree.ElementTree as ET
 
 # Global variable to store the temporary directory path
 TEMP_DIR = None
@@ -18,10 +19,23 @@ def convert_files(dropped_files):
     print(f"Temporary directory created at: {TEMP_DIR}")
 
     for cef_file in dropped_files:
-        # Read the CEF file into a DataFrame (replace this with actual CEF reading logic)
-        df = pd.read_csv(
-            cef_file
-        )  # Assuming CEF files can be read as CSV for this example
+        # Parse the CEF file
+        tree = ET.parse(cef_file)
+        root = tree.getroot()
+
+        # Extract <MSPeaks> data
+        ms_peaks_data = []
+        for mspeaks in root.findall(".//MSPeaks/p"):
+            x = mspeaks.get("x")
+            y = mspeaks.get("y")
+            z = mspeaks.get("z")
+            s = mspeaks.get("s")
+            ms_peaks_data.append(
+                {"m/z": x, "Intensity": y, "Charge (Absolute)": z, "Adduct": s}
+            )
+
+        # Convert the data to a DataFrame
+        df = pd.DataFrame(ms_peaks_data)
 
         # Convert the DataFrame to a Feather file
         feather_file = os.path.join(
@@ -30,6 +44,18 @@ def convert_files(dropped_files):
         feather.write_feather(df, feather_file)
 
         print(f"Converted {cef_file} to {feather_file}")
+
+        # View the Feather file
+        view_feather_file(feather_file)
+
+
+def view_feather_file(feather_file):
+    # Read the Feather file into a DataFrame
+    df = pd.read_feather(feather_file)
+
+    # Display the DataFrame
+    print(f"Contents of {feather_file}:")
+    print(df)
 
 
 def cleanup_temp_dir():
@@ -43,9 +69,3 @@ def cleanup_temp_dir():
                 os.rmdir(os.path.join(root, name))
         os.rmdir(TEMP_DIR)
         print("Temporary directory cleaned up")
-
-
-# Example usage
-if __name__ == "__main__":
-    convert_files(["path/to/your/cef_file1.cef", "path/to/your/cef_file2.cef"])
-    cleanup_temp_dir()
