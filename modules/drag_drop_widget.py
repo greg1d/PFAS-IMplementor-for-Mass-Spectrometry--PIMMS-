@@ -17,12 +17,39 @@ from PyQt6.QtWidgets import (
 
 
 class DragDropListWidget(QListWidget):
-    def __init__(self):
+    def __init__(self, update_callback=None, other_hub=None):
         super().__init__()
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
+        self.dropped_files = (
+            set()
+        )  # Store the set of dropped files to prevent duplicates
+        self.update_callback = update_callback  # Callback to update the file list
+        self.other_hub = other_hub  # Reference to the other hub
+
+        # Set the stylesheet
+        self.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #BEBEBE;
+                border-radius: 8px;
+                padding: 5px;
+                background-color: #F7F6F3;
+            }
+            QListWidget::item {
+                background-color: white;
+                margin: 2px;
+                padding: 5px;
+            }
+            QListWidget::item:selected {
+                background-color: #DAD7CD;
+                color: black;
+            }
+            QListWidget::item:hover {
+                background-color: #ECECEC;
+            }
+        """)
 
     def startDrag(self, supportedActions):
         print("Starting drag")
@@ -68,24 +95,40 @@ class DragDropListWidget(QListWidget):
 
     def add_files(self, files):
         print(f"Adding files: {files}")
+        new_files = []
         for file in files:
+            if file not in self.dropped_files and (
+                self.other_hub is None or file not in self.other_hub.dropped_files
+            ):
+                new_files.append(file)
+        self.dropped_files.update(new_files)
+        for file in new_files:
             item = QListWidgetItem(file)
             self.addItem(item)
+        if self.update_callback:
+            self.update_callback()
+        print(f"Files in {self.objectName()}: {self.dropped_files}")  # Debugging
 
     def get_selected_files(self):
         return [item.text() for item in self.selectedItems()]
 
     def remove_selected_files(self):
+        print("Removing selected items...")  # Debugging
         for item in self.selectedItems():
+            print(f"Removing: {item.text()}")  # Debugging
             self.takeItem(self.row(item))
+            self.dropped_files.remove(item.text())
+        if self.update_callback:
+            self.update_callback()
 
 
 def create_data_importing_tab(tab_widget, main_window):
     main_layout = QVBoxLayout()
 
     # Create two hubs
-    source_hub = DragDropListWidget()
-    target_hub = DragDropListWidget()
+    source_hub = DragDropListWidget(other_hub=None)
+    target_hub = DragDropListWidget(other_hub=source_hub)
+    source_hub.other_hub = target_hub  # Set the reference to the other hub
 
     # Create buttons
     browse_button = QPushButton("Browse")
@@ -153,12 +196,17 @@ def browse_files(source_hub):
 
 
 def move_files(source_hub, target_hub):
+    print("Moving selected files...")  # Debugging
     selected_files = source_hub.get_selected_files()
+    print(f"Selected files to move: {selected_files}")  # Debugging
     target_hub.add_files(selected_files)
     source_hub.remove_selected_files()
+    print(f"Files in source hub after move: {source_hub.dropped_files}")  # Debugging
+    print(f"Files in target hub after move: {target_hub.dropped_files}")  # Debugging
 
 
 def remove_files(target_hub):
+    print("Removing selected files from target hub...")  # Debugging
     target_hub.remove_selected_files()
 
 

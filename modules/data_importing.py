@@ -75,18 +75,22 @@ class DragDropListWidget(QListWidget):
             self.addItem(item)
         if self.update_callback:
             self.update_callback()
+        print(f"Files in {self.objectName()}: {self.dropped_files}")  # Debugging
 
     def get_selected_files(self):
         return [item.text() for item in self.selectedItems()]
 
     def remove_selected_item(self):
+        print("Removing selected items...")  # Debugging
         for item in self.selectedItems():
+            print(f"Removing: {item.text()}")  # Debugging
             self.takeItem(self.row(item))
             self.dropped_files.remove(item.text())
         if self.update_callback:
             self.update_callback()
 
     def clear_all_items(self):
+        print("Clearing all items...")  # Debugging
         self.clear()
         self.dropped_files.clear()
         if self.update_callback:
@@ -171,7 +175,9 @@ def update_file_list(list_widget, hub_widget):
     list_widget.clear()
     for file in hub_widget.dropped_files:
         list_widget.addItem(file)
-    print(f"Files in {hub_widget.objectName()}: {hub_widget.dropped_files}")
+    print(
+        f"Files in {hub_widget.objectName()}: {hub_widget.dropped_files}"
+    )  # Debugging
 
 
 def browse_files(file_hub):
@@ -181,13 +187,37 @@ def browse_files(file_hub):
 
 
 def move_files(file_hub, processing_hub):
+    print("Moving selected files...")  # Debugging
     selected_files = file_hub.get_selected_files()
-    processing_hub.add_files(selected_files)
-    file_hub.remove_selected_item()
+    print(f"Selected files to move: {selected_files}")  # Debugging
+    if selected_files:
+        file_hub.remove_selected_item()  # Ensure files are removed from the source hub
+        print(f"Files in file hub after removal: {file_hub.dropped_files}")  # Debugging
+        processing_hub.add_files(selected_files)
+        print(
+            f"Files in processing hub after adding: {processing_hub.dropped_files}"
+        )  # Debugging
+    else:
+        print("No files selected to move.")  # Debugging
 
 
 def remove_files(processing_hub):
-    processing_hub.remove_selected_item()
+    print("Removing selected files from processing hub...")  # Debugging
+    selected_files = processing_hub.get_selected_files()
+    print(f"Selected files to remove: {selected_files}")  # Debugging
+    if selected_files:
+        processing_hub.remove_selected_item()
+        processing_hub.other_hub.add_files(
+            selected_files
+        )  # Add files back to the other hub
+        print(
+            f"Files in processing hub after removal: {processing_hub.dropped_files}"
+        )  # Debugging
+        print(
+            f"Files in file hub after removal: {processing_hub.other_hub.dropped_files}"
+        )  # Debugging
+    else:
+        print("No files selected to remove.")  # Debugging
 
 
 def open_settings():
