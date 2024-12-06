@@ -23,7 +23,3 @@ def create_data_importing_tab(tab_widget, main_window):
 
 def open_settings():
     print("Open settings functionality goes here.")
-
-
-def convert_files():
-    print("Convert files functionality goes here.")

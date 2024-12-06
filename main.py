@@ -3,8 +3,8 @@ from PyQt6.QtCore import QFile, QTextStream
 from modules.data_importing import (
     create_data_importing_tab,
     open_settings,
-    convert_files,
 )
+from modules.cef_conversion import convert_files  # Import the convert_files function
 
 
 class HomeWindow(QMainWindow):
