@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
+from PyQt6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QIcon
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -63,34 +63,30 @@ class DragDropListWidget(QListWidget):
             event.acceptProposedAction()
 
     def add_files(self, files):
-        new_files = []
-        for file in files:
-            if file not in self.dropped_files and (
-                self.other_hub is None or file not in self.other_hub.dropped_files
-            ):
-                new_files.append(file)
+        new_files = [
+            file
+            for file in files
+            if file not in self.dropped_files
+            and (self.other_hub is None or file not in self.other_hub.dropped_files)
+        ]
         self.dropped_files.update(new_files)
         for file in new_files:
             item = QListWidgetItem(file)
             self.addItem(item)
         if self.update_callback:
             self.update_callback()
-        print(f"Files in {self.objectName()}: {self.dropped_files}")  # Debugging
 
     def get_selected_files(self):
         return [item.text() for item in self.selectedItems()]
 
     def remove_selected_item(self):
-        print("Removing selected items...")  # Debugging
         for item in self.selectedItems():
-            print(f"Removing: {item.text()}")  # Debugging
             self.takeItem(self.row(item))
             self.dropped_files.remove(item.text())
         if self.update_callback:
             self.update_callback()
 
     def clear_all_items(self):
-        print("Clearing all items...")  # Debugging
         self.clear()
         self.dropped_files.clear()
         if self.update_callback:
@@ -116,7 +112,12 @@ def create_data_importing_tab(tab_widget, main_window):
 
     # Create buttons
     browse_button = QPushButton("Browse")
-    move_button = QPushButton("Move Selected Files")
+    move_to_processing_button = QPushButton()
+    move_to_processing_button.setIcon(
+        QIcon("icons/arrow-right.png")
+    )  # Set right arrow icon
+    move_to_file_button = QPushButton()
+    move_to_file_button.setIcon(QIcon("icons/arrow-left.png"))  # Set left arrow icon
     remove_button = QPushButton("Remove Selected Files")
     convert_button = QPushButton("Convert to Feather Files")
     settings_button = QPushButton("Settings")
@@ -145,15 +146,20 @@ def create_data_importing_tab(tab_widget, main_window):
     processing_layout.addWidget(processing_label)
     processing_layout.addWidget(processing_hub)
 
-    # Add the file and processing layouts to the hubs layout
+    # Create a vertical layout for the arrow buttons
+    arrow_layout = QVBoxLayout()
+    arrow_layout.addWidget(move_to_processing_button)
+    arrow_layout.addWidget(move_to_file_button)
+
+    # Add the file, arrow, and processing layouts to the hubs layout
     hubs_layout.addLayout(file_layout)
+    hubs_layout.addLayout(arrow_layout)
     hubs_layout.addLayout(processing_layout)
 
     # Add the hubs layout and lists layout to the main layout
     main_layout.addLayout(hubs_layout)
 
     # Add buttons to the main layout
-    main_layout.addWidget(move_button)
     main_layout.addWidget(remove_button)
     main_layout.addWidget(convert_button)
     main_layout.addWidget(settings_button)
@@ -163,7 +169,12 @@ def create_data_importing_tab(tab_widget, main_window):
 
     # Connect buttons
     browse_button.clicked.connect(lambda: browse_files(file_hub))
-    move_button.clicked.connect(lambda: move_files(file_hub, processing_hub))
+    move_to_processing_button.clicked.connect(
+        lambda: move_files_to_processing(file_hub, processing_hub)
+    )
+    move_to_file_button.clicked.connect(
+        lambda: move_files_to_file(processing_hub, file_hub)
+    )
     remove_button.clicked.connect(lambda: remove_files(processing_hub))
     convert_button.clicked.connect(
         lambda: main_window.convert_files(processing_hub.get_selected_files())
@@ -186,8 +197,8 @@ def browse_files(file_hub):
         file_hub.add_files(files)
 
 
-def move_files(file_hub, processing_hub):
-    print("Moving selected files...")  # Debugging
+def move_files_to_processing(file_hub, processing_hub):
+    print("Moving selected files to processing hub...")  # Debugging
     selected_files = file_hub.get_selected_files()
     print(f"Selected files to move: {selected_files}")  # Debugging
     if selected_files:
@@ -197,6 +208,21 @@ def move_files(file_hub, processing_hub):
         print(
             f"Files in processing hub after adding: {processing_hub.dropped_files}"
         )  # Debugging
+    else:
+        print("No files selected to move.")  # Debugging
+
+
+def move_files_to_file(processing_hub, file_hub):
+    print("Moving selected files to file hub...")  # Debugging
+    selected_files = processing_hub.get_selected_files()
+    print(f"Selected files to move: {selected_files}")  # Debugging
+    if selected_files:
+        processing_hub.remove_selected_item()  # Ensure files are removed from the source hub
+        print(
+            f"Files in processing hub after removal: {processing_hub.dropped_files}"
+        )  # Debugging
+        file_hub.add_files(selected_files)
+        print(f"Files in file hub after adding: {file_hub.dropped_files}")  # Debugging
     else:
         print("No files selected to move.")  # Debugging
 
