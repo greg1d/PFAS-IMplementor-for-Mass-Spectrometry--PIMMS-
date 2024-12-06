@@ -19,6 +19,30 @@ class DragDropListWidget(QListWidget):
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDropIndicatorShown(True)
+        self.dropped_files = []  # Store the list of dropped files
+        self.setMouseTracking(True)  # Enable mouse tracking
+
+        # Set the stylesheet
+        self.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #BEBEBE;
+                border-radius: 8px;
+                padding: 5px;
+                background-color: #F7F6F3;
+            }
+            QListWidget::item {
+                background-color: white;
+                margin: 2px;
+                padding: 5px;
+            }
+            QListWidget::item:selected {
+                background-color: #DAD7CD;
+                color: black;
+            }
+            QListWidget::item:hover {
+                background-color: #ECECEC;
+            }
+        """)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
