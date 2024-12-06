@@ -1,3 +1,5 @@
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -13,7 +15,25 @@ from PyQt6.QtWidgets import (
 class DragDropListWidget(QListWidget):
     def __init__(self):
         super().__init__()
-        self.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.setAcceptDrops(True)
+        self.setDragEnabled(True)
+        self.setDropIndicatorShown(True)
+
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event: QDragMoveEvent):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event: QDropEvent):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+            urls = event.mimeData().urls()
+            files = [url.toLocalFile() for url in urls]
+            self.add_files(files)
 
     def add_files(self, files):
         for file in files:
@@ -47,13 +67,23 @@ def create_data_importing_tab(tab_widget, main_window):
 
     # Create a vertical layout for the source hub and its label
     source_layout = QVBoxLayout()
-    source_layout.addWidget(QLabel("File Hub"))
+    source_label = QLabel("File Hub")
+    source_label.setStyleSheet(
+        "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
+    )
+    source_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    source_layout.addWidget(source_label)
     source_layout.addWidget(source_hub)
     source_layout.addWidget(browse_button)
 
     # Create a vertical layout for the target hub and its label
     target_layout = QVBoxLayout()
-    target_layout.addWidget(QLabel("Importing Hub"))
+    target_label = QLabel("Importing Hub")
+    target_label.setStyleSheet(
+        "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
+    )
+    target_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    target_layout.addWidget(target_label)
     target_layout.addWidget(target_hub)
 
     # Add the source and target layouts to the hubs layout
