@@ -1,11 +1,13 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QTabWidget
-from PyQt6.QtCore import QFile, QTextStream
-from modules.data_importing import create_data_importing_tab, open_settings
-from modules.cef_conversion import (
-    convert_files,
-    cleanup_temp_dir,
-)  # Import the cleanup_temp_dir function
 import atexit
+
+from PyQt6.QtCore import QFile, QTextStream
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
+
+from modules.cef_conversion import (
+    cleanup_temp_dir,
+    convert_files,
+)  # Import the cleanup_temp_dir function
+from modules.data_importing import create_data_importing_tab, open_settings
 
 
 class HomeWindow(QMainWindow):
