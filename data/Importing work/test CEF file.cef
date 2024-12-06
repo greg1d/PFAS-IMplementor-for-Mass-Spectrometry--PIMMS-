@@ -20,5 +20,25 @@
         </MSPeaks>
       </Spectrum>
     </Compound>
+    <Compound mppid="2" algo="FindByMolecularFeature">
+      <Location m="254.22334" rt="3.433" rts="3.299" rte="3.567" a="78112768" y="422953" v="422953" dt="22.0238876342773" ccs="167.812316894531" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="253.21585" y="422953.00" z="1" s="M-H" />
+          <p x="254.21917" y="290560.00" z="1" s="M-H+1" />
+          <p x="255.22223" y="36779.00" z="1" s="M-H+2" />
+          <p x="256.22650" y="2988.00" z="1" s="M-H+3" />
+          <p x="257.22737" y="574.00" z="1" s="M-H+4" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
   </CompoundList>
 </CEF>

@@ -2,6 +2,7 @@ import pandas as pd
 import pyarrow.feather as feather
 import os
 import xml.etree.ElementTree as ET
+import time
 
 # Global variable to store the temporary directory path
 TEMP_DIR = None
@@ -18,54 +19,78 @@ def convert_files(dropped_files):
     os.makedirs(TEMP_DIR, exist_ok=True)
     print(f"Temporary directory created at: {TEMP_DIR}")
 
+    all_features_data = []
+
+    start_time = time.time()  # Record the start time
+
     for cef_file in dropped_files:
+        # Extract the sample name from the file name
+        sample_name = os.path.basename(cef_file).replace(".cef", "")
+
         # Parse the CEF file
         tree = ET.parse(cef_file)
         root = tree.getroot()
 
         # Extract <Compound> data
-        compound_data = root.find(".//Compound")
-        mppid = compound_data.get("mppid")
+        for compound in root.findall(".//Compound"):
+            mppid = compound.get("mppid")
 
-        # Extract <Location> data
-        location_data = root.find(".//Location")
-        rt = location_data.get("rt")
-        dt = location_data.get("dt")
-        ccs = location_data.get("ccs")
+            # Extract <Location> data
+            location_data = compound.find(".//Location")
+            rt = location_data.get("rt")
+            dt = location_data.get("dt")
+            ccs = location_data.get("ccs")
 
-        # Extract <MSPeaks> data
-        ms_peaks_data = []
-        for mspeaks in root.findall(".//MSPeaks/p"):
-            x = mspeaks.get("x")
-            y = mspeaks.get("y")
-            z = mspeaks.get("z")
-            s = mspeaks.get("s")
-            ms_peaks_data.append(
-                {
-                    "m/z": x,
-                    "Intensity": y,
-                    "Charge (Absolute)": z,
-                    "Adduct": s,
-                    "Retention Time": rt,
-                    "Drift Time": dt,
-                    "CCS": ccs,
-                    "Sample Feature ID": mppid,
-                }
-            )
+            # Extract <MSPeaks> data
+            ms_peaks_data = []
+            for mspeaks in compound.findall(".//MSPeaks/p"):
+                x = mspeaks.get("x")
+                y = mspeaks.get("y")
+                z = mspeaks.get("z")
+                s = mspeaks.get("s")
+                ms_peaks_data.append(
+                    {
+                        "Sample Feature ID": mppid,
+                        "m/z": x,
+                        "Adduct": s,
+                        "Retention Time": rt,
+                        "Drift Time": dt,
+                        "CCS": ccs,
+                        "Charge": z,
+                        "Intensity": y,
+                        "Sample Name": sample_name,
+                    }
+                )
 
-        # Convert the data to a DataFrame
-        df = pd.DataFrame(ms_peaks_data)
+            all_features_data.extend(ms_peaks_data)
 
-        # Convert the DataFrame to a Feather file
-        feather_file = os.path.join(
-            TEMP_DIR, os.path.basename(cef_file).replace(".cef", ".feather")
-        )
-        feather.write_feather(df, feather_file)
+    # Convert the data to a DataFrame with the specified column order
+    df = pd.DataFrame(
+        all_features_data,
+        columns=[
+            "Sample Feature ID",
+            "m/z",
+            "Adduct",
+            "Retention Time",
+            "Drift Time",
+            "CCS",
+            "Charge",
+            "Intensity",
+            "Sample Name",
+        ],
+    )
 
-        print(f"Converted {cef_file} to {feather_file}")
+    # Convert the DataFrame to a Feather file
+    feather_file = os.path.join(TEMP_DIR, "features.feather")
+    feather.write_feather(df, feather_file)
 
-        # View the Feather file
-        view_feather_file(feather_file)
+    end_time = time.time()  # Record the end time
+    conversion_time = end_time - start_time  # Calculate the conversion time
+
+    print(f"Converted CEF files to {feather_file} in {conversion_time:.2f} seconds")
+
+    # View the Feather file
+    view_feather_file(feather_file)
 
 
 def view_feather_file(feather_file):
