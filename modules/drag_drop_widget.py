@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QListWidget, QListWidgetItem, QMenu
-from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QAction
+from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QAction, QColor
 from PyQt6.QtCore import Qt
 
 
@@ -9,7 +9,18 @@ class DragDropWidget(QListWidget):
         self.setAcceptDrops(True)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.setMouseTracking(True)  # Enable mouse tracking
-        self.itemEntered.connect(self.highlight_item)  # Connect the itemEntered signal
+        self.current_hover_item = None  # Track the currently hovered item
+        self.setStyleSheet("""
+            QListWidget::item {
+                background-color: white;
+            }
+            QListWidget::item:selected {
+                background-color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #006400;
+            }
+        """)
         print("DragDropWidget initialized")
 
     def dragEnterEvent(self, event: QDragEnterEvent):
@@ -54,9 +65,44 @@ class DragDropWidget(QListWidget):
             self.takeItem(self.row(item))
         print("Selected item removed")
 
-    def highlight_item(self, item):
-        print("highlight_item called")
-        for i in range(self.count()):
-            self.item(i).setBackground(Qt.GlobalColor.white)  # Reset background color
-        item.setBackground(Qt.GlobalColor.lightGray)  # Highlight the hovered item
-        print("Item highlighted:", item.text())
+    def mouseMoveEvent(self, event):
+        print("mouseMoveEvent called")
+        item = self.itemAt(event.pos())
+        if item != self.current_hover_item:
+            if self.current_hover_item:
+                print(f"Resetting color of item: {self.current_hover_item.text()}")
+                print(
+                    f"Previous color: {self.current_hover_item.background().color().name()}"
+                )
+                self.current_hover_item.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Reset background color of the previous item
+                print(
+                    f"New color: {self.current_hover_item.background().color().name()}"
+                )
+            if item:
+                print(f"Highlighting item: {item.text()}")
+                print(f"Previous color: {item.background().color().name()}")
+                item.setBackground(
+                    QColor(0, 100, 0)
+                )  # Highlight the hovered item with dark green color
+                print(f"New color: {item.background().color().name()}")
+                item.setSelected(False)  # Ensure the item is not selected
+                print(f"Item selected state: {item.isSelected()}")
+            self.current_hover_item = item
+            print(
+                f"Current hover item set to: {self.current_hover_item.text() if self.current_hover_item else 'None'}"
+            )
+        super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event):
+        print("leaveEvent called")
+        if self.current_hover_item:
+            print(f"Resetting color of item: {self.current_hover_item.text()}")
+            print(
+                f"Previous color: {self.current_hover_item.background().color().name()}"
+            )
+            self.current_hover_item.setBackground(QColor(Qt.GlobalColor.white))
+            print(f"New color: {self.current_hover_item.background().color().name()}")
+            self.current_hover_item = None
+        super().leaveEvent(event)
