@@ -7,3 +7,4 @@ requests
 pytest
 scipy
 tqdm
+PyQt6
