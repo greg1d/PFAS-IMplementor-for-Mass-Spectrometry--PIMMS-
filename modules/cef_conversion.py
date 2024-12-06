@@ -23,6 +23,16 @@ def convert_files(dropped_files):
         tree = ET.parse(cef_file)
         root = tree.getroot()
 
+        # Extract <Compound> data
+        compound_data = root.find(".//Compound")
+        mppid = compound_data.get("mppid")
+
+        # Extract <Location> data
+        location_data = root.find(".//Location")
+        rt = location_data.get("rt")
+        dt = location_data.get("dt")
+        ccs = location_data.get("ccs")
+
         # Extract <MSPeaks> data
         ms_peaks_data = []
         for mspeaks in root.findall(".//MSPeaks/p"):
@@ -31,7 +41,16 @@ def convert_files(dropped_files):
             z = mspeaks.get("z")
             s = mspeaks.get("s")
             ms_peaks_data.append(
-                {"m/z": x, "Intensity": y, "Charge (Absolute)": z, "Adduct": s}
+                {
+                    "m/z": x,
+                    "Intensity": y,
+                    "Charge (Absolute)": z,
+                    "Adduct": s,
+                    "Retention Time": rt,
+                    "Drift Time": dt,
+                    "CCS": ccs,
+                    "Sample Feature ID": mppid,
+                }
             )
 
         # Convert the data to a DataFrame
