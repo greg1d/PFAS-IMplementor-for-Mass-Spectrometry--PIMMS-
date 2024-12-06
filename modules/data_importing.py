@@ -1,4 +1,7 @@
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QFileDialog,
+    QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -10,7 +13,7 @@ from PyQt6.QtWidgets import (
 class DragDropListWidget(QListWidget):
     def __init__(self):
         super().__init__()
-        self.setAcceptDrops(True)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
     def add_files(self, files):
         for file in files:
@@ -26,38 +29,63 @@ class DragDropListWidget(QListWidget):
 
 
 def create_data_importing_tab(tab_widget, main_window):
-    layout = QVBoxLayout()
+    main_layout = QVBoxLayout()
 
     # Create two hubs
     source_hub = DragDropListWidget()
     target_hub = DragDropListWidget()
 
     # Create buttons
+    browse_button = QPushButton("Browse")
     move_button = QPushButton("Move Selected Files")
     remove_button = QPushButton("Remove Selected Files")
     convert_button = QPushButton("Convert to Feather Files")
     settings_button = QPushButton("Settings")
 
-    # Add widgets to layout
-    layout.addWidget(QLabel("Source Hub"))
-    layout.addWidget(source_hub)
-    layout.addWidget(QLabel("Target Hub"))
-    layout.addWidget(target_hub)
-    layout.addWidget(move_button)
-    layout.addWidget(remove_button)
-    layout.addWidget(convert_button)
-    layout.addWidget(settings_button)
+    # Create a horizontal layout for the hubs
+    hubs_layout = QHBoxLayout()
+
+    # Create a vertical layout for the source hub and its label
+    source_layout = QVBoxLayout()
+    source_layout.addWidget(QLabel("File Hub"))
+    source_layout.addWidget(source_hub)
+    source_layout.addWidget(browse_button)
+
+    # Create a vertical layout for the target hub and its label
+    target_layout = QVBoxLayout()
+    target_layout.addWidget(QLabel("Importing Hub"))
+    target_layout.addWidget(target_hub)
+
+    # Add the source and target layouts to the hubs layout
+    hubs_layout.addLayout(source_layout)
+    hubs_layout.addLayout(target_layout)
+
+    # Add the hubs layout to the main layout
+    main_layout.addLayout(hubs_layout)
+
+    # Add buttons to the main layout
+    main_layout.addWidget(move_button)
+    main_layout.addWidget(remove_button)
+    main_layout.addWidget(convert_button)
+    main_layout.addWidget(settings_button)
 
     # Set layout to the data importing tab
-    tab_widget.setLayout(layout)
+    tab_widget.setLayout(main_layout)
 
     # Connect buttons
+    browse_button.clicked.connect(lambda: browse_files(source_hub))
     move_button.clicked.connect(lambda: move_files(source_hub, target_hub))
     remove_button.clicked.connect(lambda: remove_files(target_hub))
     convert_button.clicked.connect(
         lambda: main_window.convert_files(target_hub.get_selected_files())
     )
     settings_button.clicked.connect(main_window.open_settings)
+
+
+def browse_files(source_hub):
+    files, _ = QFileDialog.getOpenFileNames(None, "Select Files")
+    if files:
+        source_hub.add_files(files)
 
 
 def move_files(source_hub, target_hub):

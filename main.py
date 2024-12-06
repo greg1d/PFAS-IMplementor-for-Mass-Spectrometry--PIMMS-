@@ -1,12 +1,7 @@
-import atexit
-
-from PyQt6.QtCore import QFile, QTextStream
+from PyQt6.QtGui import QFontDatabase
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
 
-from modules.cef_conversion import (
-    cleanup_temp_dir,
-    convert_files,
-)  # Import the cleanup_temp_dir function
+from modules.cef_conversion import convert_files
 from modules.data_importing import create_data_importing_tab, open_settings
 
 
@@ -28,6 +23,15 @@ class HomeWindow(QMainWindow):
         # Set the tab widget as the central widget
         self.setCentralWidget(self.tabs)
 
+        # Load the Montserrat font variants
+        QFontDatabase.addApplicationFont("fonts/Montserrat-Regular.ttf")
+        QFontDatabase.addApplicationFont("fonts/Montserrat-Bold.ttf")
+        QFontDatabase.addApplicationFont("fonts/Montserrat-Medium.ttf")
+
+        # Apply the stylesheet
+        with open("styles/theme.qss", "r") as f:
+            self.setStyleSheet(f.read())
+
     def convert_files(self, dropped_files):
         convert_files(dropped_files)
 
@@ -35,29 +39,8 @@ class HomeWindow(QMainWindow):
         open_settings()
 
 
-def load_stylesheet():
-    file = QFile("styles/theme.qss")
-    file.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text)
-    stream = QTextStream(file)
-    stylesheet = stream.readAll()
-    file.close()
-    return stylesheet
-
-
 if __name__ == "__main__":
-    import sys
-
-    app = QApplication(sys.argv)
-
-    # Load the stylesheet
-    app.setStyleSheet(load_stylesheet())
-
-    # Initialize the main window
-    main_window = HomeWindow()
-    main_window.show()
-
-    # Register the cleanup function to be called on exit
-    atexit.register(cleanup_temp_dir)
-
-    # Run the application
-    sys.exit(app.exec())
+    app = QApplication([])
+    window = HomeWindow()
+    window.show()
+    app.exec()

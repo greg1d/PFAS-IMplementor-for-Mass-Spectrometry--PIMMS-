@@ -2,7 +2,7 @@ QMainWindow {
     background: rgb(218, 215, 205); /* Light grey background */
     background-image: radial-gradient(circle, rgba(128, 128, 128, 0.5) 1px, rgba(0, 0, 0, 0) 1px);
     color: #ffffff;
-    font-family: Arial;
+    font-family: 'Montserrat';
     font-size: 20pt;
 }
 
@@ -11,6 +11,7 @@ QPushButton {
     color: white;
     border-radius: 10px;
     padding: 10px;
+    font-family: 'Montserrat Medium';
 }
 
 QPushButton:hover {
@@ -19,4 +20,5 @@ QPushButton:hover {
 
 QLabel {
     color: #ffffff;
+    font-family: 'Montserrat Bold';
 }
