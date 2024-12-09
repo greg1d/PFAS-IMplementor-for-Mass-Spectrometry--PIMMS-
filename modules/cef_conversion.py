@@ -5,13 +5,13 @@ import xml.etree.ElementTree as ET
 import time
 from concurrent.futures import ThreadPoolExecutor
 from line_profiler import LineProfiler
-from datetime import datetime
+from tqdm import tqdm
 
 # Global variable to store the temporary directory path
 TEMP_DIR = None
 
 
-def process_cef_file(cef_file):
+def process_cef_file(cef_file, progress_bar):
     # Extract the sample name from the file name
     sample_name = os.path.basename(cef_file).replace(".cef", "")
 
@@ -22,7 +22,8 @@ def process_cef_file(cef_file):
     all_features_data = []
 
     # Extract <Compound> data
-    for compound in root.findall(".//Compound"):
+    compounds = root.findall(".//Compound")
+    for i, compound in enumerate(compounds):
         mppid = compound.get("mppid")
 
         # Extract <Location> data
@@ -54,6 +55,9 @@ def process_cef_file(cef_file):
 
         all_features_data.extend(ms_peaks_data)
 
+        # Update the progress bar for each compound processed
+        progress_bar.update(1)
+
     # Convert the data to a DataFrame with the specified column order
     df = pd.DataFrame(
         all_features_data,
@@ -73,6 +77,9 @@ def process_cef_file(cef_file):
     # Convert the DataFrame to a Feather file
     feather_file = os.path.join(TEMP_DIR, f"{sample_name}.feather")
     feather.write_feather(df, feather_file)
+
+    # Update the progress bar for the file completion
+    progress_bar.update(1)
 
     return feather_file
 
@@ -94,11 +101,18 @@ def convert_files(dropped_files):
     feather_files = []
     with ThreadPoolExecutor() as executor:
         futures = []
-        for cef_file in dropped_files:
+        progress_bars = []
+        for i, cef_file in enumerate(dropped_files):
             sample_name = os.path.basename(cef_file).replace(".cef", "")
             feather_file_path = os.path.join(TEMP_DIR, f"{sample_name}.feather")
             if not os.path.exists(feather_file_path):
-                futures.append(executor.submit(process_cef_file, cef_file))
+                progress_bar = tqdm(
+                    total=2, desc=f"Processing {sample_name}", position=i
+                )
+                progress_bars.append(progress_bar)
+                futures.append(
+                    executor.submit(process_cef_file, cef_file, progress_bar)
+                )
         for future in futures:
             feather_file = future.result()
             feather_files.append(feather_file)
@@ -113,40 +127,23 @@ def convert_files(dropped_files):
 
 def cleanup_temp_dir(dropped_files):
     global TEMP_DIR
-    print("Starting cleanup_temp_dir function")
     if TEMP_DIR and os.path.exists(TEMP_DIR):
-        print(f"Cleaning up temporary directory: {TEMP_DIR}")
         for cef_file in dropped_files:
             sample_name = os.path.basename(cef_file).replace(".cef", "")
             feather_file_path = os.path.join(TEMP_DIR, f"{sample_name}.feather")
-            print(f"Checking file: {cef_file}")
             if os.path.exists(feather_file_path):
                 file_mod_time = os.path.getmtime(cef_file)
                 feather_file_mod_time = os.path.getmtime(feather_file_path)
-                file_mod_time_str = datetime.fromtimestamp(file_mod_time).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
-                feather_file_mod_time_str = datetime.fromtimestamp(
-                    feather_file_mod_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-                print(
-                    f"File mod time: {file_mod_time_str}, Feather mod time: {feather_file_mod_time_str}"
-                )
+
                 if file_mod_time > feather_file_mod_time:
-                    print(f"Removing file: {feather_file_path}")
                     os.remove(feather_file_path)
         for root, dirs, files in os.walk(TEMP_DIR, topdown=False):
             for name in dirs:
                 dir_path = os.path.join(root, name)
                 if not os.listdir(dir_path):  # Check if the directory is empty
-                    print(f"Removing empty directory: {dir_path}")
                     os.rmdir(dir_path)
         if not os.listdir(TEMP_DIR):  # Check if the TEMP_DIR is empty
-            print(f"Removing empty TEMP_DIR: {TEMP_DIR}")
             os.rmdir(TEMP_DIR)
-        print("Temporary directory cleaned up")
-    else:
-        print("TEMP_DIR does not exist or is not set")
 
 
 def profile_conversion(dropped_files):
@@ -155,4 +152,14 @@ def profile_conversion(dropped_files):
     profiler.add_function(convert_files)
     profiler.enable_by_count()
     convert_files(dropped_files)
-    profiler.print_stats()
+
+
+# Main execution block
+if __name__ == "__main__":
+    dropped_files = [
+        "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/104 B2 MB-2.d.DeMP.cef",
+        "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/103 B2 MB-1.d.DeMP.cef",
+        "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/148 B2 16632.d.DeMP.cef",
+    ]
+    profile_conversion(dropped_files)
+    cleanup_temp_dir(dropped_files)
