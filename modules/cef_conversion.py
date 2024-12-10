@@ -125,6 +125,12 @@ def convert_files(dropped_files, processing_hub):
                 futures.append(
                     executor.submit(process_cef_file, cef_file, processing_hub)
                 )
+            else:
+                # If the file is already processed, update the progress bar to 100%
+                processing_hub.update_progress(cef_file, 100)
+                feather_files.append(feather_file_path)
+                print(f"File {sample_name} is already processed. Marking as complete.")
+
         for future in futures:
             feather_file = future.result()
             feather_files.append(feather_file)

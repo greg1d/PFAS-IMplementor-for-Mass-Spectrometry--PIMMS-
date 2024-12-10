@@ -180,6 +180,9 @@ def create_data_importing_tab(tab_widget, main_window):
     processing_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
     processing_layout.addWidget(processing_label)
     processing_layout.addWidget(processing_hub)
+    processing_layout.addWidget(
+        convert_button
+    )  # Add the convert button under the processing hub
 
     # Create a vertical layout for the arrow buttons
     arrow_layout = QVBoxLayout()
@@ -196,7 +199,6 @@ def create_data_importing_tab(tab_widget, main_window):
 
     # Add buttons to the main layout
     main_layout.addWidget(remove_button)
-    main_layout.addWidget(convert_button)
     main_layout.addWidget(settings_button)
 
     # Set layout to the data importing tab
@@ -210,7 +212,7 @@ def create_data_importing_tab(tab_widget, main_window):
     move_to_file_button.clicked.connect(
         lambda: move_files_to_file(processing_hub, file_hub)
     )
-    remove_button.clicked.connect(lambda: remove_files(processing_hub))
+    remove_button.clicked.connect(lambda: remove_files(processing_hub, file_hub))
     convert_button.clicked.connect(
         lambda: main_window.convert_files(
             processing_hub.get_selected_files(), processing_hub
@@ -248,13 +250,64 @@ def move_files_to_file(processing_hub, file_hub):
         file_hub.add_files(selected_files)
 
 
-def remove_files(processing_hub):
-    selected_files = processing_hub.get_selected_files()
+def remove_files(processing_hub, file_hub):
+    selected_files_processing = processing_hub.get_selected_files()
+    selected_files_file = file_hub.get_selected_files()
+    selected_files = list(set(selected_files_processing + selected_files_file))
+    print(f"Selected files to remove: {selected_files}")  # Debugging statement
+
     if selected_files:
-        processing_hub.remove_selected_item()
-        processing_hub.other_hub.add_files(
-            selected_files
-        )  # Add files back to the other hub
+        # Debugging: Print items in processing hub before removal
+        print("Items in processing hub before removal:")
+        for index in range(processing_hub.count()):
+            item = processing_hub.item(index)
+            print(f"  {item.text()}")
+
+        # Remove selected items from the processing hub
+        for file in selected_files:
+            items = processing_hub.findItems(file, Qt.MatchFlag.MatchExactly)
+            for item in items:
+                processing_hub.takeItem(processing_hub.row(item))
+                if file in processing_hub.dropped_files:
+                    processing_hub.dropped_files.remove(file)
+                print(f"Removed {file} from processing hub")
+
+        # Debugging: Print items in processing hub after removal
+        print("Items in processing hub after removal:")
+        for index in range(processing_hub.count()):
+            item = processing_hub.item(index)
+            print(f"  {item.text()}")
+
+        # Debugging: Print items in file hub before removal
+        print("Items in file hub before removal:")
+        for index in range(file_hub.count()):
+            item = file_hub.item(index)
+            print(f"  {item.text()}")
+
+        # Remove corresponding items from the file hub
+        for file in selected_files:
+            items = file_hub.findItems(file, Qt.MatchFlag.MatchExactly)
+            for item in items:
+                file_hub.takeItem(file_hub.row(item))
+                if file in file_hub.dropped_files:
+                    file_hub.dropped_files.remove(file)
+                print(f"Removed {file} from file hub")
+
+        # Debugging: Print items in file hub after removal
+        print("Items in file hub after removal:")
+        for index in range(file_hub.count()):
+            item = file_hub.item(index)
+            print(f"  {item.text()}")
+
+        # Update the UI
+        if processing_hub.update_callback:
+            processing_hub.update_callback()
+        if file_hub.update_callback:
+            file_hub.update_callback()
+    else:
+        print(
+            "No files selected to remove."
+        )  # Debugging statement # Debugging statement
 
 
 def open_settings():
