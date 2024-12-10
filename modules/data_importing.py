@@ -11,6 +11,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QProgressBar,
     QWidget,
+    QFrame,
+    QSizePolicy,
 )
 
 
@@ -48,34 +50,49 @@ class DragDropListWidget(QListWidget):
                 self.dropped_files.add(file)
                 item = QListWidgetItem(file)  # Set the file path as the item text
                 widget = QWidget()
-                layout = QHBoxLayout()
-                label = QLabel(file)
+                layout = (
+                    QVBoxLayout()
+                )  # Change to QVBoxLayout to stack label above progress bar
+                frame = QFrame()
+                frame_layout = QVBoxLayout()
                 progress_bar = QProgressBar()
                 progress_bar.setMaximum(100)
                 progress_bar.setValue(0)
-                layout.addWidget(label)
-                layout.addWidget(progress_bar)
+                progress_bar.setFormat(
+                    file
+                )  # Set the progress bar label to the file name
+                frame_layout.addWidget(progress_bar)
+                frame.setLayout(frame_layout)
+                layout.addWidget(frame)
                 widget.setLayout(layout)
                 item.setSizeHint(widget.sizeHint())
                 self.addItem(item)
                 self.setItemWidget(item, widget)
 
-                # Apply the stylesheet to the custom widget
-                widget.setStyleSheet("""
-                    QWidget {
-                        background-color: black;
-                        margin: 2px;
-                        padding: 5px;
+                frame.setStyleSheet("""
+                    QFrame {
+                        background-color: transparent;
+                        margin: 0px;
+                        padding: 0px;
+                        }
+                    QProgressBar {
+                        border: 0px solid grey;
+                        border-radius: 0px;
+                        text-align: left;
+                        width: 100%;
+                        height: 10px;
+                        font-size: 18px;  
+                        margin: 0px;                      
                     }
-                    QWidget:selected {
-                        background-color: black;
-                        color: black;
-                    }
-                    QWidget:hover {
-                        background-color: black;
+                    QProgressBar::chunk {
+                        background-color: red;
                     }
                 """)
-
+                progress_bar.setSizePolicy(
+                    QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+                )
+                layout.setContentsMargins(0, 0, 0, 0)
+                layout.setSpacing(0)
                 # Debugging statement to check the properties of the item
                 print(f"Added file: {file}")
                 print(f"Item text: {item.text()}")
@@ -91,9 +108,8 @@ class DragDropListWidget(QListWidget):
         for index in range(self.count()):
             item = self.item(index)
             widget = self.itemWidget(item)
-            label = widget.findChild(QLabel)
             progress_bar = widget.findChild(QProgressBar)
-            if label.text() == file:
+            if progress_bar.format() == file:
                 progress_bar.setValue(value)
                 break
 
@@ -101,8 +117,8 @@ class DragDropListWidget(QListWidget):
         for index in range(self.count()):
             item = self.item(index)
             widget = self.itemWidget(item)
-            label = widget.findChild(QLabel)
-            if label.text() == file:
+            progress_bar = widget.findChild(QProgressBar)
+            if progress_bar.format() == file:
                 check_mark = QLabel("✔")
                 check_mark.setStyleSheet("color: green;")
                 widget.layout().addWidget(check_mark)
