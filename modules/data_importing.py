@@ -28,28 +28,6 @@ class DragDropListWidget(QListWidget):
         self.update_callback = update_callback  # Callback to update the file list
         self.other_hub = other_hub  # Reference to the other hub
 
-        # Set the stylesheet
-        self.setStyleSheet("""
-            QListWidget {
-                border: 1px solid #BEBEBE;
-                border-radius: 8px;
-                padding: 5px;
-                background-color: #F7F6F3;
-            }
-            QListWidget::item {
-                background-color: white;
-                margin: 2px;
-                padding: 5px;
-            }
-            QListWidget::item:selected {
-                background-color: #DAD7CD;
-                color: black;
-            }
-            QListWidget::item:hover {
-                background-color: #ECECEC;
-            }
-        """)
-
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -81,6 +59,28 @@ class DragDropListWidget(QListWidget):
                 item.setSizeHint(widget.sizeHint())
                 self.addItem(item)
                 self.setItemWidget(item, widget)
+
+                # Apply the stylesheet to the custom widget
+                widget.setStyleSheet("""
+                    QWidget {
+                        background-color: black;
+                        margin: 2px;
+                        padding: 5px;
+                    }
+                    QWidget:selected {
+                        background-color: black;
+                        color: black;
+                    }
+                    QWidget:hover {
+                        background-color: black;
+                    }
+                """)
+
+                # Debugging statement to check the properties of the item
+                print(f"Added file: {file}")
+                print(f"Item text: {item.text()}")
+                print(f"Item background color: {item.background().color().name()}")
+                print(f"Item text color: {item.foreground().color().name()}")
 
     def get_selected_files(self):
         selected_files = [item.text() for item in self.selectedItems()]
