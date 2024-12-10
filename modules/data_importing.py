@@ -81,11 +81,11 @@ class DragDropListWidget(QListWidget):
                         text-align: left;
                         width: 100%;
                         height: 10px;
-                        font-size: 18px;  
+                        font-size: 16px;  
                         margin: 0px;                      
                     }
                     QProgressBar::chunk {
-                        background-color: red;
+                        background-color: #4caf50;
                     }
                 """)
                 progress_bar.setSizePolicy(
@@ -111,17 +111,6 @@ class DragDropListWidget(QListWidget):
             progress_bar = widget.findChild(QProgressBar)
             if progress_bar.format() == file:
                 progress_bar.setValue(value)
-                break
-
-    def show_check_mark(self, file):
-        for index in range(self.count()):
-            item = self.item(index)
-            widget = self.itemWidget(item)
-            progress_bar = widget.findChild(QProgressBar)
-            if progress_bar.format() == file:
-                check_mark = QLabel("✔")
-                check_mark.setStyleSheet("color: green;")
-                widget.layout().addWidget(check_mark)
                 break
 
     def remove_selected_item(self):
@@ -246,52 +235,26 @@ def browse_files(file_hub):
 
 
 def move_files_to_processing(file_hub, processing_hub):
-    print("Moving selected files to processing hub...")  # Debugging
     selected_files = file_hub.get_selected_files()
-    print(f"Selected files to move: {selected_files}")  # Debugging
     if selected_files:
         file_hub.remove_selected_item()  # Ensure files are removed from the source hub
-        print(f"Files in file hub after removal: {file_hub.dropped_files}")  # Debugging
         processing_hub.add_files(selected_files)
-        print(
-            f"Files in processing hub after adding: {processing_hub.dropped_files}"
-        )  # Debugging
-    else:
-        print("No files selected to move.")  # Debugging
 
 
 def move_files_to_file(processing_hub, file_hub):
-    print("Moving selected files to file hub...")  # Debugging
     selected_files = processing_hub.get_selected_files()
-    print(f"Selected files to move: {selected_files}")  # Debugging
     if selected_files:
         processing_hub.remove_selected_item()  # Ensure files are removed from the source hub
-        print(
-            f"Files in processing hub after removal: {processing_hub.dropped_files}"
-        )  # Debugging
         file_hub.add_files(selected_files)
-        print(f"Files in file hub after adding: {file_hub.dropped_files}")  # Debugging
-    else:
-        print("No files selected to move.")  # Debugging
 
 
 def remove_files(processing_hub):
-    print("Removing selected files from processing hub...")  # Debugging
     selected_files = processing_hub.get_selected_files()
-    print(f"Selected files to remove: {selected_files}")  # Debugging
     if selected_files:
         processing_hub.remove_selected_item()
         processing_hub.other_hub.add_files(
             selected_files
         )  # Add files back to the other hub
-        print(
-            f"Files in processing hub after removal: {processing_hub.dropped_files}"
-        )  # Debugging
-        print(
-            f"Files in file hub after removal: {processing_hub.other_hub.dropped_files}"
-        )  # Debugging
-    else:
-        print("No files selected to remove.")  # Debugging
 
 
 def open_settings():

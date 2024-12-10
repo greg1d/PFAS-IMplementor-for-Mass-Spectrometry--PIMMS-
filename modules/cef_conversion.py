@@ -94,9 +94,6 @@ def process_cef_file(cef_file, processing_hub):
     # Print a statement indicating the file has finished processing
     print(f"Finished processing {sample_name}")
 
-    # Show the check mark
-    processing_hub.show_check_mark(cef_file)
-
     # Signal the event
     print(f"Setting event for: {sample_name}")
     file_processed_event.set()
