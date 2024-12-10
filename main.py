@@ -32,11 +32,11 @@ class HomeWindow(QMainWindow):
         with open("styles/theme.qss", "r") as f:
             self.setStyleSheet(f.read())
 
-        # Create a main window to hold the progress bars
-        self.progress_window = QWidget()
+        # Create a layout to hold the progress bars
         self.progress_layout = QVBoxLayout()
-        self.progress_window.setLayout(self.progress_layout)
-        self.progress_window.show()
+        self.progress_widget = QWidget()
+        self.progress_widget.setLayout(self.progress_layout)
+        self.tabs.addTab(self.progress_widget, "Progress")
 
     def convert_files(self, dropped_files, processing_hub):
         # Create progress widgets for each file
