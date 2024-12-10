@@ -81,10 +81,13 @@ def process_cef_file(cef_file, progress_bar):
     # Update the progress bar for the file completion
     progress_bar.update(1)
 
+    # Print a statement indicating the file has finished processing
+    print(f"Finished processing {sample_name}")
+
     return feather_file
 
 
-def convert_files(dropped_files):
+def convert_files(dropped_files, processing_hub):
     global TEMP_DIR
 
     # Perform cleanup first
@@ -116,6 +119,9 @@ def convert_files(dropped_files):
         for future in futures:
             feather_file = future.result()
             feather_files.append(feather_file)
+            # Call color_row_green after processing each file
+            sample_name = os.path.basename(feather_file).replace(".feather", "")
+            processing_hub.color_row_green(sample_name)
 
     end_time = time.time()  # Record the end time
     conversion_time = end_time - start_time  # Calculate the conversion time
@@ -146,12 +152,12 @@ def cleanup_temp_dir(dropped_files):
             os.rmdir(TEMP_DIR)
 
 
-def profile_conversion(dropped_files):
+def profile_conversion(dropped_files, processing_hub):
     profiler = LineProfiler()
     profiler.add_function(process_cef_file)
     profiler.add_function(convert_files)
     profiler.enable_by_count()
-    convert_files(dropped_files)
+    convert_files(dropped_files, processing_hub)
 
 
 # Main execution block
@@ -161,5 +167,3 @@ if __name__ == "__main__":
         "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/103 B2 MB-1.d.DeMP.cef",
         "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/148 B2 16632.d.DeMP.cef",
     ]
-    profile_conversion(dropped_files)
-    cleanup_temp_dir(dropped_files)

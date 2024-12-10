@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QIcon
+from PyQt6.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QIcon, QColor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -92,6 +92,18 @@ class DragDropListWidget(QListWidget):
         if self.update_callback:
             self.update_callback()
 
+    def color_row_green(self, sample_name):
+        for index in range(self.count()):
+            item = self.item(index)
+            print(f"Checking item: {item.text()}")  # Debugging statement
+            if sample_name in item.text():
+                print(f"Found matching item: {item.text()}")  # Debugging statement
+                item.setBackground(QColor("green"))
+                print(f"Colored item green: {item.text()}")  # Debugging statement
+                break
+        else:
+            print(f"No matching item found for: {sample_name}")
+
 
 def create_data_importing_tab(tab_widget, main_window):
     main_layout = QVBoxLayout()
@@ -177,7 +189,9 @@ def create_data_importing_tab(tab_widget, main_window):
     )
     remove_button.clicked.connect(lambda: remove_files(processing_hub))
     convert_button.clicked.connect(
-        lambda: main_window.convert_files(processing_hub.get_selected_files())
+        lambda: main_window.convert_files(
+            processing_hub.get_selected_files(), processing_hub
+        )
     )
     settings_button.clicked.connect(main_window.open_settings)
 

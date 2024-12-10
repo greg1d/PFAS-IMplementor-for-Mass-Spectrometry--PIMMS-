@@ -32,8 +32,8 @@ class HomeWindow(QMainWindow):
         with open("styles/theme.qss", "r") as f:
             self.setStyleSheet(f.read())
 
-    def convert_files(self, dropped_files):
-        convert_files(dropped_files)
+    def convert_files(self, dropped_files, processing_hub):
+        convert_files(dropped_files, processing_hub)
 
     def open_settings(self):
         open_settings()
