@@ -1,7 +1,7 @@
 from PyQt6.QtGui import QFontDatabase
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout
 
-from modules.cef_conversion import convert_files
+from modules.cef_conversion import convert_files, FileProcessingWidget
 from modules.data_importing import create_data_importing_tab, open_settings
 
 
@@ -32,8 +32,20 @@ class HomeWindow(QMainWindow):
         with open("styles/theme.qss", "r") as f:
             self.setStyleSheet(f.read())
 
+        # Create a main window to hold the progress bars
+        self.progress_window = QWidget()
+        self.progress_layout = QVBoxLayout()
+        self.progress_window.setLayout(self.progress_layout)
+        self.progress_window.show()
+
     def convert_files(self, dropped_files, processing_hub):
-        convert_files(dropped_files, processing_hub)
+        # Create progress widgets for each file
+        progress_widgets = [FileProcessingWidget(file) for file in dropped_files]
+        for widget in progress_widgets:
+            self.progress_layout.addWidget(widget)
+
+        # Call the convert_files function with the progress widgets
+        convert_files(dropped_files, processing_hub, progress_widgets)
 
     def open_settings(self):
         open_settings()
