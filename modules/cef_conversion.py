@@ -5,14 +5,26 @@ import xml.etree.ElementTree as ET
 import time
 from concurrent.futures import ThreadPoolExecutor
 from line_profiler import LineProfiler
-from tqdm import tqdm
+import threading
+import sys
+
+# Add the directory containing data_importing.py to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from modules.data_importing import DragDropListWidget
+from PyQt6.QtWidgets import QApplication
 
 # Global variable to store the temporary directory path
 TEMP_DIR = None
 
+# Create an Event object
+file_processed_event = threading.Event()
+all_files_processed_event = threading.Event()
 
-def process_cef_file(cef_file, progress_bar):
+
+def process_cef_file(cef_file):
     # Extract the sample name from the file name
+
     sample_name = os.path.basename(cef_file).replace(".cef", "")
 
     # Parse the CEF file
@@ -55,9 +67,6 @@ def process_cef_file(cef_file, progress_bar):
 
         all_features_data.extend(ms_peaks_data)
 
-        # Update the progress bar for each compound processed
-        progress_bar.update(1)
-
     # Convert the data to a DataFrame with the specified column order
     df = pd.DataFrame(
         all_features_data,
@@ -78,11 +87,11 @@ def process_cef_file(cef_file, progress_bar):
     feather_file = os.path.join(TEMP_DIR, f"{sample_name}.feather")
     feather.write_feather(df, feather_file)
 
-    # Update the progress bar for the file completion
-    progress_bar.update(1)
-
     # Print a statement indicating the file has finished processing
     print(f"Finished processing {sample_name}")
+
+    # Signal the event
+    file_processed_event.set()
 
     return feather_file
 
@@ -104,29 +113,32 @@ def convert_files(dropped_files, processing_hub):
     feather_files = []
     with ThreadPoolExecutor() as executor:
         futures = []
-        progress_bars = []
         for i, cef_file in enumerate(dropped_files):
             sample_name = os.path.basename(cef_file).replace(".cef", "")
             feather_file_path = os.path.join(TEMP_DIR, f"{sample_name}.feather")
             if not os.path.exists(feather_file_path):
-                progress_bar = tqdm(
-                    total=2, desc=f"Processing {sample_name}", position=i
-                )
-                progress_bars.append(progress_bar)
-                futures.append(
-                    executor.submit(process_cef_file, cef_file, progress_bar)
-                )
+                futures.append(executor.submit(process_cef_file, cef_file))
         for future in futures:
             feather_file = future.result()
             feather_files.append(feather_file)
             # Call color_row_green after processing each file
             sample_name = os.path.basename(feather_file).replace(".feather", "")
-            processing_hub.color_row_green(sample_name)
+
+            event_set = file_processed_event.wait(timeout=0.0001)  # Add a timeout
+            if event_set:
+                print(f"Event set for: {sample_name}")
+            else:
+                print(f"Timeout waiting for event for: {sample_name}")
+            # Clear the event for the next file
+            file_processed_event.clear()
 
     end_time = time.time()  # Record the end time
     conversion_time = end_time - start_time  # Calculate the conversion time
-
+    print("All files finished")
     print(f"Converted all CEF files in {conversion_time:.2f} seconds")
+
+    # Print a message indicating all files have been processed
+    all_files_processed_event.set()
 
     return feather_files
 
@@ -162,8 +174,18 @@ def profile_conversion(dropped_files, processing_hub):
 
 # Main execution block
 if __name__ == "__main__":
+    app = QApplication([])  # Create a QApplication instance
     dropped_files = [
         "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/104 B2 MB-2.d.DeMP.cef",
         "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/103 B2 MB-1.d.DeMP.cef",
         "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/148 B2 16632.d.DeMP.cef",
+        "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/data/Importing work/261 B4 MB-2.d.DeMP.cef",
     ]
+    processing_hub = (
+        DragDropListWidget()
+    )  # Create the DragDropListWidget instance after QApplication
+    profile_conversion(dropped_files, processing_hub)
+    cleanup_temp_dir(dropped_files)
+    all_files_processed_event.wait()  # Wait for the final event to be set
+
+    app.exec()  # Start the QApplication event loop
