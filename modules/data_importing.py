@@ -9,6 +9,8 @@ from PyQt6.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QVBoxLayout,
+    QProgressBar,
+    QWidget,
 )
 
 
@@ -63,24 +65,52 @@ class DragDropListWidget(QListWidget):
             event.acceptProposedAction()
 
     def add_files(self, files):
-        new_files = [
-            file
-            for file in files
-            if file not in self.dropped_files
-            and (self.other_hub is None or file not in self.other_hub.dropped_files)
-        ]
-        self.dropped_files.update(new_files)
-        for file in new_files:
-            item = QListWidgetItem(file)
-            self.addItem(item)
-        if self.update_callback:
-            self.update_callback()
+        for file in files:
+            if file not in self.dropped_files:
+                self.dropped_files.add(file)
+                item = QListWidgetItem(file)  # Set the file path as the item text
+                widget = QWidget()
+                layout = QHBoxLayout()
+                label = QLabel(file)
+                progress_bar = QProgressBar()
+                progress_bar.setMaximum(100)
+                progress_bar.setValue(0)
+                layout.addWidget(label)
+                layout.addWidget(progress_bar)
+                widget.setLayout(layout)
+                item.setSizeHint(widget.sizeHint())
+                self.addItem(item)
+                self.setItemWidget(item, widget)
 
     def get_selected_files(self):
-        return [item.text() for item in self.selectedItems()]
+        selected_files = [item.text() for item in self.selectedItems()]
+        print(f"Selected files: {selected_files}")  # Debugging statement
+        return selected_files
+
+    def update_progress(self, file, value):
+        for index in range(self.count()):
+            item = self.item(index)
+            widget = self.itemWidget(item)
+            label = widget.findChild(QLabel)
+            progress_bar = widget.findChild(QProgressBar)
+            if label.text() == file:
+                progress_bar.setValue(value)
+                break
+
+    def show_check_mark(self, file):
+        for index in range(self.count()):
+            item = self.item(index)
+            widget = self.itemWidget(item)
+            label = widget.findChild(QLabel)
+            if label.text() == file:
+                check_mark = QLabel("✔")
+                check_mark.setStyleSheet("color: green;")
+                widget.layout().addWidget(check_mark)
+                break
 
     def remove_selected_item(self):
         for item in self.selectedItems():
+            print(f"Removing item: {item.text()}")  # Debugging statement
             self.takeItem(self.row(item))
             self.dropped_files.remove(item.text())
         if self.update_callback:
