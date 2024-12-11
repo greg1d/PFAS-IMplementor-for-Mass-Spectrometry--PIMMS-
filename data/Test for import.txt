@@ -1,0 +1,23 @@
+Atomic Number = 8
+Atomic Symbol = O
+Mass Number = 23
+Relative Atomic Mass = 23.015696(97)
+Isotopic Composition = 
+Standard Atomic Weight = [15.99903,15.99977]
+Notes =  
+
+Atomic Number = 8
+Atomic Symbol = O
+Mass Number = 24
+Relative Atomic Mass = 24.01986(12)
+Isotopic Composition = 
+Standard Atomic Weight = [15.99903,15.99977]
+Notes =  
+
+Atomic Number = 8
+Atomic Symbol = O
+Mass Number = 25
+Relative Atomic Mass = 25.02936(12)
+Isotopic Composition = 
+Standard Atomic Weight = [15.99903,15.99977]
+Notes =  

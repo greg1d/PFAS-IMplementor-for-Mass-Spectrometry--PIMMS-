@@ -3,3 +3,10 @@ matplotlib
 seaborn
 numpy
 openpyxl
+requests
+pytest
+scipy
+tqdm
+PyQt6
+watchdog
+pyarrow
