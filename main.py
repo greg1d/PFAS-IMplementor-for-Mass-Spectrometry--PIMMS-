@@ -9,6 +9,15 @@ from modules.pre_processing_tab import PreProcessingTab
 class HomeWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("PIMMS Application")
+        self.setGeometry(
+            100, 100, 1200, 800
+        )  # Set the initial position and size of the window
+        self.resize(1200, 800)  # Resize the window to a larger default size
+
         self.setWindowTitle("PIMMS v1.2")
 
         # Create a tab widget
