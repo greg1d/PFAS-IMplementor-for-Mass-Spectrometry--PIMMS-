@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
 
 from modules.cef_conversion import convert_files
 from modules.data_importing import create_data_importing_tab, open_settings
+from modules.pre_processing_tab import PreProcessingTab
 
 
 class HomeWindow(QMainWindow):
@@ -19,6 +20,7 @@ class HomeWindow(QMainWindow):
 
         # Add tabs to the tab widget
         self.tabs.addTab(self.data_importing_tab, "Data Importing")
+        self.tabs.addTab(PreProcessingTab(), "Pre-Processing")
 
         # Set the tab widget as the central widget
         self.setCentralWidget(self.tabs)
