@@ -29,9 +29,10 @@ class PeakAlignment(QWidget):
         self.ccs_input = QLineEdit()
         self.mz_input = QLineEdit()
 
-        self.rt_label = QLabel("RT:")
-        self.ccs_label = QLabel("CCS:")
-        self.mz_label = QLabel("m/z:")
+        # Create labels for input fields
+        self.rt_label = QLabel("RT: ±")
+        self.ccs_label = QLabel("CCS: ±")
+        self.mz_label = QLabel("m/z: ±")
         self.rt_label.setStyleSheet(
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
         )
@@ -42,18 +43,35 @@ class PeakAlignment(QWidget):
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
         )
 
+        # Create (min) labels
+        self.rt_min_label = QLabel("(min)")
+        self.ccs_min_label = QLabel("(\u212b\u00b2)")
+        self.mz_min_label = QLabel("(Da)")
+        self.rt_min_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.ccs_min_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.mz_min_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+
         # Create horizontal layouts for each label-input pair
         rt_layout = QHBoxLayout()
         rt_layout.addWidget(self.rt_label)
         rt_layout.addWidget(self.rt_input)
+        rt_layout.addWidget(self.rt_min_label)
 
         ccs_layout = QHBoxLayout()
         ccs_layout.addWidget(self.ccs_label)
         ccs_layout.addWidget(self.ccs_input)
+        ccs_layout.addWidget(self.ccs_min_label)
 
         mz_layout = QHBoxLayout()
         mz_layout.addWidget(self.mz_label)
         mz_layout.addWidget(self.mz_input)
+        mz_layout.addWidget(self.mz_min_label)
 
         # Create a main horizontal layout for the input fields
         input_layout = QHBoxLayout()
@@ -89,12 +107,16 @@ class PeakAlignment(QWidget):
         self.ccs_input.setFixedWidth(new_width)
         self.mz_input.setFixedWidth(new_width)
 
-        # Set the width of the labels to be 5% less than the input fields
-        label_width = max(new_width - 95, 30)
-
+        # Set the width of the labels to be a fixed distance less than the input fields, but not less than 30 pixels
+        label_width = max(new_width - 95, 40)
         self.rt_label.setFixedWidth(label_width)
         self.ccs_label.setFixedWidth(label_width)
         self.mz_label.setFixedWidth(label_width)
+
+        # Set the width of the (min) labels to be the same as the input fields
+        self.rt_min_label.setFixedWidth(new_width)
+        self.ccs_min_label.setFixedWidth(new_width)
+        self.mz_min_label.setFixedWidth(new_width)
 
     def browse_files(self):
         options = QFileDialog.Options()
