@@ -12,7 +12,7 @@ from scipy.interpolate import make_interp_spline
 # Set paths
 output_folder = r"LOC tracking outputs"
 output_file = os.path.join(output_folder, "code_metrics.xlsx")
-font_path = r"Formatting/NormativePro-Bold.otf"
+font_path = r"fonts/NormativePro-Bold.otf"
 font_prop = font_manager.FontProperties(fname=font_path)
 font_manager.fontManager.addfont(font_path)
 mpl.rc("font", family=font_prop.get_name())
