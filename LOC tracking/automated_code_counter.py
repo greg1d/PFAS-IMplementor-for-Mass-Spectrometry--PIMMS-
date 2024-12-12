@@ -1,5 +1,4 @@
 import os
-import subprocess
 from datetime import datetime
 
 import matplotlib as mpl
@@ -11,116 +10,66 @@ from scipy.interpolate import make_interp_spline
 
 # Set paths
 output_folder = r"LOC tracking outputs"
-output_file = os.path.join(output_folder, "code_metrics.xlsx")
 font_path = r"fonts/NormativePro-Bold.otf"
 font_prop = font_manager.FontProperties(fname=font_path)
 font_manager.fontManager.addfont(font_path)
 mpl.rc("font", family=font_prop.get_name())
+
 # Ensure the output folder exists
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
 
-def run_scc(exclude_dirs=None):
-    if exclude_dirs is None:
-        exclude_dirs = [
-            r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\data",
-        ]
-    target_directory = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-"
-    directories_to_count = [
-        d
-        for d in os.listdir(target_directory)
-        if os.path.isdir(os.path.join(target_directory, d))
-        and os.path.join(target_directory, d) not in exclude_dirs
-    ]
-
-    # Print directories being counted
-    print("Directories being counted:")
-    for d in directories_to_count:
-        print(d)
-
-    # Full path to the scc executable
-    scc_path = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\Packages\scc"  # Use the Windows-compatible version of scc
-
-    # Check if the scc executable exists
-    if not os.path.isfile(scc_path):
-        raise FileNotFoundError(f"scc executable not found at {scc_path}")
-
-    # Build the command for scc
-    scc_command = [scc_path, "--no-cocomo"]
-    for exclude_dir in exclude_dirs:
-        scc_command.extend(["--exclude-dir", exclude_dir])
-    scc_command.extend(directories_to_count)
-
-    # Print the command being executed
-    print("Running command:", " ".join(scc_command))
-
-    result = subprocess.run(scc_command, capture_output=True, text=True)
-    output = result.stdout
-    error_output = result.stderr
-
-    # Print the output of the command
-    print("scc output:")
-    print(output)
-
-    # Print the error output of the command
-    if error_output:
-        print("scc error output:")
-        print(error_output)
-
-    # Check if the output is empty
-    if not output:
-        print("Error: No output from scc command")
-        return 0, {}
-
-    # Extract relevant data (e.g., lines of code)
-    lines_of_code = 0
-    language_data = {"JavaScript": 0, "CSS": 0, "HTML": 0, "Python": 0, "Others": 0}
-    directories_processed = set()
-    for line in output.splitlines():
-        print(f"Processing line: {line}")  # Debugging line to print each line of output
-        if "Total" in line:
-            parts = line.split()
-            try:
-                lines_of_code = int(
-                    parts[2]
-                )  # Assuming the 3rd column is lines of code
-            except ValueError:
-                print(f"Skipping line due to ValueError: {line}")
-        elif "Language" not in line and "Files" not in line and "───" not in line:
-            parts = line.split()
-            if len(parts) > 4:
-                language = parts[0]
-                if language in ["Plain Text", "CSV"]:
-                    print(f"Skipping {language} file: {parts[-1]}")
-                    continue
-                try:
-                    code_lines = int(
-                        parts[2]
-                    )  # Assuming the 3rd column is lines of code
-                    if language in language_data:
-                        language_data[language] += code_lines
-                    else:
-                        language_data["Others"] += code_lines
-                    file_path = parts[-1]  # Assuming the last column is the file path
-                    directory = os.path.dirname(file_path)
-                    directories_processed.add(directory)
-                except ValueError:
-                    print(f"Skipping line due to ValueError: {line}")
-
-    # Print the list of directories processed
-    print("Directories processed:")
-    for directory in directories_processed:
-        print(directory)
-
-    return lines_of_code, language_data
+def read_results_md():
+    data = []
+    for root, dirs, files in os.walk(output_folder):
+        for file in files:
+            if file == "results.md":
+                file_path = os.path.join(root, file)
+                creation_date = datetime.fromtimestamp(
+                    os.path.getctime(file_path)
+                ).strftime("%Y-%m-%d")
+                with open(file_path, "r") as f:
+                    lines = f.readlines()
+                    lines_of_code = 0
+                    language_data = {
+                        "JavaScript": 0,
+                        "CSS": 0,
+                        "HTML": 0,
+                        "Python": 0,
+                        "Others": 0,
+                    }
+                    for line in lines:
+                        if line.startswith("|") and not line.startswith("| :---"):
+                            parts = line.split("|")
+                            if len(parts) > 3:
+                                language = parts[1].strip()
+                                try:
+                                    code_lines = int(parts[3].replace(",", "").strip())
+                                    if language in language_data:
+                                        language_data[language] += code_lines
+                                    else:
+                                        language_data["Others"] += code_lines
+                                    lines_of_code += code_lines
+                                except ValueError:
+                                    print(f"Skipping line due to ValueError: {line}")
+                    data.append(
+                        (
+                            creation_date,
+                            lines_of_code,
+                            language_data["JavaScript"],
+                            language_data["CSS"],
+                            language_data["HTML"],
+                            language_data["Python"],
+                            language_data["Others"],
+                        )
+                    )
+    return data
 
 
-def save_data(lines_of_code, language_data):
-    # Get the current date
-    date = datetime.now().strftime("%Y-%m-%d")
-
+def save_data(data):
     # Load existing data if file exists
+    output_file = os.path.join(output_folder, "code_metrics.xlsx")
     if os.path.exists(output_file):
         df = pd.read_excel(output_file)
     else:
@@ -136,20 +85,20 @@ def save_data(lines_of_code, language_data):
             ]
         )
 
-    # Create a new DataFrame for the new row
-    new_row = pd.DataFrame(
-        {
-            "Date": [date],
-            "Lines of Code": [lines_of_code],
-            "JavaScript": [language_data["JavaScript"]],
-            "CSS": [language_data["CSS"]],
-            "HTML": [language_data["HTML"]],
-            "Python": [language_data["Python"]],
-            "Others": [language_data["Others"]],
-        }
+    # Create a new DataFrame for the new data
+    new_data = pd.DataFrame(
+        data,
+        columns=[
+            "Date",
+            "Lines of Code",
+            "JavaScript",
+            "CSS",
+            "HTML",
+            "Python",
+            "Others",
+        ],
     )
-    # Concatenate the new row with the existing DataFrame
-    df = pd.concat([df, new_row], ignore_index=True)
+    df = pd.concat([df, new_data], ignore_index=True)
 
     # Save to Excel
     df.to_excel(output_file, index=False)
@@ -227,15 +176,19 @@ def plot_data(df):
     ax.spines["left"].set_visible(False)
     ax.spines["bottom"].set_color("#757575")  # Set color of the x-axis
     ax.spines["bottom"].set_linewidth(1.5)  # Set linewidth of the x-axis
-
+    y = df["Lines of Code"]
+    ax.set_ylim(0, y.max() * 1.3)
     # Set gridlines on the y-axis with a soft grey color and interval of 500
     ax.grid(axis="y", color="lightgrey", linestyle="--", linewidth=0.7)
     ax.set_yticks(
         range(
             0,
-            int(df[["JavaScript", "CSS", "HTML", "Python", "Others"]].sum(axis=1).max())
+            int(
+                df[["JavaScript", "CSS", "HTML", "Python", "Others"]].sum(axis=1).max()
+                * 1.3
+            )
             + 100,
-            100,
+            500,
         )
     )
 
@@ -260,8 +213,8 @@ def plot_data(df):
 
 
 def main():
-    lines_of_code, language_data = run_scc()
-    df = save_data(lines_of_code, language_data)
+    data = read_results_md()
+    df = save_data(data)
     plot_data(df)
 
 

@@ -3,5 +3,42 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
-}
+    "python.testing.pytestEnabled": true,
+
+
+        "VSCodeCounter.useGitignore": true,
+        "VSCodeCounter.useFilesExclude": true,
+        "VSCodeCounter.maxFindFiles": 10000,
+        "VSCodeCounter.maxOpenFiles": 500,
+        "VSCodeCounter.printNumberWithCommas": true,
+        "VSCodeCounter.ignoreUnsupportedFile": true,
+        "VSCodeCounter.endOfLine": "\n",
+        "VSCodeCounter.include": [
+            "**/*"
+        ],
+        "VSCodeCounter.exclude": [
+            "**/.git/**",
+            "**/.devcontainer/**",
+            "**/.pytest_cache/**",
+            "**/.temp/**",
+            "**/.vscode/**",
+            "**/data for visualizer/**",
+            "**/Docker setup/**",
+            "**/fonts/**",
+            "**/icons/**",
+            "**/LOC tracking/**",
+            "**/LOC tracking outputs/**",
+            "**/Packages/**",
+            "**/presentations/**",
+            "**/resources/**",
+            "**/data/**",
+
+        ],
+        "VSCodeCounter.outputDirectory": "./LOC Tracking outputs",
+        "VSCodeCounter.outputAsText": true,
+        "VSCodeCounter.outputAsCSV": false,
+        "VSCodeCounter.outputAsMarkdown": true,
+        "VSCodeCounter.outputPreviewType": "markdown",
+        "VSCodeCounter.saveLocation": "output directory",
+        "VSCodeCounter.history": 10
+    }
