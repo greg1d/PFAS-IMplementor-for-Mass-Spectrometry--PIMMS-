@@ -16,6 +16,12 @@ class BlankSubtraction(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
 
+        # Create header label
+        header_label = QLabel("Blank Subtraction")
+        header_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
+        )
+
         # Create file list
         self.file_list = QListWidget()
 
@@ -28,7 +34,7 @@ class BlankSubtraction(QWidget):
         subtract_button.clicked.connect(self.subtract_blanks)
 
         # Add widgets to layout
-        layout.addWidget(QLabel("Blank Subtraction"))
+        layout.addWidget(header_label)
         layout.addWidget(self.file_list)
         layout.addWidget(browse_button)
         layout.addWidget(subtract_button)

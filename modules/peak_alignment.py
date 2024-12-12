@@ -16,6 +16,12 @@ class PeakAlignment(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
 
+        # Create header label
+        header_label = QLabel("Peak Alignment")
+        header_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
+        )
+
         # Create file list
         self.file_list = QListWidget()
 
@@ -28,7 +34,7 @@ class PeakAlignment(QWidget):
         align_button.clicked.connect(self.align_peaks)
 
         # Add widgets to layout
-        layout.addWidget(QLabel("Peak Alignment"))
+        layout.addWidget(header_label)
         layout.addWidget(self.file_list)
         layout.addWidget(browse_button)
         layout.addWidget(align_button)
