@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib import font_manager
+from matplotlib.dates import DateFormatter, AutoDateLocator
 from scipy.interpolate import make_interp_spline
 
 # Set paths
@@ -28,7 +29,7 @@ def read_results_md():
                 file_path = os.path.join(root, file)
                 creation_date = datetime.fromtimestamp(
                     os.path.getctime(file_path)
-                ).strftime("%Y-%m-%d")
+                ).strftime("%Y-%m-%d %H:%M:%S")
                 with open(file_path, "r") as f:
                     lines = f.readlines()
                     lines_of_code = 0
@@ -40,7 +41,12 @@ def read_results_md():
                         "Others": 0,
                     }
                     for line in lines:
-                        if line.startswith("|") and not line.startswith("| :---"):
+                        if (
+                            line.startswith("|")
+                            and not line.startswith("| :---")
+                            and not line.startswith("| language")
+                            and not line.startswith("| path")
+                        ):
                             parts = line.split("|")
                             if len(parts) > 3:
                                 language = parts[1].strip()
@@ -106,9 +112,27 @@ def save_data(data):
     return df
 
 
+def parse_date(date_str):
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+
 def plot_data(df):
     # Fill any missing values with zeros
     df = df.fillna(0)
+
+    # Convert the "Date" column to datetime using the custom parse_date function
+    df["Date"] = df["Date"].apply(parse_date)
+
+    # Sort the DataFrame by date
+    df = df.sort_values("Date")
+
+    # Remove duplicate dates
+    df = df.drop_duplicates(subset="Date")
 
     # Create a plot with specified figure size and background color
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -116,13 +140,15 @@ def plot_data(df):
     ax.set_facecolor("#FEF1E5")  # Set the axes background color
 
     # Interpolate for smooth lines
-    x = np.arange(len(df["Date"]))
+    dates = mpl.dates.date2num(df["Date"])  # Convert dates to matplotlib format
     x_smooth = np.linspace(
-        x.min(), x.max(), 300
+        dates.min(), dates.max(), 300
     )  # Generate more points for a smooth line
 
     def smooth_data(column):
-        spline = make_interp_spline(x, df[column], k=3)  # Cubic spline interpolation
+        spline = make_interp_spline(
+            dates, df[column], k=3
+        )  # Cubic spline interpolation
         return spline(x_smooth)
 
     # Plot the smoothed lines for each language
@@ -142,7 +168,7 @@ def plot_data(df):
     sum_of_all_code = (
         df["JavaScript"] + df["CSS"] + df["HTML"] + df["Python"] + df["Others"]
     )
-    sum_of_all_code_smooth = make_interp_spline(x, sum_of_all_code, k=3)(x_smooth)
+    sum_of_all_code_smooth = make_interp_spline(dates, sum_of_all_code, k=3)(x_smooth)
     ax.plot(
         x_smooth,
         sum_of_all_code_smooth,
@@ -176,8 +202,7 @@ def plot_data(df):
     ax.spines["left"].set_visible(False)
     ax.spines["bottom"].set_color("#757575")  # Set color of the x-axis
     ax.spines["bottom"].set_linewidth(1.5)  # Set linewidth of the x-axis
-    y = df["Lines of Code"]
-    ax.set_ylim(0, y.max() * 1.3)
+
     # Set gridlines on the y-axis with a soft grey color and interval of 500
     ax.grid(axis="y", color="lightgrey", linestyle="--", linewidth=0.7)
     ax.set_yticks(
@@ -185,18 +210,24 @@ def plot_data(df):
             0,
             int(
                 df[["JavaScript", "CSS", "HTML", "Python", "Others"]].sum(axis=1).max()
-                * 1.3
+                + 1000
             )
-            + 100,
-            500,
+            + 1000,
+            1000,
         )
     )
 
     # Set color for y-axis tick labels
     ax.tick_params(axis="y", colors="#757575")
 
+    # Format the x-axis to show dates
+    locator = AutoDateLocator()
+    formatter = DateFormatter("%Y-%m-%d")
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+
     # Rotate x-axis labels for clarity and set their color
-    plt.xticks(np.arange(len(df["Date"])), df["Date"], rotation=45, color="#757575")
+    plt.xticks(rotation=45, color="#757575")
 
     # Display the legend without border
     legend = ax.legend(frameon=False, fontsize=12, loc="lower right")
