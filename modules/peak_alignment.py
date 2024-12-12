@@ -30,18 +30,28 @@ class PeakAlignment(QWidget):
         self.mz_input = QLineEdit()
 
         # Create labels for input fields
-        rt_label = QLabel("RT:")
-        ccs_label = QLabel("CCS:")
-        mz_label = QLabel("m/z:")
+        self.rt_label = QLabel("RT:")
+        self.ccs_label = QLabel("CCS:")
+        self.mz_label = QLabel("m/z:")
 
-        # Create horizontal layout for input fields
+        # Create horizontal layouts for each label-input pair
+        rt_layout = QHBoxLayout()
+        rt_layout.addWidget(self.rt_label)
+        rt_layout.addWidget(self.rt_input)
+
+        ccs_layout = QHBoxLayout()
+        ccs_layout.addWidget(self.ccs_label)
+        ccs_layout.addWidget(self.ccs_input)
+
+        mz_layout = QHBoxLayout()
+        mz_layout.addWidget(self.mz_label)
+        mz_layout.addWidget(self.mz_input)
+
+        # Create a main horizontal layout for the input fields
         input_layout = QHBoxLayout()
-        input_layout.addWidget(rt_label)
-        input_layout.addWidget(self.rt_input)
-        input_layout.addWidget(ccs_label)
-        input_layout.addWidget(self.ccs_input)
-        input_layout.addWidget(mz_label)
-        input_layout.addWidget(self.mz_input)
+        input_layout.addLayout(rt_layout)
+        input_layout.addLayout(ccs_layout)
+        input_layout.addLayout(mz_layout)
 
         # Create file list
         self.file_list = QListWidget()
@@ -70,6 +80,12 @@ class PeakAlignment(QWidget):
         self.rt_input.setFixedWidth(new_width)
         self.ccs_input.setFixedWidth(new_width)
         self.mz_input.setFixedWidth(new_width)
+
+        # Set the width of the labels to be 5% less than the input fields
+        label_width = int(new_width * 0.2)
+        self.rt_label.setFixedWidth(label_width)
+        self.ccs_label.setFixedWidth(label_width)
+        self.mz_label.setFixedWidth(label_width)
 
     def browse_files(self):
         options = QFileDialog.Options()
