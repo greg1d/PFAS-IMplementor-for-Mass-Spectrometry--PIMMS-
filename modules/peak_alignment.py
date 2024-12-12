@@ -29,10 +29,18 @@ class PeakAlignment(QWidget):
         self.ccs_input = QLineEdit()
         self.mz_input = QLineEdit()
 
-        # Create labels for input fields
         self.rt_label = QLabel("RT:")
         self.ccs_label = QLabel("CCS:")
         self.mz_label = QLabel("m/z:")
+        self.rt_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.ccs_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.mz_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
 
         # Create horizontal layouts for each label-input pair
         rt_layout = QHBoxLayout()
@@ -82,7 +90,8 @@ class PeakAlignment(QWidget):
         self.mz_input.setFixedWidth(new_width)
 
         # Set the width of the labels to be 5% less than the input fields
-        label_width = int(new_width * 0.2)
+        label_width = max(new_width - 95, 30)
+
         self.rt_label.setFixedWidth(label_width)
         self.ccs_label.setFixedWidth(label_width)
         self.mz_label.setFixedWidth(label_width)
