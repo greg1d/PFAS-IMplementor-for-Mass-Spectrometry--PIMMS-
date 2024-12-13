@@ -1,4 +1,5 @@
 import pandas as pd
+import time
 
 
 def align_peaks_algorithm(rt_value, ccs_value, mz_value, file_paths):
@@ -19,22 +20,28 @@ def align_peaks_algorithm(rt_value, ccs_value, mz_value, file_paths):
     # Perform merge sort based on the m/z column for every file
     sorted_data_frames = []
     for df in data_frames:
+        n = len(df)
+        print(f"Number of rows (n): {n}")  # Print the number of rows
+        start_time = time.time()
         sorted_df = df.sort_values(by="m/z")
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         sorted_data_frames.append(sorted_df)
         print(
             f"Sorted DataFrame based on m/z:\n{sorted_df.head()}"
         )  # Print the sorted DataFrame
+        print(
+            f"Time taken to sort: {elapsed_time:.6f} seconds"
+        )  # Print the time taken to sort
 
-    # Implement your complex peak alignment algorithm here
-    # This is just a placeholder for the actual algorithm
     pass
 
 
 def main():
     # Example list of files to process for the sake of ease
     file_paths = [
-        r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\.temp\260 B4 MB-1.d.DeMP.feather",
-        r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\.temp\221 B3 16563.d.DeMP.feather",
+        r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\.temp\295 B4 16707.d.DeMP.feather",
+        r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\.temp\261 B4 MB-2.d.DeMP.feather",
     ]
     rt_value = "1.0"
     ccs_value = "2.0"
