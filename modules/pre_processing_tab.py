@@ -20,3 +20,4 @@ class PreProcessingTab(QWidget):
         main_layout.addWidget(blank_subtraction)
 
         self.setLayout(main_layout)
+        print("PreProcessingTab initialized")  # Debugging statement

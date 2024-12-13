@@ -1,19 +1,53 @@
+import os
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QFileDialog,
     QListWidget,
     QLineEdit,
 )
+from PyQt6.QtCore import QThread, pyqtSignal, QFileSystemWatcher
+import pandas as pd
+
+print("Starting peak_alignment.py script")  # Debugging statement
+
+
+class FileWatcher(QThread):
+    directory_changed = pyqtSignal()
+
+    def __init__(self, directory):
+        super().__init__()
+        self.directory = directory
+        self.watcher = QFileSystemWatcher([directory])
+        self.watcher.fileChanged.connect(self.on_file_changed)
+        self.watcher.directoryChanged.connect(self.on_directory_changed)
+        print(
+            f"FileWatcher initialized for directory: {directory}"
+        )  # Debugging statement
+
+    def on_file_changed(self, path):
+        if path.endswith(".feather"):
+            print(f"File changed detected: {path}")  # Debugging statement
+            self.directory_changed.emit()
+
+    def on_directory_changed(self, path):
+        print(f"Directory changed detected: {path}")  # Debugging statement
+        self.directory_changed.emit()
+
+    def run(self):
+        print("FileWatcher thread started")  # Debugging statement
+        self.exec()
 
 
 class PeakAlignment(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.init_ui()
+        self.directory = os.getcwd()  # Use the current working directory
+        self.file_watcher = None
+        print("PeakAlignment widget initialized")  # Debugging statement
 
     def init_ui(self):
         main_layout = QVBoxLayout()
@@ -43,10 +77,10 @@ class PeakAlignment(QWidget):
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
         )
 
-        # Create (min) labels
+        # Create (min) labels and CCS unit label
         self.rt_min_label = QLabel("(min)")
         self.ccs_min_label = QLabel("(\u212b\u00b2)")
-        self.mz_min_label = QLabel("(Da)")
+        self.mz_min_label = QLabel("(min)")
         self.rt_min_label.setStyleSheet(
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
         )
@@ -83,21 +117,22 @@ class PeakAlignment(QWidget):
         self.file_list = QListWidget()
 
         # Create buttons
-        browse_button = QPushButton("Browse")
         align_button = QPushButton("Align Peaks")
 
         # Connect buttons
-        browse_button.clicked.connect(self.browse_files)
         align_button.clicked.connect(self.align_peaks)
 
         # Add widgets to layout
         main_layout.addWidget(header_label)
         main_layout.addLayout(input_layout)
         main_layout.addWidget(self.file_list)
-        main_layout.addWidget(browse_button)
         main_layout.addWidget(align_button)
 
         self.setLayout(main_layout)
+        print("UI initialized")  # Debugging statement
+
+        # Start watching the directory
+        self.start_watching_directory()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -108,7 +143,7 @@ class PeakAlignment(QWidget):
         self.mz_input.setFixedWidth(new_width)
 
         # Set the width of the labels to be a fixed distance less than the input fields, but not less than 30 pixels
-        label_width = max(new_width - 95, 40)
+        label_width = max(new_width - 75, 30)
         self.rt_label.setFixedWidth(label_width)
         self.ccs_label.setFixedWidth(label_width)
         self.mz_label.setFixedWidth(label_width)
@@ -118,19 +153,43 @@ class PeakAlignment(QWidget):
         self.ccs_min_label.setFixedWidth(new_width)
         self.mz_min_label.setFixedWidth(new_width)
 
-    def browse_files(self):
-        options = QFileDialog.Options()
-        files, _ = QFileDialog.getOpenFileNames(
-            self,
-            "Select Files",
-            "",
-            "All Files (*);;Python Files (*.py)",
-            options=options,
-        )
-        if files:
-            self.file_list.addItems(files)
+    def start_watching_directory(self):
+        if self.file_watcher:
+            self.file_watcher.terminate()
+        print(f"Starting to watch directory: {self.directory}")  # Debugging statement
+        self.file_watcher = FileWatcher(self.directory)
+        self.file_watcher.directory_changed.connect(self.import_processed_files)
+        self.file_watcher.start()
+
+    def import_processed_files(self):
+        print("import_processed_files called")  # Debugging statement
+        temp_folder = os.path.join(self.directory, ".temp")
+        print(f"Current working directory: {os.getcwd()}")  # Debugging statement
+        print(f"Checking .temp folder: {temp_folder}")  # Debugging statement
+        if os.path.exists(temp_folder):
+            print(f".temp folder exists: {temp_folder}")  # Debugging statement
+            self.file_list.clear()
+            files = os.listdir(temp_folder)
+            print(f"Files in .temp folder: {files}")  # Debugging statement
+            for file_name in files:
+                if file_name.endswith(".feather"):
+                    full_path = os.path.join(temp_folder, file_name)
+                    self.file_list.addItem(full_path)
+                    print(f"Found file: {full_path}")  # Debugging statement
+                    self.process_file(full_path)
+        else:
+            print(f".temp folder does not exist: {temp_folder}")  # Debugging statement
+
+    def process_file(self, file_path):
+        print(f"Processing file: {file_path}")
+        try:
+            df = pd.read_feather(file_path)
+            print(df.head())  # Print the first few rows of the dataframe for debugging
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")  # Debugging statement
 
     def align_peaks(self):
+        print("align_peaks called")  # Debugging statement
         # Get user input values
         rt_value = self.rt_input.text()
         ccs_value = self.ccs_input.text()
@@ -143,3 +202,7 @@ class PeakAlignment(QWidget):
                 f"Aligning peaks in file: {file_path} with RT: {rt_value}, CCS: {ccs_value}, m/z: {mz_value}"
             )
             # Add your logic to examine feather files based on RT, CCS, and m/z
+
+
+if __name__ == "__main__":
+    print("Running peak_alignment.py as main script")  # Debugging statement
