@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSignal, QFileSystemWatcher
 import pandas as pd
+from modules.Align_peaks_algorithm import align_peaks_algorithm
 
 print("Starting peak_alignment.py script")  # Debugging statement
 
@@ -46,7 +47,9 @@ class PeakAlignment(QWidget):
         super().__init__(parent)
         self.init_ui()
         self.directory = os.getcwd()  # Use the current working directory
-        self.file_watcher = None
+        self.file_watcher = FileWatcher(self.directory)  # Initialize file_watcher
+        self.file_watcher.directory_changed.connect(self.import_processed_files)
+        self.file_watcher.start()
         print("PeakAlignment widget initialized")  # Debugging statement
 
     def init_ui(self):
@@ -79,8 +82,8 @@ class PeakAlignment(QWidget):
 
         # Create (min) labels and CCS unit label
         self.rt_min_label = QLabel("(min)")
-        self.ccs_min_label = QLabel("(\u212b\u00b2)")
-        self.mz_min_label = QLabel("(min)")
+        self.ccs_min_label = QLabel("(%)")
+        self.mz_min_label = QLabel("(Da)")
         self.rt_min_label.setStyleSheet(
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
         )
@@ -117,22 +120,22 @@ class PeakAlignment(QWidget):
         self.file_list = QListWidget()
 
         # Create buttons
-        align_button = QPushButton("Align Peaks")
+        refresh_button = QPushButton("Refresh Processed Files")
+        align_button = QPushButton("Trigger Align Peaks Algorithm")
 
         # Connect buttons
+        refresh_button.clicked.connect(self.import_processed_files)
         align_button.clicked.connect(self.align_peaks)
 
         # Add widgets to layout
         main_layout.addWidget(header_label)
         main_layout.addLayout(input_layout)
         main_layout.addWidget(self.file_list)
+        main_layout.addWidget(refresh_button)
         main_layout.addWidget(align_button)
 
         self.setLayout(main_layout)
         print("UI initialized")  # Debugging statement
-
-        # Start watching the directory
-        self.start_watching_directory()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -152,14 +155,6 @@ class PeakAlignment(QWidget):
         self.rt_min_label.setFixedWidth(new_width)
         self.ccs_min_label.setFixedWidth(new_width)
         self.mz_min_label.setFixedWidth(new_width)
-
-    def start_watching_directory(self):
-        if self.file_watcher:
-            self.file_watcher.terminate()
-        print(f"Starting to watch directory: {self.directory}")  # Debugging statement
-        self.file_watcher = FileWatcher(self.directory)
-        self.file_watcher.directory_changed.connect(self.import_processed_files)
-        self.file_watcher.start()
 
     def import_processed_files(self):
         print("import_processed_files called")  # Debugging statement
@@ -195,13 +190,13 @@ class PeakAlignment(QWidget):
         ccs_value = self.ccs_input.text()
         mz_value = self.mz_input.text()
 
-        # Implement your peak alignment logic here
-        for index in range(self.file_list.count()):
-            file_path = self.file_list.item(index).text()
-            print(
-                f"Aligning peaks in file: {file_path} with RT: {rt_value}, CCS: {ccs_value}, m/z: {mz_value}"
-            )
-            # Add your logic to examine feather files based on RT, CCS, and m/z
+        # Collect file paths
+        file_paths = [
+            self.file_list.item(index).text() for index in range(self.file_list.count())
+        ]
+
+        # Call the complex algorithm
+        align_peaks_algorithm(rt_value, ccs_value, mz_value, file_paths)
 
 
 if __name__ == "__main__":
