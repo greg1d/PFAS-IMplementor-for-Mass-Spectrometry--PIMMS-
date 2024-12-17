@@ -111,7 +111,6 @@ def plot_clusters(combined_data, cluster_labels):
     # Rotate the graph
     ax.view_init(elev=20, azim=40)  # Set the elevation and azimuthal angles
 
-    plt.legend()
     plt.show()
 
 
