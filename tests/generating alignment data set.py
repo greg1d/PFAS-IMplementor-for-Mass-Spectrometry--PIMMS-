@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Aligned Feature m/z values
 aligned_mz = np.array(
@@ -101,7 +102,7 @@ def generate_noisy_data(aligned_mz, aligned_ccs, aligned_rt, num_samples=100):
             noisy_mz = mz * (1 + np.random.uniform(-10e-6, 10e-6))  # Vary within 10 ppm
             noisy_ccs = ccs * (1 + np.random.uniform(-0.02, 0.02))  # Vary within 2%
             noisy_rt = max(
-                0.1, rt + np.random.uniform(-0.25, 0.25)
+                0, rt + np.random.uniform(-0.5, 0.5)
             )  # Vary within 0.5, never negative
             samples.append((noisy_mz, noisy_ccs, noisy_rt))
         noisy_data.append(samples)
@@ -150,3 +151,37 @@ print("Noisy dataset generated and saved to 'noisy_dataset.csv'")
 
 # Print the first few rows of the combined dataset
 print(df_combined.head())
+
+# Plot all the points in a 3D scatter plot, color-coordinated by row
+fig = plt.figure(figsize=(10, 6))
+ax = fig.add_subplot(111, projection="3d")
+cmap = plt.get_cmap("viridis")
+num_rows = len(df_combined)
+colors = cmap(np.linspace(0, 1, num_rows))
+
+for index, (row, color) in enumerate(zip(df_combined.iterrows(), colors)):
+    mz_values = row[1][[col for col in df_combined.columns if "(m/z)" in col]].dropna()
+    ccs_values = row[1][[col for col in df_combined.columns if "(CCS)" in col]].dropna()
+    rt_values = row[1][[col for col in df_combined.columns if "(RT)" in col]].dropna()
+    if len(mz_values) == len(ccs_values) == len(rt_values):
+        ax.scatter(
+            mz_values, ccs_values, rt_values, label=f"Row {index + 1}", color=color
+        )
+
+ax.set_xlabel("m/z")
+ax.set_ylabel("CCS")
+ax.set_zlabel("RT")
+ax.set_title("3D Scatter Plot of m/z, CCS, and RT")
+ax.legend()
+
+# Rotate the graph interactively
+plt.show()
+
+# Rotate the graph programmatically and save frames
+for angle in range(0, 360, 10):
+    ax.view_init(elev=30, azim=angle)
+    plt.draw()
+    plt.pause(0.1)  # Pause to update the plot
+
+if __name__ == "__main__":
+    main()
