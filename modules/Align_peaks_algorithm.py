@@ -41,6 +41,9 @@ def align_peaks_algorithm(df):
     clusterer = hdbscan.HDBSCAN(min_cluster_size=5, min_samples=5)
     cluster_labels = clusterer.fit_predict(combined_data)
 
+    # Collect outliers data
+    outliers = []
+
     # Plot the clustering result
     fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111, projection="3d")
@@ -62,6 +65,12 @@ def align_peaks_algorithm(df):
         print(f"Cluster {cluster} row distribution:")
         for row, count in zip(unique_rows, counts):
             print(f"Row {row}: {count} entries")
+
+        # Collect outliers data
+        outlier_data = cluster_data[outlier_indices]
+        outlier_rows = cluster_rows[outlier_indices]
+        for data, row in zip(outlier_data, outlier_rows):
+            outliers.append([data[0] * 1e-5, data[1] * 0.02, data[2] * 0.5])
 
         # Highlight outlier points in red
         ax.scatter(
@@ -93,6 +102,11 @@ def align_peaks_algorithm(df):
     plt.legend()
     plt.show()
 
+    # Export outliers to CSV
+    outliers_df = pd.DataFrame(outliers, columns=["m/z", "CCS", "RT"])
+    outliers_df.to_csv("outliers.csv", index=False)
+    print("Outliers exported to 'outliers.csv'")
+
 
 def main():
     # Read the CSV file
@@ -106,5 +120,49 @@ def main():
     align_peaks_algorithm(df)
 
 
+def plot_outliers():
+    # Read the outliers CSV file
+    outliers_df = pd.read_csv("outliers.csv")
+
+    # Load custom font
+    font_path = "fonts/Montserrat-Regular.ttf"
+    font_properties = FontProperties(fname=font_path, size=10)
+
+    # Plot the outliers
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(111, projection="3d")
+
+    ax.scatter(
+        outliers_df["m/z"],  # m/z on the x-axis
+        outliers_df["CCS"],  # CCS on the y-axis
+        outliers_df["RT"],  # RT on the z-axis
+        color="r",
+        edgecolor="k",
+        label="Outliers",
+    )
+
+    ax.set_xlabel(
+        "m/z", labelpad=20, fontproperties=font_properties
+    )  # Increase labelpad for spacing
+    ax.set_ylabel("CCS", fontproperties=font_properties)
+    ax.set_zlabel("RT", fontproperties=font_properties)
+    ax.set_title(
+        "3D Scatter Plot of Outliers (m/z, CCS, RT)", fontproperties=font_properties
+    )
+
+    # Format the m/z axis to use general format numbers reported to 2 decimal places
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.2f"))
+
+    # Set tick labels font properties
+    for label in ax.get_xticklabels() + ax.get_yticklabels() + ax.get_zticklabels():
+        label.set_fontproperties(font_properties)
+
+    # Rotate the graph
+    ax.view_init(elev=20, azim=40)  # Set the elevation and azimuthal angles
+
+    plt.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
-    main()
+    plot_outliers()
