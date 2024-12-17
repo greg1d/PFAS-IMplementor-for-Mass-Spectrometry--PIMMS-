@@ -22,6 +22,13 @@ def align_peaks_algorithm(df):
         if len(mz_values) == len(ccs_values) == len(rt_values):
             combined_data.append(np.vstack((mz_values, ccs_values, rt_values)).T)
             row_indices.extend([index] * len(mz_values))
+        else:
+            print(
+                f"Row {index} has mismatched lengths: m/z={len(mz_values)}, CCS={len(ccs_values)}, RT={len(rt_values)}"
+            )
+    if not combined_data:
+        print("No valid data to cluster.")
+        return
     combined_data = np.vstack(combined_data)
     row_indices = np.array(row_indices)
 
@@ -33,52 +40,37 @@ def align_peaks_algorithm(df):
     # Perform HDBSCAN clustering with explicit range parameters
     clusterer = hdbscan.HDBSCAN(min_cluster_size=5, min_samples=5)
     cluster_labels = clusterer.fit_predict(combined_data)
-    # Load custom font
-    font_path = "fonts/Montserrat-Regular.ttf"
-    font_properties = FontProperties(fname=font_path, size=10)
+
     # Plot the clustering result
     fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111, projection="3d")
-    cmap = plt.get_cmap("viridis")
-    colors = cmap(np.linspace(0, 1, len(set(cluster_labels))))
+
+    # Load custom font
+    font_path = "fonts/Montserrat-Regular.ttf"
+    font_properties = FontProperties(fname=font_path, size=10)
 
     for cluster in set(cluster_labels):
         if cluster == -1:
-            color = "k"  # Noise points
-        else:
-            color = colors[cluster]
+            continue  # Skip noise points
         cluster_data = combined_data[cluster_labels == cluster]
         cluster_rows = row_indices[cluster_labels == cluster]
-        unique_rows = np.unique(cluster_rows)
-        if len(unique_rows) > 1:
-            # Highlight points from clusters containing multiple rows
-            ax.scatter(
-                cluster_data[:, 0] * 1e-5,  # Scale back m/z axis
-                cluster_data[:, 1] * 0.02,  # Scale back CCS axis
-                cluster_data[:, 2] * 0.5,  # Scale back RT axis
-                label=f"Cluster {cluster} (Multiple Rows)",
-                color="r",  # Highlight with red color
-                edgecolor="k",
-            )
-        else:
-            ax.scatter(
-                cluster_data[:, 0] * 1e-5,  # Scale back m/z axis
-                cluster_data[:, 1] * 0.02,  # Scale back CCS axis
-                cluster_data[:, 2] * 0.5,  # Scale back RT axis
-                label=f"Cluster {cluster}",
-                color=color,
-                edgecolor="k",
-            )
+        unique_rows, counts = np.unique(cluster_rows, return_counts=True)
+        majority_row = unique_rows[np.argmax(counts)]
+        outlier_indices = cluster_rows != majority_row
 
-        # Calculate the centroid of the cluster
-        centroid = np.mean(cluster_data, axis=0)
-        ax.text(
-            centroid[0] * 1e-5,  # Scale back m/z axis
-            centroid[1] * 0.02,  # Scale back CCS axis
-            centroid[2] * 0.5,  # Scale back RT axis
-            f"Cluster {cluster}",
-            fontsize=10,
-            fontproperties=font_properties,
+        # Print row distribution for debugging
+        print(f"Cluster {cluster} row distribution:")
+        for row, count in zip(unique_rows, counts):
+            print(f"Row {row}: {count} entries")
+
+        # Highlight outlier points in red
+        ax.scatter(
+            cluster_data[outlier_indices, 0] * 1e-5,  # Scale back m/z axis
+            cluster_data[outlier_indices, 1] * 0.02,  # Scale back CCS axis
+            cluster_data[outlier_indices, 2] * 0.5,  # Scale back RT axis
+            label="Outliers",
+            color="r",
+            edgecolor="k",
         )
 
     ax.set_xlabel(
