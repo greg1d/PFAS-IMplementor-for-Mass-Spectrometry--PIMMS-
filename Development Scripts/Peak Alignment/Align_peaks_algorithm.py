@@ -7,19 +7,10 @@ from matplotlib.font_manager import FontProperties
 from scipy.spatial import ConvexHull
 
 
-def align_peaks_algorithm(
-    df,
-    mz_scale=1e-5,
-    ccs_scale=0.02,
-    rt_scale=0.5,
-    max_mz_distance=0.1,
-    max_ccs_distance=8,
-    max_rt_distance=3,
-):
-    # Separate m/z, CCS, and RT columns
-    sample_mz_columns = df.columns[::3]  # Every third column starting from 0
+def align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02):
+    # Separate m/z and CCS columns
+    sample_mz_columns = df.columns[2::3]  # Every third column starting from 0
     sample_ccs_columns = df.columns[1::3]  # Every third column starting from 1
-    sample_rt_columns = df.columns[2::3]  # Every third column starting from 2
 
     # Combine the sample data for clustering
     combined_data = []
@@ -27,13 +18,12 @@ def align_peaks_algorithm(
     for index, row in df.iterrows():
         mz_values = row[sample_mz_columns].dropna().values
         ccs_values = row[sample_ccs_columns].dropna().values
-        rt_values = row[sample_rt_columns].dropna().values
-        if len(mz_values) == len(ccs_values) == len(rt_values):
-            combined_data.append(np.vstack((mz_values, ccs_values, rt_values)).T)
+        if len(mz_values) == len(ccs_values):
+            combined_data.append(np.vstack((mz_values, ccs_values)).T)
             row_indices.extend([index] * len(mz_values))
         else:
             print(
-                f"Row {index} has mismatched lengths: m/z={len(mz_values)}, CCS={len(ccs_values)}, RT={len(rt_values)}"
+                f"Row {index} has mismatched lengths: m/z={len(mz_values)}, CCS={len(ccs_values)}"
             )
     if not combined_data:
         print("No valid data to cluster.")
@@ -41,22 +31,27 @@ def align_peaks_algorithm(
     combined_data = np.vstack(combined_data)
     row_indices = np.array(row_indices)
 
+    # Print the data before scaling
+    print("Data before scaling:")
+    print(combined_data[:5])  # Print first 5 rows for brevity
+
     # Scale the data according to the specified distances
     combined_data[:, 0] /= mz_scale  # Scale m/z axis
     combined_data[:, 1] /= ccs_scale  # Scale CCS axis
-    combined_data[:, 2] /= rt_scale  # Scale RT axis
+
+    # Print the data after scaling
+    print("Data after scaling:")
+    print(combined_data[:5])  # Print first 5 rows for brevity
 
     # Perform HDBSCAN clustering with explicit range parameters
     clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=2,
-        metric="euclidean",
-        cluster_selection_epsilon=0.1,
+        min_cluster_size=5,
+        cluster_selection_epsilon_max=5,
     )
     cluster_labels = clusterer.fit_predict(combined_data)
 
     # Collect outliers data
     outliers = []
-    valid_clusters = []
 
     for cluster in set(cluster_labels):
         if cluster == -1:
@@ -76,44 +71,27 @@ def align_peaks_algorithm(
         outlier_data = cluster_data[outlier_indices]
         outlier_rows = cluster_rows[outlier_indices]
         for data, row in zip(outlier_data, outlier_rows):
-            outliers.append(
-                [row, data[0] * mz_scale, data[1] * ccs_scale, data[2] * rt_scale]
-            )
+            outliers.append([row, data[0] * mz_scale, data[1] * ccs_scale])
 
         # Calculate and print maximum distances in each dimension
         max_mz_dist = np.max(cluster_data[:, 0]) - np.min(cluster_data[:, 0])
         max_ccs_dist = np.max(cluster_data[:, 1]) - np.min(cluster_data[:, 1])
-        max_rt_dist = np.max(cluster_data[:, 2]) - np.min(cluster_data[:, 2])
         print(
-            f"Cluster {cluster} max distances - m/z: {max_mz_dist * mz_scale}, CCS: {max_ccs_dist * ccs_scale}, RT: {max_rt_dist * rt_scale}"
+            f"Cluster {cluster} max distances - m/z: {max_mz_dist * mz_scale}, CCS: {max_ccs_dist * ccs_scale}"
         )
 
-        # Check if the cluster exceeds the maximum allowed distances
-        if (
-            max_mz_dist * mz_scale <= max_mz_distance
-            and max_ccs_dist * ccs_scale <= max_ccs_distance
-            and max_rt_dist * rt_scale <= max_rt_distance
-        ):
-            valid_clusters.append(cluster)
-
-    # Filter out invalid clusters
-    valid_cluster_mask = np.isin(cluster_labels, valid_clusters)
-    combined_data = combined_data[valid_cluster_mask]
-    cluster_labels = cluster_labels[valid_cluster_mask]
-    row_indices = row_indices[valid_cluster_mask]
-
     # Export outliers to CSV
-    outliers_df = pd.DataFrame(outliers, columns=["Row", "m/z", "CCS", "RT"])
+    outliers_df = pd.DataFrame(outliers, columns=["Row", "m/z", "CCS"])
     outliers_df.to_csv("outliers.csv", index=False)
     print("Outliers exported to 'outliers.csv'")
 
-    return combined_data, cluster_labels, row_indices, mz_scale, ccs_scale, rt_scale
+    return combined_data, cluster_labels, row_indices, mz_scale, ccs_scale
 
 
-def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale):
+def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale):
     # Plot the clustering result
     fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(111, projection="3d")
+    ax = fig.add_subplot(111)
 
     # Load custom font
     font_path = "fonts/Montserrat-Regular.ttf"
@@ -133,7 +111,6 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale):
         ax.scatter(
             xy[:, 0] * mz_scale,  # Scale back m/z axis
             xy[:, 1] * ccs_scale,  # Scale back CCS axis
-            xy[:, 2] * rt_scale,  # Scale back RT axis
             color=tuple(col),
             edgecolor="k",
             label=f"Cluster {k}" if k != -1 else "Noise",
@@ -141,14 +118,13 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale):
 
         # Draw convex hull around the cluster if there are enough unique points
         if (
-            len(np.unique(xy, axis=0)) >= 4
-        ):  # Convex hull requires at least 4 unique points
+            len(np.unique(xy, axis=0)) >= 3
+        ):  # Convex hull requires at least 3 unique points
             hull = ConvexHull(xy)
             for simplex in hull.simplices:
                 ax.plot(
                     xy[simplex, 0] * mz_scale,
                     xy[simplex, 1] * ccs_scale,
-                    xy[simplex, 2] * rt_scale,
                     "k-",
                 )
 
@@ -156,24 +132,20 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale):
         "m/z", labelpad=20, fontproperties=font_properties
     )  # Increase labelpad for spacing
     ax.set_ylabel("CCS", fontproperties=font_properties)
-    ax.set_zlabel("RT", fontproperties=font_properties)
-    ax.set_title("3D Scatter Plot of m/z, CCS, and RT", fontproperties=font_properties)
+    ax.set_title("2D Scatter Plot of m/z and CCS", fontproperties=font_properties)
 
     # Format the m/z axis to use general format numbers reported to 2 decimal places
     ax.xaxis.set_major_formatter(FormatStrFormatter("%.2f"))
 
     # Set tick labels font properties
-    for label in ax.get_xticklabels() + ax.get_yticklabels() + ax.get_zticklabels():
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
         label.set_fontproperties(font_properties)
-
-    # Rotate the graph
-    ax.view_init(elev=20, azim=40)  # Set the elevation and azimuthal angles
 
     plt.legend()
     plt.show()
 
 
-def plot_outliers(mz_scale, ccs_scale, rt_scale):
+def plot_outliers(mz_scale, ccs_scale):
     # Read the outliers CSV file
     outliers_df = pd.read_csv("outliers.csv")
 
@@ -183,12 +155,11 @@ def plot_outliers(mz_scale, ccs_scale, rt_scale):
 
     # Plot the outliers
     fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(111, projection="3d")
+    ax = fig.add_subplot(111)
 
     ax.scatter(
         outliers_df["m/z"],  # m/z on the x-axis
         outliers_df["CCS"],  # CCS on the y-axis
-        outliers_df["RT"],  # RT on the z-axis
         color="r",
         edgecolor="k",
         label="Outliers",
@@ -198,20 +169,56 @@ def plot_outliers(mz_scale, ccs_scale, rt_scale):
         "m/z", labelpad=20, fontproperties=font_properties
     )  # Increase labelpad for spacing
     ax.set_ylabel("CCS", fontproperties=font_properties)
-    ax.set_zlabel("RT", fontproperties=font_properties)
     ax.set_title(
-        "3D Scatter Plot of Outliers (m/z, CCS, RT)", fontproperties=font_properties
+        "2D Scatter Plot of Outliers (m/z, CCS)", fontproperties=font_properties
     )
 
     # Format the m/z axis to use general format numbers reported to 2 decimal places
     ax.xaxis.set_major_formatter(FormatStrFormatter("%.2f"))
 
     # Set tick labels font properties
-    for label in ax.get_xticklabels() + ax.get_yticklabels() + ax.get_zticklabels():
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
         label.set_fontproperties(font_properties)
 
-    # Rotate the graph
-    ax.view_init(elev=20, azim=40)  # Set the elevation and azimuthal angles
+    plt.legend()
+    plt.show()
+
+
+def plot_raw_data(df):
+    # Extract the "m/z" and "CCS" columns
+    sample_mz_columns = df.columns[2::3]  # Every third column starting from 0
+    sample_ccs_columns = df.columns[1::3]  # Every third column starting from 1
+
+    # Combine the sample data for plotting
+    combined_data = []
+    for index, row in df.iterrows():
+        mz_values = row[sample_mz_columns].dropna().values
+        ccs_values = row[sample_ccs_columns].dropna().values
+        if len(mz_values) == len(ccs_values):
+            combined_data.append(np.vstack((mz_values, ccs_values)).T)
+    if not combined_data:
+        print("No valid data to plot.")
+        return
+    combined_data = np.vstack(combined_data)
+
+    # Plot the raw data
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(111)
+
+    ax.scatter(
+        combined_data[:, 0],  # m/z on the x-axis
+        combined_data[:, 1],  # CCS on the y-axis
+        color="b",
+        edgecolor="k",
+        label="Raw Data",
+    )
+
+    ax.set_xlabel("m/z", labelpad=20)
+    ax.set_ylabel("CCS")
+    ax.set_title("2D Scatter Plot of Raw Data (m/z, CCS)")
+
+    # Format the m/z axis to use general format numbers reported to 2 decimal places
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.2f"))
 
     plt.legend()
     plt.show()
@@ -220,24 +227,24 @@ def plot_outliers(mz_scale, ccs_scale, rt_scale):
 def main():
     # Read the CSV file
     df = pd.read_csv(
-        r"Development Scripts\Peak Alignment\Peak Alignment Testing Set.csv"
+        r"Development Scripts\Peak Alignment\generated_alignment_data_set_short.csv"
     )
 
     # Print the first few rows of the data
     print("First few rows of the data:")
     print(df.head())
 
+    # Plot raw data
+    plot_raw_data(df)
+
     # Call the align_peaks_algorithm function
-    combined_data, cluster_labels, row_indices, mz_scale, ccs_scale, rt_scale = (
-        align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02, rt_scale=0.5)
+    combined_data, cluster_labels, row_indices, mz_scale, ccs_scale = (
+        align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02)
     )
 
     if combined_data is not None:
         # Plot clusters
-        plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale)
-
-        # Plot outliers
-        plot_outliers(mz_scale, ccs_scale, rt_scale)
+        plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale)
 
 
 if __name__ == "__main__":
