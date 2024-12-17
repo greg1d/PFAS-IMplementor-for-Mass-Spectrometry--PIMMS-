@@ -44,14 +44,6 @@ def align_peaks_algorithm(df):
     # Collect outliers data
     outliers = []
 
-    # Plot the clustering result
-    fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(111, projection="3d")
-
-    # Load custom font
-    font_path = "fonts/Montserrat-Regular.ttf"
-    font_properties = FontProperties(fname=font_path, size=10)
-
     for cluster in set(cluster_labels):
         if cluster == -1:
             continue  # Skip noise points
@@ -70,16 +62,36 @@ def align_peaks_algorithm(df):
         outlier_data = cluster_data[outlier_indices]
         outlier_rows = cluster_rows[outlier_indices]
         for data, row in zip(outlier_data, outlier_rows):
-            outliers.append([data[0] * 1e-5, data[1] * 0.02, data[2] * 0.5])
+            outliers.append([row, data[0] * 1e-5, data[1] * 0.02, data[2] * 0.5])
 
-        # Highlight outlier points in red
+    # Export outliers to CSV
+    outliers_df = pd.DataFrame(outliers, columns=["Row", "m/z", "CCS", "RT"])
+    outliers_df.to_csv("outliers.csv", index=False)
+    print("Outliers exported to 'outliers.csv'")
+
+    return combined_data, cluster_labels, row_indices
+
+
+def plot_clusters(combined_data, cluster_labels):
+    # Plot the clustering result
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(111, projection="3d")
+
+    # Load custom font
+    font_path = "fonts/Montserrat-Regular.ttf"
+    font_properties = FontProperties(fname=font_path, size=10)
+
+    for cluster in set(cluster_labels):
+        if cluster == -1:
+            continue  # Skip noise points
+        cluster_data = combined_data[cluster_labels == cluster]
+
+        # Plot cluster points
         ax.scatter(
-            cluster_data[outlier_indices, 0] * 1e-5,  # Scale back m/z axis
-            cluster_data[outlier_indices, 1] * 0.02,  # Scale back CCS axis
-            cluster_data[outlier_indices, 2] * 0.5,  # Scale back RT axis
-            label="Outliers",
-            color="r",
-            edgecolor="k",
+            cluster_data[:, 0] * 1e-5,  # Scale back m/z axis
+            cluster_data[:, 1] * 0.02,  # Scale back CCS axis
+            cluster_data[:, 2] * 0.5,  # Scale back RT axis
+            label=f"Cluster {cluster}",
         )
 
     ax.set_xlabel(
@@ -101,23 +113,6 @@ def align_peaks_algorithm(df):
 
     plt.legend()
     plt.show()
-
-    # Export outliers to CSV
-    outliers_df = pd.DataFrame(outliers, columns=["m/z", "CCS", "RT"])
-    outliers_df.to_csv("outliers.csv", index=False)
-    print("Outliers exported to 'outliers.csv'")
-
-
-def main():
-    # Read the CSV file
-    df = pd.read_csv("tests/Peak Alignment Testing Set.csv")
-
-    # Print the first few rows of the data
-    print("First few rows of the data:")
-    print(df.head())
-
-    # Call the align_peaks_algorithm function
-    align_peaks_algorithm(df)
 
 
 def plot_outliers():
@@ -164,5 +159,23 @@ def plot_outliers():
     plt.show()
 
 
-if __name__ == "__main__":
+def main():
+    # Read the CSV file
+    df = pd.read_csv("tests/Peak Alignment Testing Set.csv")
+
+    # Print the first few rows of the data
+    print("First few rows of the data:")
+    print(df.head())
+
+    # Call the align_peaks_algorithm function
+    combined_data, cluster_labels, row_indices = align_peaks_algorithm(df)
+
+    # Plot clusters
+    plot_clusters(combined_data, cluster_labels)
+
+    # Plot outliers
     plot_outliers()
+
+
+if __name__ == "__main__":
+    main()
