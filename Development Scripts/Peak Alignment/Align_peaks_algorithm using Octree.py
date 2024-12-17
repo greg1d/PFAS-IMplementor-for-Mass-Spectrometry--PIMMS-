@@ -1,25 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import hdbscan
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import FontProperties
 from scipy.spatial import ConvexHull
+from sklearn.cluster import MiniBatchKMeans
 
 
-def align_peaks_algorithm(
-    df,
-    mz_scale=1e-5,
-    ccs_scale=0.02,
-    rt_scale=0.5,
-    max_mz_distance=0.1,
-    max_ccs_distance=8,
-    max_rt_distance=3,
-):
+def align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02, rt_scale=0.5):
     # Separate m/z, CCS, and RT columns
-    sample_mz_columns = df.columns[::3]  # Every third column starting from 0
+    sample_mz_columns = df.columns[2::3]  # Every third column starting from 0
     sample_ccs_columns = df.columns[1::3]  # Every third column starting from 1
-    sample_rt_columns = df.columns[2::3]  # Every third column starting from 2
+    sample_rt_columns = df.columns[::3]  # Every third column starting from 2
 
     # Combine the sample data for clustering
     combined_data = []
@@ -46,21 +38,17 @@ def align_peaks_algorithm(
     combined_data[:, 1] /= ccs_scale  # Scale CCS axis
     combined_data[:, 2] /= rt_scale  # Scale RT axis
 
-    # Perform HDBSCAN clustering with explicit range parameters
-    clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=2,
-        metric="euclidean",
-        cluster_selection_epsilon=0.1,
-    )
-    cluster_labels = clusterer.fit_predict(combined_data)
+    # Perform MiniBatchKMeans clustering
+    kmeans = MiniBatchKMeans(n_clusters=25, random_state=0, init="k-means++")
+    cluster_labels = kmeans.fit_predict(combined_data)
+
+    # Debug: Print cluster labels
+    print("Cluster labels:", cluster_labels)
 
     # Collect outliers data
     outliers = []
-    valid_clusters = []
 
     for cluster in set(cluster_labels):
-        if cluster == -1:
-            continue  # Skip noise points
         cluster_data = combined_data[cluster_labels == cluster]
         cluster_rows = row_indices[cluster_labels == cluster]
         unique_rows, counts = np.unique(cluster_rows, return_counts=True)
@@ -79,28 +67,6 @@ def align_peaks_algorithm(
             outliers.append(
                 [row, data[0] * mz_scale, data[1] * ccs_scale, data[2] * rt_scale]
             )
-
-        # Calculate and print maximum distances in each dimension
-        max_mz_dist = np.max(cluster_data[:, 0]) - np.min(cluster_data[:, 0])
-        max_ccs_dist = np.max(cluster_data[:, 1]) - np.min(cluster_data[:, 1])
-        max_rt_dist = np.max(cluster_data[:, 2]) - np.min(cluster_data[:, 2])
-        print(
-            f"Cluster {cluster} max distances - m/z: {max_mz_dist * mz_scale}, CCS: {max_ccs_dist * ccs_scale}, RT: {max_rt_dist * rt_scale}"
-        )
-
-        # Check if the cluster exceeds the maximum allowed distances
-        if (
-            max_mz_dist * mz_scale <= max_mz_distance
-            and max_ccs_dist * ccs_scale <= max_ccs_distance
-            and max_rt_dist * rt_scale <= max_rt_distance
-        ):
-            valid_clusters.append(cluster)
-
-    # Filter out invalid clusters
-    valid_cluster_mask = np.isin(cluster_labels, valid_clusters)
-    combined_data = combined_data[valid_cluster_mask]
-    cluster_labels = cluster_labels[valid_cluster_mask]
-    row_indices = row_indices[valid_cluster_mask]
 
     # Export outliers to CSV
     outliers_df = pd.DataFrame(outliers, columns=["Row", "m/z", "CCS", "RT"])
@@ -123,10 +89,6 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale):
     colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
 
     for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
-
         class_member_mask = cluster_labels == k
 
         xy = combined_data[class_member_mask]
@@ -136,7 +98,7 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale, rt_scale):
             xy[:, 2] * rt_scale,  # Scale back RT axis
             color=tuple(col),
             edgecolor="k",
-            label=f"Cluster {k}" if k != -1 else "Noise",
+            label=f"Cluster {k}",
         )
 
         # Draw convex hull around the cluster if there are enough unique points

@@ -1,69 +1,57 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import FormatStrFormatter
-from matplotlib.font_manager import FontProperties
+import os
 
 
 def main():
     # Read the CSV file
-    df = pd.read_csv("tests/Peak Alignment Testing Set.csv")
+    df = pd.read_csv(
+        "Development Scripts\Peak Alignment\Peak Alignment Testing Set.csv"
+    )
 
-    # Separate m/z, CCS, and RT columns
-    sample_mz_columns = df.columns[::3]  # Every third column starting from 0
-    sample_ccs_columns = df.columns[1::3]  # Every third column starting from 1
-    sample_rt_columns = df.columns[2::3]  # Every third column starting from 2
+    # Extract the "RT", "CCS", and "m/z" columns
+    rt_column = df["RT"]
+    ccs_column = df["CCS"]
+    mz_column = df["m/z"]
+
+    # Repeat the process 20 times to create 20 sets of data points
+    for i in range(1, 21):
+        # Generate random values within the specified ranges
+        rt_random = rt_column + np.random.uniform(-0.25, 0.25, size=len(rt_column))
+        ccs_random = ccs_column * (
+            1 + np.random.uniform(-0.02, 0.02, size=len(ccs_column))
+        )
+        mz_random = mz_column * (
+            1 + np.random.uniform(-10e-6, 10e-6, size=len(mz_column))
+        )
+
+        # Add the generated values as new columns to the original DataFrame
+        df[f"RT_{i}"] = rt_random
+        df[f"CCS_{i}"] = ccs_random
+        df[f"m/z_{i}"] = mz_random
 
     # Print the extracted columns for verification
-    print("Sample m/z columns:")
-    print(sample_mz_columns)
-    print("Sample CCS columns:")
-    print(sample_ccs_columns)
-    print("Sample RT columns:")
-    print(sample_rt_columns)
+    print("Original RT column:")
+    print(rt_column.head())
+    print("Original CCS column:")
+    print(ccs_column.head())
+    print("Original m/z column:")
+    print(mz_column.head())
 
-    # Print the first few rows of the data
-    print("First few rows of the data:")
-    print(df.head())
+    # Print the generated values for verification
+    print("Generated RT values (first set):")
+    print(df["RT_1"].head())
+    print("Generated CCS values (first set):")
+    print(df["CCS_1"].head())
+    print("Generated m/z values (first set):")
+    print(df["m/z_1"].head())
 
-    # Plot all the points in a 3D scatter plot, color-coordinated by row
-    fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(111, projection="3d")
-    cmap = plt.get_cmap("viridis")
-    num_rows = len(df)
-    colors = cmap(np.linspace(0, 1, num_rows))
-
-    for index, (row, color) in enumerate(zip(df.iterrows(), colors)):
-        mz_values = row[1][sample_mz_columns].dropna()
-        ccs_values = row[1][sample_ccs_columns].dropna()
-        rt_values = row[1][sample_rt_columns].dropna()
-        if len(mz_values) == len(ccs_values) == len(rt_values):
-            ax.scatter(
-                mz_values, ccs_values, rt_values, label=f"Row {index + 1}", color=color
-            )
-
-    # Load custom font
-    font_path = "fonts/Montserrat-Regular.ttf"
-    font_properties = FontProperties(fname=font_path, size=10)
-
-    ax.set_xlabel(
-        "m/z", labelpad=20, fontproperties=font_properties
-    )  # Increase labelpad for spacing
-    ax.set_ylabel("CCS", fontproperties=font_properties)
-    ax.set_zlabel("RT", fontproperties=font_properties)
-    ax.set_title("3D Scatter Plot of m/z, CCS, and RT", fontproperties=font_properties)
-
-    # Format the m/z axis to use general format numbers reported to 2 decimal places
-    ax.xaxis.set_major_formatter(FormatStrFormatter("%.2f"))
-
-    # Set tick labels font properties
-    for label in ax.get_xticklabels() + ax.get_yticklabels() + ax.get_zticklabels():
-        label.set_fontproperties(font_properties)
-
-    # Rotate the graph
-    ax.view_init(elev=20, azim=20)  # Set the elevation and azimuthal angles
-
-    plt.show()
+    # Save the generated DataFrame to a CSV file in the same directory as the current script
+    output_path = os.path.join(
+        os.path.dirname(__file__), "generated_alignment_data_set.csv"
+    )
+    df.to_csv(output_path, index=False)
+    print(f"Generated data saved to {output_path}")
 
 
 if __name__ == "__main__":
