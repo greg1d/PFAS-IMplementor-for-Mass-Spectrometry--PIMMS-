@@ -4,6 +4,7 @@ import numpy as np
 import hdbscan
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import FontProperties
+from scipy.spatial import ConvexHull
 
 
 def align_peaks_algorithm(df):
@@ -28,17 +29,21 @@ def align_peaks_algorithm(df):
             )
     if not combined_data:
         print("No valid data to cluster.")
-        return
+        return None, None, None
     combined_data = np.vstack(combined_data)
     row_indices = np.array(row_indices)
 
     # Scale the data according to the specified distances
     combined_data[:, 0] /= 1e-5  # Scale m/z axis by 1e-5
     combined_data[:, 1] /= 0.02  # Scale CCS axis by 2%
-    combined_data[:, 2] /= 0.5  # Scale RT axis by 0.5 minutes
+    combined_data[:, 2] /= (
+        0.05  # Scale RT axis by 0.05 minutes (further increased scaling factor)
+    )
 
     # Perform HDBSCAN clustering with explicit range parameters
-    clusterer = hdbscan.HDBSCAN(min_cluster_size=5, min_samples=5)
+    clusterer = hdbscan.HDBSCAN(
+        min_cluster_size=5, min_samples=5, cluster_selection_epsilon=0.1
+    )
     cluster_labels = clusterer.fit_predict(combined_data)
 
     # Collect outliers data
@@ -62,7 +67,7 @@ def align_peaks_algorithm(df):
         outlier_data = cluster_data[outlier_indices]
         outlier_rows = cluster_rows[outlier_indices]
         for data, row in zip(outlier_data, outlier_rows):
-            outliers.append([row, data[0] * 1e-5, data[1] * 0.02, data[2] * 0.5])
+            outliers.append([row, data[0] * 1e-5, data[1] * 0.02, data[2] * 0.05])
 
     # Export outliers to CSV
     outliers_df = pd.DataFrame(outliers, columns=["Row", "m/z", "CCS", "RT"])
@@ -90,9 +95,20 @@ def plot_clusters(combined_data, cluster_labels):
         ax.scatter(
             cluster_data[:, 0] * 1e-5,  # Scale back m/z axis
             cluster_data[:, 1] * 0.02,  # Scale back CCS axis
-            cluster_data[:, 2] * 0.5,  # Scale back RT axis
+            cluster_data[:, 2] * 0.05,  # Scale back RT axis
             label=f"Cluster {cluster}",
         )
+
+        # Draw convex hull around the cluster
+        if len(cluster_data) >= 4:  # Convex hull requires at least 4 points
+            hull = ConvexHull(cluster_data)
+            for simplex in hull.simplices:
+                ax.plot(
+                    cluster_data[simplex, 0] * 1e-5,
+                    cluster_data[simplex, 1] * 0.02,
+                    cluster_data[simplex, 2] * 0.05,
+                    "k-",
+                )
 
     ax.set_xlabel(
         "m/z", labelpad=20, fontproperties=font_properties
@@ -111,6 +127,7 @@ def plot_clusters(combined_data, cluster_labels):
     # Rotate the graph
     ax.view_init(elev=20, azim=40)  # Set the elevation and azimuthal angles
 
+    plt.legend()
     plt.show()
 
 
@@ -160,7 +177,9 @@ def plot_outliers():
 
 def main():
     # Read the CSV file
-    df = pd.read_csv("tests/Peak Alignment Testing Set.csv")
+    df = pd.read_csv(
+        r"Development Scripts\Peak Alignment\Peak Alignment Testing Set.csv"
+    )
 
     # Print the first few rows of the data
     print("First few rows of the data:")
@@ -169,11 +188,12 @@ def main():
     # Call the align_peaks_algorithm function
     combined_data, cluster_labels, row_indices = align_peaks_algorithm(df)
 
-    # Plot clusters
-    plot_clusters(combined_data, cluster_labels)
+    if combined_data is not None:
+        # Plot clusters
+        plot_clusters(combined_data, cluster_labels)
 
-    # Plot outliers
-    plot_outliers()
+        # Plot outliers
+        plot_outliers()
 
 
 if __name__ == "__main__":
