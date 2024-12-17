@@ -1,52 +1,44 @@
 import pandas as pd
-import time
 
 
-def align_peaks_algorithm(rt_value, ccs_value, mz_value, file_paths):
-    print(f"RT: {rt_value}, CCS: {ccs_value}, m/z: {mz_value}")  # Debugging statement
-    print(f"Files: {file_paths}")  # Debugging statement
+def align_peaks_algorithm(aligned_features, sample_data):
+    print("Aligned Features:")
+    print(aligned_features.head())
 
-    # Read the feather files
-    data_frames = []
-    for file_path in file_paths:
-        try:
-            df = pd.read_feather(file_path)
-            data_frames.append(df)
-            print(f"Successfully read file: {file_path}")  # Debugging statement
-            print(df.head())  # Print the first few rows of the dataframe for debugging
-        except Exception as e:
-            print(f"Error reading file {file_path}: {e}")  # Debugging statement
+    print("Sample Data:")
+    print(sample_data.head())
 
-    # Perform merge sort based on the m/z column for every file
-    sorted_data_frames = []
-    for df in data_frames:
-        n = len(df)
-        print(f"Number of rows (n): {n}")  # Print the number of rows
-        start_time = time.time()
-        sorted_df = df.sort_values(by="m/z")
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        sorted_data_frames.append(sorted_df)
-        print(
-            f"Sorted DataFrame based on m/z:\n{sorted_df.head()}"
-        )  # Print the sorted DataFrame
-        print(
-            f"Time taken to sort: {elapsed_time:.6f} seconds"
-        )  # Print the time taken to sort
+    # Example operation: Calculate the mean m/z and CCS for each sample
+    sample_mz_columns = [col for col in sample_data.columns if "(m/z)" in col]
+    sample_ccs_columns = [col for col in sample_data.columns if "(CCS)" in col]
 
+    mean_mz = sample_data[sample_mz_columns].mean(axis=0)
+    mean_ccs = sample_data[sample_ccs_columns].mean(axis=0)
+
+    print("Mean m/z for each sample:")
+    print(mean_mz)
+
+    print("Mean CCS for each sample:")
+    print(mean_ccs)
+
+    # Implement your complex peak alignment algorithm here
+    # This is just a placeholder for the actual algorithm
     pass
 
 
 def main():
-    # Example list of files to process for the sake of ease
-    file_paths = [
-        r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\.temp\295 B4 16707.d.DeMP.feather",
-        r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\.temp\261 B4 MB-2.d.DeMP.feather",
-    ]
-    rt_value = "1.0"
-    ccs_value = "2.0"
-    mz_value = "3.0"
-    align_peaks_algorithm(rt_value, ccs_value, mz_value, file_paths)
+    # Read the CSV file
+    df = pd.read_csv("tests/Peak Alignment Testing Set.csv")
+
+    # Extract the aligned features
+    aligned_features = df.iloc[:, :2]
+
+    # Extract the sample columns
+    sample_columns = [col for col in df.columns if "Sample" in col]
+    sample_data = df[sample_columns]
+
+    # Call the align_peaks_algorithm function
+    align_peaks_algorithm(aligned_features, sample_data)
 
 
 if __name__ == "__main__":
