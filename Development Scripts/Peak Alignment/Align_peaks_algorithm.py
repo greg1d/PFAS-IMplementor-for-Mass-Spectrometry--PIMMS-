@@ -4,6 +4,8 @@ import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import FontProperties
 from scipy.spatial.distance import pdist, squareform
+import hdbscan
+from sklearn.metrics import pairwise_distances
 
 
 def normalize_data(df):
@@ -24,8 +26,7 @@ def normalize_data(df):
 
     # Normalize the data
     normalized_data = np.copy(combined_data)
-    normalized_data[:, 0] /= 10**-6
-    # Normalize m/z by dividing by m/z * 10^-6
+    normalized_data[:, 0] /= 10**-6  # Normalize m/z by dividing by m/z * 10^-6
     normalized_data[:, 1] /= 0.02  # Normalize CCS by dividing by 0.02
 
     return normalized_data
@@ -33,8 +34,8 @@ def normalize_data(df):
 
 def plot_normalized_data(normalized_data):
     # Debug: Print the normalized data coordinates to 10 decimal places
-    print("Normalized Data Coordinates (first 5 points):")
-    for point in normalized_data[:5]:
+    print("Normalized Data Coordinates (all points):")
+    for point in normalized_data:
         print(f"x: {point[0]:.10f}, y: {point[1]:.10f}")
 
     # Plot the normalized data
@@ -71,27 +72,102 @@ def plot_normalized_data(normalized_data):
     x_range = x_max - x_min
     ax.set_xlim(x_min - 0.1 * x_range, x_max + 0.1 * x_range)
 
-    # Debug: Print the x-axis limits
-    print("x_min:", x_min, "x_max:", x_max)
-    print("x_range:", x_range)
-    print("x-axis limits:", ax.get_xlim())
-
     plt.legend()
     plt.show()
 
 
-def print_distances(normalized_data):
-    # Calculate pairwise distances
+def calculate_distance(point1, point2):
+    return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+
+
+def print_distances(normalized_data, cluster_labels):
+    for cluster in np.unique(cluster_labels):
+        cluster_data = normalized_data[cluster_labels == cluster]
+        if len(cluster_data) > 1:
+            print(f"Coordinates of points in cluster {cluster}:")
+            for point in cluster_data:
+                print(f"x: {point[0]:.10f}, y: {point[1]:.10f}")
+
+            distances = pdist(cluster_data)
+            distance_matrix = squareform(distances)
+
+            print(
+                f"Pairwise distances between points in cluster {cluster} (first 5 points):"
+            )
+            for i in range(min(5, len(distance_matrix))):
+                for j in range(min(5, len(distance_matrix))):
+                    print(
+                        f"Distance between point {i} and point {j}: {distance_matrix[i, j]:.10f}"
+                    )
+        else:
+            print(f"Cluster {cluster} has less than 2 points, no distances to print.")
+
+    # Manually calculate and print the distance between the specific points
+    point1 = normalized_data[5]  # x: 352359845.8000000119, y: 9948.0494000000
+    point2 = normalized_data[6]  # x: 345459845.8000000119, y: 11048.0494000000
+    manual_distance = calculate_distance(point1, point2)
+    print(f"Manual distance between point 5 and point 6: {manual_distance:.10f}")
+
+    # Calculate the distance using pdist and compare
     distances = pdist(normalized_data)
     distance_matrix = squareform(distances)
+    pdist_distance = distance_matrix[5, 6]
+    print(f"pdist distance between point 5 and point 6: {pdist_distance:.10f}")
 
-    # Print the distances
-    print("Pairwise distances between points (first 5 points):")
-    for i in range(min(5, len(distance_matrix))):
-        for j in range(min(5, len(distance_matrix))):
-            print(
-                f"Distance between point {i} and point {j}: {distance_matrix[i, j]:.10f}"
-            )
+
+def perform_hdbscan(normalized_data):
+    # Perform HDBSCAN clustering with tighter boundaries
+    distance_matrix = pairwise_distances(normalize_data, metric="euclidean")
+
+    clusterer = hdbscan.HDBSCAN(metric="precomputed", min_samples=1, min_cluster_size=2)
+    clusterer.fit(distance_matrix)
+    print(clusterer.labels_)
+    clusterer.single_linkage_tree_.plot()
+
+    return distance_matrix, clusterer.labels_
+
+
+def plot_clusters(normalized_data, cluster_labels):
+    # Plot the clustering result
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(111)
+
+    # Load custom font
+    font_path = "fonts/Montserrat-Regular.ttf"
+    font_properties = FontProperties(fname=font_path, size=10)
+
+    unique_labels = set(cluster_labels)
+    colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = [0, 0, 0, 1]
+
+        class_member_mask = cluster_labels == k
+
+        xy = normalized_data[class_member_mask]
+        ax.scatter(
+            xy[:, 0],  # Normalized m/z axis
+            xy[:, 1],  # Normalized CCS axis
+            color=tuple(col),
+            edgecolor="k",
+            label=f"Cluster {k}" if k != -1 else "Noise",
+        )
+
+    ax.set_xlabel("Normalized m/z", labelpad=20, fontproperties=font_properties)
+    ax.set_ylabel("Normalized CCS", fontproperties=font_properties)
+    ax.set_title("2D Scatter Plot of Clusters", fontproperties=font_properties)
+
+    # Format the m/z axis to use general format numbers reported to 2 decimal places
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.2f"))
+
+    # Set tick labels font properties
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_fontproperties(font_properties)
+
+    plt.legend()
+    plt.show()
 
 
 def main():
@@ -107,7 +183,14 @@ def main():
         # Plot normalized data
         plot_normalized_data(normalized_data)
 
-        print_distances(normalized_data)
+        # Perform HDBSCAN clustering
+        cluster_labels = perform_hdbscan(normalized_data)
+
+        # Print distances between points in clusters
+        print_distances(normalized_data, cluster_labels)
+
+        # Plot clusters
+        plot_clusters(normalized_data, cluster_labels)
 
 
 if __name__ == "__main__":
