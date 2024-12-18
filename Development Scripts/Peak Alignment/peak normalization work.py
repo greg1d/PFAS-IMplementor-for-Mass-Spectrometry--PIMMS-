@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN
@@ -5,8 +6,8 @@ from sklearn.cluster import DBSCAN
 # Example dataset
 data = pd.DataFrame(
     {
-        "x": [100, 101, 102, 200, 201, 204, 300, 300, 307],
-        "y": [50, 50.5, 51, 100, 101, 102, 200, 201, 202],
+        "x": [100, 101, 102, 200, 201, 204, 300, 303, 309, 312, 315, 318],
+        "y": [50, 50.5, 51, 100, 101, 102, 200, 201, 202, 203, 204, 205],
     }
 )
 
@@ -29,9 +30,30 @@ eps = np.sqrt(x_eps**2 + y_eps**2)
 X_log = data[["x_log", "y_log"]].values
 
 # Apply DBSCAN with the computed epsilon
-db = DBSCAN(eps=eps, min_samples=2).fit(X_log)
+db = DBSCAN(eps=eps, min_samples=3).fit(X_log)
 
 # Assign cluster labels
 data["cluster"] = db.labels_
 
-print(data[["x", "y", "cluster"]])
+# Plot the results
+plt.figure(figsize=(8, 6))
+
+# Scatter plot of the data points colored by their cluster labels
+for cluster_label in data["cluster"].unique():
+    cluster_data = data[data["cluster"] == cluster_label]
+    plt.scatter(
+        cluster_data["x"],
+        cluster_data["y"],
+        label=f"Cluster {cluster_label}" if cluster_label != -1 else "Noise",
+        s=100,
+        alpha=0.7,
+        edgecolors="k",
+    )
+
+# Add axis labels and legend
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("DBSCAN Clustering Results")
+plt.legend()
+plt.grid(True)
+plt.show()
