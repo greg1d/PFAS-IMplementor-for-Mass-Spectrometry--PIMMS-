@@ -1,11 +1,10 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import FormatStrFormatter
+import pandas as pd
 from matplotlib.font_manager import FontProperties
+from matplotlib.ticker import FormatStrFormatter
 from scipy.spatial.distance import pdist, squareform
-import hdbscan
-from sklearn.metrics import pairwise_distances
+from sklearn.cluster import DBSCAN
 
 
 def normalize_data(df):
@@ -102,9 +101,9 @@ def print_distances(normalized_data, cluster_labels):
         else:
             print(f"Cluster {cluster} has less than 2 points, no distances to print.")
 
-    # Manually calculate and print the distance between the specific points
-    point1 = normalized_data[5]  # x: 352359845.8000000119, y: 9948.0494000000
-    point2 = normalized_data[6]  # x: 345459845.8000000119, y: 11048.0494000000
+    # Manually calculate and print the distance between specific points
+    point1 = normalized_data[5]  # Example point
+    point2 = normalized_data[6]  # Example point
     manual_distance = calculate_distance(point1, point2)
     print(f"Manual distance between point 5 and point 6: {manual_distance:.10f}")
 
@@ -115,16 +114,12 @@ def print_distances(normalized_data, cluster_labels):
     print(f"pdist distance between point 5 and point 6: {pdist_distance:.10f}")
 
 
-def perform_hdbscan(normalized_data):
-    # Perform HDBSCAN clustering with tighter boundaries
-    distance_matrix = pairwise_distances(normalize_data, metric="euclidean")
-
-    clusterer = hdbscan.HDBSCAN(metric="precomputed", min_samples=1, min_cluster_size=2)
-    clusterer.fit(distance_matrix)
-    print(clusterer.labels_)
-    clusterer.single_linkage_tree_.plot()
-
-    return distance_matrix, clusterer.labels_
+def perform_dbscan(normalized_data):
+    # Perform DBSCAN clustering
+    dbscan = DBSCAN(eps=2000, metric="euclidean")
+    cluster_labels = dbscan.fit_predict(normalized_data)
+    print(f"DBSCAN Cluster Labels: {np.unique(cluster_labels)}")
+    return cluster_labels
 
 
 def plot_clusters(normalized_data, cluster_labels):
@@ -183,8 +178,8 @@ def main():
         # Plot normalized data
         plot_normalized_data(normalized_data)
 
-        # Perform HDBSCAN clustering
-        cluster_labels = perform_hdbscan(normalized_data)
+        # Perform DBSCAN clustering
+        cluster_labels = perform_dbscan(normalized_data)
 
         # Print distances between points in clusters
         print_distances(normalized_data, cluster_labels)
