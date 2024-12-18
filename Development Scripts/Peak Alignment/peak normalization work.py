@@ -6,31 +6,27 @@ from sklearn.cluster import DBSCAN
 # Example dataset
 data = pd.DataFrame(
     {
-        "x": [100, 101, 102, 200, 201, 204, 300, 303, 309, 312, 315, 318],
-        "y": [50, 50.5, 51, 100, 101, 102, 200, 201, 202, 203, 204, 205],
+        "x": [300, 300, 300, 300, 300],
+        "y": [1000, 1000.1, 1000, 1000, 1000],
     }
 )
 
-# Define scaling percentages
-x_scale = 0.02  # 2% significance on x-axis
-y_scale = 0.01  # 1% significance on y-axis
+# Define tolerances
+x_tolerance = 0.02 * 300  # 2% of x values
+y_tolerance = 10 / 1e6 * 1000  # 10 ppm of y values
 
-# 1. Transform the data using natural logarithm
-data["x_log"] = np.log(data["x"])
-data["y_log"] = np.log(data["y"])
+# Scale the data
+data["x_scaled"] = data["x"] / x_tolerance  # Normalize x by its tolerance
+data["y_scaled"] = data["y"] / y_tolerance  # Normalize y by its tolerance
 
-# 2. Compute epsilon values in log-space
-x_eps = np.log(1 + x_scale)  # Epsilon for x in log-space
-y_eps = np.log(1 + y_scale)  # Epsilon for y in log-space
+# Combine scaled data for DBSCAN
+X_scaled = data[["x_scaled", "y_scaled"]].values
 
-# Compute the combined epsilon using Euclidean distance
-eps = np.sqrt(x_eps**2 + y_eps**2)
+# Compute epsilon in the scaled space
+eps = np.sqrt(2)  # Adjust as needed for clustering sensitivity
 
-# 3. Feature matrix for clustering
-X_log = data[["x_log", "y_log"]].values
-
-# Apply DBSCAN with the computed epsilon
-db = DBSCAN(eps=eps, min_samples=3).fit(X_log)
+# Apply DBSCAN in scaled space
+db = DBSCAN(eps=eps, min_samples=2).fit(X_scaled)
 
 # Assign cluster labels
 data["cluster"] = db.labels_
@@ -53,7 +49,7 @@ for cluster_label in data["cluster"].unique():
 # Add axis labels and legend
 plt.xlabel("X")
 plt.ylabel("Y")
-plt.title("DBSCAN Clustering Results")
+plt.title("DBSCAN Clustering Results with Proper Scaling")
 plt.legend()
 plt.grid(True)
 plt.show()
