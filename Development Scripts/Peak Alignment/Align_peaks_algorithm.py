@@ -1,13 +1,14 @@
-import pandas as pd
+import hdbscan
 import matplotlib.pyplot as plt
 import numpy as np
-import hdbscan
-from matplotlib.ticker import FormatStrFormatter
+import pandas as pd
 from matplotlib.font_manager import FontProperties
+from matplotlib.ticker import FormatStrFormatter
 from scipy.spatial import ConvexHull
+from scipy.spatial.distance import pdist, squareform
 
 
-def align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02):
+def align_peaks_algorithm(df, mz_scale_factor=1e-5, ccs_scale_factor=0.02):
     # Separate m/z and CCS columns
     sample_mz_columns = df.columns[2::3]  # Every third column starting from 0
     sample_ccs_columns = df.columns[1::3]  # Every third column starting from 1
@@ -18,6 +19,9 @@ def align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02):
     for index, row in df.iterrows():
         mz_values = row[sample_mz_columns].dropna().values
         ccs_values = row[sample_ccs_columns].dropna().values
+        print(
+            f"Row {index} - m/z values: {mz_values}, CCS values: {ccs_values}"
+        )  # Debugging
         if len(mz_values) == len(ccs_values):
             combined_data.append(np.vstack((mz_values, ccs_values)).T)
             row_indices.extend([index] * len(mz_values))
@@ -35,23 +39,21 @@ def align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02):
     print("Data before scaling:")
     print(combined_data[:5])  # Print first 5 rows for brevity
 
-    # Scale the data according to the specified distances
-    combined_data[:, 0] /= mz_scale  # Scale m/z axis
-    combined_data[:, 1] /= ccs_scale  # Scale CCS axis
+    # Dynamic scaling for m/z and CCS
+    combined_data[:, 0] /= mz_scale_factor  # Scale m/z axis
+    combined_data[:, 1] /= ccs_scale_factor  # Scale CCS axis
 
     # Print the data after scaling
     print("Data after scaling:")
     print(combined_data[:5])  # Print first 5 rows for brevity
 
     # Perform HDBSCAN clustering with explicit range parameters
-    clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=5,
-        cluster_selection_epsilon_max=5,
-    )
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=5)  # Smaller clusters
     cluster_labels = clusterer.fit_predict(combined_data)
 
     # Collect outliers data
     outliers = []
+    distances_data = []
 
     for cluster in set(cluster_labels):
         if cluster == -1:
@@ -71,24 +73,54 @@ def align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02):
         outlier_data = cluster_data[outlier_indices]
         outlier_rows = cluster_rows[outlier_indices]
         for data, row in zip(outlier_data, outlier_rows):
-            outliers.append([row, data[0] * mz_scale, data[1] * ccs_scale])
+            outliers.append(
+                [row, data[0] * mz_scale_factor, data[1] * ccs_scale_factor]
+            )
 
         # Calculate and print maximum distances in each dimension
         max_mz_dist = np.max(cluster_data[:, 0]) - np.min(cluster_data[:, 0])
         max_ccs_dist = np.max(cluster_data[:, 1]) - np.min(cluster_data[:, 1])
         print(
-            f"Cluster {cluster} max distances - m/z: {max_mz_dist * mz_scale}, CCS: {max_ccs_dist * ccs_scale}"
+            f"Cluster {cluster} max distances - m/z: {max_mz_dist * mz_scale_factor}, CCS: {max_ccs_dist * ccs_scale_factor}"
         )
+
+        # Filter out points that do not meet the criteria
+        for point in cluster_data:
+            if (
+                np.max(np.abs(cluster_data[:, 0] - point[0])) * mz_scale_factor > 1e-5
+                or np.max(np.abs(cluster_data[:, 1] - point[1])) * ccs_scale_factor > 8
+            ):
+                outliers.append(
+                    [
+                        row_indices[cluster_labels == cluster][0],
+                        point[0] * mz_scale_factor,
+                        point[1] * ccs_scale_factor,
+                    ]
+                )
+                print(f"Outlier point: {point}")
+
+        # Calculate pairwise distances within the cluster
+        pairwise_distances = squareform(pdist(cluster_data))
+        for i in range(len(cluster_data)):
+            for j in range(i + 1, len(cluster_data)):
+                distances_data.append([cluster, i, j, pairwise_distances[i, j]])
 
     # Export outliers to CSV
     outliers_df = pd.DataFrame(outliers, columns=["Row", "m/z", "CCS"])
     outliers_df.to_csv("outliers.csv", index=False)
     print("Outliers exported to 'outliers.csv'")
 
-    return combined_data, cluster_labels, row_indices, mz_scale, ccs_scale
+    # Export distances to CSV
+    distances_df = pd.DataFrame(
+        distances_data, columns=["Cluster", "Point1", "Point2", "Distance"]
+    )
+    distances_df.to_csv("distances.csv", index=False)
+    print("Distances exported to 'distances.csv'")
+
+    return combined_data, cluster_labels, row_indices, mz_scale_factor, ccs_scale_factor
 
 
-def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale):
+def plot_clusters(combined_data, cluster_labels, mz_scale_factor, ccs_scale_factor):
     # Plot the clustering result
     fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111)
@@ -109,8 +141,8 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale):
 
         xy = combined_data[class_member_mask]
         ax.scatter(
-            xy[:, 0] * mz_scale,  # Scale back m/z axis
-            xy[:, 1] * ccs_scale,  # Scale back CCS axis
+            xy[:, 0] * mz_scale_factor,  # Scale back m/z axis
+            xy[:, 1] * ccs_scale_factor,  # Scale back CCS axis
             color=tuple(col),
             edgecolor="k",
             label=f"Cluster {k}" if k != -1 else "Noise",
@@ -123,8 +155,8 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale):
             hull = ConvexHull(xy)
             for simplex in hull.simplices:
                 ax.plot(
-                    xy[simplex, 0] * mz_scale,
-                    xy[simplex, 1] * ccs_scale,
+                    xy[simplex, 0] * mz_scale_factor,
+                    xy[simplex, 1] * ccs_scale_factor,
                     "k-",
                 )
 
@@ -145,7 +177,7 @@ def plot_clusters(combined_data, cluster_labels, mz_scale, ccs_scale):
     plt.show()
 
 
-def plot_outliers(mz_scale, ccs_scale):
+def plot_outliers(mz_scale_factor, ccs_scale_factor):
     # Read the outliers CSV file
     outliers_df = pd.read_csv("outliers.csv")
 
@@ -239,7 +271,7 @@ def main():
 
     # Call the align_peaks_algorithm function
     combined_data, cluster_labels, row_indices, mz_scale, ccs_scale = (
-        align_peaks_algorithm(df, mz_scale=1e-5, ccs_scale=0.02)
+        align_peaks_algorithm(df, mz_scale_factor=1e-5, ccs_scale_factor=0.02)
     )
 
     if combined_data is not None:
