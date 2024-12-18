@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import FontProperties
+from scipy.spatial.distance import pdist, squareform
 
 
 def normalize_data(df):
@@ -79,6 +80,20 @@ def plot_normalized_data(normalized_data):
     plt.show()
 
 
+def print_distances(normalized_data):
+    # Calculate pairwise distances
+    distances = pdist(normalized_data)
+    distance_matrix = squareform(distances)
+
+    # Print the distances
+    print("Pairwise distances between points (first 5 points):")
+    for i in range(min(5, len(distance_matrix))):
+        for j in range(min(5, len(distance_matrix))):
+            print(
+                f"Distance between point {i} and point {j}: {distance_matrix[i, j]:.10f}"
+            )
+
+
 def main():
     # Read the CSV file
     df = pd.read_csv(
@@ -91,6 +106,8 @@ def main():
     if normalized_data is not None:
         # Plot normalized data
         plot_normalized_data(normalized_data)
+
+        print_distances(normalized_data)
 
 
 if __name__ == "__main__":
