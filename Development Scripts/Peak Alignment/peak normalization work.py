@@ -48,8 +48,8 @@ def create_distance_matrix(mz_values, rt_values, ppm_tolerance=1e-5, rt_toleranc
 
 
 # Example usage
-mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01]  # m/z values
-rt_values = [2, 2.5, 3, 2.2, 2.5]  # RT values
+mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 10000.1, 10000]  # m/z values
+rt_values = [2, 2.5, 3, 2.2, 2.5, 2.5, 5]  # RT values
 eps_cutoff = 1.414  # EPS cutoff value for DBSCAN
 
 # Create distance matrix
