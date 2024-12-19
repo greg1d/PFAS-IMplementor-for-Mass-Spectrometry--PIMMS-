@@ -4,7 +4,6 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
-import mplcursors
 
 
 # Function to calculate the m/z distance
@@ -78,17 +77,36 @@ def create_distance_matrix(
     return dist_matrix
 
 
-# Example usage
-mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 950.01, 950]  # m/z values
-rt_values = [2, 2.5, 2.7, 2.2, 2.5, 2.5, 2.5]  # RT values
-ccs_values = [100, 101, 102, 100, 101, 102, 100]  # CCS values
+# Generate random data with predictable clusters and noise
+np.random.seed(42)  # For reproducibility
+
+# Cluster 1
+mz_cluster1 = np.random.normal(1020, 0.01, 50)
+rt_cluster1 = np.random.normal(5, 0.5, 50)
+ccs_cluster1 = np.random.normal(120, 2, 50)
+
+# Cluster 2
+mz_cluster2 = np.random.normal(1050, 0.01, 50)
+rt_cluster2 = np.random.normal(10, 0.5, 50)
+ccs_cluster2 = np.random.normal(150, 2, 50)
+
+# Noise
+mz_noise = np.random.uniform(1000, 1100, 20)
+rt_noise = np.random.uniform(1, 16, 20)
+ccs_noise = np.random.uniform(100, 200, 20)
+
+# Combine clusters and noise
+mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
+rt_values = np.concatenate([rt_cluster1, rt_cluster2, rt_noise])
+ccs_values = np.concatenate([ccs_cluster1, ccs_cluster2, ccs_noise])
+
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
 
 # Create distance matrix
 dist_matrix = create_distance_matrix(mz_values, rt_values, ccs_values)
 
 # Apply DBSCAN
-dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
+dbscan = DBSCAN(eps=eps_cutoff, min_samples=5, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix)
 print("Cluster labels:", labels)
 
@@ -118,7 +136,7 @@ for k in unique_labels:
     class_member_mask = labels == k
 
     xyz = np.array([mz_values, rt_values, ccs_values]).T[class_member_mask]
-    scatter = ax.scatter(
+    ax.scatter(
         xyz[:, 0],
         xyz[:, 1],
         xyz[:, 2],
@@ -128,26 +146,22 @@ for k in unique_labels:
     )
 
     # Draw edges between points in the same cluster
-    for i in range(len(xyz)):
-        for j in range(i + 1, len(xyz)):
-            distance = np.linalg.norm(xyz[i] - xyz[j])
-            line_color = cmap(norm(distance))
-            ax.plot(
-                [xyz[i, 0], xyz[j, 0]],
-                [xyz[i, 1], xyz[j, 1]],
-                [xyz[i, 2], xyz[j, 2]],
-                color=line_color,
-                linewidth=1,
-            )
-
-# Add interactive hover functionality
-cursor = mplcursors.cursor(scatter, hover=True)
-cursor.connect(
-    "add", lambda sel: sel.annotation.set_text(f"Cluster {labels[sel.index]}")
-)
+    if k != -1:  # Skip noise points
+        for i in range(len(xyz)):
+            for j in range(i + 1, len(xyz)):
+                distance = np.linalg.norm(xyz[i] - xyz[j])
+                line_color = cmap(norm(distance))
+                ax.plot(
+                    [xyz[i, 0], xyz[j, 0]],
+                    [xyz[i, 1], xyz[j, 1]],
+                    [xyz[i, 2], xyz[j, 2]],
+                    color=line_color,
+                    linewidth=1,
+                )
 
 ax.set_xlabel("m/z")
 ax.set_ylabel("RT")
 ax.set_zlabel("CCS")
 ax.set_title("DBSCAN Clustering of m/z, RT, and CCS Values")
+plt.legend()
 plt.show()
