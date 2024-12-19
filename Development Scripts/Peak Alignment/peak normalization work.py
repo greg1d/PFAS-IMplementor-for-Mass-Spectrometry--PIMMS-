@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
+import mplcursors
 
 
 # Function to calculate the m/z distance
@@ -77,36 +78,29 @@ def create_distance_matrix(
     return dist_matrix
 
 
-# Generate random data with predictable clusters and noise
-np.random.seed(42)  # For reproducibility
-
-# Cluster 1
-mz_cluster1 = np.random.normal(1020, 0.01, 50)
-rt_cluster1 = np.random.normal(5, 0.5, 50)
-ccs_cluster1 = np.random.normal(120, 2, 50)
-
-# Cluster 2
-mz_cluster2 = np.random.normal(1050, 0.01, 50)
-rt_cluster2 = np.random.normal(10, 0.5, 50)
-ccs_cluster2 = np.random.normal(150, 2, 50)
-
-# Noise
-mz_noise = np.random.uniform(1000, 1100, 20)
-rt_noise = np.random.uniform(1, 16, 20)
-ccs_noise = np.random.uniform(100, 200, 20)
-
-# Combine clusters and noise
-mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
-rt_values = np.concatenate([rt_cluster1, rt_cluster2, rt_noise])
-ccs_values = np.concatenate([ccs_cluster1, ccs_cluster2, ccs_noise])
-
+# Example usage
+mz_values = np.array(
+    [1000, 1000, 1000, 1000.01, 1000.02, 1000.03, 1000.04, 1000.05, 1000.06]
+)  # m/z values
+rt_values = np.array([2, 2, 2, 2.5, 2.5, 2.2, 2.5, 2.5, 2.5])  # RT values
+ccs_values = np.array([100, 101, 102, 100, 101, 102, 100, 102, 100])  # CCS values
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
+ppm_tolerance = 1e-5
+rt_tolerance = 0.5
+ccs_tolerance = 0.02
+
+# Calculate drift tolerances
+drift_mz_tolerance = 1.5 * ppm_tolerance
+drift_rt_tolerance = 1.5 * rt_tolerance
+drift_ccs_tolerance = 1.5 * ccs_tolerance
 
 # Create distance matrix
-dist_matrix = create_distance_matrix(mz_values, rt_values, ccs_values)
+dist_matrix = create_distance_matrix(
+    mz_values, rt_values, ccs_values, ppm_tolerance, rt_tolerance, ccs_tolerance
+)
 
 # Apply DBSCAN
-dbscan = DBSCAN(eps=eps_cutoff, min_samples=5, metric="precomputed")
+dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix)
 print("Cluster labels:", labels)
 
@@ -116,6 +110,30 @@ for label, count in zip(unique_labels, counts):
     if count < 2:
         labels[labels == label] = -1  # Mark as noise
 
+# Apply drift tolerance
+for k in unique_labels:
+    if k != -1:
+        class_member_mask = labels == k
+        cluster_mz = mz_values[class_member_mask]
+        cluster_rt = rt_values[class_member_mask]
+        cluster_ccs = ccs_values[class_member_mask]
+
+        # Calculate the mean of the cluster
+        mean_mz = np.percentile(cluster_mz, 25)
+        dynamic_mass_drift = drift_mz_tolerance * mean_mz
+        mean_rt = np.mean(cluster_rt)
+        mean_ccs = np.mean(cluster_ccs)
+
+        # Exclude points that exceed the drift tolerance
+        drift_mask = (
+            (abs(cluster_mz - mean_mz) <= dynamic_mass_drift)
+            & (abs(cluster_rt - mean_rt) <= drift_rt_tolerance)
+            & (abs(cluster_ccs - mean_ccs) <= drift_ccs_tolerance * mean_ccs)
+        )
+        labels[class_member_mask] = np.where(drift_mask, k, -1)
+        print(dynamic_mass_drift)
+        print("cluster mean mass", mean_mz)
+        print(abs(cluster_mz - mean_mz))
 # Visualization of the clusters in 3D
 fig = plt.figure(figsize=(10, 6))
 ax = fig.add_subplot(111, projection="3d")
@@ -136,7 +154,7 @@ for k in unique_labels:
     class_member_mask = labels == k
 
     xyz = np.array([mz_values, rt_values, ccs_values]).T[class_member_mask]
-    ax.scatter(
+    scatter = ax.scatter(
         xyz[:, 0],
         xyz[:, 1],
         xyz[:, 2],
@@ -159,9 +177,14 @@ for k in unique_labels:
                     linewidth=1,
                 )
 
+# Add interactive hover functionality
+cursor = mplcursors.cursor(scatter, hover=True)
+cursor.connect(
+    "add", lambda sel: sel.annotation.set_text(f"Cluster {labels[sel.index]}")
+)
+
 ax.set_xlabel("m/z")
 ax.set_ylabel("RT")
 ax.set_zlabel("CCS")
 ax.set_title("DBSCAN Clustering of m/z, RT, and CCS Values")
-plt.legend()
 plt.show()
