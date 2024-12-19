@@ -1,55 +1,63 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from sklearn.cluster import DBSCAN
+import math
 
-# Example dataset
-data = pd.DataFrame(
-    {
-        "x": [300, 300, 300, 300, 300],
-        "y": [1000, 1000.1, 1000, 1000, 1000],
-    }
-)
 
-# Define tolerances
-x_tolerance = 0.02 * 300  # 2% of x values
-y_tolerance = 10 / 1e6 * 1000  # 10 ppm of y values
+# Function to calculate the m/z distance
+def mz_distance(mz1, mz2, ppm_tolerance=1e-5):
+    delta_mz = abs(mz2 - mz1)
+    return delta_mz / (mz1 * ppm_tolerance)
 
-# Scale the data
-data["x_scaled"] = data["x"] / x_tolerance  # Normalize x by its tolerance
-data["y_scaled"] = data["y"] / y_tolerance  # Normalize y by its tolerance
 
-# Combine scaled data for DBSCAN
-X_scaled = data[["x_scaled", "y_scaled"]].values
+# Function to calculate the RT distance
+def rt_distance(rt1, rt2, rt_tolerance=0.5):
+    delta_rt = abs(rt2 - rt1)
+    return delta_rt / rt_tolerance
 
-# Compute epsilon in the scaled space
-eps = np.sqrt(2)  # Adjust as needed for clustering sensitivity
 
-# Apply DBSCAN in scaled space
-db = DBSCAN(eps=eps, min_samples=2).fit(X_scaled)
+# Function to calculate the EPS distance
+def calculate_eps(mz1, mz2, rt1, rt2, ppm_tolerance=1e-5, rt_tolerance=0.5):
+    # Calculate individual distances
+    mz_dist = mz_distance(mz1, mz2, ppm_tolerance)
+    rt_dist = rt_distance(rt1, rt2, rt_tolerance)
 
-# Assign cluster labels
-data["cluster"] = db.labels_
+    # Combine the distances using Euclidean distance
+    eps = math.sqrt(mz_dist**2 + rt_dist**2)
+    return eps
 
-# Plot the results
-plt.figure(figsize=(8, 6))
 
-# Scatter plot of the data points colored by their cluster labels
-for cluster_label in data["cluster"].unique():
-    cluster_data = data[data["cluster"] == cluster_label]
-    plt.scatter(
-        cluster_data["x"],
-        cluster_data["y"],
-        label=f"Cluster {cluster_label}" if cluster_label != -1 else "Noise",
-        s=100,
-        alpha=0.7,
-        edgecolors="k",
-    )
+# Create a custom distance matrix for DBSCAN
+def create_distance_matrix(mz_values, rt_values, ppm_tolerance=1e-5, rt_tolerance=0.5):
+    n = len(mz_values)
+    dist_matrix = np.zeros((n, n))
 
-# Add axis labels and legend
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.title("DBSCAN Clustering Results with Proper Scaling")
-plt.legend()
-plt.grid(True)
-plt.show()
+    for i in range(n):
+        for j in range(i + 1, n):
+            eps = calculate_eps(
+                mz_values[i],
+                mz_values[j],
+                rt_values[i],
+                rt_values[j],
+                ppm_tolerance,
+                rt_tolerance,
+            )
+            dist_matrix[i, j] = eps
+            dist_matrix[j, i] = eps  # Distance matrix is symmetric
+
+    return dist_matrix
+
+
+# Example usage
+mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01]  # m/z values
+rt_values = [2, 2.5, 3, 2.2, 2.5]  # RT values
+eps_cutoff = 1.414  # EPS cutoff value for DBSCAN
+
+# Create distance matrix
+dist_matrix = create_distance_matrix(mz_values, rt_values)
+
+# Apply DBSCAN
+dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
+labels = dbscan.fit_predict(dist_matrix)
+
+# Output the clustering results
+print("Cluster labels:", labels)
