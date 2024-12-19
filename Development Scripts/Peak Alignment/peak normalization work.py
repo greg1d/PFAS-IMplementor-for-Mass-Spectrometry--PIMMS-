@@ -119,21 +119,22 @@ for k in unique_labels:
         cluster_ccs = ccs_values[class_member_mask]
 
         # Calculate the mean of the cluster
-        mean_mz = np.percentile(cluster_mz, 25)
-        dynamic_mass_drift = drift_mz_tolerance * mean_mz
-        mean_rt = np.mean(cluster_rt)
-        mean_ccs = np.mean(cluster_ccs)
+        mz_core = np.percentile(cluster_mz, 25)
+        ccs_core = np.percentile(cluster_ccs, 25)
+        rt_core = np.percentile(cluster_rt, 25)
+        dynamic_mass_drift = drift_mz_tolerance * mz_core
+        dynamic_css_drift = drift_ccs_tolerance * ccs_core
 
         # Exclude points that exceed the drift tolerance
         drift_mask = (
-            (abs(cluster_mz - mean_mz) <= dynamic_mass_drift)
-            & (abs(cluster_rt - mean_rt) <= drift_rt_tolerance)
-            & (abs(cluster_ccs - mean_ccs) <= drift_ccs_tolerance * mean_ccs)
+            (abs(cluster_mz - mz_core) <= dynamic_mass_drift)
+            & (abs(cluster_rt - rt_core) <= drift_rt_tolerance)
+            & (abs(cluster_ccs - ccs_core) <= dynamic_css_drift)
         )
         labels[class_member_mask] = np.where(drift_mask, k, -1)
         print(dynamic_mass_drift)
-        print("cluster mean mass", mean_mz)
-        print(abs(cluster_mz - mean_mz))
+        print("cluster mean mass", mz_core)
+        print(abs(cluster_mz - mz_core))
 # Visualization of the clusters in 3D
 fig = plt.figure(figsize=(10, 6))
 ax = fig.add_subplot(111, projection="3d")
