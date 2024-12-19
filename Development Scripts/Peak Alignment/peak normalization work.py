@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
+import time
 
 
 # Function to calculate the m/z distance
@@ -115,9 +116,13 @@ dist_matrix = create_distance_matrix(
     mz_values, rt_values, ccs_values, ppm_tolerance, rt_tolerance, ccs_tolerance
 )
 
+# Measure time for DBSCAN clustering
+start_time = time.time()
 # Apply DBSCAN
 dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix)
+end_time = time.time()
+print(f"DBSCAN clustering took {end_time - start_time:.4f} seconds")
 
 # Adjust labels for clusters with fewer than 2 items
 unique_labels, counts = np.unique(labels, return_counts=True)
@@ -125,6 +130,8 @@ for label, count in zip(unique_labels, counts):
     if count < 2:
         labels[labels == label] = -1  # Mark as noise
 
+# Measure time for applying drift tolerance
+start_time = time.time()
 # Apply drift tolerance
 for k in unique_labels:
     if k != -1:
@@ -148,7 +155,8 @@ for k in unique_labels:
                 & (abs(cluster_ccs - ccs_core) <= dynamic_css_drift)
             )
             labels[class_member_mask] = np.where(drift_mask, k, -1)
-
+end_time = time.time()
+print(f"Applying drift tolerance took {end_time - start_time:.4f} seconds")
 
 # Visualization of the clusters in 3D
 fig = plt.figure(figsize=(10, 6))
