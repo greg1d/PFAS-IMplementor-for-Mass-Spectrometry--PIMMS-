@@ -2,6 +2,9 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 import math
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
+import mplcursors
 
 
 # Function to calculate the m/z distance
@@ -99,17 +102,23 @@ for label, count in zip(unique_labels, counts):
 fig = plt.figure(figsize=(10, 6))
 ax = fig.add_subplot(111, projection="3d")
 unique_labels = set(labels)
-colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
 
-for k, col in zip(unique_labels, colors):
+# Normalize distances for colormap
+norm = Normalize(vmin=0, vmax=eps_cutoff)
+cmap = cm.get_cmap("coolwarm_r")  # Use the reversed coolwarm colormap
+
+for k in unique_labels:
     if k == -1:
-        # Black used for noise.
+        # Grey used for noise.
+        col = [0.5, 0.5, 0.5, 1]
+    else:
+        # Black used for clusters.
         col = [0, 0, 0, 1]
 
     class_member_mask = labels == k
 
     xyz = np.array([mz_values, rt_values, ccs_values]).T[class_member_mask]
-    ax.scatter(
+    scatter = ax.scatter(
         xyz[:, 0],
         xyz[:, 1],
         xyz[:, 2],
@@ -118,9 +127,27 @@ for k, col in zip(unique_labels, colors):
         label=f"Cluster {k}" if k != -1 else "Noise",
     )
 
+    # Draw edges between points in the same cluster
+    for i in range(len(xyz)):
+        for j in range(i + 1, len(xyz)):
+            distance = np.linalg.norm(xyz[i] - xyz[j])
+            line_color = cmap(norm(distance))
+            ax.plot(
+                [xyz[i, 0], xyz[j, 0]],
+                [xyz[i, 1], xyz[j, 1]],
+                [xyz[i, 2], xyz[j, 2]],
+                color=line_color,
+                linewidth=1,
+            )
+
+# Add interactive hover functionality
+cursor = mplcursors.cursor(scatter, hover=True)
+cursor.connect(
+    "add", lambda sel: sel.annotation.set_text(f"Cluster {labels[sel.index]}")
+)
+
 ax.set_xlabel("m/z")
 ax.set_ylabel("RT")
 ax.set_zlabel("CCS")
 ax.set_title("DBSCAN Clustering of m/z, RT, and CCS Values")
-plt.legend()
 plt.show()
