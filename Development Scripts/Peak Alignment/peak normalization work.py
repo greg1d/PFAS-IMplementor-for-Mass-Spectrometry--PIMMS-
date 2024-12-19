@@ -55,49 +55,31 @@ def create_distance_matrix(
     rt_tolerance=0.5,
     ccs_tolerance=0.02,
 ):
-    n = len(mz_values)
-    dist_matrix = np.zeros((n, n))
+    mz_values = np.array(mz_values)
+    rt_values = np.array(rt_values)
+    ccs_values = np.array(ccs_values)
 
-    for i in range(n):
-        for j in range(i + 1, n):
-            eps = calculate_eps(
-                mz_values[i],
-                mz_values[j],
-                rt_values[i],
-                rt_values[j],
-                ccs_values[i],
-                ccs_values[j],
-                ppm_tolerance,
-                rt_tolerance,
-                ccs_tolerance,
-            )
-            dist_matrix[i, j] = eps
-            dist_matrix[j, i] = eps  # Distance matrix is symmetric
+    # Calculate pairwise differences
+    mz_diff = np.abs(mz_values[:, np.newaxis] - mz_values)
+    rt_diff = np.abs(rt_values[:, np.newaxis] - rt_values)
+    ccs_diff = np.abs(ccs_values[:, np.newaxis] - ccs_values)
+
+    # Calculate distances
+    mz_dist = mz_diff / (mz_values[:, np.newaxis] * ppm_tolerance)
+    rt_dist = rt_diff / rt_tolerance
+    ccs_dist = ccs_diff / (ccs_values[:, np.newaxis] * ccs_tolerance)
+
+    # Combine distances using Euclidean distance
+    dist_matrix = np.sqrt(mz_dist**2 + rt_dist**2 + ccs_dist**2)
 
     return dist_matrix
 
 
-np.random.seed(42)  # For reproducibility
-
-# Cluster 1
-mz_cluster1 = np.random.normal(1020, 0.01, 1000)
-rt_cluster1 = np.random.normal(5, 0.5, 1000)
-ccs_cluster1 = np.random.normal(120, 2, 1000)
-
-# Cluster 2
-mz_cluster2 = np.random.normal(1050, 0.01, 1000)
-rt_cluster2 = np.random.normal(10, 0.5, 1000)
-ccs_cluster2 = np.random.normal(150, 2, 1000)
-
-# Noise
-mz_noise = np.random.uniform(1000, 1100, 1000)
-rt_noise = np.random.uniform(1, 16, 1000)
-ccs_noise = np.random.uniform(100, 200, 1000)
-
-# Combine clusters and noise
-mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
-rt_values = np.concatenate([rt_cluster1, rt_cluster2, rt_noise])
-ccs_values = np.concatenate([ccs_cluster1, ccs_cluster2, ccs_noise])
+mz_values = np.array(
+    [1000, 1000, 1000, 1000.01, 1000.02, 1000.03, 1000.04, 1000.05, 1000.06]
+)  # m/z values
+rt_values = np.array([2, 2, 2, 2.5, 2.5, 2.2, 2.5, 2.5, 2.5])  # RT values
+ccs_values = np.array([100, 101, 102, 100, 101, 102, 100, 102, 100])
 
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
 ppm_tolerance = 1e-5
