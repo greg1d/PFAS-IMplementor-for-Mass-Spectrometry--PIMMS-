@@ -91,14 +91,14 @@ rt_cluster1 = np.random.normal(5, 0.5, 500)
 ccs_cluster1 = np.random.normal(120, 2, 500)
 
 # Cluster 2
-mz_cluster2 = np.random.normal(1050, 0.01, 500)
-rt_cluster2 = np.random.normal(10, 0.5, 500)
-ccs_cluster2 = np.random.normal(150, 2, 500)
+mz_cluster2 = np.random.normal(1050, 0.01, 5000)
+rt_cluster2 = np.random.normal(10, 0.5, 5000)
+ccs_cluster2 = np.random.normal(150, 2, 5000)
 
 # Noise
-mz_noise = np.random.uniform(1000, 1100, 500)
-rt_noise = np.random.uniform(1, 16, 500)
-ccs_noise = np.random.uniform(100, 200, 500)
+mz_noise = np.random.uniform(1000, 1100, 5000)
+rt_noise = np.random.uniform(1, 16, 5000)
+ccs_noise = np.random.uniform(100, 200, 5000)
 
 # Combine clusters and noise
 mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
