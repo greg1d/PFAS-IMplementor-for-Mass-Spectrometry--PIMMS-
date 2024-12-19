@@ -4,7 +4,6 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
-import mplcursors
 
 
 # Function to calculate the m/z distance
@@ -119,7 +118,6 @@ dist_matrix = create_distance_matrix(
 # Apply DBSCAN
 dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix)
-print("Cluster labels:", labels)
 
 # Adjust labels for clusters with fewer than 2 items
 unique_labels, counts = np.unique(labels, return_counts=True)
@@ -150,9 +148,7 @@ for k in unique_labels:
                 & (abs(cluster_ccs - ccs_core) <= dynamic_css_drift)
             )
             labels[class_member_mask] = np.where(drift_mask, k, -1)
-            print(dynamic_mass_drift)
-            print("cluster mean mass", mz_core)
-            print(abs(cluster_mz - mz_core))
+
 
 # Visualization of the clusters in 3D
 fig = plt.figure(figsize=(10, 6))
@@ -196,12 +192,6 @@ for k in unique_labels:
                     color=line_color,
                     linewidth=1,
                 )
-
-# Add interactive hover functionality
-cursor = mplcursors.cursor(scatter, hover=True)
-cursor.connect(
-    "add", lambda sel: sel.annotation.set_text(f"Cluster {labels[sel.index]}")
-)
 
 ax.set_xlabel("m/z")
 ax.set_ylabel("RT")
