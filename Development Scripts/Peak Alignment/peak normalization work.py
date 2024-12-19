@@ -82,19 +82,19 @@ def create_distance_matrix(
 np.random.seed(42)  # For reproducibility
 
 # Cluster 1
-mz_cluster1 = np.random.normal(1020, 0.01, 50)
-rt_cluster1 = np.random.normal(5, 0.5, 50)
-ccs_cluster1 = np.random.normal(120, 2, 50)
+mz_cluster1 = np.random.normal(1020, 0.01, 500)
+rt_cluster1 = np.random.normal(5, 0.5, 500)
+ccs_cluster1 = np.random.normal(120, 2, 500)
 
 # Cluster 2
-mz_cluster2 = np.random.normal(1050, 0.01, 50)
-rt_cluster2 = np.random.normal(10, 0.5, 50)
-ccs_cluster2 = np.random.normal(150, 2, 50)
+mz_cluster2 = np.random.normal(1050, 0.01, 500)
+rt_cluster2 = np.random.normal(10, 0.5, 500)
+ccs_cluster2 = np.random.normal(150, 2, 500)
 
 # Noise
-mz_noise = np.random.uniform(1000, 1100, 20)
-rt_noise = np.random.uniform(1, 16, 20)
-ccs_noise = np.random.uniform(100, 200, 20)
+mz_noise = np.random.uniform(1000, 1100, 200)
+rt_noise = np.random.uniform(1, 16, 200)
+ccs_noise = np.random.uniform(100, 200, 200)
 
 # Combine clusters and noise
 mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
@@ -135,7 +135,7 @@ for k in unique_labels:
         cluster_rt = rt_values[class_member_mask]
         cluster_ccs = ccs_values[class_member_mask]
 
-        if len(cluster_mz) > 0 and len(cluster_rt) > 0 and len(cluster_ccs) > 0:
+        if len(cluster_mz) > 2 and len(cluster_rt) > 2 and len(cluster_ccs) > 2:
             # Calculate the mean of the cluster
             mz_core = np.percentile(cluster_mz, 25)
             ccs_core = np.percentile(cluster_ccs, 25)
