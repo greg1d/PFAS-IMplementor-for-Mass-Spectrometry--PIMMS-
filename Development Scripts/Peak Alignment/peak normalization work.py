@@ -111,28 +111,32 @@ drift_mz_tolerance = 1.5 * ppm_tolerance
 drift_rt_tolerance = 1.5 * rt_tolerance
 drift_ccs_tolerance = 1.5 * ccs_tolerance
 
-# Create distance matrix
+# Measure time for creating distance matrix
+start_time = time.time()
 dist_matrix = create_distance_matrix(
     mz_values, rt_values, ccs_values, ppm_tolerance, rt_tolerance, ccs_tolerance
 )
+end_time = time.time()
+print(f"Creating distance matrix took {end_time - start_time:.4f} seconds")
 
 # Measure time for DBSCAN clustering
 start_time = time.time()
-# Apply DBSCAN
 dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix)
 end_time = time.time()
 print(f"DBSCAN clustering took {end_time - start_time:.4f} seconds")
 
 # Adjust labels for clusters with fewer than 2 items
+start_time = time.time()
 unique_labels, counts = np.unique(labels, return_counts=True)
 for label, count in zip(unique_labels, counts):
     if count < 2:
         labels[labels == label] = -1  # Mark as noise
+end_time = time.time()
+print(f"Adjusting labels took {end_time - start_time:.4f} seconds")
 
 # Measure time for applying drift tolerance
 start_time = time.time()
-# Apply drift tolerance
 for k in unique_labels:
     if k != -1:
         class_member_mask = labels == k
@@ -158,7 +162,8 @@ for k in unique_labels:
 end_time = time.time()
 print(f"Applying drift tolerance took {end_time - start_time:.4f} seconds")
 
-# Visualization of the clusters in 3D
+# Measure time for visualization
+start_time = time.time()
 fig = plt.figure(figsize=(10, 6))
 ax = fig.add_subplot(111, projection="3d")
 unique_labels = set(labels)
@@ -206,3 +211,5 @@ ax.set_ylabel("RT")
 ax.set_zlabel("CCS")
 ax.set_title("DBSCAN Clustering of m/z, RT, and CCS Values")
 plt.show()
+end_time = time.time()
+print(f"Visualization took {end_time - start_time:.4f} seconds")
