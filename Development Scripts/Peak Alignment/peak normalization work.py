@@ -4,6 +4,14 @@ import math
 import time
 import plotly.graph_objects as go
 import plotly.express as px
+import psutil
+
+
+def limit_memory_usage():
+    mem = psutil.virtual_memory()
+    available_memory = mem.available * 0.8
+    print("Available memory:", available_memory)
+    return available_memory
 
 
 # Function to calculate the m/z distance
