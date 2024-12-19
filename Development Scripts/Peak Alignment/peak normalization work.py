@@ -77,12 +77,27 @@ def create_distance_matrix(
     return dist_matrix
 
 
-# Example usage
-mz_values = np.array(
-    [1000, 1000, 1000, 1000.01, 1000.02, 1000.03, 1000.04, 1000.05, 1000.06]
-)  # m/z values
-rt_values = np.array([2, 2, 2, 2.5, 2.5, 2.2, 2.5, 2.5, 2.5])  # RT values
-ccs_values = np.array([100, 101, 102, 100, 101, 102, 100, 102, 100])
+np.random.seed(42)  # For reproducibility
+
+# Cluster 1
+mz_cluster1 = np.random.normal(1020, 0.01, 1000)
+rt_cluster1 = np.random.normal(5, 0.5, 1000)
+ccs_cluster1 = np.random.normal(120, 2, 1000)
+
+# Cluster 2
+mz_cluster2 = np.random.normal(1050, 0.01, 1000)
+rt_cluster2 = np.random.normal(10, 0.5, 1000)
+ccs_cluster2 = np.random.normal(150, 2, 1000)
+
+# Noise
+mz_noise = np.random.uniform(1000, 1100, 1000)
+rt_noise = np.random.uniform(1, 16, 1000)
+ccs_noise = np.random.uniform(100, 200, 1000)
+
+# Combine clusters and noise
+mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
+rt_values = np.concatenate([rt_cluster1, rt_cluster2, rt_noise])
+ccs_values = np.concatenate([ccs_cluster1, ccs_cluster2, ccs_noise])
 
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
 ppm_tolerance = 1e-5
