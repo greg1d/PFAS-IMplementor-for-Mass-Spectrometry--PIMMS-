@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
+import mplcursors
 
 
 # Function to calculate the m/z distance
@@ -78,11 +79,28 @@ def create_distance_matrix(
 
 
 # Example usage
-mz_values = np.array(
-    [1000, 1000, 1000, 1000.01, 1000.02, 1000.03, 1000.04, 1000.05, 1000.06]
-)  # m/z values
-rt_values = np.array([2, 2, 2, 2.5, 2.5, 2.2, 2.5, 2.5, 2.5])  # RT values
-ccs_values = np.array([100, 101, 102, 100, 101, 102, 100, 102, 100])  # CCS values
+np.random.seed(42)  # For reproducibility
+
+# Cluster 1
+mz_cluster1 = np.random.normal(1020, 0.01, 50)
+rt_cluster1 = np.random.normal(5, 0.5, 50)
+ccs_cluster1 = np.random.normal(120, 2, 50)
+
+# Cluster 2
+mz_cluster2 = np.random.normal(1050, 0.01, 50)
+rt_cluster2 = np.random.normal(10, 0.5, 50)
+ccs_cluster2 = np.random.normal(150, 2, 50)
+
+# Noise
+mz_noise = np.random.uniform(1000, 1100, 20)
+rt_noise = np.random.uniform(1, 16, 20)
+ccs_noise = np.random.uniform(100, 200, 20)
+
+# Combine clusters and noise
+mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
+rt_values = np.concatenate([rt_cluster1, rt_cluster2, rt_noise])
+ccs_values = np.concatenate([ccs_cluster1, ccs_cluster2, ccs_noise])
+
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
 ppm_tolerance = 1e-5
 rt_tolerance = 0.5
@@ -117,23 +135,25 @@ for k in unique_labels:
         cluster_rt = rt_values[class_member_mask]
         cluster_ccs = ccs_values[class_member_mask]
 
-        # Calculate the mean of the cluster
-        mz_core = np.percentile(cluster_mz, 25)
-        ccs_core = np.percentile(cluster_ccs, 25)
-        rt_core = np.percentile(cluster_rt, 25)
-        dynamic_mass_drift = drift_mz_tolerance * mz_core
-        dynamic_css_drift = drift_ccs_tolerance * ccs_core
+        if len(cluster_mz) > 0 and len(cluster_rt) > 0 and len(cluster_ccs) > 0:
+            # Calculate the mean of the cluster
+            mz_core = np.percentile(cluster_mz, 25)
+            ccs_core = np.percentile(cluster_ccs, 25)
+            rt_core = np.percentile(cluster_rt, 25)
+            dynamic_mass_drift = drift_mz_tolerance * mz_core
+            dynamic_css_drift = drift_ccs_tolerance * ccs_core
 
-        # Exclude points that exceed the drift tolerance
-        drift_mask = (
-            (abs(cluster_mz - mz_core) <= dynamic_mass_drift)
-            & (abs(cluster_rt - rt_core) <= drift_rt_tolerance)
-            & (abs(cluster_ccs - ccs_core) <= dynamic_css_drift)
-        )
-        labels[class_member_mask] = np.where(drift_mask, k, -1)
-        print(dynamic_mass_drift)
-        print("cluster mean mass", mz_core)
-        print(abs(cluster_mz - mz_core))
+            # Exclude points that exceed the drift tolerance
+            drift_mask = (
+                (abs(cluster_mz - mz_core) <= dynamic_mass_drift)
+                & (abs(cluster_rt - rt_core) <= drift_rt_tolerance)
+                & (abs(cluster_ccs - ccs_core) <= dynamic_css_drift)
+            )
+            labels[class_member_mask] = np.where(drift_mask, k, -1)
+            print(dynamic_mass_drift)
+            print("cluster mean mass", mz_core)
+            print(abs(cluster_mz - mz_core))
+
 # Visualization of the clusters in 3D
 fig = plt.figure(figsize=(10, 6))
 ax = fig.add_subplot(111, projection="3d")
@@ -177,6 +197,11 @@ for k in unique_labels:
                     linewidth=1,
                 )
 
+# Add interactive hover functionality
+cursor = mplcursors.cursor(scatter, hover=True)
+cursor.connect(
+    "add", lambda sel: sel.annotation.set_text(f"Cluster {labels[sel.index]}")
+)
 
 ax.set_xlabel("m/z")
 ax.set_ylabel("RT")
