@@ -1,10 +1,9 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 import math
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
-import matplotlib.cm as cm
 import time
+import plotly.graph_objects as go
+import plotly.express as px
 
 
 # Function to calculate the m/z distance
@@ -79,27 +78,11 @@ def create_distance_matrix(
 
 
 # Example usage
-np.random.seed(42)  # For reproducibility
-
-# Cluster 1
-mz_cluster1 = np.random.normal(1020, 0.01, 500)
-rt_cluster1 = np.random.normal(5, 0.5, 500)
-ccs_cluster1 = np.random.normal(120, 2, 500)
-
-# Cluster 2
-mz_cluster2 = np.random.normal(1050, 0.01, 500)
-rt_cluster2 = np.random.normal(10, 0.5, 500)
-ccs_cluster2 = np.random.normal(150, 2, 500)
-
-# Noise
-mz_noise = np.random.uniform(1000, 1100, 200)
-rt_noise = np.random.uniform(1, 16, 200)
-ccs_noise = np.random.uniform(100, 200, 200)
-
-# Combine clusters and noise
-mz_values = np.concatenate([mz_cluster1, mz_cluster2, mz_noise])
-rt_values = np.concatenate([rt_cluster1, rt_cluster2, rt_noise])
-ccs_values = np.concatenate([ccs_cluster1, ccs_cluster2, ccs_noise])
+mz_values = np.array(
+    [1000, 1000, 1000, 1000.01, 1000.02, 1000.03, 1000.04, 1000.05, 1000.06]
+)  # m/z values
+rt_values = np.array([2, 2, 2, 2.5, 2.5, 2.2, 2.5, 2.5, 2.5])  # RT values
+ccs_values = np.array([100, 101, 102, 100, 101, 102, 100, 102, 100])
 
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
 ppm_tolerance = 1e-5
@@ -164,52 +147,54 @@ print(f"Applying drift tolerance took {end_time - start_time:.4f} seconds")
 
 # Measure time for visualization
 start_time = time.time()
-fig = plt.figure(figsize=(10, 6))
-ax = fig.add_subplot(111, projection="3d")
-unique_labels = set(labels)
 
-# Normalize distances for colormap
-norm = Normalize(vmin=0, vmax=eps_cutoff)
-cmap = cm.get_cmap("coolwarm_r")  # Use the reversed coolwarm colormap
+# Visualization of the clusters in 3D using Plotly
+fig = go.Figure()
 
-for k in unique_labels:
-    if k == -1:
-        # Grey used for noise.
-        col = [0.5, 0.5, 0.5, 1]
-    else:
-        # Black used for clusters.
-        col = [0, 0, 0, 1]
+# Generate a colormap for clusters
+colors = px.colors.qualitative.Plotly
 
-    class_member_mask = labels == k
-
-    xyz = np.array([mz_values, rt_values, ccs_values]).T[class_member_mask]
-    scatter = ax.scatter(
-        xyz[:, 0],
-        xyz[:, 1],
-        xyz[:, 2],
-        c=[col],
-        edgecolor="k",
-        label=f"Cluster {k}" if k != -1 else "Noise",
+# Plot noise points first
+noise_mask = labels == -1
+xyz_noise = np.array([mz_values, rt_values, ccs_values]).T[noise_mask]
+fig.add_trace(
+    go.Scatter3d(
+        x=xyz_noise[:, 0],
+        y=xyz_noise[:, 1],
+        z=xyz_noise[:, 2],
+        mode="markers",
+        marker=dict(size=5, color="grey"),
+        name="Noise",
     )
+)
 
-    # Draw edges between points in the same cluster
-    if k != -1:  # Skip noise points
-        for i in range(len(xyz)):
-            for j in range(i + 1, len(xyz)):
-                distance = np.linalg.norm(xyz[i] - xyz[j])
-                line_color = cmap(norm(distance))
-                ax.plot(
-                    [xyz[i, 0], xyz[j, 0]],
-                    [xyz[i, 1], xyz[j, 1]],
-                    [xyz[i, 2], xyz[j, 2]],
-                    color=line_color,
-                    linewidth=1,
-                )
+# Plot clusters
+for k in unique_labels:
+    if k != -1:
+        class_member_mask = labels == k
+        xyz = np.array([mz_values, rt_values, ccs_values]).T[class_member_mask]
 
-ax.set_xlabel("m/z")
-ax.set_ylabel("RT")
-ax.set_zlabel("CCS")
-ax.set_title("DBSCAN Clustering of m/z, RT, and CCS Values")
-plt.show()
+        # Assign a unique color to each cluster
+        color = colors[k % len(colors)]
+        name = f"Cluster {k}"
+
+        fig.add_trace(
+            go.Scatter3d(
+                x=xyz[:, 0],
+                y=xyz[:, 1],
+                z=xyz[:, 2],
+                mode="markers",
+                marker=dict(size=5, color=color),
+                name=name,
+            )
+        )
+
+fig.update_layout(
+    scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
+    title="DBSCAN Clustering of m/z, RT, and CCS Values",
+)
+
+fig.show()
+
 end_time = time.time()
 print(f"Visualization took {end_time - start_time:.4f} seconds")
