@@ -17,17 +17,27 @@ def rt_distance(rt1, rt2, rt_tolerance=0.5):
 
 
 # Function to calculate the CCS distance
-def ccs_distance(ccs1, ccs2, ppm_tolerance=1e-5):
+def ccs_distance(ccs1, ccs2, ccs_tolerance=0.02):
     delta_ccs = abs(ccs2 - ccs1)
-    return delta_ccs / (ccs1 * ppm_tolerance)
+    return delta_ccs / (ccs1 * ccs_tolerance)
 
 
 # Function to calculate the EPS distance
-def calculate_eps(mz1, mz2, rt1, rt2, ccs1, ccs2, ppm_tolerance=1e-5, rt_tolerance=0.5):
+def calculate_eps(
+    mz1,
+    mz2,
+    rt1,
+    rt2,
+    ccs1,
+    ccs2,
+    ppm_tolerance=1e-5,
+    rt_tolerance=0.5,
+    ccs_tolerance=0.02,
+):
     # Calculate individual distances
     mz_dist = mz_distance(mz1, mz2, ppm_tolerance)
     rt_dist = rt_distance(rt1, rt2, rt_tolerance)
-    ccs_dist = ccs_distance(ccs1, ccs2, ppm_tolerance)
+    ccs_dist = ccs_distance(ccs1, ccs2, ccs_tolerance)
 
     # Combine the distances using Euclidean distance
     eps = math.sqrt(mz_dist**2 + rt_dist**2 + ccs_dist**2)
@@ -36,7 +46,12 @@ def calculate_eps(mz1, mz2, rt1, rt2, ccs1, ccs2, ppm_tolerance=1e-5, rt_toleran
 
 # Create a custom distance matrix for DBSCAN
 def create_distance_matrix(
-    mz_values, rt_values, ccs_values, ppm_tolerance=1e-5, rt_tolerance=0.5
+    mz_values,
+    rt_values,
+    ccs_values,
+    ppm_tolerance=1e-5,
+    rt_tolerance=0.5,
+    ccs_tolerance=0.02,
 ):
     n = len(mz_values)
     dist_matrix = np.zeros((n, n))
@@ -52,6 +67,7 @@ def create_distance_matrix(
                 ccs_values[j],
                 ppm_tolerance,
                 rt_tolerance,
+                ccs_tolerance,
             )
             dist_matrix[i, j] = eps
             dist_matrix[j, i] = eps  # Distance matrix is symmetric
@@ -60,9 +76,9 @@ def create_distance_matrix(
 
 
 # Example usage
-mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 1000.01, 1000]  # m/z values
-rt_values = [2, 2.5, 3, 2.2, 2.5, 4, 4.2]  # RT values
-ccs_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 1000.01, 1000]  # CCS values
+mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 950.01, 950]  # m/z values
+rt_values = [2, 2.5, 2.7, 2.2, 2.5, 2.5, 2.5]  # RT values
+ccs_values = [100, 101, 102, 100, 101, 102, 100]  # CCS values
 eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
 
 # Create distance matrix
