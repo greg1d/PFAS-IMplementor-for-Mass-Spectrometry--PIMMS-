@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 import math
+import matplotlib.pyplot as plt
 
 
 # Function to calculate the m/z distance
@@ -48,8 +49,8 @@ def create_distance_matrix(mz_values, rt_values, ppm_tolerance=1e-5, rt_toleranc
 
 
 # Example usage
-mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 10000.1, 10000]  # m/z values
-rt_values = [2, 2.5, 3, 2.2, 2.5, 2.5, 5]  # RT values
+mz_values = [1000, 1000.02, 1001, 1000.01, 1001.01, 1002.1]  # m/z values
+rt_values = [2, 2.5, 3, 2.2, 2.5, 2.5]  # RT values
 eps_cutoff = 1.414  # EPS cutoff value for DBSCAN
 
 # Create distance matrix
@@ -58,6 +59,37 @@ dist_matrix = create_distance_matrix(mz_values, rt_values)
 # Apply DBSCAN
 dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix)
-
-# Output the clustering results
 print("Cluster labels:", labels)
+
+# Adjust labels for clusters with fewer than 2 items
+unique_labels, counts = np.unique(labels, return_counts=True)
+for label, count in zip(unique_labels, counts):
+    if count < 2:
+        labels[labels == label] = -1  # Mark as noise
+
+# Visualization of the clusters
+plt.figure(figsize=(10, 6))
+unique_labels = set(labels)
+colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+        # Black used for noise.
+        col = [0, 0, 0, 1]
+
+    class_member_mask = labels == k
+
+    xy = np.array([mz_values, rt_values]).T[class_member_mask]
+    plt.scatter(
+        xy[:, 0],
+        xy[:, 1],
+        c=[col],
+        edgecolor="k",
+        label=f"Cluster {k}" if k != -1 else "Noise",
+    )
+
+plt.xlabel("m/z")
+plt.ylabel("RT")
+plt.title("DBSCAN Clustering of m/z and RT Values")
+plt.legend()
+plt.show()
