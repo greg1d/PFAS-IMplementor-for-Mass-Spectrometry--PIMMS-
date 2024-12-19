@@ -4,7 +4,6 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
-import mplcursors
 
 
 # Function to calculate the m/z distance
@@ -178,11 +177,6 @@ for k in unique_labels:
                     linewidth=1,
                 )
 
-# Add interactive hover functionality
-cursor = mplcursors.cursor(scatter, hover=True)
-cursor.connect(
-    "add", lambda sel: sel.annotation.set_text(f"Cluster {labels[sel.index]}")
-)
 
 ax.set_xlabel("m/z")
 ax.set_ylabel("RT")
