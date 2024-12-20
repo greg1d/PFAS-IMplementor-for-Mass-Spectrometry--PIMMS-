@@ -9,8 +9,11 @@ from PyQt6.QtWidgets import (
     QLineEdit,
 )
 from PyQt6.QtCore import QThread, pyqtSignal, QFileSystemWatcher
+from modules.feather_reader import (
+    process_file,
+    align_peaks,
+)  # Import functions from feather_reader
 import pandas as pd
-from modules.feather_reader import process_file
 
 
 class FileWatcher(QThread):
@@ -22,21 +25,15 @@ class FileWatcher(QThread):
         self.watcher = QFileSystemWatcher([directory])
         self.watcher.fileChanged.connect(self.on_file_changed)
         self.watcher.directoryChanged.connect(self.on_directory_changed)
-        print(
-            f"FileWatcher initialized for directory: {directory}"
-        )  # Debugging statement
 
     def on_file_changed(self, path):
         if path.endswith(".feather"):
-            print(f"File changed detected: {path}")  # Debugging statement
             self.directory_changed.emit()
 
     def on_directory_changed(self, path):
-        print(f"Directory changed detected: {path}")  # Debugging statement
         self.directory_changed.emit()
 
     def run(self):
-        print("FileWatcher thread started")  # Debugging statement
         self.exec()
 
 
@@ -48,6 +45,9 @@ class PeakAlignment(QWidget):
         self.file_watcher = FileWatcher(self.directory)  # Initialize file_watcher
         self.file_watcher.directory_changed.connect(self.import_processed_files)
         self.file_watcher.start()
+
+        # Store imported data arrays
+        self.data_arrays = []
 
     def init_ui(self):
         main_layout = QVBoxLayout()
@@ -122,7 +122,7 @@ class PeakAlignment(QWidget):
 
         # Connect buttons
         refresh_button.clicked.connect(self.import_processed_files)
-        align_button.clicked.connect(self.align_peaks)
+        align_button.clicked.connect(self.trigger_align_peaks)
 
         # Add widgets to layout
         main_layout.addWidget(header_label)
@@ -163,27 +163,25 @@ class PeakAlignment(QWidget):
 
     def import_processed_files(self):
         temp_folder = os.path.join(self.directory, ".temp")
-        print(f"Current working directory: {os.getcwd()}")  # Debugging statement
-        print(f"Checking .temp folder: {temp_folder}")  # Debugging statement
+        self.data_arrays = []  # Clear previous data arrays
         if os.path.exists(temp_folder):
             self.file_list.clear()
             files = os.listdir(temp_folder)
-            data_arrays = []
             for file_name in files:
                 if file_name.endswith(".feather"):
                     full_path = os.path.join(temp_folder, file_name)
                     self.file_list.addItem(full_path)
-                    data_array = self.process_file(full_path)
+                    data_array = process_file(full_path)  # Use imported function
                     if data_array is not None:
-                        data_arrays.append(data_array)
-            # Pass the collected arrays to the peak alignment algorithm
-            self.align_peaks(data_arrays)
+                        self.data_arrays.append(data_array)
         else:
-            print(f".temp folder does not exist: {temp_folder}")  # Debugging statement
+            print(f".temp folder does not exist: {temp_folder}")
 
-    def align_peaks(self, data_arrays):
-        process_file()
+    def trigger_align_peaks(self):
+        if not self.data_arrays:
+            print(
+                "No data arrays available for alignment. Please import processed files first."
+            )
+            return
 
-
-if __name__ == "__main__":
-    print("Running peak_alignment.py as main script")  # Debugging statement
+        align_peaks(self.data_arrays)  # Use imported function
