@@ -38,7 +38,6 @@ def read_results_md():
                         "CSS": 0,
                         "HTML": 0,
                         "Python": 0,
-                        "Others": 0,
                     }
                     for line in lines:
                         if (
@@ -50,15 +49,18 @@ def read_results_md():
                             parts = line.split("|")
                             if len(parts) > 3:
                                 language = parts[1].strip()
+                                if language.lower() == "csv":
+                                    continue  # Skip CSV files
                                 try:
                                     code_lines = int(parts[3].replace(",", "").strip())
                                     if language in language_data:
                                         language_data[language] += code_lines
-                                    else:
-                                        language_data["Others"] += code_lines
                                     lines_of_code += code_lines
                                 except ValueError:
                                     print(f"Skipping line due to ValueError: {line}")
+                    print(
+                        f"Date: {creation_date}, JavaScript: {language_data['JavaScript']}, CSS: {language_data['CSS']}, HTML: {language_data['HTML']}, Python: {language_data['Python']}"
+                    )
                     data.append(
                         (
                             creation_date,
@@ -67,7 +69,6 @@ def read_results_md():
                             language_data["CSS"],
                             language_data["HTML"],
                             language_data["Python"],
-                            language_data["Others"],
                         )
                     )
     return data
@@ -87,7 +88,6 @@ def save_data(data):
                 "CSS",
                 "HTML",
                 "Python",
-                "Others",
             ]
         )
 
@@ -101,13 +101,21 @@ def save_data(data):
             "CSS",
             "HTML",
             "Python",
-            "Others",
         ],
     )
     df = pd.concat([df, new_data], ignore_index=True)
 
     # Save to Excel
     df.to_excel(output_file, index=False)
+
+    # Print the total amount of code for each language
+    total_js = df["JavaScript"].sum()
+    total_css = df["CSS"].sum()
+    total_html = df["HTML"].sum()
+    total_python = df["Python"].sum()
+    print(
+        f"Total JavaScript: {total_js}, Total CSS: {total_css}, Total HTML: {total_html}, Total Python: {total_python}"
+    )
 
     return df
 
@@ -151,23 +159,42 @@ def plot_data(df):
         )  # Cubic spline interpolation
         return spline(x_smooth)
 
-    # Plot the smoothed lines for each language
+    # Plot the smoothed lines for each language with transparency
     ax.plot(
         x_smooth,
         smooth_data("JavaScript"),
         label="JavaScript",
         color="blue",
         linewidth=3,
+        alpha=0.7,
     )
-    ax.plot(x_smooth, smooth_data("CSS"), label="CSS", color="orange", linewidth=3)
-    ax.plot(x_smooth, smooth_data("HTML"), label="HTML", color="green", linewidth=3)
-    ax.plot(x_smooth, smooth_data("Python"), label="Python", color="red", linewidth=3)
-    ax.plot(x_smooth, smooth_data("Others"), label="Others", color="pink", linewidth=3)
+    ax.plot(
+        x_smooth,
+        smooth_data("CSS"),
+        label="CSS",
+        color="orange",
+        linewidth=3,
+        alpha=0.7,
+    )
+    ax.plot(
+        x_smooth,
+        smooth_data("HTML"),
+        label="HTML",
+        color="green",
+        linewidth=3,
+        alpha=0.7,
+    )
+    ax.plot(
+        x_smooth,
+        smooth_data("Python"),
+        label="Python",
+        color="red",
+        linewidth=3,
+        alpha=1,
+    )
 
     # Plot the sum of all code
-    sum_of_all_code = (
-        df["JavaScript"] + df["CSS"] + df["HTML"] + df["Python"] + df["Others"]
-    )
+    sum_of_all_code = df["JavaScript"] + df["CSS"] + df["HTML"] + df["Python"]
     sum_of_all_code_smooth = make_interp_spline(dates, sum_of_all_code, k=3)(x_smooth)
     ax.plot(
         x_smooth,
@@ -175,6 +202,8 @@ def plot_data(df):
         label="Sum of all code",
         color="black",
         linewidth=3,
+        linestyle="dotted",
+        alpha=1,
     )
 
     # Modify the title to be larger and more specific
@@ -208,10 +237,7 @@ def plot_data(df):
     ax.set_yticks(
         range(
             0,
-            int(
-                df[["JavaScript", "CSS", "HTML", "Python", "Others"]].sum(axis=1).max()
-                + 1000
-            )
+            int(df[["JavaScript", "CSS", "HTML", "Python"]].sum(axis=1).max() + 1000)
             + 1000,
             1000,
         )

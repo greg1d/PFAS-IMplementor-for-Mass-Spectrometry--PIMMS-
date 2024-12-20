@@ -50,7 +50,6 @@ class PeakAlignment(QWidget):
         self.file_watcher = FileWatcher(self.directory)  # Initialize file_watcher
         self.file_watcher.directory_changed.connect(self.import_processed_files)
         self.file_watcher.start()
-        print("PeakAlignment widget initialized")  # Debugging statement
 
     def init_ui(self):
         main_layout = QVBoxLayout()
@@ -135,7 +134,6 @@ class PeakAlignment(QWidget):
         main_layout.addWidget(align_button)
 
         self.setLayout(main_layout)
-        print("UI initialized")  # Debugging statement
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -157,20 +155,16 @@ class PeakAlignment(QWidget):
         self.mz_min_label.setFixedWidth(new_width)
 
     def import_processed_files(self):
-        print("import_processed_files called")  # Debugging statement
         temp_folder = os.path.join(self.directory, ".temp")
         print(f"Current working directory: {os.getcwd()}")  # Debugging statement
         print(f"Checking .temp folder: {temp_folder}")  # Debugging statement
         if os.path.exists(temp_folder):
-            print(f".temp folder exists: {temp_folder}")  # Debugging statement
             self.file_list.clear()
             files = os.listdir(temp_folder)
-            print(f"Files in .temp folder: {files}")  # Debugging statement
             for file_name in files:
                 if file_name.endswith(".feather"):
                     full_path = os.path.join(temp_folder, file_name)
                     self.file_list.addItem(full_path)
-                    print(f"Found file: {full_path}")  # Debugging statement
                     self.process_file(full_path)
         else:
             print(f".temp folder does not exist: {temp_folder}")  # Debugging statement

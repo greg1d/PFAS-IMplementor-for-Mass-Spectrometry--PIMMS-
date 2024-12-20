@@ -31,6 +31,9 @@
         "**/resources/**",
         "**/data/**"
     ],
+    "VSCodeCounter.ignore": [
+        "*.csv"
+    ],
     "VSCodeCounter.outputDirectory": "./LOC Tracking outputs",
     "VSCodeCounter.outputAsText": true,
     "VSCodeCounter.outputAsCSV": false,

@@ -12,7 +12,6 @@ class PreProcessingTab(QWidget):
         main_layout = QVBoxLayout()
 
         # Create Peak Alignment and Blank Subtraction sections
-        peak_alignment = PeakAlignment()
         blank_subtraction = BlankSubtraction()
 
         # Add sections to layout
