@@ -1,2 +1,2 @@
-def feather_reader():
-    print("align_peaks called")
+def process_file():
+    print("Processing file")

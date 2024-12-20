@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSignal, QFileSystemWatcher
 import pandas as pd
-from modules.feather_reader import feather_reader
+from modules.feather_reader import process_file
 
 
 class FileWatcher(QThread):
@@ -152,6 +152,15 @@ class PeakAlignment(QWidget):
         self.ccs_min_label.setFixedWidth(new_width)
         self.mz_min_label.setFixedWidth(new_width)
 
+    def process_file(self, file_path):
+        print(f"Processing file: {file_path}")
+        try:
+            df = pd.read_feather(file_path)
+            print(df.head())  # Print the first few rows of the dataframe for debugging
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+            # Debugging statement
+
     def import_processed_files(self):
         temp_folder = os.path.join(self.directory, ".temp")
         print(f"Current working directory: {os.getcwd()}")  # Debugging statement
@@ -159,24 +168,21 @@ class PeakAlignment(QWidget):
         if os.path.exists(temp_folder):
             self.file_list.clear()
             files = os.listdir(temp_folder)
+            data_arrays = []
             for file_name in files:
                 if file_name.endswith(".feather"):
                     full_path = os.path.join(temp_folder, file_name)
                     self.file_list.addItem(full_path)
-                    self.process_file(full_path)
+                    data_array = self.process_file(full_path)
+                    if data_array is not None:
+                        data_arrays.append(data_array)
+            # Pass the collected arrays to the peak alignment algorithm
+            self.align_peaks(data_arrays)
         else:
             print(f".temp folder does not exist: {temp_folder}")  # Debugging statement
 
-    def process_file(self, file_path):
-        print(f"Processing file: {file_path}")
-        try:
-            df = pd.read_feather(file_path)
-            print(df.head())  # Print the first few rows of the dataframe for debugging
-        except Exception as e:
-            print(f"Error processing file {file_path}: {e}")  # Debugging statement
-
-    def align_peaks(self):
-        feather_reader()
+    def align_peaks(self, data_arrays):
+        process_file()
 
 
 if __name__ == "__main__":
