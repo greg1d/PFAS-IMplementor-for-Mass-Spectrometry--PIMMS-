@@ -20,6 +20,7 @@ def align_peaks(data_arrays):
     """
     Executes the peak alignment algorithm on a list of data arrays.
     """
+    print(data_arrays)
     if not data_arrays:
         print("No data arrays provided for alignment.")
         return
