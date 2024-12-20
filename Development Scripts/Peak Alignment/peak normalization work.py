@@ -1,10 +1,11 @@
 import numpy as np
 from scipy.sparse import lil_matrix
 from sklearn.cluster import DBSCAN
-from sklearn.neighbors import sort_graph_by_row_values
+from sklearn.neighbors import NearestNeighbors, sort_graph_by_row_values
 import plotly.graph_objects as go
-import plotly.express as px
 import psutil
+from sklearn.preprocessing import MinMaxScaler
+from scipy.spatial import distance
 
 
 # Function to limit memory usage
@@ -86,7 +87,7 @@ rt_clusters = []
 ccs_clusters = []
 
 for _ in range(num_clusters):
-    mz_center = np.random.uniform(1549.9, 1550)
+    mz_center = np.random.uniform(1500, 1550)
     rt_center = np.random.uniform(15.5, 16)
     ccs_center = np.random.uniform(196, 200)
     cluster_size = np.random.randint(30, 51)
@@ -169,51 +170,58 @@ for k in np.unique(labels):
             )
             labels[class_member_mask] = np.where(drift_mask, k, -1)
 
-# Visualization of the clusters in 3D using Plotly
+
+# Combine data into a single array
+points = np.vstack((mz_values, rt_values, ccs_values)).T
+
+# Scale data using Min-Max Scaler
+scaler = MinMaxScaler()
+points_scaled = scaler.fit_transform(points)
+
+# Calculate pairwise distances
+pairwise_distances = distance.cdist(points_scaled, points_scaled, metric="euclidean")
+
+# Adjust radius using a meaningful percentile
+radius = np.percentile(pairwise_distances[pairwise_distances > 0], 5)  # 5th percentile
+
+# Compute density using Nearest Neighbors
+nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
+
+density = np.array(
+    [len(nbrs.radius_neighbors([point])[0][0]) for point in points_scaled]
+)
+
+# Debug: Check density values
+
+# Normalize density for coloring
+density_min = density.min()
+density_max = density.max()
+if density_max != density_min:
+    density_normalized = (density - density_min) / (density_max - density_min)
+else:
+    density_normalized = np.zeros_like(density)
+
+# Visualization
 fig = go.Figure()
-
-# Generate a colormap for clusters
-colors = px.colors.qualitative.Plotly
-
-# Plot noise points first
-noise_mask = labels == -1
-xyz_noise = np.array([mz_values, rt_values, ccs_values]).T[noise_mask]
 fig.add_trace(
     go.Scatter3d(
-        x=xyz_noise[:, 0],
-        y=xyz_noise[:, 1],
-        z=xyz_noise[:, 2],
+        x=mz_values,
+        y=rt_values,
+        z=ccs_values,
         mode="markers",
-        marker=dict(size=5, color="grey"),
-        name="Noise",
+        marker=dict(
+            size=5,
+            color=density_normalized,
+            colorscale="Viridis",
+            colorbar=dict(title="Density"),
+        ),
+        name="Points",
     )
 )
 
-# Plot clusters
-unique_labels = np.unique(labels)
-for k in unique_labels:
-    if k != -1:
-        class_member_mask = labels == k
-        xyz = np.array([mz_values, rt_values, ccs_values]).T[class_member_mask]
-
-        # Assign a unique color to each cluster
-        color = colors[k % len(colors)]
-        name = f"Cluster {k}"
-
-        fig.add_trace(
-            go.Scatter3d(
-                x=xyz[:, 0],
-                y=xyz[:, 1],
-                z=xyz[:, 2],
-                mode="markers",
-                marker=dict(size=5, color=color),
-                name=name,
-            )
-        )
-
 fig.update_layout(
     scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-    title="DBSCAN Clustering with Drift Tolerance",
+    title="Density-Based Coloring with Scaled Data",
 )
 
 fig.show()
