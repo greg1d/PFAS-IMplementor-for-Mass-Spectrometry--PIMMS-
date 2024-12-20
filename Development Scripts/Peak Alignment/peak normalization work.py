@@ -86,13 +86,13 @@ rt_clusters = []
 ccs_clusters = []
 
 # Define centers for the overlapping clusters
-mz_center1, mz_center2 = 800, 805  # Close mz centers to create overlap
+mz_center1, mz_center2 = 800, 800.3  # Close mz centers to create overlap
 rt_center1, rt_center2 = 8, 8.5  # Close rt centers to create overlap
 ccs_center1, ccs_center2 = 100, 105  # Close ccs centers to create overlap
 
 # Define sizes for the clusters
-cluster_size1 = np.random.randint(30, 51)
-cluster_size2 = np.random.randint(30, 51)
+cluster_size1 = np.random.randint(500)
+cluster_size2 = np.random.randint(500)
 
 # Generate the overlapping clusters
 mz_clusters.append(np.random.normal(mz_center1, 0.01, cluster_size1))
@@ -190,7 +190,7 @@ points_scaled = scaler.fit_transform(points)
 pairwise_distances = distance.cdist(points_scaled, points_scaled, metric="euclidean")
 
 # Adjust radius using a meaningful percentile
-radius = np.percentile(pairwise_distances[pairwise_distances > 0], 5)  # 5th percentile
+radius = np.percentile(pairwise_distances[pairwise_distances > 0], 1)  # 5th percentile
 
 # Compute density using Nearest Neighbors
 nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
