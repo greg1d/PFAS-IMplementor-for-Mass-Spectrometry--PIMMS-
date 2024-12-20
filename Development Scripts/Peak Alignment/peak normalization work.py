@@ -11,7 +11,7 @@ import psutil
 def limit_memory_usage():
     """Calculates available memory to set a limit for processing."""
     mem = psutil.virtual_memory()
-    available_memory = mem.available * 0.7  # Use 80% of available memory
+    available_memory = mem.available * 0.7  # Use 70% of available memory
     print(f"Available memory: {available_memory / (1024 ** 2):.2f} MB")
     return available_memory
 
@@ -86,9 +86,9 @@ rt_clusters = []
 ccs_clusters = []
 
 for _ in range(num_clusters):
-    mz_center = np.random.uniform(1500, 1550)
-    rt_center = np.random.uniform(15, 16)
-    ccs_center = np.random.uniform(195, 200)
+    mz_center = np.random.uniform(1549.9, 1550)
+    rt_center = np.random.uniform(15.5, 16)
+    ccs_center = np.random.uniform(196, 200)
     cluster_size = np.random.randint(30, 51)
 
     mz_clusters.append(np.random.normal(mz_center, 0.01, cluster_size))
@@ -96,9 +96,9 @@ for _ in range(num_clusters):
     ccs_clusters.append(np.random.normal(ccs_center, 2, cluster_size))
 
 # Noise
-mz_noise = np.random.uniform(0, 1600, 5000)
-rt_noise = np.random.uniform(0, 16, 5000)
-ccs_noise = np.random.uniform(0, 200, 5000)
+mz_noise = np.random.uniform(0, 1600, 5)
+rt_noise = np.random.uniform(0, 16, 5)
+ccs_noise = np.random.uniform(0, 200, 5)
 
 # Combine clusters and noise
 mz_values = np.concatenate(mz_clusters + [mz_noise])
@@ -137,6 +137,37 @@ dist_matrix_sparse_sorted = sort_graph_by_row_values(
 # Perform DBSCAN clustering
 dbscan = DBSCAN(eps=eps_cutoff, min_samples=2, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix_sparse_sorted)
+
+# Parameters for drift tolerance
+drift_mz_tolerance = 1.5 * ppm_tolerance
+drift_rt_tolerance = 1.5 * rt_tolerance
+drift_ccs_tolerance = 1.5 * ccs_tolerance
+
+# Refine clusters using drift tolerance
+for k in np.unique(labels):
+    if k != -1:
+        class_member_mask = labels == k
+        cluster_mz = mz_values[class_member_mask]
+        cluster_rt = rt_values[class_member_mask]
+        cluster_ccs = ccs_values[class_member_mask]
+
+        if len(cluster_mz) > 2 and len(cluster_rt) > 2 and len(cluster_ccs) > 2:
+            # Calculate the core values of the cluster
+            mz_core = np.percentile(cluster_mz, 25)
+            rt_core = np.percentile(cluster_rt, 25)
+            ccs_core = np.percentile(cluster_ccs, 25)
+
+            # Dynamic drift tolerances
+            dynamic_mass_drift = drift_mz_tolerance * mz_core
+            dynamic_ccs_drift = drift_ccs_tolerance * ccs_core
+
+            # Exclude points exceeding the drift tolerance
+            drift_mask = (
+                (abs(cluster_mz - mz_core) <= dynamic_mass_drift)
+                & (abs(cluster_rt - rt_core) <= drift_rt_tolerance)
+                & (abs(cluster_ccs - ccs_core) <= dynamic_ccs_drift)
+            )
+            labels[class_member_mask] = np.where(drift_mask, k, -1)
 
 # Visualization of the clusters in 3D using Plotly
 fig = go.Figure()
@@ -182,7 +213,7 @@ for k in unique_labels:
 
 fig.update_layout(
     scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-    title="DBSCAN Clustering of m/z, RT, and CCS Values",
+    title="DBSCAN Clustering with Drift Tolerance",
 )
 
 fig.show()
