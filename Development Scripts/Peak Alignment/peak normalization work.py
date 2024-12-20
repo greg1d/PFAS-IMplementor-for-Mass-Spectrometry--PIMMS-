@@ -87,13 +87,13 @@ rt_clusters = []
 ccs_clusters = []
 
 # Define centers for the overlapping clusters
-mz_center1, mz_center2 = 800.3, 800.3  # Close mz centers to create overlap
+mz_center1, mz_center2 = 800.1, 800.3  # Close mz centers to create overlap
 rt_center1, rt_center2 = 8.5, 8.5  # Close rt centers to create overlap
 ccs_center1, ccs_center2 = 105, 105  # Close ccs centers to create overlap
 
 # Define sizes for the clusters
-cluster_size1 = np.random.randint(500)
-cluster_size2 = np.random.randint(500)
+cluster_size1 = np.random.randint(1000)
+cluster_size2 = np.random.randint(1000)
 
 # Generate the overlapping clusters
 mz_clusters.append(np.random.normal(mz_center1, 0.01, cluster_size1))
@@ -292,14 +292,27 @@ def compute_highest_density_bin(cluster_points, bins_per_dimension=(5, 5, 5)):
     cluster_min = cluster_points.min(axis=0)
     cluster_max = cluster_points.max(axis=0)
 
+    # Print the min and max values of the cluster
+    print(f"Cluster Min: {cluster_min}, Cluster Max: {cluster_max}")
+
     # Create edges dynamically based on the range and number of bins
     edges = [
         np.linspace(cluster_min[i], cluster_max[i], bins_per_dimension[i] + 1)
         for i in range(cluster_points.shape[1])
     ]
 
+    # Calculate bin dimensions (width, height, depth)
+    bin_dimensions = [edges[i][1] - edges[i][0] for i in range(len(edges))]
+    print(f"Bin Dimensions: {bin_dimensions}")
+
     # Compute the 3D histogram
     hist, edges = np.histogramdd(cluster_points, bins=edges)
+    # Print the sum of all bin counts
+    total_points_in_bins = hist.sum()
+    print("Total Points in Bins:", total_points_in_bins)
+
+    # Optional: Verify that it matches the number of cluster points
+    print("Number of Cluster Points:", len(cluster_points))
 
     # Calculate the centers of bins with non-zero counts
     bin_centers = []
@@ -319,7 +332,7 @@ def compute_highest_density_bin(cluster_points, bins_per_dimension=(5, 5, 5)):
 
 
 # Apply the binning and find the density information for each cluster
-bins_per_dimension = (5, 5, 5)  # Define number of bins along each dimension
+bins_per_dimension = (2, 5, 5)  # Define number of bins along each dimension
 binned_data = {}
 
 for cluster_id in np.unique(labels):
@@ -327,6 +340,7 @@ for cluster_id in np.unique(labels):
         cluster_mask = labels == cluster_id
         cluster_points = points[cluster_mask]
 
+        print(f"\nCluster ID: {cluster_id}")
         edges, bin_centers, bin_counts, hover_text = compute_highest_density_bin(
             cluster_points, bins_per_dimension=bins_per_dimension
         )
