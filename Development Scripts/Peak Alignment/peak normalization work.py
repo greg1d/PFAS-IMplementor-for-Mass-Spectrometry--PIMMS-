@@ -6,13 +6,14 @@ import plotly.graph_objects as go
 import psutil
 from sklearn.preprocessing import MinMaxScaler
 from scipy.spatial import distance
+import pandas as pd
 
 
 # Function to limit memory usage
 def limit_memory_usage():
     """Calculates available memory to set a limit for processing."""
     mem = psutil.virtual_memory()
-    available_memory = mem.available * 0.7  # Use 70% of available memory
+    available_memory = mem.available * 0.9  # Use 70% of available memory
     print(f"Available memory: {available_memory / (1024 ** 2):.2f} MB")
     return available_memory
 
@@ -86,7 +87,7 @@ rt_clusters = []
 ccs_clusters = []
 
 # Define centers for the overlapping clusters
-mz_center1, mz_center2 = 800, 800.3  # Close mz centers to create overlap
+mz_center1, mz_center2 = 700, 800.3  # Close mz centers to create overlap
 rt_center1, rt_center2 = 8, 8.5  # Close rt centers to create overlap
 ccs_center1, ccs_center2 = 100, 105  # Close ccs centers to create overlap
 
@@ -125,7 +126,7 @@ ccs_tolerance = 0.02
 
 # Create distance matrix with memory limit
 available_memory = limit_memory_usage()
-memory_limit = available_memory * 0.1  # Use 10% of available memory
+memory_limit = available_memory * 0.9  # Use 10% of available memory
 
 # Create sparse distance matrix
 dist_matrix_sparse = create_distance_matrix_sparse(
@@ -146,6 +147,10 @@ dist_matrix_sparse_sorted = sort_graph_by_row_values(
 # Perform DBSCAN clustering
 dbscan = DBSCAN(eps=eps_cutoff, min_samples=2, metric="precomputed")
 labels = dbscan.fit_predict(dist_matrix_sparse_sorted)
+
+# Print the number of clusters
+num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+print(f"Number of clusters: {num_clusters}")
 
 # Parameters for drift tolerance
 drift_mz_tolerance = 1.5 * ppm_tolerance
@@ -178,7 +183,6 @@ for k in np.unique(labels):
             )
             labels[class_member_mask] = np.where(drift_mask, k, -1)
 
-
 # Combine data into a single array
 points = np.vstack((mz_values, rt_values, ccs_values)).T
 
@@ -190,7 +194,7 @@ points_scaled = scaler.fit_transform(points)
 pairwise_distances = distance.cdist(points_scaled, points_scaled, metric="euclidean")
 
 # Adjust radius using a meaningful percentile
-radius = np.percentile(pairwise_distances[pairwise_distances > 0], 1)  # 5th percentile
+radius = np.percentile(pairwise_distances[pairwise_distances > 0], 1)  # 1st percentile
 
 # Compute density using Nearest Neighbors
 nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
@@ -198,8 +202,6 @@ nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
 density = np.array(
     [len(nbrs.radius_neighbors([point])[0][0]) for point in points_scaled]
 )
-
-# Debug: Check density values
 
 # Normalize density for coloring
 density_min = density.min()
@@ -209,27 +211,62 @@ if density_max != density_min:
 else:
     density_normalized = np.zeros_like(density)
 
+df = pd.DataFrame(
+    {
+        "m/z": mz_values,
+        "RT": rt_values,
+        "CCS": ccs_values,
+        "Cluster": labels,
+        "Density": density_normalized,
+    }
+)
 
+cluster_colors = [
+    "red",
+    "blue",
+    "green",
+    "purple",
+    "orange",
+    "cyan",
+    "magenta",
+    "yellow",
+    "black",
+    "pink",
+]
+df["Color"] = df["Cluster"].apply(
+    lambda x: cluster_colors[x % len(cluster_colors)] if x != -1 else "grey"
+)
+
+
+# Option to color by density or cluster
+color_by = "Cluster"  # Change to 'Cluster' to color by cluster
+
+# Plot with Plotly
 fig = go.Figure()
 fig.add_trace(
     go.Scatter3d(
-        x=mz_values,
-        y=rt_values,
-        z=ccs_values,
+        x=df["m/z"],
+        y=df["RT"],
+        z=df["CCS"],
         mode="markers",
         marker=dict(
             size=2,
-            color=density_normalized,
-            colorscale="Viridis",
-            colorbar=dict(title="Density"),
+            color=df["Color"] if color_by == "Cluster" else df["Density"],
+            colorscale="Viridis" if color_by == "Density" else None,
+            colorbar=dict(title=color_by),
         ),
+        text=df.apply(
+            lambda row: f"m/z: {row['m/z']}, RT: {row['RT']}, CCS: {row['CCS']}, Cluster: {row['Cluster']}",
+            axis=1,
+        ),  # Hover text
+        hoverinfo="text",
         name="Points",
     )
 )
 
 fig.update_layout(
     scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-    title="Density-Based Coloring with Scaled Data",
+    title=f"3D Scatter Plot Colored by {color_by}",
 )
 
 fig.show()
