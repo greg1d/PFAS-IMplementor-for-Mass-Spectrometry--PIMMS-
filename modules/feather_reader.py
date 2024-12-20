@@ -28,6 +28,10 @@ def align_peaks(data_arrays):
     print("Starting peak alignment algorithm...")
     for idx, data_array in enumerate(data_arrays):
         print(f"Processing data array {idx + 1}/{len(data_arrays)}")
+        # Extract the m/z column (column number 2)
+        mz_column = data_array[:, 1]
+        print(len(mz_column))
+        print(f"m/z column for data array {idx + 1}: {mz_column}")
         # Example: Replace with your actual alignment logic
         print(f"Data array shape: {data_array.shape}")
 
