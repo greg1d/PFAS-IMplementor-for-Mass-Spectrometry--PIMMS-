@@ -10,9 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSignal, QFileSystemWatcher
 import pandas as pd
-from modules.Align_peaks_algorithm import align_peaks_algorithm
-
-print("Starting peak_alignment.py script")  # Debugging statement
+from modules.feather_reader import feather_reader
 
 
 class FileWatcher(QThread):
@@ -178,19 +176,7 @@ class PeakAlignment(QWidget):
             print(f"Error processing file {file_path}: {e}")  # Debugging statement
 
     def align_peaks(self):
-        print("align_peaks called")  # Debugging statement
-        # Get user input values
-        rt_value = self.rt_input.text()
-        ccs_value = self.ccs_input.text()
-        mz_value = self.mz_input.text()
-
-        # Collect file paths
-        file_paths = [
-            self.file_list.item(index).text() for index in range(self.file_list.count())
-        ]
-
-        # Call the complex algorithm
-        align_peaks_algorithm(rt_value, ccs_value, mz_value, file_paths)
+        feather_reader()
 
 
 if __name__ == "__main__":
