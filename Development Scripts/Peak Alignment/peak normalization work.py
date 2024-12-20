@@ -80,21 +80,28 @@ def create_distance_matrix_sparse(
 # Generate synthetic data
 np.random.seed(42)  # For reproducibility
 
-# Generate 200 clusters
-num_clusters = 20
+# Create two overlapping clusters
 mz_clusters = []
 rt_clusters = []
 ccs_clusters = []
 
-for _ in range(num_clusters):
-    mz_center = np.random.uniform(1500, 1550)
-    rt_center = np.random.uniform(15.5, 16)
-    ccs_center = np.random.uniform(196, 200)
-    cluster_size = np.random.randint(30, 51)
+# Define centers for the overlapping clusters
+mz_center1, mz_center2 = 800, 805  # Close mz centers to create overlap
+rt_center1, rt_center2 = 8, 8.5  # Close rt centers to create overlap
+ccs_center1, ccs_center2 = 100, 105  # Close ccs centers to create overlap
 
-    mz_clusters.append(np.random.normal(mz_center, 0.01, cluster_size))
-    rt_clusters.append(np.random.normal(rt_center, 0.5, cluster_size))
-    ccs_clusters.append(np.random.normal(ccs_center, 2, cluster_size))
+# Define sizes for the clusters
+cluster_size1 = np.random.randint(30, 51)
+cluster_size2 = np.random.randint(30, 51)
+
+# Generate the overlapping clusters
+mz_clusters.append(np.random.normal(mz_center1, 0.01, cluster_size1))
+rt_clusters.append(np.random.normal(rt_center1, 0.5, cluster_size1))
+ccs_clusters.append(np.random.normal(ccs_center1, 2, cluster_size1))
+
+mz_clusters.append(np.random.normal(mz_center2, 0.01, cluster_size2))
+rt_clusters.append(np.random.normal(rt_center2, 0.5, cluster_size2))
+ccs_clusters.append(np.random.normal(ccs_center2, 2, cluster_size2))
 
 # Noise
 mz_noise = np.random.uniform(0, 1600, 5)
@@ -106,6 +113,7 @@ mz_values = np.concatenate(mz_clusters + [mz_noise])
 rt_values = np.concatenate(rt_clusters + [rt_noise])
 ccs_values = np.concatenate(ccs_clusters + [ccs_noise])
 
+# Print the total number of features
 total_features = len(mz_values)
 print(f"Total number of features: {total_features}")
 
@@ -201,7 +209,7 @@ if density_max != density_min:
 else:
     density_normalized = np.zeros_like(density)
 
-# Visualization
+
 fig = go.Figure()
 fig.add_trace(
     go.Scatter3d(
@@ -210,7 +218,7 @@ fig.add_trace(
         z=ccs_values,
         mode="markers",
         marker=dict(
-            size=5,
+            size=2,
             color=density_normalized,
             colorscale="Viridis",
             colorbar=dict(title="Density"),
