@@ -1,7 +1,7 @@
 import os
 
 import pandas as pd
-from PyQt6.QtCore import QFileSystemWatcher, QThread, pyqtSignal
+from PyQt6.QtCore import QFileSystemWatcher, Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
@@ -12,10 +12,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from modules.feather_reader import (
-    align_peaks,
-    process_file,
-)  # Import functions from feather_reader
+from modules.feather_reader import align_peaks, process_file
 
 
 class FileWatcher(QThread):
@@ -60,23 +57,34 @@ class PeakAlignment(QWidget):
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
         )
 
-        # Create input fields for RT, CCS, and m/z
+        # Create input fields for RT, CCS, and m/z with reduced width
         self.rt_input = QLineEdit()
+        self.rt_input.setFixedWidth(100)
+
         self.ccs_input = QLineEdit()
+        self.ccs_input.setFixedWidth(100)
+
         self.mz_input = QLineEdit()
+        self.mz_input.setFixedWidth(100)
 
         # Create labels for input fields
         self.rt_label = QLabel("RT: ±")
         self.ccs_label = QLabel("CCS: ±")
         self.mz_label = QLabel("m/z: ±")
+
+        # Right-align the labels
+        self.rt_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.ccs_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.mz_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+
         self.rt_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
         self.ccs_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
         self.mz_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
 
         # Create (min) labels and CCS unit label
@@ -84,51 +92,83 @@ class PeakAlignment(QWidget):
         self.ccs_min_label = QLabel("(%)")
         self.mz_min_label = QLabel("(Da)")
         self.rt_min_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
         self.ccs_min_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
         self.mz_min_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
 
-        # Create drift tolerance labels and input fields
+        # Create drift tolerance labels and input fields with reduced width
         self.rt_drift_label = QLabel("Drift Tolerance: ±")
         self.ccs_drift_label = QLabel("Drift Tolerance: ±")
         self.mz_drift_label = QLabel("Drift Tolerance: ±")
+
         self.rt_drift_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
         self.ccs_drift_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
         self.mz_drift_label.setStyleSheet(
-            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
+
         self.rt_drift_input = QLineEdit()
+        self.rt_drift_input.setFixedWidth(100)
+
         self.ccs_drift_input = QLineEdit()
+        self.ccs_drift_input.setFixedWidth(100)
+
         self.mz_drift_input = QLineEdit()
+        self.mz_drift_input.setFixedWidth(100)
+
+        # Create unit labels for drift tolerance
+        self.rt_drift_unit_label = QLabel("(unit)")
+        self.ccs_drift_unit_label = QLabel("(unit)")
+        self.mz_drift_unit_label = QLabel("(unit)")
+        self.rt_drift_unit_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
+        )
+        self.ccs_drift_unit_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
+        )
+        self.mz_drift_unit_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
+        )
 
         # Create grid layout for input fields and drift tolerance
         grid_layout = QGridLayout()
-        grid_layout.addWidget(self.rt_label, 0, 0)
+        grid_layout.setHorizontalSpacing(5)
+        grid_layout.setVerticalSpacing(5)
+        grid_layout.addWidget(self.rt_label, 0, 0, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.rt_input, 0, 1)
-        grid_layout.addWidget(self.rt_min_label, 0, 2)
-        grid_layout.addWidget(self.rt_drift_label, 1, 0)
+        grid_layout.addWidget(self.rt_min_label, 0, 2, Qt.AlignmentFlag.AlignLeft)
+        grid_layout.addWidget(self.rt_drift_label, 1, 0, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.rt_drift_input, 1, 1)
+        grid_layout.addWidget(
+            self.rt_drift_unit_label, 1, 2, Qt.AlignmentFlag.AlignLeft
+        )
 
-        grid_layout.addWidget(self.ccs_label, 0, 3)
+        grid_layout.addWidget(self.ccs_label, 0, 3, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.ccs_input, 0, 4)
-        grid_layout.addWidget(self.ccs_min_label, 0, 5)
-        grid_layout.addWidget(self.ccs_drift_label, 1, 3)
+        grid_layout.addWidget(self.ccs_min_label, 0, 5, Qt.AlignmentFlag.AlignLeft)
+        grid_layout.addWidget(self.ccs_drift_label, 1, 3, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.ccs_drift_input, 1, 4)
+        grid_layout.addWidget(
+            self.ccs_drift_unit_label, 1, 5, Qt.AlignmentFlag.AlignLeft
+        )
 
-        grid_layout.addWidget(self.mz_label, 0, 6)
+        grid_layout.addWidget(self.mz_label, 0, 6, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.mz_input, 0, 7)
-        grid_layout.addWidget(self.mz_min_label, 0, 8)
-        grid_layout.addWidget(self.mz_drift_label, 1, 6)
+        grid_layout.addWidget(self.mz_min_label, 0, 8, Qt.AlignmentFlag.AlignLeft)
+        grid_layout.addWidget(self.mz_drift_label, 1, 6, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.mz_drift_input, 1, 7)
+        grid_layout.addWidget(
+            self.mz_drift_unit_label, 1, 8, Qt.AlignmentFlag.AlignLeft
+        )
 
         # Create file list
         self.file_list = QListWidget()
@@ -150,31 +190,6 @@ class PeakAlignment(QWidget):
 
         self.setLayout(main_layout)
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        # Set the width of the input fields to 10% of the window width
-        new_width = int(self.width() * 0.1)
-        self.rt_input.setFixedWidth(new_width)
-        self.ccs_input.setFixedWidth(new_width)
-        self.mz_input.setFixedWidth(new_width)
-        self.rt_drift_input.setFixedWidth(new_width)
-        self.ccs_drift_input.setFixedWidth(new_width)
-        self.mz_drift_input.setFixedWidth(new_width)
-
-        # Set the width of the labels to be a fixed distance less than the input fields, but not less than 30 pixels
-        label_width = max(new_width - 75, 30)
-        self.rt_label.setFixedWidth(label_width)
-        self.ccs_label.setFixedWidth(label_width)
-        self.mz_label.setFixedWidth(label_width)
-        self.rt_drift_label.setFixedWidth(label_width)
-        self.ccs_drift_label.setFixedWidth(label_width)
-        self.mz_drift_label.setFixedWidth(label_width)
-
-        # Set the width of the (min) labels to be the same as the input fields
-        self.rt_min_label.setFixedWidth(new_width)
-        self.ccs_min_label.setFixedWidth(new_width)
-        self.mz_min_label.setFixedWidth(new_width)
-
     def process_file(self, file_path):
         print(f"Processing file: {file_path}")
         try:
@@ -182,7 +197,6 @@ class PeakAlignment(QWidget):
             print(df.head())  # Print the first few rows of the dataframe for debugging
         except Exception as e:
             print(f"Error processing file {file_path}: {e}")
-            # Debugging statement
 
     def import_processed_files(self):
         temp_folder = os.path.join(self.directory, ".temp")
@@ -194,7 +208,7 @@ class PeakAlignment(QWidget):
                 if file_name.endswith(".feather"):
                     full_path = os.path.join(temp_folder, file_name)
                     self.file_list.addItem(full_path)
-                    data_array = process_file(full_path)  # Use imported function
+                    data_array = process_file(full_path)
                     if data_array is not None:
                         self.data_arrays.append(data_array)
         else:
