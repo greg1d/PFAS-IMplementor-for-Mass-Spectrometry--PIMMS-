@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QPushButton,
+    QToolTip,
     QVBoxLayout,
     QWidget,
 )
@@ -116,6 +117,40 @@ class PeakAlignment(QWidget):
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px;"
         )
 
+        # Create question mark buttons for tooltips
+        self.rt_drift_tooltip_button = QPushButton("?")
+        self.rt_drift_tooltip_button.setFixedSize(20, 20)
+        self.rt_drift_tooltip_button.setStyleSheet(
+            "background-color: lightgray; border-radius: 10px;"
+        )
+        self.rt_drift_tooltip_button.clicked.connect(
+            lambda: self.show_tooltip(
+                self.rt_drift_label, "Enter the drift tolerance for RT."
+            )
+        )
+
+        self.ccs_drift_tooltip_button = QPushButton("?")
+        self.ccs_drift_tooltip_button.setFixedSize(20, 20)
+        self.ccs_drift_tooltip_button.setStyleSheet(
+            "background-color: lightgray; border-radius: 10px;"
+        )
+        self.ccs_drift_tooltip_button.clicked.connect(
+            lambda: self.show_tooltip(
+                self.ccs_drift_label, "Enter the drift tolerance for CCS."
+            )
+        )
+
+        self.mz_drift_tooltip_button = QPushButton("?")
+        self.mz_drift_tooltip_button.setFixedSize(20, 20)
+        self.mz_drift_tooltip_button.setStyleSheet(
+            "background-color: lightgray; border-radius: 10px;"
+        )
+        self.mz_drift_tooltip_button.clicked.connect(
+            lambda: self.show_tooltip(
+                self.mz_drift_label, "Enter the drift tolerance for m/z."
+            )
+        )
+
         self.rt_drift_input = QLineEdit()
         self.rt_drift_input.setFixedWidth(100)
 
@@ -151,6 +186,7 @@ class PeakAlignment(QWidget):
         grid_layout.addWidget(
             self.rt_drift_unit_label, 1, 2, Qt.AlignmentFlag.AlignLeft
         )
+        grid_layout.addWidget(self.rt_drift_tooltip_button, 1, 3)
 
         grid_layout.addWidget(self.ccs_label, 0, 3, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.ccs_input, 0, 4)
@@ -160,6 +196,7 @@ class PeakAlignment(QWidget):
         grid_layout.addWidget(
             self.ccs_drift_unit_label, 1, 5, Qt.AlignmentFlag.AlignLeft
         )
+        grid_layout.addWidget(self.ccs_drift_tooltip_button, 1, 6)
 
         grid_layout.addWidget(self.mz_label, 0, 6, Qt.AlignmentFlag.AlignRight)
         grid_layout.addWidget(self.mz_input, 0, 7)
@@ -169,6 +206,7 @@ class PeakAlignment(QWidget):
         grid_layout.addWidget(
             self.mz_drift_unit_label, 1, 8, Qt.AlignmentFlag.AlignLeft
         )
+        grid_layout.addWidget(self.mz_drift_tooltip_button, 1, 9)
 
         # Create file list
         self.file_list = QListWidget()
@@ -189,6 +227,9 @@ class PeakAlignment(QWidget):
         main_layout.addWidget(align_button)
 
         self.setLayout(main_layout)
+
+    def show_tooltip(self, label, text):
+        QToolTip.showText(label.mapToGlobal(label.rect().bottomRight()), text)
 
     def process_file(self, file_path):
         print(f"Processing file: {file_path}")
