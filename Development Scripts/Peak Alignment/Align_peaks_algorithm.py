@@ -1,12 +1,12 @@
 import numpy as np
-from scipy.sparse import lil_matrix
-from sklearn.cluster import DBSCAN
-from sklearn.neighbors import NearestNeighbors, sort_graph_by_row_values
+import pandas as pd
 import plotly.graph_objects as go
 import psutil
-from sklearn.preprocessing import MinMaxScaler
+from scipy.sparse import lil_matrix
 from scipy.spatial import distance
-import pandas as pd
+from sklearn.cluster import DBSCAN
+from sklearn.neighbors import NearestNeighbors, sort_graph_by_row_values
+from sklearn.preprocessing import MinMaxScaler
 
 
 # Function to limit memory usage
@@ -92,8 +92,8 @@ rt_center1, rt_center2 = 8.5, 8.5  # Close rt centers to create overlap
 ccs_center1, ccs_center2 = 105, 105  # Close ccs centers to create overlap
 
 # Define sizes for the clusters
-cluster_size1 = np.random.randint(1000)
-cluster_size2 = np.random.randint(1000)
+cluster_size1 = np.random.randint(1000, 5000)
+cluster_size2 = np.random.randint(4000, 5000)
 
 # Generate the overlapping clusters
 mz_clusters.append(np.random.normal(mz_center1, 0.01, cluster_size1))

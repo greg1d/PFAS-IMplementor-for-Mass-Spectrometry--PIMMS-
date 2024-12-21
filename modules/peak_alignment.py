@@ -1,19 +1,21 @@
 import os
-from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QListWidget,
-    QLineEdit,
-)
-from PyQt6.QtCore import QThread, pyqtSignal, QFileSystemWatcher
-from modules.feather_reader import (
-    process_file,
-    align_peaks,
-)  # Import functions from feather_reader
+
 import pandas as pd
+from PyQt6.QtCore import QFileSystemWatcher, QThread, pyqtSignal
+from PyQt6.QtWidgets import (
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from modules.feather_reader import (
+    align_peaks,
+    process_file,
+)  # Import functions from feather_reader
 
 
 class FileWatcher(QThread):
@@ -91,27 +93,42 @@ class PeakAlignment(QWidget):
             "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
         )
 
-        # Create horizontal layouts for each label-input pair
-        rt_layout = QHBoxLayout()
-        rt_layout.addWidget(self.rt_label)
-        rt_layout.addWidget(self.rt_input)
-        rt_layout.addWidget(self.rt_min_label)
+        # Create drift tolerance labels and input fields
+        self.rt_drift_label = QLabel("Drift Tolerance: ±")
+        self.ccs_drift_label = QLabel("Drift Tolerance: ±")
+        self.mz_drift_label = QLabel("Drift Tolerance: ±")
+        self.rt_drift_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.ccs_drift_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.mz_drift_label.setStyleSheet(
+            "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 12px; text-align: center;"
+        )
+        self.rt_drift_input = QLineEdit()
+        self.ccs_drift_input = QLineEdit()
+        self.mz_drift_input = QLineEdit()
 
-        ccs_layout = QHBoxLayout()
-        ccs_layout.addWidget(self.ccs_label)
-        ccs_layout.addWidget(self.ccs_input)
-        ccs_layout.addWidget(self.ccs_min_label)
+        # Create grid layout for input fields and drift tolerance
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(self.rt_label, 0, 0)
+        grid_layout.addWidget(self.rt_input, 0, 1)
+        grid_layout.addWidget(self.rt_min_label, 0, 2)
+        grid_layout.addWidget(self.rt_drift_label, 1, 0)
+        grid_layout.addWidget(self.rt_drift_input, 1, 1)
 
-        mz_layout = QHBoxLayout()
-        mz_layout.addWidget(self.mz_label)
-        mz_layout.addWidget(self.mz_input)
-        mz_layout.addWidget(self.mz_min_label)
+        grid_layout.addWidget(self.ccs_label, 0, 3)
+        grid_layout.addWidget(self.ccs_input, 0, 4)
+        grid_layout.addWidget(self.ccs_min_label, 0, 5)
+        grid_layout.addWidget(self.ccs_drift_label, 1, 3)
+        grid_layout.addWidget(self.ccs_drift_input, 1, 4)
 
-        # Create a main horizontal layout for the input fields
-        input_layout = QHBoxLayout()
-        input_layout.addLayout(rt_layout)
-        input_layout.addLayout(ccs_layout)
-        input_layout.addLayout(mz_layout)
+        grid_layout.addWidget(self.mz_label, 0, 6)
+        grid_layout.addWidget(self.mz_input, 0, 7)
+        grid_layout.addWidget(self.mz_min_label, 0, 8)
+        grid_layout.addWidget(self.mz_drift_label, 1, 6)
+        grid_layout.addWidget(self.mz_drift_input, 1, 7)
 
         # Create file list
         self.file_list = QListWidget()
@@ -126,7 +143,7 @@ class PeakAlignment(QWidget):
 
         # Add widgets to layout
         main_layout.addWidget(header_label)
-        main_layout.addLayout(input_layout)
+        main_layout.addLayout(grid_layout)
         main_layout.addWidget(self.file_list)
         main_layout.addWidget(refresh_button)
         main_layout.addWidget(align_button)
@@ -140,12 +157,18 @@ class PeakAlignment(QWidget):
         self.rt_input.setFixedWidth(new_width)
         self.ccs_input.setFixedWidth(new_width)
         self.mz_input.setFixedWidth(new_width)
+        self.rt_drift_input.setFixedWidth(new_width)
+        self.ccs_drift_input.setFixedWidth(new_width)
+        self.mz_drift_input.setFixedWidth(new_width)
 
         # Set the width of the labels to be a fixed distance less than the input fields, but not less than 30 pixels
         label_width = max(new_width - 75, 30)
         self.rt_label.setFixedWidth(label_width)
         self.ccs_label.setFixedWidth(label_width)
         self.mz_label.setFixedWidth(label_width)
+        self.rt_drift_label.setFixedWidth(label_width)
+        self.ccs_drift_label.setFixedWidth(label_width)
+        self.mz_drift_label.setFixedWidth(label_width)
 
         # Set the width of the (min) labels to be the same as the input fields
         self.rt_min_label.setFixedWidth(new_width)
