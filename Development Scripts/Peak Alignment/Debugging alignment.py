@@ -75,14 +75,10 @@ def create_distance_matrix_sparse(
             dist_matrix[i, :] = dist_row
 
     # Print the sparse matrix before converting to CSR format
-    print("Sparse distance matrix (CSR format):")
-    print(dist_matrix)
 
     # Print non-zero elements of the sparse matrix
     print("Non-zero elements of the sparse distance matrix:")
     rows, cols = dist_matrix.nonzero()
-    for row, col in zip(rows, cols):
-        print(f"({row}, {col}): {dist_matrix[row, col]}")
 
     return dist_matrix.tocsr()  # Convert to Compressed Sparse Row format
 
@@ -94,13 +90,6 @@ def process_file(file_path):
     print(f"Processing file: {file_path}")
     try:
         df = pd.read_feather(file_path)
-        print(df.head())  # Print the first few rows for debugging
-        print(
-            f"Columns in DataFrame: {df.columns.tolist()}"
-        )  # Print the columns in the DataFrame
-        print(
-            f"Data types in DataFrame:\n{df.dtypes}"
-        )  # Print the data types of the columns
 
         # Ensure the columns exist and contain numeric data
         if all(col in df.columns for col in ["m/z", "Retention Time", "CCS"]):
@@ -113,10 +102,7 @@ def process_file(file_path):
             data_array = data_array[
                 :3000000
             ]  # Limit to the first 20 features for debugging
-            print(
-                f"Data array shape: {data_array.shape}"
-            )  # Print the shape of the data array
-            print(data_array)  # Print the data array for debugging
+
             return data_array
         else:
             print("Required columns are missing in the DataFrame.")
@@ -127,14 +113,18 @@ def process_file(file_path):
 
 
 # Read from the specified Feather file
-file_paths = [".temp/291 B4 16634.d.DeMP.feather", ".temp/295 B4 16707.d.DeMP.feather"]
+file_paths = [
+    ".temp/291 B4 16634.d.DeMP.feather",
+    ".temp/295 B4 16707.d.DeMP.feather",
+    ".temp/262 B4 MB-3.d.DeMP.feather",
+    ".temp/261 B4 MB-2.d.DeMP.feather",
+]
 data_arrays = [process_file(file_path) for file_path in file_paths]
 data_arrays = [data_array for data_array in data_arrays if data_array is not None]
 
 if data_arrays:
     # Combine all data arrays into a single array
     combined_data_array = np.vstack(data_arrays)
-    print(f"Combined data array shape: {combined_data_array.shape}")
 
     # Extract the m/z, RT, and CCS columns
     mz_values = combined_data_array[:, 0]
@@ -170,7 +160,6 @@ if data_arrays:
     dist_matrix_sparse_sorted = sort_graph_by_row_values(
         dist_matrix_sparse, warn_when_not_sorted=False
     )
-    print(dist_matrix_sparse_sorted)
     # Perform DBSCAN clustering
     dbscan = DBSCAN(eps=eps_cutoff, min_samples=2, metric="precomputed")
     labels = dbscan.fit_predict(dist_matrix_sparse_sorted)
@@ -186,9 +175,6 @@ if data_arrays:
             cluster_mz = mz_values[class_member_mask]
             cluster_rt = rt_values[class_member_mask]
             cluster_ccs = ccs_values[class_member_mask]
-            print(f"Cluster {k}:")
-            for mz, rt, ccs in zip(cluster_mz, cluster_rt, cluster_ccs):
-                print(f"m/z: {mz}, RT: {rt}, CCS: {ccs}")
 
     # Parameters for drift tolerance
     drift_mz_tolerance = 2 * ppm_tolerance
@@ -279,7 +265,7 @@ if data_arrays:
     )
 
     # Option to color by density or cluster
-    color_by = "Cluster"  # Change to 'Cluster' to color by cluster
+    color_by = "density"  # Change to 'Cluster' to color by cluster
 
     # Plot with Plotly
     fig = go.Figure()

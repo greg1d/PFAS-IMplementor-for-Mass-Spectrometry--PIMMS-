@@ -9,45 +9,6 @@ from sklearn.neighbors import NearestNeighbors, sort_graph_by_row_values
 from sklearn.preprocessing import MinMaxScaler
 
 
-def process_file(file_path):
-    """
-    Reads a .feather file and converts it to a NumPy array.
-    """
-    print(f"Processing file: {file_path}")
-    try:
-        df = pd.read_feather(file_path)
-        print(df.head())  # Print the first few rows for debugging
-        print(
-            f"Columns in DataFrame: {df.columns.tolist()}"
-        )  # Print the columns in the DataFrame
-        print(
-            f"Data types in DataFrame:\n{df.dtypes}"
-        )  # Print the data types of the columns
-
-        # Ensure the columns exist and contain numeric data
-        if all(col in df.columns for col in ["m/z", "Retention Time", "CCS"]):
-            numeric_df = df[["m/z", "Retention Time", "CCS"]].apply(
-                pd.to_numeric, errors="coerce"
-            )
-            data_array = (
-                numeric_df.dropna().to_numpy()
-            )  # Convert DataFrame to NumPy array, dropping rows with NaNs
-            data_array = data_array[
-                12:14
-            ]  # Limit to the first 20 features for debugging
-            print(
-                f"Data array shape: {data_array.shape}"
-            )  # Print the shape of the data array
-            print(data_array)  # Print the data array for debugging
-            return data_array
-        else:
-            print("Required columns are missing in the DataFrame.")
-            return None
-    except Exception as e:
-        print(f"Error processing file {file_path}: {e}")
-        return None
-
-
 # Function to limit memory usage
 def limit_memory_usage():
     """Calculates available memory to set a limit for processing."""
@@ -94,7 +55,6 @@ def create_distance_matrix_sparse(
 
     n = len(mz_values)
     dist_matrix = csr_matrix((n, n), dtype=np.float32)  # Initialize sparse matrix
-
     for i in range(n):
         # Calculate distances for the current row
         mz_diff = np.abs(mz_values[i] - mz_values)
@@ -107,93 +67,116 @@ def create_distance_matrix_sparse(
 
         dist_row = np.sqrt(mz_dist**2 + rt_dist**2 + ccs_dist**2)
 
-        # Store only distances below the cutoff in the sparse matrix
+        # Store all distances except those greater than the cutoff in the sparse matrix
         if eps_cutoff is not None:
-            below_cutoff = dist_row < eps_cutoff
+            below_cutoff = dist_row <= eps_cutoff
             dist_matrix[i, below_cutoff] = dist_row[below_cutoff]
         else:
             dist_matrix[i, :] = dist_row
 
-    print("Sparse distance matrix (LIL format):")
-    print(dist_matrix)
+    # Print the sparse matrix before converting to CSR format
 
     # Print non-zero elements of the sparse matrix
     print("Non-zero elements of the sparse distance matrix:")
     rows, cols = dist_matrix.nonzero()
-    for row, col in zip(rows, cols):
-        print(f"({row}, {col}): {dist_matrix[row, col]}")
 
     return dist_matrix.tocsr()  # Convert to Compressed Sparse Row format
 
 
-def align_peaks(file_paths):
+def process_file(file_path):
     """
-    Executes the peak alignment algorithm on a list of file paths.
+    Reads a .feather file and converts it to a NumPy array.
     """
-    data_arrays = [process_file(file_path) for file_path in file_paths]
-    data_arrays = [data_array for data_array in data_arrays if data_array is not None]
+    print(f"Processing file: {file_path}")
+    try:
+        df = pd.read_feather(file_path)
 
-    if not data_arrays:
-        print("No valid data arrays provided for alignment.")
-        return
+        # Ensure the columns exist and contain numeric data
+        if all(col in df.columns for col in ["m/z", "Retention Time", "CCS"]):
+            numeric_df = df[["m/z", "Retention Time", "CCS"]].apply(
+                pd.to_numeric, errors="coerce"
+            )
+            data_array = (
+                numeric_df.dropna().to_numpy()
+            )  # Convert DataFrame to NumPy array, dropping rows with NaNs
+            data_array = data_array[
+                :3000000
+            ]  # Limit to the first 20 features for debugging
 
+            return data_array
+        else:
+            print("Required columns are missing in the DataFrame.")
+            return None
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+        return None
+
+
+# Read from the specified Feather file
+file_paths = [
+    ".temp/291 B4 16634.d.DeMP.feather",
+    ".temp/295 B4 16707.d.DeMP.feather",
+    ".temp/262 B4 MB-3.d.DeMP.feather",
+    ".temp/261 B4 MB-2.d.DeMP.feather",
+]
+data_arrays = [process_file(file_path) for file_path in file_paths]
+data_arrays = [data_array for data_array in data_arrays if data_array is not None]
+
+if data_arrays:
     # Combine all data arrays into a single array
     combined_data_array = np.vstack(data_arrays)
-    print(f"Combined data array shape: {combined_data_array.shape}")
-
-    print("Starting peak alignment algorithm...")
 
     # Extract the m/z, RT, and CCS columns
     mz_values = combined_data_array[:, 0]
     rt_values = combined_data_array[:, 1]
     ccs_values = combined_data_array[:, 2]
 
-    # Combine data into a single array
-    points = np.vstack((mz_values, rt_values, ccs_values)).T
+    # Print the total number of features
+    total_features = len(mz_values)
+    print(f"Total number of features: {total_features}")
 
-    # Scale data using Min-Max Scaler
-    scaler = MinMaxScaler()
-    points_scaled = scaler.fit_transform(points)
+    # Parameters
+    eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
+    ppm_tolerance = 1e-5
+    rt_tolerance = 0.5
+    ccs_tolerance = 0.02
 
-    # Calculate pairwise distances
-    pairwise_distances = distance.cdist(
-        points_scaled, points_scaled, metric="euclidean"
+    # Create distance matrix with memory limit
+    available_memory = limit_memory_usage()
+    memory_limit = available_memory * 0.9  # Use 10% of available memory
+
+    # Create sparse distance matrix
+    dist_matrix_sparse = create_distance_matrix_sparse(
+        mz_values,
+        rt_values,
+        ccs_values,
+        ppm_tolerance=ppm_tolerance,
+        rt_tolerance=rt_tolerance,
+        ccs_tolerance=ccs_tolerance,
+        eps_cutoff=eps_cutoff,
     )
 
-    # Adjust radius using a meaningful percentile
-    radius = np.percentile(
-        pairwise_distances[pairwise_distances > 0], 1
-    )  # 1st percentile
-
-    # Compute density using Nearest Neighbors
-    nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
-
-    # Create the distance matrix
-    dist_matrix_sparse = nbrs.radius_neighbors_graph(points_scaled, mode="distance")
-
-    # Ensure the distance matrix is not empty
-    if dist_matrix_sparse.nnz == 0:
-        raise ValueError(
-            "The distance matrix is empty. Check the radius and data points."
-        )
-
-    # Sort the graph by row values
+    # Sort the sparse matrix by row values
     dist_matrix_sparse_sorted = sort_graph_by_row_values(
         dist_matrix_sparse, warn_when_not_sorted=False
     )
-
     # Perform DBSCAN clustering
-    dbscan = DBSCAN(eps=radius, min_samples=2, metric="precomputed")
+    dbscan = DBSCAN(eps=eps_cutoff, min_samples=2, metric="precomputed")
     labels = dbscan.fit_predict(dist_matrix_sparse_sorted)
 
     # Print the number of clusters
     num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     print(f"Number of clusters: {num_clusters}")
 
+    # Print values contained within each cluster
+    for k in np.unique(labels):
+        if k != -1:
+            class_member_mask = labels == k
+            cluster_mz = mz_values[class_member_mask]
+            cluster_rt = rt_values[class_member_mask]
+            cluster_ccs = ccs_values[class_member_mask]
+
     # Parameters for drift tolerance
-    ppm_tolerance = 1e-5
-    rt_tolerance = 0.5
-    ccs_tolerance = 0.03
     drift_mz_tolerance = 2 * ppm_tolerance
     drift_rt_tolerance = 2 * rt_tolerance
     drift_ccs_tolerance = 2 * ccs_tolerance
@@ -211,7 +194,6 @@ def align_peaks(file_paths):
                 mz_core = np.percentile(cluster_mz, 50)
                 rt_core = np.percentile(cluster_rt, 50)
                 ccs_core = np.percentile(cluster_ccs, 50)
-                print("mz core", mz_core, "rt core", rt_core, "CCS core", ccs_core)
                 # Dynamic drift tolerances
                 dynamic_mass_drift = drift_mz_tolerance * mz_core
                 dynamic_ccs_drift = drift_ccs_tolerance * ccs_core
@@ -238,7 +220,7 @@ def align_peaks(file_paths):
 
     # Adjust radius using a meaningful percentile
     radius = np.percentile(
-        pairwise_distances[pairwise_distances > 0], 1
+        pairwise_distances[pairwise_distances >= 0], 1
     )  # 1st percentile
 
     # Compute density using Nearest Neighbors
@@ -283,7 +265,7 @@ def align_peaks(file_paths):
     )
 
     # Option to color by density or cluster
-    color_by = "Cluster"  # Change to 'Cluster' to color by cluster
+    color_by = "density"  # Change to 'Cluster' to color by cluster
 
     # Plot with Plotly
     fig = go.Figure()
@@ -311,16 +293,9 @@ def align_peaks(file_paths):
     # Update layout
     fig.update_layout(
         scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-        title="3D Scatter Plot of scan",
+        title="3D Scatter Plot with Cluster Binning Spanning Full Range",
     )
 
     fig.show()
-
-
-if __name__ == "__main__":
-    file_paths = [
-        ".temp/262 B4 MB-3.d.DeMP.feather",
-        ".temp/262 B4 MB-3.d.DeMP - Copy.feather",
-        ".temp/262 B4 MB-3.d.DeMP - Copy.feather",
-    ]
-    align_peaks(file_paths)
+else:
+    print("Failed to process the file.")
