@@ -75,7 +75,7 @@ def create_distance_matrix_sparse(
             dist_matrix[i, :] = dist_row
 
     # Print the sparse matrix before converting to CSR format
-    print("Sparse distance matrix (LIL format):")
+    print("Sparse distance matrix (CSR format):")
     print(dist_matrix)
 
     # Print non-zero elements of the sparse matrix
@@ -110,7 +110,7 @@ def process_file(file_path):
             data_array = (
                 numeric_df.dropna().to_numpy()
             )  # Convert DataFrame to NumPy array, dropping rows with NaNs
-            data_array = data_array[:20]  # Limit to the first 20 features for debugging
+            data_array = data_array[:0]  # Limit to the first 20 features for debugging
             print(
                 f"Data array shape: {data_array.shape}"
             )  # Print the shape of the data array
@@ -124,18 +124,19 @@ def process_file(file_path):
         return None
 
 
-# Manually defined clusters
-mz_clusters = [402.94835, 403.94855, 403.94865], [402.94855, 403.94855]
-rt_clusters = [1.8, 1.8, 1.8], [1.8, 1.8]
-ccs_clusters = (
-    [150.69612122, 150.696121220, 150.696121220],
-    [150.69612122, 150.696121220],
-)
+# Simulate reading from a Feather file by creating a DataFrame
+data = {
+    "m/z": [402.94835, 403.94855, 403.94865, 402.94855, 403.94855],
+    "Retention Time": [1.8, 1.8, 1.8, 1.8, 1.8],
+    "CCS": [150.69612122, 150.696121220, 150.696121220, 150.69612122, 150.696121220],
+}
+df = pd.DataFrame(data)
+data_array = df.to_numpy()
 
-# Combine clusters and noise
-mz_values = np.concatenate(mz_clusters)
-rt_values = np.concatenate(rt_clusters)
-ccs_values = np.concatenate(ccs_clusters)
+# Extract the m/z, RT, and CCS columns
+mz_values = data_array[:, 0]
+rt_values = data_array[:, 1]
+ccs_values = data_array[:, 2]
 
 # Print the total number of features
 total_features = len(mz_values)
