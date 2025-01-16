@@ -273,4 +273,16 @@ class PeakAlignment(QWidget):
         ccs_tolerance = float(self.ccs_input.text())
         mz_tolerance = float(self.mz_input.text())
 
-        align_peaks(selected_file_paths, rt_tolerance, ccs_tolerance, mz_tolerance)
+        drift_mz_tolerance = float(self.mz_drift_input.text())
+        drift_css_tolerance = float(self.ccs_drift_input.text())
+        drift_rt_tolerance = float(self.rt_drift_input.text())
+
+        align_peaks(
+            selected_file_paths,
+            rt_tolerance,
+            ccs_tolerance,
+            mz_tolerance,
+            drift_css_tolerance,
+            drift_rt_tolerance,
+            drift_mz_tolerance,
+        )

@@ -99,10 +99,18 @@ def process_file(file_path):
         return None
 
 
-def align_peaks(file_paths, rt_tolerance, ccs_tolerance, mz_tolerance):
+def align_peaks(
+    file_paths,
+    rt_tolerance,
+    ccs_tolerance,
+    mz_tolerance,
+    drift_mz_tolerance,
+    drift_ccs_tolerance,
+    drift_rt_tolerance,
+):
     # Your alignment logic here
     print(
-        f"Aligning peaks with RT tolerance: {rt_tolerance}, CCS tolerance: {ccs_tolerance}, m/z tolerance: {mz_tolerance}"
+        f"Aligning peaks with RT tolerance: {rt_tolerance}, CCS tolerance: {ccs_tolerance}, m/z tolerance: {mz_tolerance}, {drift_mz_tolerance}"
     )
     for file_path in file_paths:
         # Process each file with the given tolerances
