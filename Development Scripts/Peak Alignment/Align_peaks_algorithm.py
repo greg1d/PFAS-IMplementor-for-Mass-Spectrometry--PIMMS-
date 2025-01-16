@@ -78,53 +78,40 @@ def create_distance_matrix_sparse(
     return dist_matrix.tocsr()  # Convert to Compressed Sparse Row format
 
 
-# Manually defined clusters
-mz_clusters = [
-    [
-        800.001,
-        800,
-        800.3,
-        800.4,
-        800.5,
-        800.6,
-        800.7,
-        800.8,
-        800.9,
-        801.0,
-        801.1,
-        801.2,
-        801.3,
-        801.4,
-        801.5,
-    ],
-    [
-        805.1,
-        805.2,
-        805.3,
-        805.4,
-        805.5,
-        805.6,
-        805.7,
-        805.8,
-        805.9,
-        806.0,
-        806.1,
-        806.2,
-        806.3,
-        806.4,
-        806.5,
-    ],
-]
+np.random.seed(42)
+mz_clusters = []
+rt_clusters = []
+ccs_clusters = []
+mz_center1, mz_center2 = 800.1, 801.3  # Close mz centers to create overlap
+rt_center1, rt_center2 = 8.5, 8.5  # Close rt centers to create overlap
+ccs_center1, ccs_center2 = 105, 105  # Close ccs centers to create overlap
 
-rt_clusters = [
-    [8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9],
-    [8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9],
-]
+# Define sizes for the clusters
+cluster_size1 = np.random.randint(1000, 5000)
+cluster_size2 = np.random.randint(4000, 5000)
 
-ccs_clusters = [
-    [105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
-    [105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
-]
+# Generate the overlapping clusters
+mz_clusters.append(np.random.normal(mz_center1, 0.01, cluster_size1))
+rt_clusters.append(np.random.normal(rt_center1, 0.5, cluster_size1))
+ccs_clusters.append(np.random.normal(ccs_center1, 2, cluster_size1))
+
+mz_clusters.append(np.random.normal(mz_center2, 0.01, cluster_size2))
+rt_clusters.append(np.random.normal(rt_center2, 0.5, cluster_size2))
+ccs_clusters.append(np.random.normal(ccs_center2, 2, cluster_size2))
+
+# Noise
+mz_noise = np.random.uniform(0, 1600, 5)
+rt_noise = np.random.uniform(0, 16, 5)
+ccs_noise = np.random.uniform(0, 200, 5)
+
+# Combine clusters and noise
+mz_values = np.concatenate(mz_clusters + [mz_noise])
+rt_values = np.concatenate(rt_clusters + [rt_noise])
+ccs_values = np.concatenate(ccs_clusters + [ccs_noise])
+
+# Print the total number of features
+total_features = len(mz_values)
+print(f"Total number of features: {total_features}")
 
 
 # Combine clusters and noise
@@ -171,9 +158,9 @@ num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
 print(f"Number of clusters: {num_clusters}")
 
 # Parameters for drift tolerance
-drift_mz_tolerance = 2 * ppm_tolerance
-drift_rt_tolerance = 2 * rt_tolerance
-drift_ccs_tolerance = 2 * ccs_tolerance
+drift_mz_tolerance = 1.2 * ppm_tolerance
+drift_rt_tolerance = 1.2 * rt_tolerance
+drift_ccs_tolerance = 1.2 * ccs_tolerance
 
 # Refine clusters using drift tolerance
 for k in np.unique(labels):
@@ -188,7 +175,7 @@ for k in np.unique(labels):
             mz_core = np.percentile(cluster_mz, 50)
             rt_core = np.percentile(cluster_rt, 50)
             ccs_core = np.percentile(cluster_ccs, 50)
-
+            print("mz core", mz_core, "rt core", rt_core, "CCS core", ccs_core)
             # Dynamic drift tolerances
             dynamic_mass_drift = drift_mz_tolerance * mz_core
             dynamic_ccs_drift = drift_ccs_tolerance * ccs_core
@@ -282,124 +269,10 @@ fig.add_trace(
     )
 )
 
-fig.update_layout(
-    scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-    title=f"3D Scatter Plot Colored by {color_by}",
-)
-
-fig.show()
-
-
-# Function to compute 3D binning for a cluster
-def compute_highest_density_bin(cluster_points, bins_per_dimension=(5, 5, 5)):
-    """
-    Identify the bin with the highest density in a cluster.
-
-    Args:
-        cluster_points (ndarray): Points in the cluster.
-        bins_per_dimension (tuple): Number of bins along each dimension (m/z, RT, CCS).
-
-    Returns:
-        hist (ndarray): Histogram counts for the bins.
-        edges (list): Edges of the bins for each dimension.
-        bin_centers (ndarray): Centers of non-empty bins.
-        bin_counts (ndarray): Counts in each bin.
-        hover_text (list): Hover text for each bin.
-    """
-    # Calculate the range for each dimension
-    cluster_min = cluster_points.min(axis=0)
-    cluster_max = cluster_points.max(axis=0)
-
-    # Print the min and max values of the cluster
-    print(f"Cluster Min: {cluster_min}, Cluster Max: {cluster_max}")
-
-    # Create edges dynamically based on the range and number of bins
-    edges = [
-        np.linspace(cluster_min[i], cluster_max[i], bins_per_dimension[i] + 1)
-        for i in range(cluster_points.shape[1])
-    ]
-
-    # Calculate bin dimensions (width, height, depth)
-    bin_dimensions = [edges[i][1] - edges[i][0] for i in range(len(edges))]
-    print(f"Bin Dimensions: {bin_dimensions}")
-
-    # Compute the 3D histogram
-    hist, edges = np.histogramdd(cluster_points, bins=edges)
-    # Print the sum of all bin counts
-    total_points_in_bins = hist.sum()
-    print("Total Points in Bins:", total_points_in_bins)
-
-    # Optional: Verify that it matches the number of cluster points
-    print("Number of Cluster Points:", len(cluster_points))
-
-    # Calculate the centers of bins with non-zero counts
-    bin_centers = []
-    bin_counts = []
-    hover_text = []
-
-    for idx in np.argwhere(hist > 0):
-        center = [
-            (edges[dim][idx[dim]] + edges[dim][idx[dim] + 1]) / 2
-            for dim in range(len(edges))
-        ]
-        bin_centers.append(center)
-        bin_counts.append(hist[tuple(idx)])
-        hover_text.append(f"Count: {hist[tuple(idx)]}")
-
-    return edges, np.array(bin_centers), np.array(bin_counts), hover_text
-
-
-# Apply the binning and find the density information for each cluster
-bins_per_dimension = (2, 5, 5)  # Define number of bins along each dimension
-binned_data = {}
-
-for cluster_id in np.unique(labels):
-    if cluster_id != -1:  # Exclude noise points
-        cluster_mask = labels == cluster_id
-        cluster_points = points[cluster_mask]
-
-        print(f"\nCluster ID: {cluster_id}")
-        edges, bin_centers, bin_counts, hover_text = compute_highest_density_bin(
-            cluster_points, bins_per_dimension=bins_per_dimension
-        )
-        binned_data[cluster_id] = {
-            "edges": edges,
-            "centers": bin_centers,
-            "counts": bin_counts,
-            "hover_text": hover_text,
-        }
-
-# Visualize the bins with hover text
-for cluster_id, data in binned_data.items():
-    centers = data["centers"]
-    counts = data["counts"]
-    hover_text = data["hover_text"]
-
-    # Normalize counts for coloring
-    counts_normalized = (counts - counts.min()) / (counts.max() - counts.min())
-
-    fig.add_trace(
-        go.Scatter3d(
-            x=centers[:, 0],
-            y=centers[:, 1],
-            z=centers[:, 2],
-            mode="markers",
-            marker=dict(
-                size=5,
-                color=counts_normalized,
-                colorscale="Viridis",
-                colorbar=dict(title=f"Cluster {cluster_id} Bin Density"),
-            ),
-            text=hover_text,  # Add hover text showing bin counts
-            hoverinfo="text",  # Display hover text on hover
-            name=f"Cluster {cluster_id} Bins",
-        )
-    )
-
 # Update layout
 fig.update_layout(
     scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-    title="3D Scatter Plot with Cluster Binning Spanning Full Range",
+    title="3D Scatter Plot of scan",
 )
 
 fig.show()
