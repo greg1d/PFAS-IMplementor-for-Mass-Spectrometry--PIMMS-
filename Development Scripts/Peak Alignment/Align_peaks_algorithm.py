@@ -14,7 +14,7 @@ def limit_memory_usage():
     """Calculates available memory to set a limit for processing."""
     mem = psutil.virtual_memory()
     available_memory = mem.available * 0.9  # Use 70% of available memory
-    print(f"Available memory: {available_memory / (1024 ** 2):.2f} MB")
+    print(f"Available memory: {available_memory / (1024**2):.2f} MB")
     return available_memory
 
 
@@ -87,7 +87,7 @@ rt_clusters = []
 ccs_clusters = []
 
 # Define centers for the overlapping clusters
-mz_center1, mz_center2 = 800.1, 800.3  # Close mz centers to create overlap
+mz_center1, mz_center2 = 800.1, 805.3  # Close mz centers to create overlap
 rt_center1, rt_center2 = 8.5, 8.5  # Close rt centers to create overlap
 ccs_center1, ccs_center2 = 105, 105  # Close ccs centers to create overlap
 
@@ -167,9 +167,9 @@ for k in np.unique(labels):
 
         if len(cluster_mz) > 2 and len(cluster_rt) > 2 and len(cluster_ccs) > 2:
             # Calculate the core values of the cluster
-            mz_core = np.percentile(cluster_mz, 25)
-            rt_core = np.percentile(cluster_rt, 25)
-            ccs_core = np.percentile(cluster_ccs, 25)
+            mz_core = np.percentile(cluster_mz, 50)
+            rt_core = np.percentile(cluster_rt, 50)
+            ccs_core = np.percentile(cluster_ccs, 50)
 
             # Dynamic drift tolerances
             dynamic_mass_drift = drift_mz_tolerance * mz_core
