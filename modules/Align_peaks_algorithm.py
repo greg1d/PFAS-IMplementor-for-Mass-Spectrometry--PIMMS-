@@ -99,10 +99,15 @@ def process_file(file_path):
         return None
 
 
-def align_peaks(file_paths):
-    """
-    Align peaks from multiple Feather files.
-    """
+def align_peaks(file_paths, rt_tolerance, ccs_tolerance, mz_tolerance):
+    # Your alignment logic here
+    print(
+        f"Aligning peaks with RT tolerance: {rt_tolerance}, CCS tolerance: {ccs_tolerance}, m/z tolerance: {mz_tolerance}"
+    )
+    for file_path in file_paths:
+        # Process each file with the given tolerances
+        print(f"Processing file: {file_path}")
+
     data_arrays = [process_file(file_path) for file_path in file_paths]
     data_arrays = [data_array for data_array in data_arrays if data_array is not None]
 

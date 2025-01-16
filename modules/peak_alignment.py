@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QToolTip,
     QVBoxLayout,
     QWidget,
+    QAbstractItemView,
 )
 
 from modules.Align_peaks_algorithm import align_peaks, process_file
@@ -210,6 +211,9 @@ class PeakAlignment(QWidget):
 
         # Create file list
         self.file_list = QListWidget()
+        self.file_list.setSelectionMode(
+            QAbstractItemView.SelectionMode.MultiSelection
+        )  # Allow multiple selection
 
         # Create buttons
         refresh_button = QPushButton("Refresh Processed Files")
@@ -258,10 +262,15 @@ class PeakAlignment(QWidget):
             print(f".temp folder does not exist: {temp_folder}")
 
     def trigger_align_peaks(self):
-        if not self.file_paths:
-            print(
-                "No file paths available for alignment. Please import processed files first."
-            )
+        selected_items = self.file_list.selectedItems()
+        selected_file_paths = [item.text() for item in selected_items]
+
+        if not selected_file_paths:
+            print("No file paths selected for alignment. Please select files first.")
             return
 
-        align_peaks(self.file_paths)  # Use imported function
+        rt_tolerance = float(self.rt_input.text())
+        ccs_tolerance = float(self.ccs_input.text())
+        mz_tolerance = float(self.mz_input.text())
+
+        align_peaks(selected_file_paths, rt_tolerance, ccs_tolerance, mz_tolerance)
