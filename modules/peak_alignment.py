@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from modules.feather_reader import align_peaks, process_file
+from modules.Align_peaks_algorithm import align_peaks, process_file
 
 
 class FileWatcher(QThread):
@@ -43,11 +43,11 @@ class PeakAlignment(QWidget):
         self.init_ui()
         self.directory = os.getcwd()  # Use the current working directory
         self.file_watcher = FileWatcher(self.directory)  # Initialize file_watcher
-        self.file_watcher.directory_changed.connect(self.import_processed_files)
         self.file_watcher.start()
 
         # Store imported data arrays
         self.data_arrays = []
+        self.file_paths = []  # Store file paths
 
     def init_ui(self):
         main_layout = QVBoxLayout()
@@ -242,6 +242,7 @@ class PeakAlignment(QWidget):
     def import_processed_files(self):
         temp_folder = os.path.join(self.directory, ".temp")
         self.data_arrays = []  # Clear previous data arrays
+        self.file_paths = []  # Clear previous file paths
         if os.path.exists(temp_folder):
             self.file_list.clear()
             files = os.listdir(temp_folder)
@@ -252,14 +253,15 @@ class PeakAlignment(QWidget):
                     data_array = process_file(full_path)
                     if data_array is not None:
                         self.data_arrays.append(data_array)
+                        self.file_paths.append(full_path)  # Store file path
         else:
             print(f".temp folder does not exist: {temp_folder}")
 
     def trigger_align_peaks(self):
-        if not self.data_arrays:
+        if not self.file_paths:
             print(
-                "No data arrays available for alignment. Please import processed files first."
+                "No file paths available for alignment. Please import processed files first."
             )
             return
 
-        align_peaks(self.data_arrays)  # Use imported function
+        align_peaks(self.file_paths)  # Use imported function
