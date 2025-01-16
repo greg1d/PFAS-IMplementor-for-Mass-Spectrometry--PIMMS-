@@ -110,7 +110,9 @@ def process_file(file_path):
             data_array = (
                 numeric_df.dropna().to_numpy()
             )  # Convert DataFrame to NumPy array, dropping rows with NaNs
-            data_array = data_array[:20]  # Limit to the first 20 features for debugging
+            data_array = data_array[
+                :3000000
+            ]  # Limit to the first 20 features for debugging
             print(
                 f"Data array shape: {data_array.shape}"
             )  # Print the shape of the data array
@@ -125,7 +127,7 @@ def process_file(file_path):
 
 
 # Read from the specified Feather file
-file_paths = [".temp/261 B4 MB-2.d.DeMP.feather", ".temp/261 B4 MB-2.d.DeMP.feather"]
+file_paths = [".temp/291 B4 16634.d.DeMP.feather", ".temp/295 B4 16707.d.DeMP.feather"]
 data_arrays = [process_file(file_path) for file_path in file_paths]
 data_arrays = [data_array for data_array in data_arrays if data_array is not None]
 
