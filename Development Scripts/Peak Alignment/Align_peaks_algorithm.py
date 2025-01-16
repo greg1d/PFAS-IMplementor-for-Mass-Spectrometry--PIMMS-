@@ -78,41 +78,59 @@ def create_distance_matrix_sparse(
     return dist_matrix.tocsr()  # Convert to Compressed Sparse Row format
 
 
-# Generate synthetic data
-np.random.seed(42)  # For reproducibility
+# Manually defined clusters
+mz_clusters = [
+    [
+        800.001,
+        800,
+        800.3,
+        800.4,
+        800.5,
+        800.6,
+        800.7,
+        800.8,
+        800.9,
+        801.0,
+        801.1,
+        801.2,
+        801.3,
+        801.4,
+        801.5,
+    ],
+    [
+        805.1,
+        805.2,
+        805.3,
+        805.4,
+        805.5,
+        805.6,
+        805.7,
+        805.8,
+        805.9,
+        806.0,
+        806.1,
+        806.2,
+        806.3,
+        806.4,
+        806.5,
+    ],
+]
 
-# Create two overlapping clusters
-mz_clusters = []
-rt_clusters = []
-ccs_clusters = []
+rt_clusters = [
+    [8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9],
+    [8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9],
+]
 
-# Define centers for the overlapping clusters
-mz_center1, mz_center2 = 800.1, 805.3  # Close mz centers to create overlap
-rt_center1, rt_center2 = 8.5, 8.5  # Close rt centers to create overlap
-ccs_center1, ccs_center2 = 105, 105  # Close ccs centers to create overlap
+ccs_clusters = [
+    [105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
+    [105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
+]
 
-# Define sizes for the clusters
-cluster_size1 = np.random.randint(1000, 5000)
-cluster_size2 = np.random.randint(4000, 5000)
-
-# Generate the overlapping clusters
-mz_clusters.append(np.random.normal(mz_center1, 0.01, cluster_size1))
-rt_clusters.append(np.random.normal(rt_center1, 0.5, cluster_size1))
-ccs_clusters.append(np.random.normal(ccs_center1, 2, cluster_size1))
-
-mz_clusters.append(np.random.normal(mz_center2, 0.01, cluster_size2))
-rt_clusters.append(np.random.normal(rt_center2, 0.5, cluster_size2))
-ccs_clusters.append(np.random.normal(ccs_center2, 2, cluster_size2))
-
-# Noise
-mz_noise = np.random.uniform(0, 1600, 5)
-rt_noise = np.random.uniform(0, 16, 5)
-ccs_noise = np.random.uniform(0, 200, 5)
 
 # Combine clusters and noise
-mz_values = np.concatenate(mz_clusters + [mz_noise])
-rt_values = np.concatenate(rt_clusters + [rt_noise])
-ccs_values = np.concatenate(ccs_clusters + [ccs_noise])
+mz_values = np.concatenate(mz_clusters)
+rt_values = np.concatenate(rt_clusters)
+ccs_values = np.concatenate(ccs_clusters)
 
 # Print the total number of features
 total_features = len(mz_values)
