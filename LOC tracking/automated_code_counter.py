@@ -260,7 +260,7 @@ def plot_data(df):
     for text in legend.get_texts():
         text.set_color("#757575")
     date = datetime.now().strftime("%Y-%m-%d-%H-%M")
-
+    ax.set_ylim(2000, sum_of_all_code.max() + 1000)
     # Ensure the layout is tight and no overlaps occur
     plt.tight_layout()
     output_image_path = os.path.join(output_folder, f"coding_progress_{date}.png")
