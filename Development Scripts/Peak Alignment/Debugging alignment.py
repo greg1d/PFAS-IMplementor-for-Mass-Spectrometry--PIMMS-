@@ -110,7 +110,7 @@ def process_file(file_path):
             data_array = (
                 numeric_df.dropna().to_numpy()
             )  # Convert DataFrame to NumPy array, dropping rows with NaNs
-            data_array = data_array[:0]  # Limit to the first 20 features for debugging
+            data_array = data_array[:20]  # Limit to the first 20 features for debugging
             print(
                 f"Data array shape: {data_array.shape}"
             )  # Print the shape of the data array
@@ -124,183 +124,190 @@ def process_file(file_path):
         return None
 
 
-# Simulate reading from a Feather file by creating a DataFrame
-data = {
-    "m/z": [402.94835, 403.94855, 403.94865, 402.94855, 403.94855],
-    "Retention Time": [1.8, 1.8, 1.8, 1.8, 1.8],
-    "CCS": [150.69612122, 150.696121220, 150.696121220, 150.69612122, 150.696121220],
-}
-df = pd.DataFrame(data)
-data_array = df.to_numpy()
+# Read from the specified Feather file
+file_paths = [".temp/261 B4 MB-2.d.DeMP.feather", ".temp/261 B4 MB-2.d.DeMP.feather"]
+data_arrays = [process_file(file_path) for file_path in file_paths]
+data_arrays = [data_array for data_array in data_arrays if data_array is not None]
 
-# Extract the m/z, RT, and CCS columns
-mz_values = data_array[:, 0]
-rt_values = data_array[:, 1]
-ccs_values = data_array[:, 2]
+if data_arrays:
+    # Combine all data arrays into a single array
+    combined_data_array = np.vstack(data_arrays)
+    print(f"Combined data array shape: {combined_data_array.shape}")
 
-# Print the total number of features
-total_features = len(mz_values)
-print(f"Total number of features: {total_features}")
+    # Extract the m/z, RT, and CCS columns
+    mz_values = combined_data_array[:, 0]
+    rt_values = combined_data_array[:, 1]
+    ccs_values = combined_data_array[:, 2]
 
-# Parameters
-eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
-ppm_tolerance = 1e-5
-rt_tolerance = 0.5
-ccs_tolerance = 0.02
+    # Print the total number of features
+    total_features = len(mz_values)
+    print(f"Total number of features: {total_features}")
 
-# Create distance matrix with memory limit
-available_memory = limit_memory_usage()
-memory_limit = available_memory * 0.9  # Use 10% of available memory
+    # Parameters
+    eps_cutoff = 1.732  # Adjusted EPS cutoff value for three dimensions
+    ppm_tolerance = 1e-5
+    rt_tolerance = 0.5
+    ccs_tolerance = 0.02
 
-# Create sparse distance matrix
-dist_matrix_sparse = create_distance_matrix_sparse(
-    mz_values,
-    rt_values,
-    ccs_values,
-    ppm_tolerance=ppm_tolerance,
-    rt_tolerance=rt_tolerance,
-    ccs_tolerance=ccs_tolerance,
-    eps_cutoff=eps_cutoff,
-)
+    # Create distance matrix with memory limit
+    available_memory = limit_memory_usage()
+    memory_limit = available_memory * 0.9  # Use 10% of available memory
 
-# Sort the sparse matrix by row values
-dist_matrix_sparse_sorted = sort_graph_by_row_values(
-    dist_matrix_sparse, warn_when_not_sorted=False
-)
-print(dist_matrix_sparse_sorted)
-# Perform DBSCAN clustering
-dbscan = DBSCAN(eps=eps_cutoff, min_samples=1, metric="precomputed")
-labels = dbscan.fit_predict(dist_matrix_sparse_sorted)
-
-# Print the number of clusters
-num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-print(f"Number of clusters: {num_clusters}")
-
-# Print values contained within each cluster
-for k in np.unique(labels):
-    if k != -1:
-        class_member_mask = labels == k
-        cluster_mz = mz_values[class_member_mask]
-        cluster_rt = rt_values[class_member_mask]
-        cluster_ccs = ccs_values[class_member_mask]
-        print(f"Cluster {k}:")
-        for mz, rt, ccs in zip(cluster_mz, cluster_rt, cluster_ccs):
-            print(f"m/z: {mz}, RT: {rt}, CCS: {ccs}")
-
-# Parameters for drift tolerance
-drift_mz_tolerance = 2 * ppm_tolerance
-drift_rt_tolerance = 2 * rt_tolerance
-drift_ccs_tolerance = 2 * ccs_tolerance
-
-# Refine clusters using drift tolerance
-for k in np.unique(labels):
-    if k != -1:
-        class_member_mask = labels == k
-        cluster_mz = mz_values[class_member_mask]
-        cluster_rt = rt_values[class_member_mask]
-        cluster_ccs = ccs_values[class_member_mask]
-
-        if len(cluster_mz) > 2 and len(cluster_rt) > 2 and len(cluster_ccs) > 2:
-            # Calculate the core values of the cluster
-            mz_core = np.percentile(cluster_mz, 50)
-            rt_core = np.percentile(cluster_rt, 50)
-            ccs_core = np.percentile(cluster_ccs, 50)
-            # Dynamic drift tolerances
-            dynamic_mass_drift = drift_mz_tolerance * mz_core
-            dynamic_ccs_drift = drift_ccs_tolerance * ccs_core
-
-            # Exclude points exceeding the drift tolerance
-            drift_mask = (
-                (abs(cluster_mz - mz_core) <= dynamic_mass_drift)
-                & (abs(cluster_rt - rt_core) <= drift_rt_tolerance)
-                & (abs(cluster_ccs - ccs_core) <= dynamic_ccs_drift)
-            )
-            labels[class_member_mask] = np.where(drift_mask, k, -1)
-
-# Combine data into a single array
-points = np.vstack((mz_values, rt_values, ccs_values)).T
-
-# Scale data using Min-Max Scaler
-scaler = MinMaxScaler()
-points_scaled = scaler.fit_transform(points)
-
-# Calculate pairwise distances
-pairwise_distances = distance.cdist(points_scaled, points_scaled, metric="euclidean")
-
-# Adjust radius using a meaningful percentile
-radius = np.percentile(pairwise_distances[pairwise_distances >= 0], 1)  # 1st percentile
-
-# Compute density using Nearest Neighbors
-nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
-
-density = np.array(
-    [len(nbrs.radius_neighbors([point])[0][0]) for point in points_scaled]
-)
-
-# Normalize density for coloring
-density_min = density.min()
-density_max = density.max()
-if density_max != density_min:
-    density_normalized = (density - density_min) / (density_max - density_min)
-else:
-    density_normalized = np.zeros_like(density)
-
-df = pd.DataFrame(
-    {
-        "m/z": mz_values,
-        "RT": rt_values,
-        "CCS": ccs_values,
-        "Cluster": labels,
-        "Density": density_normalized,
-    }
-)
-
-cluster_colors = [
-    "red",
-    "blue",
-    "green",
-    "purple",
-    "orange",
-    "cyan",
-    "magenta",
-    "yellow",
-    "black",
-    "pink",
-]
-df["Color"] = df["Cluster"].apply(
-    lambda x: cluster_colors[x % len(cluster_colors)] if x != -1 else "grey"
-)
-
-# Option to color by density or cluster
-color_by = "Cluster"  # Change to 'Cluster' to color by cluster
-
-# Plot with Plotly
-fig = go.Figure()
-fig.add_trace(
-    go.Scatter3d(
-        x=df["m/z"],
-        y=df["RT"],
-        z=df["CCS"],
-        mode="markers",
-        marker=dict(
-            size=2,
-            color=df["Color"] if color_by == "Cluster" else df["Density"],
-            colorscale="Viridis" if color_by == "Density" else None,
-            colorbar=dict(title=color_by),
-        ),
-        text=df.apply(
-            lambda row: f"m/z: {row['m/z']}, RT: {row['RT']}, CCS: {row['CCS']}, Cluster: {row['Cluster']}",
-            axis=1,
-        ),  # Hover text
-        hoverinfo="text",
-        name="Points",
+    # Create sparse distance matrix
+    dist_matrix_sparse = create_distance_matrix_sparse(
+        mz_values,
+        rt_values,
+        ccs_values,
+        ppm_tolerance=ppm_tolerance,
+        rt_tolerance=rt_tolerance,
+        ccs_tolerance=ccs_tolerance,
+        eps_cutoff=eps_cutoff,
     )
-)
 
-# Update layout
-fig.update_layout(
-    scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
-    title="3D Scatter Plot with Cluster Binning Spanning Full Range",
-)
+    # Sort the sparse matrix by row values
+    dist_matrix_sparse_sorted = sort_graph_by_row_values(
+        dist_matrix_sparse, warn_when_not_sorted=False
+    )
+    print(dist_matrix_sparse_sorted)
+    # Perform DBSCAN clustering
+    dbscan = DBSCAN(eps=eps_cutoff, min_samples=2, metric="precomputed")
+    labels = dbscan.fit_predict(dist_matrix_sparse_sorted)
 
-fig.show()
+    # Print the number of clusters
+    num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    print(f"Number of clusters: {num_clusters}")
+
+    # Print values contained within each cluster
+    for k in np.unique(labels):
+        if k != -1:
+            class_member_mask = labels == k
+            cluster_mz = mz_values[class_member_mask]
+            cluster_rt = rt_values[class_member_mask]
+            cluster_ccs = ccs_values[class_member_mask]
+            print(f"Cluster {k}:")
+            for mz, rt, ccs in zip(cluster_mz, cluster_rt, cluster_ccs):
+                print(f"m/z: {mz}, RT: {rt}, CCS: {ccs}")
+
+    # Parameters for drift tolerance
+    drift_mz_tolerance = 2 * ppm_tolerance
+    drift_rt_tolerance = 2 * rt_tolerance
+    drift_ccs_tolerance = 2 * ccs_tolerance
+
+    # Refine clusters using drift tolerance
+    for k in np.unique(labels):
+        if k != -1:
+            class_member_mask = labels == k
+            cluster_mz = mz_values[class_member_mask]
+            cluster_rt = rt_values[class_member_mask]
+            cluster_ccs = ccs_values[class_member_mask]
+
+            if len(cluster_mz) > 2 and len(cluster_rt) > 2 and len(cluster_ccs) > 2:
+                # Calculate the core values of the cluster
+                mz_core = np.percentile(cluster_mz, 50)
+                rt_core = np.percentile(cluster_rt, 50)
+                ccs_core = np.percentile(cluster_ccs, 50)
+                # Dynamic drift tolerances
+                dynamic_mass_drift = drift_mz_tolerance * mz_core
+                dynamic_ccs_drift = drift_ccs_tolerance * ccs_core
+
+                # Exclude points exceeding the drift tolerance
+                drift_mask = (
+                    (abs(cluster_mz - mz_core) <= dynamic_mass_drift)
+                    & (abs(cluster_rt - rt_core) <= drift_rt_tolerance)
+                    & (abs(cluster_ccs - ccs_core) <= dynamic_ccs_drift)
+                )
+                labels[class_member_mask] = np.where(drift_mask, k, -1)
+
+    # Combine data into a single array
+    points = np.vstack((mz_values, rt_values, ccs_values)).T
+
+    # Scale data using Min-Max Scaler
+    scaler = MinMaxScaler()
+    points_scaled = scaler.fit_transform(points)
+
+    # Calculate pairwise distances
+    pairwise_distances = distance.cdist(
+        points_scaled, points_scaled, metric="euclidean"
+    )
+
+    # Adjust radius using a meaningful percentile
+    radius = np.percentile(
+        pairwise_distances[pairwise_distances >= 0], 1
+    )  # 1st percentile
+
+    # Compute density using Nearest Neighbors
+    nbrs = NearestNeighbors(radius=radius).fit(points_scaled)
+
+    density = np.array(
+        [len(nbrs.radius_neighbors([point])[0][0]) for point in points_scaled]
+    )
+
+    # Normalize density for coloring
+    density_min = density.min()
+    density_max = density.max()
+    if density_max != density_min:
+        density_normalized = (density - density_min) / (density_max - density_min)
+    else:
+        density_normalized = np.zeros_like(density)
+
+    df = pd.DataFrame(
+        {
+            "m/z": mz_values,
+            "RT": rt_values,
+            "CCS": ccs_values,
+            "Cluster": labels,
+            "Density": density_normalized,
+        }
+    )
+
+    cluster_colors = [
+        "red",
+        "blue",
+        "green",
+        "purple",
+        "orange",
+        "cyan",
+        "magenta",
+        "yellow",
+        "black",
+        "pink",
+    ]
+    df["Color"] = df["Cluster"].apply(
+        lambda x: cluster_colors[x % len(cluster_colors)] if x != -1 else "grey"
+    )
+
+    # Option to color by density or cluster
+    color_by = "Cluster"  # Change to 'Cluster' to color by cluster
+
+    # Plot with Plotly
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter3d(
+            x=df["m/z"],
+            y=df["RT"],
+            z=df["CCS"],
+            mode="markers",
+            marker=dict(
+                size=2,
+                color=df["Color"] if color_by == "Cluster" else df["Density"],
+                colorscale="Viridis" if color_by == "Density" else None,
+                colorbar=dict(title=color_by),
+            ),
+            text=df.apply(
+                lambda row: f"m/z: {row['m/z']}, RT: {row['RT']}, CCS: {row['CCS']}, Cluster: {row['Cluster']}",
+                axis=1,
+            ),  # Hover text
+            hoverinfo="text",
+            name="Points",
+        )
+    )
+
+    # Update layout
+    fig.update_layout(
+        scene=dict(xaxis_title="m/z", yaxis_title="RT", zaxis_title="CCS"),
+        title="3D Scatter Plot with Cluster Binning Spanning Full Range",
+    )
+
+    fig.show()
+else:
+    print("Failed to process the file.")
