@@ -1,7 +1,7 @@
 import time
 
 import pandas as pd
-from Modules.binary_logic_puller import (
+from modules.monoisotopic_peak_puller import (
     analyze_peaks,  # Assuming the functions are in binary_logic_puller.py
 )
 from tqdm import tqdm
