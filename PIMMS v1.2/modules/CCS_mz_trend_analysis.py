@@ -22,34 +22,25 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
             if i in detected_indices:
                 continue
 
-            peaks_within_bounds, count = find_peaks_within_bounds(
-                array, z, M, i, mass_error_ppm
-            )
-            if count > 0:
-                # Mark all detected peaks to avoid future scans
-                for peak in peaks_within_bounds:
-                    detected_indices.add(array.index(peak))
+            # Start the group with the initial peak
+            current_group = set()
+            current_group.add(array[i])
 
-                # Add the initial peak to the current group
-                current_group = set(peaks_within_bounds)
-                current_group.add(array[i])
+            # Check for multiples of M up to 12x
+            for multiplier in range(1, 13):
+                M_multiple = M * multiplier
+                peaks_within_bounds, count = find_peaks_within_bounds(
+                    array, z, M_multiple, i, mass_error_ppm
+                )
+                if count > 0:
+                    # Add detected peaks to the current group
+                    for peak in peaks_within_bounds:
+                        detected_indices.add(array.index(peak))
+                        current_group.add(peak)
 
-                # If multiple peaks are found, check for separable by double the M value
-                if count >= 1:
-                    M_double = M * 2
-                    peaks_within_bounds_double, count_double = find_peaks_within_bounds(
-                        array, z, M_double, i, mass_error_ppm
-                    )
-                    if count_double > 0:
-                        # Mark all detected peaks for double M value to avoid future scans
-                        for peak in peaks_within_bounds_double:
-                            detected_indices.add(array.index(peak))
-
-                        # Add the detected peaks to the current group
-                        current_group.update(peaks_within_bounds_double)
-
-                # Add the current group to groups
-                groups.append(list(current_group))
+            # If a valid group is formed, add it to the groups list
+            if len(current_group) > 1:
+                groups.append(sorted(current_group))
 
     # Print the groups and their m/z values
     for idx, group in enumerate(groups):
