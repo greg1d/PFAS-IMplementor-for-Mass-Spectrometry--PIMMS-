@@ -1,9 +1,10 @@
 import time
+
 import pandas as pd
 from monoisotopic_peak_puller import find_peaks_within_bounds
 
 
-def ccs_v_mz_analysis(file_path, mass_error_ppm=10, repeating_units=[100]):
+def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[100]):
     start_time = time.time()  # Start the timer
 
     # Read the CSV file and extract the m/z column
@@ -60,7 +61,7 @@ def ccs_v_mz_analysis(file_path, mass_error_ppm=10, repeating_units=[100]):
     return groups
 
 
-def print_ccs_of_groups(file_path, groups):
+def CCS_vs_mz_trend_analysis(file_path, groups):
     # Read the CSV file and extract the CCS column
     data_df = pd.read_csv(file_path)
     ccs_dict = data_df.set_index("m/z")["CCS"].to_dict()
