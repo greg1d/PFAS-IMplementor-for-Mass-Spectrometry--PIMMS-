@@ -55,7 +55,10 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     return groups
 
 
-def CCS_vs_mz_trend_analysis(file_path, groups, residual_threshold=2):
+from scipy.stats import ttest_1samp
+
+
+def CCS_vs_mz_trend_analysis(file_path, groups, alpha=0.05):
     import time
 
     from scipy.stats import pearsonr
@@ -112,6 +115,12 @@ def CCS_vs_mz_trend_analysis(file_path, groups, residual_threshold=2):
                 )
                 r_squared = r_value**2
 
+                # Calculate residuals for A-grade points
+                a_residuals = [
+                    abs(ccs - (slope * mz + intercept))
+                    for mz, ccs in zip(a_group, a_ccs_values)
+                ]
+
                 # Store regression results
                 regression_results[f"Group {idx + 1}"] = {
                     "slope": slope,
@@ -144,28 +153,33 @@ def CCS_vs_mz_trend_analysis(file_path, groups, residual_threshold=2):
                     label=f"Trend (R²={r_squared:.2f}, p={p_value:.4f})",
                 )
 
-                # Check alignment of non-A-group points
+                # Check alignment of non-A-group points using t-test
                 if non_a_group:
                     non_a_ccs_values = [
                         ccs_dict[mz] for mz in non_a_group if mz in ccs_dict
                     ]
-                    residuals = []
                     for mz, ccs in zip(non_a_group, non_a_ccs_values):
                         predicted_ccs = slope * mz + intercept
                         residual = abs(ccs - predicted_ccs)
-                        residuals.append((mz, ccs, residual))
 
-                        # Determine if the point falls within the acceptable range
-                        if residual <= residual_threshold * std_err:
+                        # Perform one-sample t-test
+                        t_stat, t_p_value = ttest_1samp(a_residuals, residual)
+
+                        # Print debugging information
+                        print(
+                            f"Non-A point mz={mz}, observed CCS={ccs}, predicted CCS={predicted_ccs:.4f}, "
+                            f"residual={residual:.4f}, t-p-value={t_p_value:.4f}"
+                        )
+
+                        # Inclusion/exclusion decision
+                        if t_p_value >= alpha:
                             plt.scatter(
                                 mz,
                                 ccs,
                                 color="green",
                                 label=f"Included (Non-A, mz={mz})",
                             )
-                            print(
-                                f"Non-A point mz={mz}, observed CCS={ccs}, residual={residual:.4f} (Included)"
-                            )
+                            print(f"Point mz={mz} is INCLUDED in the trend.")
                         else:
                             plt.scatter(
                                 mz,
@@ -173,12 +187,7 @@ def CCS_vs_mz_trend_analysis(file_path, groups, residual_threshold=2):
                                 color="red",
                                 label=f"Excluded (Non-A, mz={mz})",
                             )
-                            print(
-                                f"Non-A point mz={mz}, observed CCS={ccs}, residual={residual:.4f} (Excluded)"
-                            )
-
-                    # Print all residuals for debugging
-                    print(f"Residuals for non-A group in Group {idx + 1}: {residuals}")
+                            print(f"Point mz={mz} is EXCLUDED from the trend.")
 
                 # Add a legend and show the plot
                 plt.legend()
