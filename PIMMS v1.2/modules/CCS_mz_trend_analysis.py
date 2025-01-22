@@ -92,6 +92,9 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
     # Dictionary to store the regression results
     regression_results = {}
 
+    # List to store homologous series groups
+    homologous_series_groups = []
+
     # Perform trend analysis for A-grade elements and overlay non-A-grade elements
     for idx, group in enumerate(combined_groups):
         # Separate A-grade and non-A-grade elements
@@ -121,6 +124,12 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
                     "std_err": std_err,
                     "corr_coefficient": corr_coefficient,
                 }
+
+                # Initialize the homologous series group with A-grade points
+                homologous_group = [
+                    {"m/z": mz, "CCS": ccs_dict[mz], "Score": score_dict[mz]}
+                    for mz in a_group
+                ]
 
                 # Set up the plot
                 plt.figure(figsize=(10, 6))
@@ -169,6 +178,9 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
                                 label=f"Included (Non-A, mz={mz})",
                             )
                             print(f"Point mz={mz} is INCLUDED in the trend.")
+                            homologous_group.append(
+                                {"m/z": mz, "CCS": ccs, "Score": score_dict[mz]}
+                            )
                         else:
                             plt.scatter(
                                 mz,
@@ -178,6 +190,11 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
                             )
                             print(f"Point mz={mz} is EXCLUDED from the trend.")
 
+                # Add the homologous series group to the list
+                homologous_series_groups.append(homologous_group)
+                end_time = time.time()  # End the timer
+                execution_time = end_time - start_time  # Calculate elapsed time
+                print(f"CCS trend analysis: {execution_time:.4f} seconds")
                 # Add a legend and show the plot
                 plt.legend()
                 plt.show()
@@ -185,8 +202,4 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
             else:
                 print(f"Group {idx + 1}: No significant trend (p = {p_value:.4f})")
 
-    end_time = time.time()  # End the timer
-    execution_time = end_time - start_time  # Calculate elapsed time
-    print(f"CCS trend analysis: {execution_time:.4f} seconds")
-
-    return regression_results
+    return homologous_series_groups

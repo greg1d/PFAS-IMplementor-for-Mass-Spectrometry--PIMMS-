@@ -5,8 +5,11 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "import folder"))
 
-from CCS_mz_trend_analysis import CCS_vs_mz_trend_analysis, mz_repeating_unit_analysis
-from repeating_units import CF2
+from CCS_mz_trend_analysis import (
+    CCS_vs_mz_trend_analysis,
+    mz_repeating_unit_analysis,
+)
+from repeating_units import CF2, OCF2
 
 
 def main():
@@ -14,23 +17,36 @@ def main():
     file_path = "PIMMS v1.2/Dummy scored data.csv"
     mass_error_ppm = 10
 
-    # User inputs for M values
-    M_values = [CF2]  # Use CF2 and OCF2 directly
+    # List and define available M values
+    available_M_values = {
+        "CF2": CF2,
+        "OCF2": OCF2,
+    }
 
-    # Call the CCS v mz analysis function
+    # Select the desired M value by modifying this line
+    selected_M_values = ["CF2"]  # Example: Use CF2 and CH2 for analysis
+    M_values = [available_M_values[name] for name in selected_M_values]
+
+    # Perform mass repeating unit analysis
+    print("\nPerforming mass repeating unit analysis...")
     groups = mz_repeating_unit_analysis(file_path, mass_error_ppm, M_values)
 
-    # Call the function to print CCS values of the groups
-    regression_results = CCS_vs_mz_trend_analysis(file_path, groups)
+    # Perform CCS vs m/z trend analysis and retrieve homologous series groups
+    print("\nPerforming CCS vs m/z trend analysis...")
+    homologous_series_groups = CCS_vs_mz_trend_analysis(
+        file_path, groups, variation_threshold=0.02
+    )
 
-    # Print the regression results
-    for group, results in regression_results.items():
-        print(f"{group}:")
-        print(f"  Slope: {results['slope']}")
-        print(f"  Intercept: {results['intercept']}")
-        print(f"  R-squared: {results['R_squared']}")
-        print(f"  p-value: {results['p_value']}")
-        print(f"  Standard Error: {results['std_err']}")
+    # Print homologous series groups
+    print("\nHomologous Series Groups:")
+    for idx, group in enumerate(homologous_series_groups, start=1):
+        print(f"Group {idx}:")
+        for entry in group:
+            print(
+                f"  m/z: {entry['m/z']}, CCS: {entry['CCS']}, Score: {entry['Score']}"
+            )
+
+    print("\nAnalysis complete.")
 
 
 if __name__ == "__main__":
