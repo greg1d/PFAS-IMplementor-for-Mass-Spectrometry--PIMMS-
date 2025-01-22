@@ -1,9 +1,11 @@
 {
+    "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
-        "tests"
+        "PIMMS v1.2/tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "VSCodeCounter.useGitignore": true,
     "VSCodeCounter.useFilesExclude": true,
     "VSCodeCounter.maxFindFiles": 10000,
