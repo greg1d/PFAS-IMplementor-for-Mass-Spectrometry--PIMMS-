@@ -55,10 +55,7 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     return groups
 
 
-from scipy.stats import ttest_1samp
-
-
-def CCS_vs_mz_trend_analysis(file_path, groups, alpha=0.05):
+def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
     import time
 
     from scipy.stats import pearsonr
@@ -115,12 +112,6 @@ def CCS_vs_mz_trend_analysis(file_path, groups, alpha=0.05):
                 )
                 r_squared = r_value**2
 
-                # Calculate residuals for A-grade points
-                a_residuals = [
-                    abs(ccs - (slope * mz + intercept))
-                    for mz, ccs in zip(a_group, a_ccs_values)
-                ]
-
                 # Store regression results
                 regression_results[f"Group {idx + 1}"] = {
                     "slope": slope,
@@ -153,7 +144,7 @@ def CCS_vs_mz_trend_analysis(file_path, groups, alpha=0.05):
                     label=f"Trend (R²={r_squared:.2f}, p={p_value:.4f})",
                 )
 
-                # Check alignment of non-A-group points using t-test
+                # Check alignment of non-A-group points using variation threshold
                 if non_a_group:
                     non_a_ccs_values = [
                         ccs_dict[mz] for mz in non_a_group if mz in ccs_dict
@@ -161,18 +152,16 @@ def CCS_vs_mz_trend_analysis(file_path, groups, alpha=0.05):
                     for mz, ccs in zip(non_a_group, non_a_ccs_values):
                         predicted_ccs = slope * mz + intercept
                         residual = abs(ccs - predicted_ccs)
-
-                        # Perform one-sample t-test
-                        t_stat, t_p_value = ttest_1samp(a_residuals, residual)
+                        acceptable_variation = variation_threshold * predicted_ccs
 
                         # Print debugging information
                         print(
                             f"Non-A point mz={mz}, observed CCS={ccs}, predicted CCS={predicted_ccs:.4f}, "
-                            f"residual={residual:.4f}, t-p-value={t_p_value:.4f}"
+                            f"residual={residual:.4f}, acceptable variation={acceptable_variation:.4f}"
                         )
 
                         # Inclusion/exclusion decision
-                        if t_p_value >= alpha:
+                        if residual <= acceptable_variation:
                             plt.scatter(
                                 mz,
                                 ccs,
