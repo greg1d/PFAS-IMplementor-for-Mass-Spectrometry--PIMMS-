@@ -21,7 +21,16 @@ def main():
     groups = mz_repeating_unit_analysis(file_path, mass_error_ppm, M_values)
 
     # Call the function to print CCS values of the groups
-    CCS_vs_mz_trend_analysis(file_path, groups)
+    regression_results = CCS_vs_mz_trend_analysis(file_path, groups)
+
+    # Print the regression results
+    for group, results in regression_results.items():
+        print(f"{group}:")
+        print(f"  Slope: {results['slope']}")
+        print(f"  Intercept: {results['intercept']}")
+        print(f"  R-squared: {results['R_squared']}")
+        print(f"  p-value: {results['p_value']}")
+        print(f"  Standard Error: {results['std_err']}")
 
 
 if __name__ == "__main__":
