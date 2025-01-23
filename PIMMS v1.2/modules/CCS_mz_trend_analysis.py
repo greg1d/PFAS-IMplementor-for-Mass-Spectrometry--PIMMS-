@@ -1,6 +1,5 @@
 import time
 
-import matplotlib.pyplot as plt
 import pandas as pd
 from monoisotopic_peak_puller import find_peaks_within_bounds
 from scipy.stats import linregress
@@ -15,35 +14,44 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     print("Data loaded successfully. Preview of the dataset:")
     print(data_df.head())
 
-    # Get the header from column U (column index 20, zero-based index)
+    # Get the header from column U (21st column, zero-based index 20)
     try:
-        header_value = data_df.columns[20]  # Column U corresponds to index 20
+        header_value = data_df.columns[20]
     except IndexError:
         raise ValueError(
             "Column U (21st column) does not exist in the dataset headers."
         )
     print(f"Header from column U: {header_value}")
 
-    # Create a list of unique points as (row.ID, m/z, CCS) tuples
-    data_points = list(zip(data_df["row.ID"], data_df["m/z"], data_df["CCS"]))
+    # Create a list of unique points as (row.ID, m/z, CCS, Score) tuples
+    data_points = list(
+        zip(
+            data_df["row.ID"],
+            data_df["m/z"],
+            data_df["CCS"],
+            data_df["Score"],
+        )
+    )
     data_dict = data_df.set_index("row.ID").to_dict(
         "index"
     )  # Data accessible by row.ID
 
     # Initialize variables
     z = 1
-    detected_points = set()  # Track already processed points as (row.ID, m/z, CCS)
+    detected_points = (
+        set()
+    )  # Track already processed points as (row.ID, m/z, CCS, Score)
     groups = []
 
     # Find peaks within bounds for each M value
     for M in repeating_units:
         print(f"Analyzing with M = {M}")
-        for i, (row_id, mz, ccs) in enumerate(data_points):
-            if (row_id, mz, ccs) in detected_points:
+        for i, (row_id, mz, ccs, score) in enumerate(data_points):
+            if (row_id, mz, ccs, score) in detected_points:
                 continue  # Skip already processed points
 
             # Start the group with the initial point
-            current_group = [(row_id, mz, ccs, header_value)]
+            current_group = [(row_id, mz, ccs, score, header_value)]
 
             # Check for multiples of M up to 12x
             for multiplier in range(1, 13):
@@ -68,15 +76,6 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
                 groups.append(current_group)
 
     # Print the groups with detailed information
-    print("\nDetected Groups:")
-    for idx, group in enumerate(groups):
-        print(f"Group {idx + 1}:")
-        for row_id, mz, ccs, header_value in group:
-            row_data = data_dict[row_id]
-            print(
-                f"  row.ID={row_id}, m/z={mz}, CCS={ccs}, RT={row_data['Retention Time']}, "
-                f"Score={row_data['Score']}, Header Value={header_value}"
-            )
 
     end_time = time.time()  # End the timer
     execution_time = end_time - start_time
@@ -84,17 +83,11 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     return groups
 
 
-def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
-    import time
-
-    from scipy.stats import pearsonr
+def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
+    print("Starting CCS vs m/z trend analysis...")
+    print(f"Groups received: {groups}")
 
     start_time = time.time()  # Start the timer
-
-    # Read the CSV file and extract the CCS and Score columns
-    data_df = pd.read_csv(file_path)
-    ccs_dict = data_df.set_index("m/z")["CCS"].to_dict()
-    score_dict = data_df.set_index("m/z")["Score"].to_dict()
 
     # Define valid scores for A-grade and non-A-grade groups
     valid_scores = ["A+", "A", "A-"]
@@ -111,39 +104,41 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
         "E",
     ]
 
-    # Filter the groups to include both A-grade and non-A-grade elements
-    combined_groups = []  # Groups containing both A-grade and non-A-grade elements
-    for group in groups:
-        filtered_group = [mz for mz in group if mz in score_dict]
-        if filtered_group:
-            combined_groups.append(filtered_group)
+    # Initialize variables
+    regression_results = {}  # Store regression results for A-grade points
+    homologous_series_groups = []  # Store final groups
 
-    # Dictionary to store the regression results
-    regression_results = {}
+    # Process each group
+    for idx, group in enumerate(groups):
+        print(f"\nProcessing Group {idx + 1}: {group}")
 
-    # List to store homologous series groups
-    homologous_series_groups = []
-
-    # Perform trend analysis for A-grade elements and overlay non-A-grade elements
-    for idx, group in enumerate(combined_groups):
         # Separate A-grade and non-A-grade elements
-        a_group = [mz for mz in group if score_dict.get(mz) in valid_scores]
-        non_a_group = [mz for mz in group if score_dict.get(mz) in non_A_scores]
+        a_group = [
+            point for point in group if point[3] in valid_scores
+        ]  # Score is at index 3
+        non_a_group = [
+            point for point in group if point[3] in non_A_scores
+        ]  # Score is at index 3
 
-        # Perform Pearson correlation and linear regression for A-grade points
-        if len(a_group) > 1:  # Ensure enough points for regression
-            a_ccs_values = [ccs_dict[mz] for mz in a_group if mz in ccs_dict]
+        print(f"A-grade points: {a_group}")
+        print(f"Non-A-grade points: {non_a_group}")
 
-            # Pearson correlation analysis
-            corr_coefficient, p_value = pearsonr(a_group, a_ccs_values)
+        if len(a_group) > 1:  # Ensure there are enough points for regression
+            # Extract m/z and CCS values for A-grade points
+            a_mz_values = [point[1] for point in a_group]  # m/z is at index 1
+            a_ccs_values = [point[2] for point in a_group]  # CCS is at index 2
 
-            # Only proceed if the p-value is significant (p < 0.05)
-            if p_value < 0.05:
-                slope, intercept, r_value, p_value, std_err = linregress(
-                    a_group, a_ccs_values
-                )
-                r_squared = r_value**2
+            # Perform regression and trend analysis
+            slope, intercept, r_value, p_value, std_err = linregress(
+                a_mz_values, a_ccs_values
+            )
+            r_squared = r_value**2
 
+            print(
+                f"Group {idx + 1} Regression: Slope={slope}, Intercept={intercept}, R²={r_squared:.4f}, p={p_value:.4f}"
+            )
+
+            if p_value < 0.05:  # Check if the trend is statistically significant
                 # Store regression results
                 regression_results[f"Group {idx + 1}"] = {
                     "slope": slope,
@@ -151,84 +146,35 @@ def CCS_vs_mz_trend_analysis(file_path, groups, variation_threshold=0.02):
                     "R_squared": r_squared,
                     "p_value": p_value,
                     "std_err": std_err,
-                    "corr_coefficient": corr_coefficient,
                 }
 
-                # Initialize the homologous series group with A-grade points
-                homologous_group = [
-                    {"m/z": mz, "CCS": ccs_dict[mz], "Score": score_dict[mz]}
-                    for mz in a_group
-                ]
+                # Initialize homologous series group with A-grade points
+                homologous_group = a_group.copy()
 
-                # Set up the plot
-                plt.figure(figsize=(10, 6))
-                plt.xlabel("m/z")
-                plt.ylabel("CCS")
-                plt.title(f"CCS vs m/z for Group {idx + 1} (A-grade only)")
-                plt.grid(True)
+                # Analyze non-A-grade points
+                for point in non_a_group:
+                    mz, ccs = point[1], point[2]
+                    predicted_ccs = slope * mz + intercept
+                    residual = abs(ccs - predicted_ccs)
+                    acceptable_variation = variation_threshold * predicted_ccs
 
-                # Plot A-grade points and trend line
-                plt.scatter(
-                    a_group,
-                    a_ccs_values,
-                    color="blue",
-                    label=f"Group {idx + 1} A-grade",
-                )
-                plt.plot(
-                    a_group,
-                    [slope * mz + intercept for mz in a_group],
-                    color="blue",
-                    linestyle="dashed",
-                    label=f"Trend (R²={r_squared:.2f}, p={p_value:.4f})",
-                )
+                    print(
+                        f"Non-A point: m/z={mz}, observed CCS={ccs}, predicted CCS={predicted_ccs:.4f}, "
+                        f"residual={residual:.4f}, acceptable variation={acceptable_variation:.4f}"
+                    )
 
-                # Check alignment of non-A-group points using variation threshold
-                if non_a_group:
-                    non_a_ccs_values = [
-                        ccs_dict[mz] for mz in non_a_group if mz in ccs_dict
-                    ]
-                    for mz, ccs in zip(non_a_group, non_a_ccs_values):
-                        predicted_ccs = slope * mz + intercept
-                        residual = abs(ccs - predicted_ccs)
-                        acceptable_variation = variation_threshold * predicted_ccs
+                    # Include or exclude based on residual
+                    if residual <= acceptable_variation:
+                        print(f"Point {point} is INCLUDED in the trend.")
+                        homologous_group.append(point)
+                    else:
+                        print(f"Point {point} is EXCLUDED from the trend.")
 
-                        # Print debugging information
-                        print(
-                            f"Non-A point mz={mz}, observed CCS={ccs}, predicted CCS={predicted_ccs:.4f}, "
-                            f"residual={residual:.4f}, acceptable variation={acceptable_variation:.4f}"
-                        )
-
-                        # Inclusion/exclusion decision
-                        if residual <= acceptable_variation:
-                            plt.scatter(
-                                mz,
-                                ccs,
-                                color="green",
-                                label=f"Included (Non-A, mz={mz})",
-                            )
-                            print(f"Point mz={mz} is INCLUDED in the trend.")
-                            homologous_group.append(
-                                {"m/z": mz, "CCS": ccs, "Score": score_dict[mz]}
-                            )
-                        else:
-                            plt.scatter(
-                                mz,
-                                ccs,
-                                color="red",
-                                label=f"Excluded (Non-A, mz={mz})",
-                            )
-                            print(f"Point mz={mz} is EXCLUDED from the trend.")
-
-                # Add the homologous series group to the list
+                # Add the homologous series group to the final list
                 homologous_series_groups.append(homologous_group)
-                end_time = time.time()  # End the timer
-                execution_time = end_time - start_time  # Calculate elapsed time
-                print(f"CCS trend analysis: {execution_time:.4f} seconds")
-                # Add a legend and show the plot
-                plt.legend()
-                plt.show()
 
-            else:
-                print(f"Group {idx + 1}: No significant trend (p = {p_value:.4f})")
+    end_time = time.time()  # End the timer
+    execution_time = end_time - start_time
+    print(f"\nCCS trend analysis completed in {execution_time:.4f} seconds")
 
     return homologous_series_groups

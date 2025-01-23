@@ -24,7 +24,7 @@ def main():
     }
 
     # Select the desired M value by modifying this line
-    selected_M_values = ["CF2"]  # Example: Use CF2 and CH2 for analysis
+    selected_M_values = ["CF2"]  # Example: Use CF2 for analysis
     M_values = [available_M_values[name] for name in selected_M_values]
 
     # Perform mass repeating unit analysis
@@ -34,7 +34,7 @@ def main():
     # Perform CCS vs m/z trend analysis and retrieve homologous series groups
     print("\nPerforming CCS vs m/z trend analysis...")
     homologous_series_groups = CCS_vs_mz_trend_analysis(
-        file_path, groups, variation_threshold=0.02
+        groups, variation_threshold=0.02
     )
 
     # Print homologous series groups
@@ -42,8 +42,10 @@ def main():
     for idx, group in enumerate(homologous_series_groups, start=1):
         print(f"Group {idx}:")
         for entry in group:
+            # Adjust to handle tuples
+            mz, ccs, score, sample_id, row_id = entry
             print(
-                f"  m/z: {entry['m/z']}, CCS: {entry['CCS']}, Score: {entry['Score']}"
+                f"  m/z: {mz}, CCS: {ccs}, Score: {score}, Sample ID: {sample_id}, row.ID: {row_id}"
             )
 
     print("\nAnalysis complete.")
