@@ -9,47 +9,78 @@ from scipy.stats import linregress
 def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[100]):
     start_time = time.time()  # Start the timer
 
-    # Read the CSV file and extract the m/z column
+    # Read the CSV file and extract required columns
+    print("Loading data...")
     data_df = pd.read_csv(file_path)
-    array = data_df["m/z"].tolist()
+    print("Data loaded successfully. Preview of the dataset:")
+    print(data_df.head())
+
+    # Get the header from column U (column index 20, zero-based index)
+    try:
+        header_value = data_df.columns[20]  # Column U corresponds to index 20
+    except IndexError:
+        raise ValueError(
+            "Column U (21st column) does not exist in the dataset headers."
+        )
+    print(f"Header from column U: {header_value}")
+
+    # Create a list of unique points as (row.ID, m/z, CCS) tuples
+    data_points = list(zip(data_df["row.ID"], data_df["m/z"], data_df["CCS"]))
+    data_dict = data_df.set_index("row.ID").to_dict(
+        "index"
+    )  # Data accessible by row.ID
+
+    # Initialize variables
     z = 1
-    detected_indices = set()
+    detected_points = set()  # Track already processed points as (row.ID, m/z, CCS)
     groups = []
 
-    # Find peaks within bounds for each value in the array for each M value
+    # Find peaks within bounds for each M value
     for M in repeating_units:
         print(f"Analyzing with M = {M}")
-        for i in range(len(array)):
-            if i in detected_indices:
-                continue
+        for i, (row_id, mz, ccs) in enumerate(data_points):
+            if (row_id, mz, ccs) in detected_points:
+                continue  # Skip already processed points
 
-            # Start the group with the initial peak
-            current_group = [array[i]]
+            # Start the group with the initial point
+            current_group = [(row_id, mz, ccs, header_value)]
 
             # Check for multiples of M up to 12x
             for multiplier in range(1, 13):
                 M_multiple = M * multiplier
                 peaks_within_bounds, count = find_peaks_within_bounds(
-                    array, z, M_multiple, i, mass_error_ppm
+                    [point[1] for point in data_points],  # Extract m/z values
+                    z,
+                    M_multiple,
+                    i,
+                    mass_error_ppm,
                 )
                 if count > 0:
                     # Add detected peaks to the current group
                     for peak in peaks_within_bounds:
-                        detected_indices.add(array.index(peak))
-                        current_group.append(peak)
+                        for point in data_points:
+                            if point[1] == peak and point not in detected_points:
+                                detected_points.add(point)
+                                current_group.append((*point, header_value))
 
             # If a valid group is formed, add it to the groups list
             if len(current_group) > 1:
-                groups.append(sorted(current_group))
+                groups.append(current_group)
 
-    # Print the groups and their m/z values
+    # Print the groups with detailed information
+    print("\nDetected Groups:")
     for idx, group in enumerate(groups):
-        print(f"Group {idx + 1}: {sorted(group)}")
+        print(f"Group {idx + 1}:")
+        for row_id, mz, ccs, header_value in group:
+            row_data = data_dict[row_id]
+            print(
+                f"  row.ID={row_id}, m/z={mz}, CCS={ccs}, RT={row_data['Retention Time']}, "
+                f"Score={row_data['Score']}, Header Value={header_value}"
+            )
 
     end_time = time.time()  # End the timer
     execution_time = end_time - start_time
-    print(f"Mass repeating unit analysis: {execution_time:.4f} seconds")
-
+    print(f"\nMass repeating unit analysis completed in {execution_time:.4f} seconds")
     return groups
 
 
