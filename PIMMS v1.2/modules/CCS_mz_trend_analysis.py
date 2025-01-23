@@ -3,37 +3,76 @@ import pandas as pd
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
 
+import os
 
-def mz_repeating_unit_analysis(file_paths, mass_error_ppm=10, repeating_units=[100]):
-    start_time = time.time()  # Start the timer
-    # Ensure file_paths is a list
-    if isinstance(file_paths, str):
-        file_paths = [file_paths]
 
-    # Load and combine multiple CSVs into a single DataFrame
-    print("Loading and combining data from multiple CSVs...")
-    data_frames = []
+def merge_and_extract_data(file_paths, required_columns):
+    """
+    Merges multiple CSV files and extracts required data while retaining the sample name.
+
+    Parameters:
+        file_paths (list): List of CSV file paths to merge.
+        required_columns (list): List of required columns to extract.
+
+    Returns:
+        pd.DataFrame: A combined DataFrame with relevant data and source file information.
+    """
+    combined_data = pd.DataFrame()  # Initialize an empty DataFrame
     for file_path in file_paths:
-        df = pd.read_csv(file_path)
-        df["source_file"] = file_path  # Add a column to track the source file
-        data_frames.append(df)
+        if not os.path.exists(file_path):
+            print(f"File {file_path} does not exist. Skipping.")
+            continue
+        try:
+            # Read the CSV file
+            df = pd.read_csv(file_path)
 
-    data_df = pd.concat(data_frames, ignore_index=True)
-    print(f"Combined dataset contains {len(data_df)} rows.")
+            # Check if required columns exist
+            missing_columns = set(required_columns) - set(df.columns)
+            if missing_columns:
+                print(
+                    f"File {file_path} is missing columns: {missing_columns}. Skipping."
+                )
+                continue
+
+            # Add the source file name as a column
+            df["source_file"] = os.path.basename(file_path)
+
+            # Extract only the required columns + source_file
+            df = df[required_columns + ["source_file"]]
+
+            # Append to the combined DataFrame
+            combined_data = pd.concat([combined_data, df], ignore_index=True)
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+
+    if combined_data.empty:
+        raise ValueError(
+            "No valid data could be merged. Ensure the files and columns are correct."
+        )
+
+    print(
+        f"Combined dataset contains {len(combined_data)} rows from {len(file_paths)} files."
+    )
+    print("combined_data2", combined_data)
+    return combined_data
+
+
+def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]):
+    start_time = time.time()  # Start the timer
+
+    # Ensure the required columns are present
+    required_columns = ["m/z", "Score", "CCS", "row.ID", "source_file"]
+    if not all(col in data_df.columns for col in required_columns):
+        raise ValueError(
+            f"DataFrame is missing one or more required columns: {required_columns}"
+        )
 
     # Extract required data for processing
     array = data_df["m/z"].tolist()
     row_ids = data_df["row.ID"].tolist()
     ccs_values = data_df["CCS"].tolist()
     scores = data_df["Score"].tolist()
-
-    # Get the header value from the 21st column (zero-based index 20)
-    try:
-        header_value = data_df.columns[20]
-    except IndexError:
-        raise ValueError(
-            "Column U (21st column) does not exist in the dataset headers."
-        )
+    source_files = data_df["source_file"].tolist()
 
     groups = []
     visited_indices = set()
@@ -47,7 +86,7 @@ def mz_repeating_unit_analysis(file_paths, mass_error_ppm=10, repeating_units=[1
 
             # Start the group with the initial peak
             current_group = [
-                (mz_value, row_ids[i], ccs_values[i], scores[i], header_value)
+                (mz_value, row_ids[i], ccs_values[i], scores[i], source_files[i])
             ]
             # Iteratively check all other points
             for j, other_mz in enumerate(array):
@@ -67,7 +106,7 @@ def mz_repeating_unit_analysis(file_paths, mass_error_ppm=10, repeating_units=[1
                             row_ids[j],
                             ccs_values[j],
                             scores[j],
-                            header_value,
+                            source_files[j],
                         )
                     )
 
@@ -80,7 +119,7 @@ def mz_repeating_unit_analysis(file_paths, mass_error_ppm=10, repeating_units=[1
         print(f"Group {idx + 1}:")
         for point in group:
             print(
-                f"  m/z: {point[0]}, Row ID: {point[1]}, CCS: {point[2]}, Score: {point[3]}, Header: {point[4]}"
+                f"  m/z: {point[0]}, Row ID: {point[1]}, CCS: {point[2]}, Score: {point[3]}, Source File: {point[4]}"
             )
 
     end_time = time.time()  # End the timer
@@ -93,8 +132,6 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
     homologous_series_groups = []  # Store final groups
     regression_results = {}  # Store regression results
     for idx, group in enumerate(groups):
-        print(f"\nProcessing Group {idx + 1}:")
-
         # Separate A-grade and non-A-grade elements
         a_group = [point for point in group if point[3] in ["A+", "A", "A-"]]
         non_a_group = [point for point in group if point[3] not in ["A+", "A-", "A"]]
@@ -153,8 +190,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                     )
                 else:
                     plt.scatter(mz, ccs, color="red", label="Excluded Non-A", zorder=3)
-        else:
-            print(f"Group {idx + 1}: Not enough A-grade points for regression.")
+
         if len(a_group) >= 3:
             # Prepare and display the plot only if there are enough points
             plt.xlabel("m/z")
@@ -163,9 +199,5 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             plt.legend(loc="upper left")
             plt.grid(True)
             plt.show()
-        else:
-            print(
-                f"Group {idx + 1}: Not enough points to plot (only {len(a_group)} point(s))."
-            )
 
     return homologous_series_groups, regression_results
