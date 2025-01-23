@@ -155,13 +155,17 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                     plt.scatter(mz, ccs, color="red", label="Excluded Non-A", zorder=3)
         else:
             print(f"Group {idx + 1}: Not enough A-grade points for regression.")
-
-        # Finalize plot for the group
-        plt.xlabel("m/z")
-        plt.ylabel("CCS")
-        plt.title(f"Group {idx + 1}: CCS vs m/z")
-        plt.legend(loc="upper left")
-        plt.grid(True)
-        plt.show()
+        if len(a_group) >= 3:
+            # Prepare and display the plot only if there are enough points
+            plt.xlabel("m/z")
+            plt.ylabel("CCS")
+            plt.title(f"Group {idx + 1}: CCS vs m/z")
+            plt.legend(loc="upper left")
+            plt.grid(True)
+            plt.show()
+        else:
+            print(
+                f"Group {idx + 1}: Not enough points to plot (only {len(a_group)} point(s))."
+            )
 
     return homologous_series_groups, regression_results
