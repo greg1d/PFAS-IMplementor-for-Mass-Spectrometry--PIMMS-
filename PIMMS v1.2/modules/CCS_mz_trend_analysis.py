@@ -1,85 +1,73 @@
 import time
 
 import pandas as pd
-from monoisotopic_peak_puller import find_peaks_within_bounds
 from scipy.stats import linregress
 
 
 def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[100]):
+    import time
+
     start_time = time.time()  # Start the timer
 
-    # Read the CSV file and extract required columns
-    print("Loading data...")
+    # Read the CSV file and extract relevant columns
     data_df = pd.read_csv(file_path)
-    print("Data loaded successfully. Preview of the dataset:")
-    print(data_df.head())
 
-    # Get the header from column U (21st column, zero-based index 20)
-    try:
-        header_value = data_df.columns[20]
-    except IndexError:
-        raise ValueError(
-            "Column U (21st column) does not exist in the dataset headers."
-        )
-    print(f"Header from column U: {header_value}")
-
-    # Create a list of unique points as (row.ID, m/z, CCS, Score) tuples
-    data_points = list(
-        zip(
-            data_df["row.ID"],
-            data_df["m/z"],
-            data_df["CCS"],
-            data_df["Score"],
-        )
+    # Create a unique composite key using row.ID and m/z
+    data_df["unique_key"] = (
+        data_df["row.ID"].astype(str) + "_" + data_df["m/z"].astype(str)
     )
-    data_dict = data_df.set_index("row.ID").to_dict(
-        "index"
-    )  # Data accessible by row.ID
 
-    # Initialize variables
+    # Convert DataFrame to a dictionary accessible by unique_key
+    data_dict = data_df.set_index("unique_key").to_dict("index")
+
+    # Extract m/z values and initialize variables
+    array = data_df["m/z"].tolist()
+    row_ids = data_df["row.ID"].tolist()
     z = 1
-    detected_points = (
-        set()
-    )  # Track already processed points as (row.ID, m/z, CCS, Score)
     groups = []
+    visited_indices = set()
 
-    # Find peaks within bounds for each M value
+    # Debug: Print the data dictionary keys
+    print(
+        f"Unique keys in data_dict: {list(data_dict.keys())[:5]}"
+    )  # Print first 5 keys
+
+    # Find peaks within bounds for each value in the array for each M value
     for M in repeating_units:
         print(f"Analyzing with M = {M}")
-        for i, (row_id, mz, ccs, score) in enumerate(data_points):
-            if (row_id, mz, ccs, score) in detected_points:
-                continue  # Skip already processed points
+        for i, mz_value in enumerate(array):
+            if i in visited_indices:
+                continue  # Skip already visited points
 
-            # Start the group with the initial point
-            current_group = [(row_id, mz, ccs, score, header_value)]
+            # Start the group with the initial peak
+            current_group = [(mz_value, row_ids[i])]
 
-            # Check for multiples of M up to 12x
-            for multiplier in range(1, 13):
-                M_multiple = M * multiplier
-                peaks_within_bounds, count = find_peaks_within_bounds(
-                    [point[1] for point in data_points],  # Extract m/z values
-                    z,
-                    M_multiple,
-                    i,
-                    mass_error_ppm,
-                )
-                if count > 0:
-                    # Add detected peaks to the current group
-                    for peak in peaks_within_bounds:
-                        for point in data_points:
-                            if point[1] == peak and point not in detected_points:
-                                detected_points.add(point)
-                                current_group.append((*point, header_value))
+            # Iteratively check all other points
+            for j, other_mz in enumerate(array):
+                if j == i or j in visited_indices:
+                    continue  # Skip the same point or already visited ones
+
+                # Check if the mass difference is a multiple of M
+                mass_diff = abs(mz_value - other_mz)
+                if any(
+                    abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
+                    for k in range(1, 13)
+                ):
+                    visited_indices.add(j)
+                    current_group.append((other_mz, row_ids[j]))
 
             # If a valid group is formed, add it to the groups list
             if len(current_group) > 1:
                 groups.append(current_group)
 
-    # Print the groups with detailed information
+    # Print the groups with m/z and row.ID values
+    for idx, group in enumerate(groups):
+        print(f"Group {idx + 1}: {group}")
 
     end_time = time.time()  # End the timer
     execution_time = end_time - start_time
-    print(f"\nMass repeating unit analysis completed in {execution_time:.4f} seconds")
+    print(f"Mass repeating unit analysis: {execution_time:.4f} seconds")
+
     return groups
 
 
