@@ -10,6 +10,10 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     # Read the CSV file and extract relevant columns
     data_df = pd.read_csv(file_path)
 
+    # Debug: Print the first few rows of the DataFrame to ensure correct data loading
+    print("Preview of loaded data:")
+    print(data_df.head())
+
     # Create a unique composite key using row.ID and m/z
     data_df["unique_key"] = (
         data_df["row.ID"].astype(str) + "_" + data_df["m/z"].astype(str)
@@ -18,17 +22,29 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     # Convert DataFrame to a dictionary accessible by unique_key
     data_dict = data_df.set_index("unique_key").to_dict("index")
 
-    # Extract m/z values and initialize variables
+    # Extract required data for processing
     array = data_df["m/z"].tolist()
     row_ids = data_df["row.ID"].tolist()
+    ccs_values = data_df["CCS"].tolist()
+    scores = data_df["Score"].tolist()
+
+    # Debug: Check if the extracted scores align with the rows
+    for i in range(len(array)):
+        print(
+            f"Row {i + 1}: m/z={array[i]}, Row ID={row_ids[i]}, CCS={ccs_values[i]}, Score={scores[i]}"
+        )
+
+    # Get the header value from the 21st column (zero-based index 20)
+    try:
+        header_value = data_df.columns[20]
+    except IndexError:
+        raise ValueError(
+            "Column U (21st column) does not exist in the dataset headers."
+        )
+
     z = 1
     groups = []
     visited_indices = set()
-
-    # Debug: Print the data dictionary keys
-    print(
-        f"Unique keys in data_dict: {list(data_dict.keys())[:5]}"
-    )  # Print first 5 keys
 
     # Find peaks within bounds for each value in the array for each M value
     for M in repeating_units:
@@ -38,8 +54,9 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
                 continue  # Skip already visited points
 
             # Start the group with the initial peak
-            current_group = [(mz_value, row_ids[i])]
-
+            current_group = [
+                (mz_value, row_ids[i], ccs_values[i], scores[i], header_value)
+            ]
             # Iteratively check all other points
             for j, other_mz in enumerate(array):
                 if j == i or j in visited_indices:
@@ -52,15 +69,27 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
                     for k in range(1, 13)
                 ):
                     visited_indices.add(j)
-                    current_group.append((other_mz, row_ids[j]))
+                    current_group.append(
+                        (
+                            other_mz,
+                            row_ids[j],
+                            ccs_values[j],
+                            scores[j],
+                            header_value,
+                        )
+                    )
 
             # If a valid group is formed, add it to the groups list
             if len(current_group) > 1:
                 groups.append(current_group)
 
-    # Print the groups with m/z and row.ID values
+    # Print the groups with detailed information
     for idx, group in enumerate(groups):
-        print(f"Group {idx + 1}: {group}")
+        print(f"Group {idx + 1}:")
+        for point in group:
+            print(
+                f"  m/z: {point[0]}, Row ID: {point[1]}, CCS: {point[2]}, Score: {point[3]}, Header: {point[4]}"
+            )
 
     end_time = time.time()  # End the timer
     execution_time = end_time - start_time
