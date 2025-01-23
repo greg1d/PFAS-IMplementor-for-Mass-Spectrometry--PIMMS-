@@ -1,8 +1,7 @@
 import time
 import pandas as pd
 from scipy.stats import linregress
-import matplotlib.pyplot as plt
-
+import plotly.graph_objects as go
 import os
 
 
@@ -97,7 +96,7 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
                 mass_diff = abs(mz_value - other_mz)
                 if any(
                     abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
-                    for k in range(1, 13)
+                    for k in range(1, 6)
                 ):
                     visited_indices.add(j)
                     current_group.append(
@@ -131,73 +130,101 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
 def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
     homologous_series_groups = []  # Store final groups
     regression_results = {}  # Store regression results
+
     for idx, group in enumerate(groups):
+        print(f"\nProcessing Group {idx + 1}:")
+
         # Separate A-grade and non-A-grade elements
         a_group = [point for point in group if point[3] in ["A+", "A", "A-"]]
         non_a_group = [point for point in group if point[3] not in ["A+", "A-", "A"]]
 
-        # Extract m/z and CCS values
+        # Extract m/z, CCS values, and source file names
         a_mz_values = [point[0] for point in a_group]  # m/z
         a_ccs_values = [point[2] for point in a_group]  # CCS
+        a_sources = [point[4] for point in a_group]  # Source file
 
-        # Plot data for the current group
-        plt.figure(figsize=(10, 6))
-        plt.scatter(
-            a_mz_values, a_ccs_values, color="blue", label="A-grade points", zorder=5
+        if len(a_group) < 2:
+            print(f"Group {idx + 1}: Not enough points for regression.")
+            continue
+
+        # Prepare the base plot
+        fig = go.Figure()
+
+        # Add A-grade points with hover information
+        fig.add_trace(
+            go.Scatter(
+                x=a_mz_values,
+                y=a_ccs_values,
+                mode="markers",
+                name="A-grade points",
+                marker=dict(color="blue", size=8),
+                hovertemplate=(
+                    "m/z: %{x}<br>CCS: %{y}<br>Source File: %{text}<extra></extra>"
+                ),
+                text=a_sources,
+            )
         )
 
-        # Perform regression analysis if there are enough points
-        if len(a_group) > 1:
-            slope, intercept, r_value, p_value, std_err = linregress(
-                a_mz_values, a_ccs_values
+        # Perform regression analysis
+        slope, intercept, r_value, p_value, std_err = linregress(
+            a_mz_values, a_ccs_values
+        )
+        r_squared = r_value**2
+
+        print(
+            f"Group {idx + 1} Regression: Slope={slope:.4f}, Intercept={intercept:.4f}, "
+            f"R²={r_squared:.4f}, p={p_value:.4f}"
+        )
+
+        # Add regression line
+        reg_line_x = a_mz_values
+        reg_line_y = [slope * mz + intercept for mz in reg_line_x]
+        fig.add_trace(
+            go.Scatter(
+                x=reg_line_x,
+                y=reg_line_y,
+                mode="lines",
+                name=f"Trend (R²={r_squared:.4f})",
+                line=dict(color="blue", dash="dash"),
+                hoverinfo="skip",  # No hover for the trend line
             )
-            r_squared = r_value**2
+        )
 
-            print(
-                f"Group {idx + 1} Regression: Slope={slope:.4f}, Intercept={intercept:.4f}, "
-                f"R²={r_squared:.4f}, p={p_value:.4f}"
+        # Analyze and add non-A-grade points with hover information
+        for point in non_a_group:
+            mz, ccs, source = point[0], point[2], point[4]
+            predicted_ccs = slope * mz + intercept
+            residual = abs(ccs - predicted_ccs)
+            acceptable_variation = variation_threshold * predicted_ccs
+            included = residual <= acceptable_variation
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    name="Included Non-A" if included else "Excluded Non-A",
+                    marker=dict(
+                        color="green" if included else "red",
+                        size=8,
+                    ),
+                    hovertemplate=(
+                        "m/z: %{x}<br>CCS: %{y}<br>Source File: %{text}<extra></extra>"
+                    ),
+                    text=[source],
+                )
             )
 
-            # Add regression results to the dictionary
-            regression_results[f"Group {idx + 1}"] = {
-                "slope": slope,
-                "intercept": intercept,
-                "R_squared": r_squared,
-                "p_value": p_value,
-                "std_err": std_err,
-            }
+        # Configure plot layout
+        fig.update_layout(
+            title=f"Group {idx + 1}: CCS vs m/z",
+            xaxis_title="m/z",
+            yaxis_title="CCS",
+            legend_title="Point Type",
+            template="plotly_white",
+        )
 
-            # Plot regression line
-            plt.plot(
-                a_mz_values,
-                [slope * mz + intercept for mz in a_mz_values],
-                color="blue",
-                linestyle="dashed",
-                label=f"Trend (R²={r_squared:.4f})",
-                zorder=4,
-            )
-
-            # Analyze and plot non-A-grade points
-            for point in non_a_group:
-                mz, ccs = point[0], point[2]  # m/z, CCS
-                predicted_ccs = slope * mz + intercept
-                residual = abs(ccs - predicted_ccs)
-                acceptable_variation = variation_threshold * predicted_ccs
-
-                if residual <= acceptable_variation:
-                    plt.scatter(
-                        mz, ccs, color="green", label="Included Non-A", zorder=3
-                    )
-                else:
-                    plt.scatter(mz, ccs, color="red", label="Excluded Non-A", zorder=3)
-
-        if len(a_group) >= 3:
-            # Prepare and display the plot only if there are enough points
-            plt.xlabel("m/z")
-            plt.ylabel("CCS")
-            plt.title(f"Group {idx + 1}: CCS vs m/z")
-            plt.legend(loc="upper left")
-            plt.grid(True)
-            plt.show()
+        # Display the plot
+        fig.show()
 
     return homologous_series_groups, regression_results
