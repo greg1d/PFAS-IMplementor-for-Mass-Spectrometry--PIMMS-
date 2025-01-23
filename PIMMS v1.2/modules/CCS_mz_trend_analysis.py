@@ -2,6 +2,7 @@ import time
 import pandas as pd
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
+from bisect import bisect_left, bisect_right
 
 
 def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[100]):
@@ -57,27 +58,31 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
             current_group = [
                 (mz_value, row_ids[i], ccs_values[i], scores[i], header_value)
             ]
-            # Iteratively check all other points
-            for j, other_mz in enumerate(array):
-                if j == i or j in visited_indices:
-                    continue  # Skip the same point or already visited ones
 
-                # Check if the mass difference is a multiple of M
-                mass_diff = abs(mz_value - other_mz)
-                if any(
-                    abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
-                    for k in range(1, 13)
-                ):
-                    visited_indices.add(j)
-                    current_group.append(
-                        (
-                            other_mz,
-                            row_ids[j],
-                            ccs_values[j],
-                            scores[j],
-                            header_value,
+            # Check for multiples of M using binary search
+            for multiplier in range(1, 13):
+                # Calculate bounds for the current multiple of M
+                target_mass = mz_value + M * multiplier
+                lower_bound = target_mass - (mass_error_ppm / 1e6) * target_mass
+                upper_bound = target_mass + (mass_error_ppm / 1e6) * target_mass
+
+                # Use binary search to find indices within bounds
+                j_start = bisect_left(array, lower_bound, i + 1)
+                j_end = bisect_right(array, upper_bound, i + 1)
+
+                # Add all valid points within bounds to the group
+                for j in range(j_start, j_end):
+                    if j not in visited_indices:
+                        visited_indices.add(j)
+                        current_group.append(
+                            (
+                                array[j],
+                                row_ids[j],
+                                ccs_values[j],
+                                scores[j],
+                                header_value,
+                            )
                         )
-                    )
 
             # If a valid group is formed, add it to the groups list
             if len(current_group) > 1:

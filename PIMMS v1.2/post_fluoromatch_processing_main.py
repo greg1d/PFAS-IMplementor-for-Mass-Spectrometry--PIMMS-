@@ -14,7 +14,7 @@ from repeating_units import CF2, OCF2
 
 def main():
     # File path to the CSV file
-    file_path = "PIMMS v1.2/tests/Dummy scored data.csv"
+    file_path = "data for visualizer/7974_fluoromatch_processed.csv"
     mass_error_ppm = 10
 
     # List and define available M values
