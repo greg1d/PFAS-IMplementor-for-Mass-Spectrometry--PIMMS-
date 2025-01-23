@@ -12,7 +12,6 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
     # Read the CSV file and extract the m/z column
     data_df = pd.read_csv(file_path)
     array = data_df["m/z"].tolist()
-
     z = 1
     detected_indices = set()
     groups = []
@@ -25,8 +24,7 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
                 continue
 
             # Start the group with the initial peak
-            current_group = set()
-            current_group.add(array[i])
+            current_group = [array[i]]
 
             # Check for multiples of M up to 12x
             for multiplier in range(1, 13):
@@ -38,7 +36,7 @@ def mz_repeating_unit_analysis(file_path, mass_error_ppm=10, repeating_units=[10
                     # Add detected peaks to the current group
                     for peak in peaks_within_bounds:
                         detected_indices.add(array.index(peak))
-                        current_group.add(peak)
+                        current_group.append(peak)
 
             # If a valid group is formed, add it to the groups list
             if len(current_group) > 1:
