@@ -166,7 +166,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 x=a_mz_values,
                 y=a_ccs_values,
                 mode="markers",
-                name="A-grade points",
+                name="A-grade Library match",
                 marker=dict(color="blue", size=8),
                 hovertemplate=(
                     "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
@@ -188,42 +188,69 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         )
 
         # Add regression line
-        reg_line_x = a_mz_values
+        reg_line_x = sorted(a_mz_values)
         reg_line_y = [slope * mz + intercept for mz in reg_line_x]
         fig.add_trace(
             go.Scatter(
                 x=reg_line_x,
                 y=reg_line_y,
                 mode="lines",
-                name=f"Trend (R²={r_squared:.4f})",
+                name="CCS vs m/z trendline",
                 line=dict(color="blue", dash="dash"),
                 hoverinfo="skip",  # No hover for the trend line
             )
         )
 
-        # Analyze and add non-A-grade points with hover information
+        # Separate included and excluded non-A-grade points
+        included_points = []
+        excluded_points = []
         for point in non_a_group:
             mz, ccs, source, name = point[0], point[2], point[4], point[5]
             predicted_ccs = slope * mz + intercept
             residual = abs(ccs - predicted_ccs)
             acceptable_variation = variation_threshold * predicted_ccs
-            included = residual <= acceptable_variation
+            if residual <= acceptable_variation:
+                included_points.append((mz, ccs, source, name))
+            else:
+                excluded_points.append((mz, ccs, source, name))
 
+        # Add a single trace for all included points
+        if included_points:
+            included_mz, included_ccs, included_sources, included_names = zip(
+                *included_points
+            )
             fig.add_trace(
                 go.Scatter(
-                    x=[mz],
-                    y=[ccs],
+                    x=included_mz,
+                    y=included_ccs,
                     mode="markers",
-                    name="Included Non-A" if included else "Excluded Non-A",
-                    marker=dict(
-                        color="green" if included else "red",
-                        size=8,
-                    ),
+                    name="Included in homologous series trend",
+                    marker=dict(color="green", size=8),
                     hovertemplate=(
                         "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
                         "Name_or_Class: %{customdata[1]}<extra></extra>"
                     ),
-                    customdata=[[source, name]],
+                    customdata=list(zip(included_sources, included_names)),
+                )
+            )
+
+        # Add a single trace for all excluded points
+        if excluded_points:
+            excluded_mz, excluded_ccs, excluded_sources, excluded_names = zip(
+                *excluded_points
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=excluded_mz,
+                    y=excluded_ccs,
+                    mode="markers",
+                    name="Excluded from homologous series trend",
+                    marker=dict(color="red", size=8),
+                    hovertemplate=(
+                        "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
+                        "Name_or_Class: %{customdata[1]}<extra></extra>"
+                    ),
+                    customdata=list(zip(excluded_sources, excluded_names)),
                 )
             )
 
@@ -232,7 +259,14 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             title=f"Group {idx + 1}: CCS vs m/z",
             xaxis_title="m/z",
             yaxis_title="CCS",
-            legend_title="Point Type",
+            legend=dict(
+                title="Legend",
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                x=0.5,
+                xanchor="center",
+            ),
             template="plotly_white",
         )
 
