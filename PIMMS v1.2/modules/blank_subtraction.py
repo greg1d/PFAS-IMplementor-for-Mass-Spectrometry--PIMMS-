@@ -1,5 +1,6 @@
-import os
 import pandas as pd
+import numpy as np
+import os
 
 
 def read_and_filter_csv(file_path):
@@ -15,7 +16,7 @@ def read_and_filter_csv(file_path):
         # Load the CSV file with low_memory=False to handle mixed types
         df = pd.read_csv(file_path, low_memory=False)
 
-        # Select the first 5 columns by index and any column containing '.d'
+        # Select the first 5 columns and any column containing '.d'
         selected_columns = list(df.columns[:5]) + [
             col for col in df.columns if ".d" in col
         ]
@@ -26,36 +27,35 @@ def read_and_filter_csv(file_path):
         raise RuntimeError(f"Error processing {file_path}: {e}")
 
 
-def blank_subtraction(control_df, experimental_df):
+def method_1_blank_subtraction(control_df, experimental_df):
     """
-    Perform blank subtraction by averaging control samples and subtracting
-    the averaged values from the experimental samples. Also calculates the
-    standard deviation of control samples row-wise.
-
-    Parameters:
-        control_df (pd.DataFrame): DataFrame containing control samples.
-        experimental_df (pd.DataFrame): DataFrame containing experimental samples.
-
-    Returns:
-        pd.DataFrame: Experimental DataFrame with blanks subtracted.
-        pd.Series: Row-wise means of the control samples.
-        pd.Series: Row-wise standard deviations of the control samples.
+    Basic subtraction of the control mean from experimental samples.
     """
-    if len(control_df) != len(experimental_df):
-        raise ValueError(
-            "Control and experimental DataFrames must have the same number of rows."
-        )
+    control_mean = control_df.iloc[:, 5:].mean(axis=1)  # Exclude first 5 columns
+    adjusted_df = experimental_df.iloc[:, 5:].sub(control_mean, axis=0)
+    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+    return adjusted_df
 
-    # Compute the average and standard deviation of the control columns row-wise
-    control_mean = control_df.mean(axis=1)
-    control_std = control_df.std(axis=1)
 
-    # Subtract the averaged control values from each experimental column
-    subtracted_df = experimental_df.copy()
-    for column in experimental_df.columns:
-        subtracted_df[column] = experimental_df[column] - control_mean
+def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor=1):
+    """
+    Subtraction of the control mean and adjustment with standard deviation.
+    """
+    control_mean = control_df.iloc[:, 5:].mean(axis=1)
+    control_std = control_df.iloc[:, 5:].std(axis=1)
 
-    # Ensure no negative values
-    subtracted_df = subtracted_df.clip(lower=0)
+    adjusted_df = experimental_df.iloc[:, 5:].sub(control_mean, axis=0)
+    adjusted_df -= std_deviation_factor * control_std[:, np.newaxis]
+    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+    return adjusted_df, control_mean, control_std
 
-    return subtracted_df, control_mean, control_std
+
+def method_3_blank_subtraction(control_df, experimental_df):
+    """
+    Advanced custom subtraction logic. Modify as per requirements.
+    """
+    # Example: Subtract the median of the control values
+    control_median = control_df.iloc[:, 5:].median(axis=1)
+    adjusted_df = experimental_df.iloc[:, 5:].sub(control_median, axis=0)
+    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+    return adjusted_df

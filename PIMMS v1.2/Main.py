@@ -3,9 +3,12 @@ import sys
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "import folder"))
-from blank_subtraction import read_and_filter_csv, blank_subtraction
-from gui_module import launch_column_selection_gui
+from blank_subtraction import (
+    method_1_blank_subtraction,
+    method_2_blank_subtraction,
+    method_3_blank_subtraction,
+    read_and_filter_csv,
+)
 
 
 def main():
@@ -31,49 +34,68 @@ def main():
         print("No valid data loaded from the files. Exiting.")
         sys.exit(1)
 
-    # Launch GUI to select experimental, control, or exclude columns
-    columns_to_select = combined_data.columns[5:].tolist()  # Exclude first 5 columns
-    selections = launch_column_selection_gui(columns_to_select)
+    # Separate control and experimental DataFrames
+    control_columns = [
+        "Blank 1.d",
+        "Blank 2.d",
+        "Blank 3.d",
+        "Blank 4.d",
+        "Blank 5.d",
+        "Blank 6.d",
+        "Blank 7.d",
+        "Blank 8.d",
+        "Blank 9.d",
+    ]
+    control_df = combined_data[["ID", "RT", "DT", "CCS", "m/z"] + control_columns]
+    experimental_columns = [
+        col
+        for col in combined_data.columns
+        if col not in control_columns and col not in ["ID", "RT", "DT", "CCS", "m/z"]
+    ]
+    experimental_df = combined_data[
+        ["ID", "RT", "DT", "CCS", "m/z"] + experimental_columns
+    ]
 
-    # Extract user inputs
-    control_columns = selections["control"]
-    experimental_columns = selections["experimental"]
-    std_deviation_factor = selections["std_deviation_factor"]
+    # Choose a blank subtraction method
+    print("\nChoose a blank subtraction method:")
+    print("1. Method 1: Basic Subtraction")
+    print("2. Method 2: Subtraction with Mean + Standard Deviation")
+    print("3. Method 3: Custom Advanced Subtraction")
 
-    if not control_columns or not experimental_columns:
-        print("No control or experimental samples selected. Exiting.")
+    try:
+        choice = int(input("\nEnter your choice (1, 2, or 3): "))
+    except ValueError:
+        print("Invalid choice. Exiting.")
         sys.exit(1)
 
-    # Extract the control and experimental samples
-    control_df = combined_data[control_columns]
-    experimental_df = combined_data[experimental_columns]
-
-    # Perform blank subtraction
-    try:
-        subtracted_df, control_mean, control_std = blank_subtraction(
-            control_df, experimental_df
-        )
-
-        # Apply the standard deviation factor to modify the blank subtraction
-        adjusted_df = experimental_df.copy()
-        for column in adjusted_df.columns:
-            adjusted_df[column] -= std_deviation_factor * control_std
-            adjusted_df[column] = adjusted_df[column].clip(
-                lower=0
-            )  # Ensure no negative values
-
-        # Debugging: Display results
-        print("\nAdjusted Experimental Data Preview:")
-        print(adjusted_df.head())
-
-        print("\nControl Row-Wise Means:")
-        print(control_mean.head())
-
-        print("\nControl Row-Wise Standard Deviations:")
-        print(control_std.head())
-
-    except Exception as e:
-        print(f"Error during blank subtraction: {e}")
+    if choice == 1:
+        print("\nPerforming Method 1: Basic Subtraction...")
+        try:
+            adjusted_df = method_1_blank_subtraction(control_df, experimental_df)
+            print("\nAdjusted Experimental Data (Method 1):")
+            print(adjusted_df.head())
+        except Exception as e:
+            print(f"Error during Method 1 blank subtraction: {e}")
+    elif choice == 2:
+        print("\nPerforming Method 2: Subtraction with Mean + Standard Deviation...")
+        try:
+            adjusted_df, control_mean, control_std = method_2_blank_subtraction(
+                control_df, experimental_df, std_deviation_factor=3
+            )
+            print("\nAdjusted Experimental Data (Method 2):")
+            print(adjusted_df.head())
+        except Exception as e:
+            print(f"Error during Method 2 blank subtraction: {e}")
+    elif choice == 3:
+        print("\nPerforming Method 3: Custom Advanced Subtraction...")
+        try:
+            adjusted_df = method_3_blank_subtraction(control_df, experimental_df)
+            print("\nAdjusted Experimental Data (Method 3):")
+            print(adjusted_df.head())
+        except Exception as e:
+            print(f"Error during Method 3 blank subtraction: {e}")
+    else:
+        print("Invalid choice. Exiting.")
         sys.exit(1)
 
 

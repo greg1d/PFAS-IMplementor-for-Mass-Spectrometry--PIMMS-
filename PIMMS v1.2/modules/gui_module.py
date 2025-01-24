@@ -1,15 +1,26 @@
-from tkinter import Tk, Label, Button, Frame, Canvas, Scrollbar, StringVar
+from tkinter import (
+    Tk,
+    Label,
+    Button,
+    Frame,
+    Canvas,
+    Scrollbar,
+    StringVar,
+    Scale,
+    HORIZONTAL,
+)
 
 
 def launch_column_selection_gui(column_names):
     """
     Launch a GUI to allow users to assign each sample to control, experimental, or exclude groups.
+    Includes a section for blank subtraction with adjustable standard deviations.
 
     Args:
         column_names (list): List of column names to display.
 
     Returns:
-        dict: Dictionary with control, experimental, and excluded selections.
+        dict: Dictionary with control, experimental, excluded selections, and blank subtraction settings.
     """
 
     def assign_to_group(sample, group_name, label_var):
@@ -36,12 +47,14 @@ def launch_column_selection_gui(column_names):
         exclude_label_var.set(f"Excluded Samples: {', '.join(selections['exclude'])}")
 
     def finalize_selection():
+        # Save the number of standard deviations for blank subtraction
+        selections["std_deviation_factor"] = num_std_devs.get()
         root.destroy()
 
     # Create the main GUI window
     root = Tk()
     root.title("Select Experimental, Control, or Exclude Samples")
-    root.geometry("900x600")
+    root.geometry("900x700")
 
     # Create a scrollable canvas
     canvas = Canvas(root)
@@ -121,6 +134,20 @@ def launch_column_selection_gui(column_names):
     Label(root, textvariable=exclude_label_var, wraplength=800, justify="left").pack(
         pady=10
     )
+
+    # Blank subtraction section
+    blank_section = Frame(scrollable_frame, relief="groove", borderwidth=2)
+    blank_section.pack(fill="x", padx=10, pady=20)
+
+    Label(blank_section, text="Blank Subtraction Options", font=("Arial", 14)).pack(
+        pady=10
+    )
+
+    # Standard deviation selection
+    Label(blank_section, text="Number of Standard Deviations:").pack(pady=5)
+    num_std_devs = Scale(blank_section, from_=0, to=10, orient=HORIZONTAL)
+    num_std_devs.set(3)  # Default value
+    num_std_devs.pack(pady=5)
 
     # Finalize button
     Button(root, text="Finalize Selection", command=finalize_selection).pack(pady=20)
