@@ -60,20 +60,81 @@ def separate_control_experimental(combined_data, control_columns):
     return control_df, experimental_df
 
 
+def count_non_zero_rows(df):
+    """
+    Calculates the group average and standard deviation of rows with values greater than 0.001
+    in all '.d' columns.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+        tuple: Group average and group standard deviation of non-zero rows.
+    """
+    # Identify all '.d' columns
+    d_columns = [col for col in df.columns if ".d" in col]
+    if not d_columns:
+        print("No '.d' columns found in the DataFrame.")
+        return 0, 0
+
+    # Calculate the proportion of non-zero values (greater than 0.001) for each row
+    non_zero_counts = df[d_columns].apply(
+        lambda col: pd.to_numeric(col, errors="coerce").fillna(0).gt(0.001).sum()
+    )
+
+    # Calculate group average and standard deviation
+    group_average = non_zero_counts.mean()
+    group_std_dev = non_zero_counts.std()
+
+    return group_average, group_std_dev
+
+
 def method_1_blank_subtraction(control_df, experimental_df):
     """
     Basic subtraction of the control mean from experimental samples.
     """
+    group_avg, group_std = count_non_zero_rows(control_df)
+    print(
+        f"Control Group - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+    )
+    group_avg, group_std = count_non_zero_rows(experimental_df)
+    print(
+        f"Experimental Group - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+    )
     control_mean = control_df.iloc[:, 5:].mean(axis=1)  # Exclude first 5 columns
     adjusted_df = experimental_df.iloc[:, 5:].sub(control_mean, axis=0)
     adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+    group_avg, group_std = count_non_zero_rows(adjusted_df)
+    print(
+        f"After Blank Subtraction - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+    )
+
     return adjusted_df
 
 
 def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor=1):
     """
-    Subtraction of the control mean and adjustment with standard deviation.
+    Subtraction of the control mean and adjustment with standard deviation,
+    with non-zero row counts before and after subtraction.
+
+    Args:
+        control_df (pd.DataFrame): Control DataFrame.
+        experimental_df (pd.DataFrame): Experimental DataFrame.
+        std_deviation_factor (float): Factor for standard deviation adjustment.
+
+    Returns:
+        tuple: Adjusted experimental DataFrame, control mean, and control std.
     """
+    # Count rows before subtraction
+    group_avg, group_std = count_non_zero_rows(control_df)
+    print(
+        f"Control Group - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+    )
+    group_avg, group_std = count_non_zero_rows(experimental_df)
+    print(
+        f"Experimental Group - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+    )
+
     # Calculate row-wise mean and standard deviation for control samples
     control_mean = control_df.iloc[:, 5:].mean(axis=1)
     control_std = control_df.iloc[:, 5:].std(axis=1)
@@ -87,6 +148,11 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     adjusted_df -= std_deviation_factor * control_std_array[:, np.newaxis]
     adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
 
+    # Count rows after subtraction
+    group_avg, group_std = count_non_zero_rows(adjusted_df)
+    print(
+        f"Experimental Group After Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+    )
     return adjusted_df, control_mean, control_std
 
 
