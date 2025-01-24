@@ -32,7 +32,7 @@ def main():
     M_values = [available_M_values[name] for name in selected_M_values]
 
     # Required columns for analysis
-    required_columns = ["m/z", "Score", "CCS", "row.ID"]
+    required_columns = ["m/z", "Score", "CCS", "row.ID", "Name_or_Class"]
 
     # Merge and extract data from CSV files
     print("Merging and extracting data from files...")
@@ -68,9 +68,9 @@ def main():
     for idx, group in enumerate(homologous_series_groups, start=1):
         print(f"Group {idx}:")
         for entry in group:
-            mz, row_id, ccs, score, source_file = entry
+            mz, row_id, ccs, score, source_file, name_or_class = entry
             print(
-                f"  m/z: {mz}, CCS: {ccs}, Score: {score}, Source File: {source_file}, row.ID: {row_id}"
+                f"  m/z: {mz}, CCS: {ccs}, Score: {score}, Source File: {source_file}, row.ID: {row_id}, Name/Class: {name_or_class}"
             )
 
     print("\nAnalysis complete.")

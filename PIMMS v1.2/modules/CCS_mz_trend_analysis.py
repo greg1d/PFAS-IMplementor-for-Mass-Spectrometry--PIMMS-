@@ -52,7 +52,7 @@ def merge_and_extract_data(file_paths, required_columns):
     print(
         f"Combined dataset contains {len(combined_data)} rows from {len(file_paths)} files."
     )
-    print("combined_data2", combined_data)
+    print("combined_data", combined_data)
     return combined_data
 
 
@@ -60,7 +60,7 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
     start_time = time.time()  # Start the timer
 
     # Ensure the required columns are present
-    required_columns = ["m/z", "Score", "CCS", "row.ID", "source_file"]
+    required_columns = ["m/z", "Score", "CCS", "row.ID", "source_file", "Name_or_Class"]
     if not all(col in data_df.columns for col in required_columns):
         raise ValueError(
             f"DataFrame is missing one or more required columns: {required_columns}"
@@ -72,6 +72,7 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
     ccs_values = data_df["CCS"].tolist()
     scores = data_df["Score"].tolist()
     source_files = data_df["source_file"].tolist()
+    names_or_classes = data_df["Name_or_Class"].tolist()
 
     groups = []
     visited_indices = set()
@@ -85,7 +86,14 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
 
             # Start the group with the initial peak
             current_group = [
-                (mz_value, row_ids[i], ccs_values[i], scores[i], source_files[i])
+                (
+                    mz_value,
+                    row_ids[i],
+                    ccs_values[i],
+                    scores[i],
+                    source_files[i],
+                    names_or_classes[i],
+                )
             ]
             # Iteratively check all other points
             for j, other_mz in enumerate(array):
@@ -106,6 +114,7 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
                             ccs_values[j],
                             scores[j],
                             source_files[j],
+                            names_or_classes[j],
                         )
                     )
 
@@ -118,7 +127,7 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
         print(f"Group {idx + 1}:")
         for point in group:
             print(
-                f"  m/z: {point[0]}, Row ID: {point[1]}, CCS: {point[2]}, Score: {point[3]}, Source File: {point[4]}"
+                f"  m/z: {point[0]}, Row ID: {point[1]}, CCS: {point[2]}, Score: {point[3]}, Source File: {point[4]}, Name_or_Class: {point[5]}"
             )
 
     end_time = time.time()  # End the timer
@@ -138,10 +147,11 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         a_group = [point for point in group if point[3] in ["A+", "A", "A-"]]
         non_a_group = [point for point in group if point[3] not in ["A+", "A-", "A"]]
 
-        # Extract m/z, CCS values, and source file names
+        # Extract m/z, CCS values, source file names, and Name_or_Class
         a_mz_values = [point[0] for point in a_group]  # m/z
         a_ccs_values = [point[2] for point in a_group]  # CCS
         a_sources = [point[4] for point in a_group]  # Source file
+        a_names = [point[5] for point in a_group]  # Name_or_Class
 
         if len(a_group) < 2:
             print(f"Group {idx + 1}: Not enough points for regression.")
@@ -159,9 +169,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 name="A-grade points",
                 marker=dict(color="blue", size=8),
                 hovertemplate=(
-                    "m/z: %{x}<br>CCS: %{y}<br>Source File: %{text}<extra></extra>"
+                    "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
+                    "Name_or_Class: %{customdata[1]}<extra></extra>"
                 ),
-                text=a_sources,
+                customdata=list(zip(a_sources, a_names)),  # Custom hover data
             )
         )
 
@@ -192,7 +203,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
 
         # Analyze and add non-A-grade points with hover information
         for point in non_a_group:
-            mz, ccs, source = point[0], point[2], point[4]
+            mz, ccs, source, name = point[0], point[2], point[4], point[5]
             predicted_ccs = slope * mz + intercept
             residual = abs(ccs - predicted_ccs)
             acceptable_variation = variation_threshold * predicted_ccs
@@ -209,9 +220,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                         size=8,
                     ),
                     hovertemplate=(
-                        "m/z: %{x}<br>CCS: %{y}<br>Source File: %{text}<extra></extra>"
+                        "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
+                        "Name_or_Class: %{customdata[1]}<extra></extra>"
                     ),
-                    text=[source],
+                    customdata=[[source, name]],
                 )
             )
 
