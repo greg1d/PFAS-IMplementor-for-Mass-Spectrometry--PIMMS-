@@ -35,9 +35,10 @@ def main():
     columns_to_select = combined_data.columns[5:].tolist()  # Exclude first 5 columns
     selections = launch_column_selection_gui(columns_to_select)
 
-    # Filter Control and Experimental samples based on selections
+    # Extract user inputs
     control_columns = selections["control"]
     experimental_columns = selections["experimental"]
+    std_deviation_factor = selections["std_deviation_factor"]
 
     if not control_columns or not experimental_columns:
         print("No control or experimental samples selected. Exiting.")
@@ -47,17 +48,30 @@ def main():
     control_df = combined_data[control_columns]
     experimental_df = combined_data[experimental_columns]
 
-    # Debugging: Print columns for verification
-    print("\nControl DataFrame Columns:")
-    print(control_df.columns)
-    print("\nExperimental DataFrame Columns:")
-    print(experimental_df.columns)
-
     # Perform blank subtraction
     try:
-        subtracted_df = blank_subtraction(control_df, experimental_df)
-        print("\nSubtracted Data Preview:")
-        print(subtracted_df.head())
+        subtracted_df, control_mean, control_std = blank_subtraction(
+            control_df, experimental_df
+        )
+
+        # Apply the standard deviation factor to modify the blank subtraction
+        adjusted_df = experimental_df.copy()
+        for column in adjusted_df.columns:
+            adjusted_df[column] -= std_deviation_factor * control_std
+            adjusted_df[column] = adjusted_df[column].clip(
+                lower=0
+            )  # Ensure no negative values
+
+        # Debugging: Display results
+        print("\nAdjusted Experimental Data Preview:")
+        print(adjusted_df.head())
+
+        print("\nControl Row-Wise Means:")
+        print(control_mean.head())
+
+        print("\nControl Row-Wise Standard Deviations:")
+        print(control_std.head())
+
     except Exception as e:
         print(f"Error during blank subtraction: {e}")
         sys.exit(1)

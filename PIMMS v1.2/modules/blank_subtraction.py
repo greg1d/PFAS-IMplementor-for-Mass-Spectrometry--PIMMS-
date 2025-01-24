@@ -29,7 +29,8 @@ def read_and_filter_csv(file_path):
 def blank_subtraction(control_df, experimental_df):
     """
     Perform blank subtraction by averaging control samples and subtracting
-    the averaged values from the experimental samples.
+    the averaged values from the experimental samples. Also calculates the
+    standard deviation of control samples row-wise.
 
     Parameters:
         control_df (pd.DataFrame): DataFrame containing control samples.
@@ -37,14 +38,17 @@ def blank_subtraction(control_df, experimental_df):
 
     Returns:
         pd.DataFrame: Experimental DataFrame with blanks subtracted.
+        pd.Series: Row-wise means of the control samples.
+        pd.Series: Row-wise standard deviations of the control samples.
     """
     if len(control_df) != len(experimental_df):
         raise ValueError(
             "Control and experimental DataFrames must have the same number of rows."
         )
 
-    # Compute the average of the control columns row-wise
+    # Compute the average and standard deviation of the control columns row-wise
     control_mean = control_df.mean(axis=1)
+    control_std = control_df.std(axis=1)
 
     # Subtract the averaged control values from each experimental column
     subtracted_df = experimental_df.copy()
@@ -54,4 +58,4 @@ def blank_subtraction(control_df, experimental_df):
     # Ensure no negative values
     subtracted_df = subtracted_df.clip(lower=0)
 
-    return subtracted_df
+    return subtracted_df, control_mean, control_std
