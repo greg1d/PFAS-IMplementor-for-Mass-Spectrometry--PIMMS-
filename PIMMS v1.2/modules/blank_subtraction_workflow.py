@@ -7,7 +7,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from blank_subtraction import (
     method_1_blank_subtraction,
     method_2_blank_subtraction,
-    method_3_blank_subtraction,
     read_and_filter_csv,
     separate_control_experimental,
 )
@@ -69,12 +68,6 @@ def perform_blank_subtraction(method, control_df, experimental_df):
         )
         adjusted_df, control_mean, control_std = method_2_blank_subtraction(
             control_df, experimental_df, std_deviation_factor
-        )
-        return adjusted_df, control_mean, control_std
-
-    elif method == "3":
-        adjusted_df, control_mean, control_std = method_3_blank_subtraction(
-            control_df, experimental_df
         )
         return adjusted_df, control_mean, control_std
 

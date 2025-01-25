@@ -37,7 +37,6 @@ def main():
     print("Select blank subtraction method:")
     print("1: Method 1")
     print("2: Method 2 (Mean + x standard deviations)")
-    print("3: Method 3")
     method = input("Enter method number: ")
 
     try:

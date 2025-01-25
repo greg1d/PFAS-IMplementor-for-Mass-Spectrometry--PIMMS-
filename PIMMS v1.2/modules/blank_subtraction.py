@@ -155,14 +155,3 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
         f"Experimental Sample Set After Blank Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     return adjusted_df, control_mean, control_std
-
-
-def method_3_blank_subtraction(control_df, experimental_df):
-    """
-    Advanced custom subtraction logic. Modify as per requirements.
-    """
-    # Example: Subtract the median of the control values
-    control_median = control_df.iloc[:, 5:].median(axis=1)
-    adjusted_df = experimental_df.iloc[:, 5:].sub(control_median, axis=0)
-    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
-    return adjusted_df
