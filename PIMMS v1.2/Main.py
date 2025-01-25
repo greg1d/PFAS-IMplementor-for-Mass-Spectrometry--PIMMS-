@@ -14,7 +14,9 @@ def main():
     file_paths = [
         "PIMMS v1.2/data/debugging_data_set.csv",
     ]
-    standards_file = "PIMMS v1.2/data/standards_library.csv"  # Standards library file
+    standards_file = (
+        "PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.csv"  # Standards library file
+    )
 
     # Define control columns
     control_samples = [

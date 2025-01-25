@@ -198,15 +198,32 @@ def save_adjusted_dataset(adjusted_df, original_df):
 
 
 def calculate_mass_error(mass, mass_error_ppm=10, z=1):
+    """
+    Calculate the mass error bounds based on mass, ppm, and charge state.
+    """
     mass_error = mass * mass_error_ppm * 1e-6
     mass_bound = mass_error / z
     return mass_bound
 
 
 def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
+    """
+    Finds peaks within the mass error bounds of a specific peak.
+
+    Args:
+        array (list): Array of masses to search within.
+        z (int): Charge state.
+        M (float): Experimental mass to compare.
+        i (int): Current index in the array.
+        mass_error_ppm (float): Mass error tolerance in ppm.
+
+    Returns:
+        tuple: List of peaks within bounds and the count of matches.
+    """
     mass_bound = calculate_mass_error(array[i], mass_error_ppm, z)
     lower_bound = array[i] + (M / z) - mass_bound
     upper_bound = array[i] + (M / z) + mass_bound
+
     # Find the bounds using binary search
     j_start = bisect.bisect_left(array, lower_bound, i + 1)
     j_end = bisect.bisect_right(array, upper_bound, i + 1)
@@ -218,23 +235,29 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
     return peaks_within_bounds, j_end - j_start
 
 
-def remove_standards_library(control_df, experimental_df, standards_file):
+def remove_standards_library(
+    control_df, experimental_df, standards_file, mass_error_ppm=10, z=1
+):
     """
-    Processes the experimental dataset to retain features that match a value
-    in the standards library based on "m/z" and "CCS" comparisons.
-    Also, returns a reduced standards library with matching features removed.
+    Processes the experimental dataset to separate matched features (for the Standards Report)
+    and unmatched features (for further blank subtraction workflow).
+    Exports a report of all matched entries including experimental values, matched reference values,
+    and additional metadata. Filters out rows with empty cells in `.d` columns before saving.
 
     Args:
         control_df (pd.DataFrame): Control sample DataFrame.
         experimental_df (pd.DataFrame): Experimental sample DataFrame.
         standards_file (str): Path to the standards library CSV file.
+        mass_error_ppm (int): Mass error tolerance in ppm.
+        z (int): Charge state.
 
     Returns:
         tuple:
-            - pd.DataFrame: Experimental DataFrame with matching features retained.
+            - pd.DataFrame: Experimental DataFrame with unmatched features retained.
             - pd.DataFrame: Standards library with matching features removed.
     """
     try:
+        print("[DEBUG] Loading standards library...")
         # Load the standards library
         standards_df = pd.read_csv(standards_file)
         if "m/z" not in standards_df.columns or "CCS" not in standards_df.columns:
@@ -247,46 +270,99 @@ def remove_standards_library(control_df, experimental_df, standards_file):
         standards_ccs = standards_df["CCS"].dropna().to_numpy()
 
         print(
-            f"Standards library loaded with {len(standards_mz)} 'm/z' and {len(standards_ccs)} 'CCS' values."
+            f"[DEBUG] Standards library loaded with {len(standards_mz)} 'm/z' and {len(standards_ccs)} 'CCS' values."
         )
 
         # Compare "m/z" (5th column) and "CCS" (4th column) in the experimental dataset
-        experimental_mz = experimental_df.iloc[:, 4].to_numpy()
-        experimental_ccs = experimental_df.iloc[:, 3].to_numpy()
-
-        # Identify rows in the experimental dataset that match the standards
-        matches = [
-            i
-            for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs))
-            if any(
-                abs(mz - std_mz) < 1e-5 and abs(ccs - std_ccs) < 1e-2
-                for std_mz, std_ccs in zip(standards_mz, standards_ccs)
-            )
-        ]
-
-        print(f"Found {len(matches)} matching features in the experimental dataset.")
-
-        # Create a DataFrame of matching experimental features
-        retained_experimental_df = experimental_df.iloc[matches]
-
-        # Identify matched standards and create a reduced standards DataFrame
-        matched_standards = standards_df[
-            standards_df.apply(
-                lambda row: any(
-                    abs(row["m/z"] - mz) < 1e-5 and abs(row["CCS"] - ccs) < 1e-2
-                    for mz, ccs in zip(experimental_mz, experimental_ccs)
-                ),
-                axis=1,
-            )
-        ]
-        remaining_standards_df = standards_df.drop(matched_standards.index)
+        experimental_mz = experimental_df.iloc[:, 4].to_numpy()  # Column E (5th column)
+        experimental_ccs = experimental_df.iloc[
+            :, 3
+        ].to_numpy()  # Column D (4th column)
 
         print(
-            f"Retained {len(retained_experimental_df)} experimental features and "
-            f"reduced standards library to {len(remaining_standards_df)} entries."
+            f"[DEBUG] Experimental dataset contains {len(experimental_mz)} 'm/z' and {len(experimental_ccs)} 'CCS' values."
         )
 
-        return retained_experimental_df, remaining_standards_df
+        matched_rows = []  # To store the report data for matched experimental and standards values
+        unmatched_indices = []  # Indices of experimental rows not matched
+
+        # Identify `.d` columns for empty cell filtering later
+        d_columns = [col for col in experimental_df.columns if ".d" in col]
+
+        # Debug the standard and experimental values
+        print("[DEBUG] Iterating through experimental dataset...")
+        for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs)):
+            is_matched = False  # Flag to track if a match is found
+            for j, (std_mz, std_ccs) in enumerate(zip(standards_mz, standards_ccs)):
+                try:
+                    # Calculate mass error bounds for the current standard m/z
+                    mass_bound = calculate_mass_error(std_mz, mass_error_ppm, z)
+                    lower_bound = std_mz - mass_bound
+                    upper_bound = std_mz + mass_bound
+
+                    # Check if the experimental m/z falls within the bounds
+                    matches_standard = (
+                        lower_bound <= mz <= upper_bound and abs(ccs - std_ccs) < 0.1
+                    )
+
+                    if matches_standard:
+                        print(
+                            f"[DEBUG] Match found for experimental row {i}: "
+                            f"Experimental m/z={mz:.4f}, CCS={ccs:.4f}; "
+                            f"Standard m/z={std_mz:.4f}, CCS={std_ccs:.4f}"
+                        )
+
+                        # Add match to the Standards Report
+                        matched_row = experimental_df.iloc[i, :5].to_dict()
+                        matched_row.update(
+                            {
+                                "Experimental m/z": mz,
+                                "Experimental CCS": ccs,
+                                "Standard m/z": std_mz,
+                                "Standard CCS": std_ccs,
+                            }
+                        )
+                        matched_rows.append(matched_row)
+                        is_matched = True
+                        break  # No need to check further standards for this experimental row
+
+                except Exception as e:
+                    print(
+                        f"[ERROR] Exception while checking match for experimental row {i} and standard {j}: {e}"
+                    )
+
+            if not is_matched:
+                unmatched_indices.append(i)
+
+        print(f"[DEBUG] Total matched rows: {len(matched_rows)}")
+        print(f"[DEBUG] Total unmatched rows: {len(unmatched_indices)}")
+
+        # Create DataFrames for unmatched features and matched standards
+        unmatched_experimental_df = experimental_df.iloc[unmatched_indices]
+        matched_standards_df = pd.DataFrame(matched_rows)
+
+        print(
+            f"[DEBUG] Unmatched experimental features retained: {len(unmatched_experimental_df)}"
+        )
+        print(f"[DEBUG] Matched standards recorded: {len(matched_standards_df)}")
+
+        # Remove rows with empty cells in `.d` columns from the unmatched experimental DataFrame
+        unmatched_experimental_df = unmatched_experimental_df.dropna(
+            subset=d_columns, how="any"
+        )
+        print(
+            f"[DEBUG] Unmatched experimental features after filtering empty `.d` cells: {len(unmatched_experimental_df)}"
+        )
+
+        # Save the matched standards report
+        temp_folder = ".temp"
+        os.makedirs(temp_folder, exist_ok=True)
+
+        standards_report_file = os.path.join(temp_folder, "Standards_report.csv")
+        matched_standards_df.to_csv(standards_report_file, index=False)
+        print(f"Standards report saved to {standards_report_file}")
+
+        return unmatched_experimental_df, standards_df
 
     except FileNotFoundError:
         print("Error: Standards library file not found.")
