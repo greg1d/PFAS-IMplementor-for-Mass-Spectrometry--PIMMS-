@@ -1,8 +1,8 @@
-import sys
 import os
+import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-from blank_subtraction_workflow import process_files, perform_blank_subtraction
+from blank_subtraction_workflow import perform_blank_subtraction, process_files
 
 
 def main():
@@ -12,7 +12,7 @@ def main():
     ]
 
     # Define control columns
-    control_columns = [
+    control_samples = [
         "Blank 1.d",
         "Blank 2.d",
         "Blank 3.d",
@@ -27,7 +27,7 @@ def main():
     try:
         # Process files and separate data
         combined_data, control_df, experimental_df = process_files(
-            file_paths, control_columns
+            file_paths, control_samples
         )
     except Exception as e:
         print(f"Error processing files: {e}")
@@ -45,17 +45,6 @@ def main():
         adjusted_df, control_mean, control_std = perform_blank_subtraction(
             method, control_df, experimental_df
         )
-
-        # Debugging: Display results
-        print("\nAdjusted Experimental Data Preview:")
-        print(adjusted_df.head())
-
-        print("\nControl Row-Wise Means:")
-        print(control_mean.head())
-
-        if control_std is not None:
-            print("\nControl Row-Wise Standard Deviations:")
-            print(control_std.head())
 
     except Exception as e:
         print(f"Error during blank subtraction: {e}")

@@ -1,6 +1,7 @@
-import pandas as pd
-import sys
 import os
+import sys
+
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from blank_subtraction import (
@@ -12,13 +13,13 @@ from blank_subtraction import (
 )
 
 
-def process_files(file_paths, control_columns):
+def process_files(file_paths, control_samples):
     """
     Reads and combines data from multiple files, separating control and experimental samples.
 
     Args:
         file_paths (list): List of file paths to read.
-        control_columns (list): Columns to consider as control samples.
+        control_samples (list): Columns to consider as control samples.
 
     Returns:
         tuple: Combined DataFrame, control DataFrame, experimental DataFrame.
@@ -38,7 +39,7 @@ def process_files(file_paths, control_columns):
 
     # Separate control and experimental data
     control_df, experimental_df = separate_control_experimental(
-        combined_data, control_columns
+        combined_data, control_samples
     )
 
     return combined_data, control_df, experimental_df

@@ -1,6 +1,7 @@
-import pandas as pd
-import numpy as np
 import os
+
+import numpy as np
+import pandas as pd
 
 
 def read_and_filter_csv(file_path):
@@ -27,27 +28,27 @@ def read_and_filter_csv(file_path):
         raise RuntimeError(f"Error processing {file_path}: {e}")
 
 
-def separate_control_experimental(combined_data, control_columns):
+def separate_control_experimental(combined_data, control_samples):
     """
     Separates the combined DataFrame into control and experimental DataFrames.
 
     Args:
         combined_data (pd.DataFrame): The combined data containing all samples.
-        control_columns (list): List of control sample column names.
+        control_samples (list): List of control sample column names.
 
     Returns:
         control_df (pd.DataFrame): DataFrame containing control samples and metadata.
         experimental_df (pd.DataFrame): DataFrame containing experimental samples.
     """
     # Ensure all control columns are present
-    for col in control_columns:
+    for col in control_samples:
         if col not in combined_data.columns:
             raise ValueError(f"Control column '{col}' not found in the data.")
 
     # Select control samples and metadata (first 5 columns)
-    control_df = combined_data[combined_data.columns[:5].tolist() + control_columns]
+    control_df = combined_data[combined_data.columns[:5].tolist() + control_samples]
 
-    # Select experimental samples (all other '.d' columns not in control_columns)
+    # Select experimental samples (all other '.d' columns not in control_samples)
     experimental_columns = [
         col
         for col in combined_data.columns
@@ -95,11 +96,11 @@ def method_1_blank_subtraction(control_df, experimental_df):
     """
     group_avg, group_std = count_non_zero_rows(control_df)
     print(
-        f"Control Group - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+        f"Control Sample Set - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
     )
     group_avg, group_std = count_non_zero_rows(experimental_df)
     print(
-        f"Experimental Group - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+        f"Experimental Sample Set - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
     )
     control_mean = control_df.iloc[:, 5:].mean(axis=1)  # Exclude first 5 columns
     adjusted_df = experimental_df.iloc[:, 5:].sub(control_mean, axis=0)
@@ -128,11 +129,11 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     # Count rows before subtraction
     group_avg, group_std = count_non_zero_rows(control_df)
     print(
-        f"Control Group - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Control Sample Set  - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     group_avg, group_std = count_non_zero_rows(experimental_df)
     print(
-        f"Experimental Group - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Experimental Sample Set - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
 
     # Calculate row-wise mean and standard deviation for control samples
@@ -151,7 +152,7 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     # Count rows after subtraction
     group_avg, group_std = count_non_zero_rows(adjusted_df)
     print(
-        f"Experimental Group After Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Experimental Sample Set After Blank Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     return adjusted_df, control_mean, control_std
 
