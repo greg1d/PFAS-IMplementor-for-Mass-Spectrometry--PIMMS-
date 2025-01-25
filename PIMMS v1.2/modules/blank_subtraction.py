@@ -182,7 +182,7 @@ def save_adjusted_dataset(adjusted_df, original_df):
         original_df (pd.DataFrame): The original dataset containing the first 5 columns.
     """
     # Create .temp folder if it doesn't exist
-    temp_folder = ".temp"
+    temp_folder = "PIMMS v1.2\.temp"
     os.makedirs(temp_folder, exist_ok=True)
 
     # Generate a filename with the current date and time
