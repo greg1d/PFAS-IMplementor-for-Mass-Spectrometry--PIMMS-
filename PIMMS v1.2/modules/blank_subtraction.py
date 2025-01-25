@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -169,3 +170,29 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
         f"Experimental Sample Set After Blank Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     return adjusted_df, control_mean, control_std
+
+
+def save_adjusted_dataset(adjusted_df, original_df):
+    """
+    Saves the adjusted dataset (including the first 5 columns from the original dataset)
+    into a .temp folder with a filename that includes the current date and time.
+
+    Args:
+        adjusted_df (pd.DataFrame): The adjusted experimental dataset (excluding the first 5 columns).
+        original_df (pd.DataFrame): The original dataset containing the first 5 columns.
+    """
+    # Create .temp folder if it doesn't exist
+    temp_folder = ".temp"
+    os.makedirs(temp_folder, exist_ok=True)
+
+    # Generate a filename with the current date and time
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    file_name = f"adjusted_dataset_{current_time}.csv"
+    file_path = os.path.join(temp_folder, file_name)
+
+    # Include the first 5 columns from the original dataset
+    combined_df = pd.concat([original_df.iloc[:, :5], adjusted_df], axis=1)
+
+    # Save the combined dataset as a CSV file
+    combined_df.to_csv(file_path, index=False)
+    print(f"Adjusted dataset saved to {file_path}")

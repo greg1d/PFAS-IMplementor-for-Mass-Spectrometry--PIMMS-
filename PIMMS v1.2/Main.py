@@ -2,7 +2,11 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-from blank_subtraction_workflow import perform_blank_subtraction, process_files
+from blank_subtraction import save_adjusted_dataset
+from blank_subtraction_workflow import (
+    perform_blank_subtraction,
+    process_files,
+)
 
 
 def main():
@@ -38,6 +42,7 @@ def main():
         adjusted_df, control_mean, control_std = perform_blank_subtraction(
             method, control_df, experimental_df
         )
+        save_adjusted_dataset(adjusted_df, combined_data)
 
     except Exception as e:
         print(f"Error during blank subtraction: {e}")
