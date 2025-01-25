@@ -60,6 +60,7 @@ def perform_blank_subtraction(method, control_df, experimental_df):
         adjusted_df, control_mean, control_std = method_1_blank_subtraction(
             control_df, experimental_df
         )
+
         return adjusted_df, control_mean, control_std
 
     elif method == "2":

@@ -92,25 +92,39 @@ def count_non_zero_rows(df):
 
 def method_1_blank_subtraction(control_df, experimental_df):
     """
-    Basic subtraction of the control mean from experimental samples.
+    Subtracts the highest value within the control set for each row from the experimental sample set.
+    Returns adjusted experimental DataFrame and statistics (control mean and control std).
     """
+    # Calculate statistics for control and experimental sets before subtraction
     group_avg, group_std = count_non_zero_rows(control_df)
     print(
-        f"Control Sample Set - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+        f"Control Sample Set - Average Non-Zero Proportion: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     group_avg, group_std = count_non_zero_rows(experimental_df)
     print(
-        f"Experimental Sample Set - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
-    )
-    control_mean = control_df.iloc[:, 5:].mean(axis=1)  # Exclude first 5 columns
-    adjusted_df = experimental_df.iloc[:, 5:].sub(control_mean, axis=0)
-    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
-    group_avg, group_std = count_non_zero_rows(adjusted_df)
-    print(
-        f"After Blank Subtraction - Average Non-Zero Proportion: {group_avg:.4f}, Std Dev: {group_std:.4f}"
+        f"Experimental Sample Set - Average Non-Zero Proportion: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
 
-    return adjusted_df
+    # Calculate the maximum value in the control set for each row
+    control_max = control_df.iloc[:, 5:].max(
+        axis=1
+    )  # Exclude the first 5 columns (metadata)
+
+    # Subtract the maximum control value from each row in the experimental set
+    adjusted_df = experimental_df.iloc[:, 5:].sub(control_max, axis=0)
+    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+
+    # Calculate statistics after subtraction
+    group_avg, group_std = count_non_zero_rows(adjusted_df)
+    print(
+        f"After Blank Subtraction - Average Non-Zero Proportion: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+    )
+
+    # Calculate the control mean and control standard deviation
+    control_mean = control_df.iloc[:, 5:].mean(axis=1)
+    control_std = control_df.iloc[:, 5:].std(axis=1)
+
+    return adjusted_df, control_mean, control_std
 
 
 def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor=1):

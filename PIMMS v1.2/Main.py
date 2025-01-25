@@ -8,7 +8,7 @@ from blank_subtraction_workflow import perform_blank_subtraction, process_files
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/raw_data_test_set.csv",
+        "PIMMS v1.2/data/debugging_data_set.csv",
     ]
 
     # Define control columns
@@ -16,12 +16,6 @@ def main():
         "Blank 1.d",
         "Blank 2.d",
         "Blank 3.d",
-        "Blank 4.d",
-        "Blank 5.d",
-        "Blank 6.d",
-        "Blank 7.d",
-        "Blank 8.d",
-        "Blank 9.d",
     ]
 
     try:
@@ -35,7 +29,7 @@ def main():
 
     # Select the blank subtraction method
     print("Select blank subtraction method:")
-    print("1: Method 1")
+    print("1: Method 1 (Highest signal from control samples)")
     print("2: Method 2 (Mean + x standard deviations)")
     method = input("Enter method number: ")
 
