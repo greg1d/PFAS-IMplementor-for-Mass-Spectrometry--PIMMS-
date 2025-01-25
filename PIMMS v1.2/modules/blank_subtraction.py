@@ -196,3 +196,51 @@ def save_adjusted_dataset(adjusted_df, original_df):
     # Save the combined dataset as a CSV file
     combined_df.to_csv(file_path, index=False)
     print(f"Adjusted dataset saved to {file_path}")
+
+
+def remove_standards_library(control_df, experimental_df, standards_file):
+    """
+    Ensures that features in the experimental section are retained if they match a value
+    contained in a standards library CSV, even if they are present in the control population.
+
+    Args:
+        control_df (pd.DataFrame): Control sample DataFrame.
+        experimental_df (pd.DataFrame): Experimental sample DataFrame.
+        standards_file (str): Path to the standards library CSV file.
+
+    Returns:
+        pd.DataFrame: Experimental DataFrame with standards retained.
+    """
+    try:
+        # Load the standards library
+        standards_df = pd.read_csv(standards_file)
+        if "Feature" not in standards_df.columns:
+            raise ValueError(
+                "Standards library must contain a 'Feature' column for matching."
+            )
+
+        # Extract the list of standard features
+        standard_features = set(standards_df["Feature"].dropna())
+        print(f"Standards library loaded with {len(standard_features)} features.")
+
+        # Identify features in the experimental DataFrame that match the standards
+        experimental_features = set(
+            experimental_df.columns[5:]
+        )  # Exclude metadata columns
+        retained_features = experimental_features & standard_features
+
+        # Filter the experimental DataFrame to include only retained features
+        retained_columns = list(retained_features)
+        retained_experimental_df = pd.concat(
+            [experimental_df.iloc[:, :5], experimental_df[retained_columns]], axis=1
+        )
+
+        print(f"Retained {len(retained_features)} features from the standards library.")
+        return retained_experimental_df
+
+    except FileNotFoundError:
+        print("Error: Standards library file not found.")
+        return experimental_df
+    except Exception as e:
+        print(f"Error during standards library removal: {e}")
+        return experimental_df
