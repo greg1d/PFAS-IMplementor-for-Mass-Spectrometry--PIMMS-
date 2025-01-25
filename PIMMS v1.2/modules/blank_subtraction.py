@@ -1,5 +1,5 @@
+import bisect
 import os
-from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -186,8 +186,7 @@ def save_adjusted_dataset(adjusted_df, original_df):
     os.makedirs(temp_folder, exist_ok=True)
 
     # Generate a filename with the current date and time
-    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    file_name = f"adjusted_dataset_{current_time}.csv"
+    file_name = "Blank_subtracted_dataset.csv"
     file_path = os.path.join(temp_folder, file_name)
 
     # Include the first 5 columns from the original dataset
@@ -195,13 +194,35 @@ def save_adjusted_dataset(adjusted_df, original_df):
 
     # Save the combined dataset as a CSV file
     combined_df.to_csv(file_path, index=False)
-    print(f"Adjusted dataset saved to {file_path}")
+    print(f"Blank subtracted dataset saved to {file_path}")
+
+
+def calculate_mass_error(mass, mass_error_ppm=10, z=1):
+    mass_error = mass * mass_error_ppm * 1e-6
+    mass_bound = mass_error / z
+    return mass_bound
+
+
+def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
+    mass_bound = calculate_mass_error(array[i], mass_error_ppm, z)
+    lower_bound = array[i] + (M / z) - mass_bound
+    upper_bound = array[i] + (M / z) + mass_bound
+    # Find the bounds using binary search
+    j_start = bisect.bisect_left(array, lower_bound, i + 1)
+    j_end = bisect.bisect_right(array, upper_bound, i + 1)
+
+    # Collect all peaks within the bounds
+    peaks_within_bounds = []
+    for j in range(j_start, j_end):
+        peaks_within_bounds.append(array[j])
+    return peaks_within_bounds, j_end - j_start
 
 
 def remove_standards_library(control_df, experimental_df, standards_file):
     """
-    Ensures that features in the experimental section are retained if they match a value
-    contained in a standards library CSV, even if they are present in the control population.
+    Processes the experimental dataset to retain features that match a value
+    in the standards library based on "m/z" and "CCS" comparisons.
+    Also, returns a reduced standards library with matching features removed.
 
     Args:
         control_df (pd.DataFrame): Control sample DataFrame.
@@ -209,38 +230,67 @@ def remove_standards_library(control_df, experimental_df, standards_file):
         standards_file (str): Path to the standards library CSV file.
 
     Returns:
-        pd.DataFrame: Experimental DataFrame with standards retained.
+        tuple:
+            - pd.DataFrame: Experimental DataFrame with matching features retained.
+            - pd.DataFrame: Standards library with matching features removed.
     """
     try:
         # Load the standards library
         standards_df = pd.read_csv(standards_file)
-        if "Feature" not in standards_df.columns:
+        if "m/z" not in standards_df.columns or "CCS" not in standards_df.columns:
             raise ValueError(
-                "Standards library must contain a 'Feature' column for matching."
+                "Standards library must contain 'm/z' and 'CCS' columns for matching."
             )
 
-        # Extract the list of standard features
-        standard_features = set(standards_df["Feature"].dropna())
-        print(f"Standards library loaded with {len(standard_features)} features.")
+        # Extract "m/z" and "CCS" values from the standards library
+        standards_mz = standards_df["m/z"].dropna().to_numpy()
+        standards_ccs = standards_df["CCS"].dropna().to_numpy()
 
-        # Identify features in the experimental DataFrame that match the standards
-        experimental_features = set(
-            experimental_df.columns[5:]
-        )  # Exclude metadata columns
-        retained_features = experimental_features & standard_features
-
-        # Filter the experimental DataFrame to include only retained features
-        retained_columns = list(retained_features)
-        retained_experimental_df = pd.concat(
-            [experimental_df.iloc[:, :5], experimental_df[retained_columns]], axis=1
+        print(
+            f"Standards library loaded with {len(standards_mz)} 'm/z' and {len(standards_ccs)} 'CCS' values."
         )
 
-        print(f"Retained {len(retained_features)} features from the standards library.")
-        return retained_experimental_df
+        # Compare "m/z" (5th column) and "CCS" (4th column) in the experimental dataset
+        experimental_mz = experimental_df.iloc[:, 4].to_numpy()
+        experimental_ccs = experimental_df.iloc[:, 3].to_numpy()
+
+        # Identify rows in the experimental dataset that match the standards
+        matches = [
+            i
+            for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs))
+            if any(
+                abs(mz - std_mz) < 1e-5 and abs(ccs - std_ccs) < 1e-2
+                for std_mz, std_ccs in zip(standards_mz, standards_ccs)
+            )
+        ]
+
+        print(f"Found {len(matches)} matching features in the experimental dataset.")
+
+        # Create a DataFrame of matching experimental features
+        retained_experimental_df = experimental_df.iloc[matches]
+
+        # Identify matched standards and create a reduced standards DataFrame
+        matched_standards = standards_df[
+            standards_df.apply(
+                lambda row: any(
+                    abs(row["m/z"] - mz) < 1e-5 and abs(row["CCS"] - ccs) < 1e-2
+                    for mz, ccs in zip(experimental_mz, experimental_ccs)
+                ),
+                axis=1,
+            )
+        ]
+        remaining_standards_df = standards_df.drop(matched_standards.index)
+
+        print(
+            f"Retained {len(retained_experimental_df)} experimental features and "
+            f"reduced standards library to {len(remaining_standards_df)} entries."
+        )
+
+        return retained_experimental_df, remaining_standards_df
 
     except FileNotFoundError:
         print("Error: Standards library file not found.")
-        return experimental_df
+        return experimental_df, pd.DataFrame()
     except Exception as e:
         print(f"Error during standards library removal: {e}")
-        return experimental_df
+        return experimental_df, pd.DataFrame()

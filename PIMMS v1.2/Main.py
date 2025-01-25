@@ -14,9 +14,7 @@ def main():
     file_paths = [
         "PIMMS v1.2/data/debugging_data_set.csv",
     ]
-    standards_file = (
-        "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
-    )
+    standards_file = "PIMMS v1.2/data/standards_library.csv"  # Standards library file
 
     # Define control columns
     control_samples = [
@@ -34,18 +32,16 @@ def main():
         print(f"Error processing files: {e}")
         sys.exit(1)
 
-    # Prompt the user to decide whether to remove standards
+    # Remove standards library
     print("Remove standards library from experimental dataset? (Y/N)")
     choice = input("Enter your choice: ").strip().upper()
     if choice == "Y":
-        print("Removing standards library from the experimental dataset...")
-        experimental_df = remove_standards_library(
+        print("Processing standards library...")
+        experimental_df, remaining_standards_df = remove_standards_library(
             control_df, experimental_df, standards_file
         )
-    elif choice == "N":
-        print("Proceeding without removing the standards library.")
     else:
-        print("Invalid choice. Proceeding without removing the standards library.")
+        print("Proceeding without removing the standards library.")
 
     # Select the blank subtraction method
     print("Select blank subtraction method:")
@@ -61,6 +57,14 @@ def main():
 
         # Save the adjusted dataset, including the first 5 columns
         save_adjusted_dataset(adjusted_df, combined_data)
+
+        # Save the remaining standards library
+        if choice == "Y":
+            remaining_standards_file = (
+                "PIMMS v1.2/.temp/identified_features_matching_to_standards.csv"
+            )
+            remaining_standards_df.to_csv(remaining_standards_file, index=False)
+            print(f"Remaining standards library saved to {remaining_standards_file}")
 
     except Exception as e:
         print(f"Error during blank subtraction: {e}")
