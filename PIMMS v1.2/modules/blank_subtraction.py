@@ -361,7 +361,26 @@ def remove_standards_library(
                         matched_indices.append(i)  # Add to matched indices
                         is_matched = True
                         break  # No need to check further standards for this experimental row
+                    if matched_rows:
+                        matched_standards_df = pd.DataFrame(matched_rows)
 
+                        # Calculate the average sample coverage
+                        average_coverage = matched_standards_df[
+                            "Sample Coverage (%)"
+                        ].mean()
+
+                        # Print the appropriate message based on the average coverage
+                        if average_coverage == 100.0:
+                            print("All standard peaks are present in all samples.")
+                        else:
+                            print(
+                                f"Average Standards Coverage in Sample Set: {average_coverage:.2f}%. "
+                                "Investigate Standards Report - some standard peaks are missing in some samples."
+                            )
+                    else:
+                        print(
+                            "No matches found. Standards report is empty. Investigate further."
+                        )
                 except Exception as e:
                     print(
                         f"[ERROR] Exception while checking match for Row {i} and Standard {j}: {e}"
