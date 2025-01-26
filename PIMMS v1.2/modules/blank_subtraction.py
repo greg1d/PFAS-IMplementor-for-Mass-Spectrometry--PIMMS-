@@ -311,7 +311,7 @@ def remove_standards_library(
                     upper_bound = std_mz + mass_bound
 
                     # Calculate the CCS error percentage
-                    ccs_error = abs(ccs - std_ccs) / std_ccs * 100
+                    ccs_error = round(abs(ccs - std_ccs) / std_ccs * 100, 2)
 
                     # Debugging mass bounds and CCS error
                     print(
@@ -330,6 +330,11 @@ def remove_standards_library(
                     )
 
                     if matches_standard:
+                        row_values = experimental_df.iloc[i][d_columns]
+                        non_zero_count = (row_values > 0.001).sum()
+                        total_count = len(d_columns)
+                        sample_coverage = round((non_zero_count / total_count) * 100, 2)
+
                         intensity_values = {
                             f"Intensity ({col})": experimental_df.iloc[i][col]
                             for col in d_columns
@@ -343,6 +348,7 @@ def remove_standards_library(
                                 "Experimental CCS": ccs,
                                 "Standard m/z": std_mz,
                                 "Standard CCS": std_ccs,
+                                "Sample Coverage (%)": sample_coverage,
                                 "Mass Error (ppm)": (mz - std_mz) / std_mz * 1e6,
                                 "CCS Error (%)": ccs_error,
                             }
