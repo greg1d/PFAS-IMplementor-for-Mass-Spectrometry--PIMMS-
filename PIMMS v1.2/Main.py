@@ -27,7 +27,7 @@ def main():
 
     # Set tolerances
     mass_error_ppm = 10  # Mass error in ppm
-    ccs_error_percentage = 0.02  # CCS variance as 2% tolerance
+    ccs_error_percentage = 2  # CCS variance as 2% tolerance
 
     try:
         # Process files and separate data
