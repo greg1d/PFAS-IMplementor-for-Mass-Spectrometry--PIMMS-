@@ -350,7 +350,7 @@ def remove_standards_library(
         )
 
         # Save the matched standards report
-        temp_folder = ".temp"
+        temp_folder = "PIMMS v1.2/.temp"
         os.makedirs(temp_folder, exist_ok=True)
 
         standards_report_file = os.path.join(temp_folder, "Standards_report.csv")
