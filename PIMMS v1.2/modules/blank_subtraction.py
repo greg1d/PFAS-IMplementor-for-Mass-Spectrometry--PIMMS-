@@ -250,7 +250,7 @@ def remove_standards_library(
     Processes the experimental dataset to separate matched features (for the Standards Report)
     and unmatched features (for further blank subtraction workflow).
     Removes matched features from the experimental dataset.
-    Adds columns for CCS percentage error and mass error in the Standards Report.
+    Adds row-level CCS percentage error, mass error, and intensity values in the Standards Report.
 
     Args:
         control_df (pd.DataFrame): Control sample DataFrame.
@@ -293,7 +293,7 @@ def remove_standards_library(
         matched_indices = []  # Indices of matched rows
         matched_rows = []  # To store the report data for matched experimental and standards values
 
-        # Identify `.d` columns for additional calculations
+        # Identify `.d` columns for intensity calculations
         d_columns = [col for col in experimental_df.columns if ".d" in col]
 
         # Helper function to clean sample names
@@ -310,32 +310,32 @@ def remove_standards_library(
                     lower_bound = std_mz - mass_bound
                     upper_bound = std_mz + mass_bound
 
-                    # Check if the experimental m/z falls within the bounds and CCS is within error percentage
+                    # Calculate the CCS error percentage
+                    ccs_error = abs(ccs - std_ccs) / std_ccs * 100
+
+                    # Debugging mass bounds and CCS error
+                    print(
+                        f"[DEBUG] Row {i}, Standard {j}: Experimental m/z={mz:.4f}, "
+                        f"Standard m/z={std_mz:.4f}, Mass Error Bounds=({lower_bound:.4f}, {upper_bound:.4f})"
+                    )
+                    print(
+                        f"[DEBUG] Row {i}, Standard {j}: Experimental CCS={ccs:.4f}, "
+                        f"Standard CCS={std_ccs:.4f}, CCS Error={ccs_error:.2f}%"
+                    )
+
+                    # Check if the experimental m/z falls within bounds and CCS is within error percentage
                     matches_standard = (
                         lower_bound <= mz <= upper_bound
-                        and abs(ccs - std_ccs) / std_ccs * 100 <= ccs_error_percentage
+                        and ccs_error <= ccs_error_percentage
                     )
 
                     if matches_standard:
-                        print(
-                            f"[DEBUG] Match found for experimental row {i}: "
-                            f"Experimental m/z={mz:.4f}, CCS={ccs:.4f}; "
-                            f"Standard m/z={std_mz:.4f}, CCS={std_ccs:.4f}"
-                        )
+                        print(f"[DEBUG] Match found for Row {i}, Standard {j}")
 
-                        # Calculate CCS and mass errors for each `.d` column
-                        ccs_percentage_errors = {
-                            f"{clean_sample_name(col)}_CCS_Error (%)": (ccs - std_ccs)
-                            / std_ccs
-                            * 100
-                            for col in d_columns
-                        }
-                        mass_errors = {
-                            f"{clean_sample_name(col)}_Mass_Error (ppm)": (mz - std_mz)
-                            / std_mz
-                            * 1e6
-                            for col in d_columns
-                        }
+                        # Aggregate intensity values for the row
+                        row_intensity_values = experimental_df.iloc[i][
+                            d_columns
+                        ].tolist()
 
                         # Add match to the Standards Report
                         matched_row = experimental_df.iloc[i, :5].to_dict()
@@ -345,11 +345,11 @@ def remove_standards_library(
                                 "Experimental CCS": ccs,
                                 "Standard m/z": std_mz,
                                 "Standard CCS": std_ccs,
+                                "Mass Error (ppm)": (mz - std_mz) / std_mz * 1e6,
+                                "CCS Error (%)": ccs_error,
+                                "Intensity Values": row_intensity_values,
                             }
                         )
-                        matched_row.update(ccs_percentage_errors)
-                        matched_row.update(mass_errors)
-
                         matched_rows.append(matched_row)
                         matched_indices.append(i)  # Add to matched indices
                         is_matched = True
@@ -357,7 +357,7 @@ def remove_standards_library(
 
                 except Exception as e:
                     print(
-                        f"[ERROR] Exception while checking match for experimental row {i} and standard {j}: {e}"
+                        f"[ERROR] Exception while checking match for Row {i} and Standard {j}: {e}"
                     )
 
         print(f"[DEBUG] Total matched rows: {len(matched_rows)}")
