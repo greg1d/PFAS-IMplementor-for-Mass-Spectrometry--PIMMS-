@@ -330,12 +330,10 @@ def remove_standards_library(
                     )
 
                     if matches_standard:
-                        print(f"[DEBUG] Match found for Row {i}, Standard {j}")
-
-                        # Aggregate intensity values for the row
-                        row_intensity_values = experimental_df.iloc[i][
-                            d_columns
-                        ].tolist()
+                        intensity_values = {
+                            f"Intensity ({col})": experimental_df.iloc[i][col]
+                            for col in d_columns
+                        }
 
                         # Add match to the Standards Report
                         matched_row = experimental_df.iloc[i, :5].to_dict()
@@ -347,9 +345,12 @@ def remove_standards_library(
                                 "Standard CCS": std_ccs,
                                 "Mass Error (ppm)": (mz - std_mz) / std_mz * 1e6,
                                 "CCS Error (%)": ccs_error,
-                                "Intensity Values": row_intensity_values,
                             }
                         )
+                        matched_row.update(
+                            intensity_values
+                        )  # Add intensity values per `.d` column
+
                         matched_rows.append(matched_row)
                         matched_indices.append(i)  # Add to matched indices
                         is_matched = True
