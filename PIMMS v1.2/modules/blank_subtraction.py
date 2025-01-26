@@ -371,7 +371,9 @@ def remove_standards_library(
 
                         # Print the appropriate message based on the average coverage
                         if average_coverage == 100.0:
-                            print("All standard peaks are present in all samples.")
+                            print(
+                                "100% Standards Coverage in Sample Set: All standard peaks are present in all samples."
+                            )
                         else:
                             print(
                                 f"Average Standards Coverage in Sample Set: {average_coverage:.2f}%. "
