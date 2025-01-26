@@ -174,27 +174,30 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
 
 def save_adjusted_dataset(adjusted_df, original_df):
     """
-    Saves the adjusted dataset (including the first 5 columns from the original dataset)
-    into a .temp folder with a filename that includes the current date and time.
+    Saves the adjusted dataset into a .temp folder with a filename that includes the current date and time.
+    Removes rows with empty cells before saving.
 
     Args:
-        adjusted_df (pd.DataFrame): The adjusted experimental dataset (excluding the first 5 columns).
-        original_df (pd.DataFrame): The original dataset containing the first 5 columns.
+        adjusted_df (pd.DataFrame): The adjusted experimental dataset.
+        original_df (pd.DataFrame): The original dataset for metadata (first 5 columns).
     """
     # Create .temp folder if it doesn't exist
-    temp_folder = "PIMMS v1.2\.temp"
+    temp_folder = "PIMMS v1.2/.temp"
     os.makedirs(temp_folder, exist_ok=True)
 
-    # Generate a filename with the current date and time
-    file_name = "Blank_subtracted_dataset.csv"
-    file_path = os.path.join(temp_folder, file_name)
-
-    # Include the first 5 columns from the original dataset
+    # Combine metadata (first 5 columns) with the adjusted dataset
     combined_df = pd.concat([original_df.iloc[:, :5], adjusted_df], axis=1)
 
-    # Save the combined dataset as a CSV file
+    # Drop rows with any missing values
+    combined_df = combined_df.dropna(how="any")
+
+    # Generate a filename with the current date and time
+    file_name = "blank_subtracted_dataset.csv"
+    file_path = os.path.join(temp_folder, file_name)
+
+    # Save the cleaned dataset as a CSV file
     combined_df.to_csv(file_path, index=False)
-    print(f"Blank subtracted dataset saved to {file_path}")
+    print(f"Blank-subtracted dataset saved to {file_path}")
 
 
 def calculate_mass_error(mass, mass_error_ppm=10, z=1):
@@ -252,9 +255,7 @@ def remove_standards_library(
         z (int): Charge state.
 
     Returns:
-        tuple:
-            - pd.DataFrame: Experimental DataFrame with unmatched features retained.
-            - pd.DataFrame: Standards library with matching features removed.
+        pd.DataFrame: Experimental DataFrame with unmatched features retained.
     """
     try:
         print("[DEBUG] Loading standards library...")
@@ -337,14 +338,8 @@ def remove_standards_library(
         print(f"[DEBUG] Total matched rows: {len(matched_rows)}")
         print(f"[DEBUG] Total unmatched rows: {len(unmatched_indices)}")
 
-        # Create DataFrames for unmatched features and matched standards
+        # Create DataFrame for unmatched features
         unmatched_experimental_df = experimental_df.iloc[unmatched_indices]
-        matched_standards_df = pd.DataFrame(matched_rows)
-
-        print(
-            f"[DEBUG] Unmatched experimental features retained: {len(unmatched_experimental_df)}"
-        )
-        print(f"[DEBUG] Matched standards recorded: {len(matched_standards_df)}")
 
         # Remove rows with empty cells in `.d` columns from the unmatched experimental DataFrame
         unmatched_experimental_df = unmatched_experimental_df.dropna(
@@ -359,14 +354,15 @@ def remove_standards_library(
         os.makedirs(temp_folder, exist_ok=True)
 
         standards_report_file = os.path.join(temp_folder, "Standards_report.csv")
+        matched_standards_df = pd.DataFrame(matched_rows)
         matched_standards_df.to_csv(standards_report_file, index=False)
         print(f"Standards report saved to {standards_report_file}")
 
-        return unmatched_experimental_df, standards_df
+        return unmatched_experimental_df
 
     except FileNotFoundError:
         print("Error: Standards library file not found.")
-        return experimental_df, pd.DataFrame()
+        return experimental_df
     except Exception as e:
         print(f"Error during standards library removal: {e}")
-        return experimental_df, pd.DataFrame()
+        return experimental_df
