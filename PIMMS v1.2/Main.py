@@ -16,7 +16,7 @@ from blank_subtraction_workflow import (
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/debugging_data_set.csv",
+        "PIMMS v1.2/data/raw_data_test_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
