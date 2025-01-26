@@ -25,6 +25,10 @@ def main():
         "Blank 3.d",
     ]
 
+    # Set tolerances
+    mass_error_ppm = 10  # Mass error in ppm
+    ccs_error_percentage = 0.02  # CCS variance as 2% tolerance
+
     try:
         # Process files and separate data
         combined_data, control_df, experimental_df = process_files(
@@ -40,7 +44,11 @@ def main():
     if choice == "Y":
         print("Processing standards library...")
         experimental_df = remove_standards_library(
-            control_df, experimental_df, standards_file
+            control_df,
+            experimental_df,
+            standards_file,
+            mass_error_ppm=mass_error_ppm,
+            ccs_error_percentage=ccs_error_percentage,
         )
     else:
         print("Proceeding without removing the standards library.")

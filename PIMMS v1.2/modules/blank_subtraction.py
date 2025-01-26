@@ -239,7 +239,12 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
 
 
 def remove_standards_library(
-    control_df, experimental_df, standards_file, mass_error_ppm=10, z=1
+    control_df,
+    experimental_df,
+    standards_file,
+    mass_error_ppm=10,
+    ccs_error_percentage=0.02,
+    z=1,
 ):
     """
     Processes the experimental dataset to separate matched features (for the Standards Report)
@@ -303,7 +308,8 @@ def remove_standards_library(
 
                     # Check if the experimental m/z falls within the bounds
                     matches_standard = (
-                        lower_bound <= mz <= upper_bound and abs(ccs - std_ccs) < 0.1
+                        lower_bound <= mz <= upper_bound
+                        and abs(ccs - std_ccs) / std_ccs <= ccs_error_percentage
                     )
 
                     if matches_standard:
