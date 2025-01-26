@@ -2,7 +2,11 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-from blank_subtraction import remove_standards_library, save_adjusted_dataset
+from blank_subtraction import (
+    process_standards_report_only,
+    remove_standards_library,
+    save_adjusted_dataset,
+)
 from blank_subtraction_workflow import (
     perform_blank_subtraction,
     process_files,
@@ -44,14 +48,19 @@ def main():
     if choice == "Y":
         print("Processing standards library...")
         experimental_df = remove_standards_library(
-            control_df,
+            control_df, experimental_df, standards_file
+        )
+    elif choice == "N":
+        print("Generating Standards Report without removing matched features...")
+        process_standards_report_only(
             experimental_df,
             standards_file,
-            mass_error_ppm=mass_error_ppm,
-            ccs_error_percentage=ccs_error_percentage,
+            mass_error_ppm=10,
+            ccs_error_percentage=2,
+            z=1,
         )
     else:
-        print("Proceeding without removing the standards library.")
+        print("Invalid choice. Proceeding without processing standards library.")
 
     # Select the blank subtraction method
     print("Select blank subtraction method:")
