@@ -573,15 +573,15 @@ def edit_and_save_standards_report(
     Args:
         matched_rows (list): List of dictionaries containing matched rows data.
         output_folder (str): Folder path to save the standards report.
-        file_name (str): Name of the file to save the report as (default: Standards_report.csv).
+        file_name (str): Name of the output file.
     """
-    print(f"[DEBUG] edit_and_save_standards_report called for {file_name}")
     if not matched_rows:
-        print(f"No matches found. {file_name} is empty.")
+        print("No matches found. Standards report is empty.")
         return
 
     try:
         # Call combine_matched_rows to consolidate matches
+        print("[DEBUG] Combining matched rows...")
         consolidated_rows = combine_matched_rows(
             matched_rows, mass_error_ppm=10, ccs_error_percentage=2, rt_tolerance=0.5
         )
@@ -591,12 +591,28 @@ def edit_and_save_standards_report(
         matched_standards_df = pd.DataFrame(consolidated_rows)
         print("[DEBUG] Consolidated DataFrame created.")
 
-        # Perform necessary edits to the report
+        # Calculate Sample Coverage using combined row values
+        d_columns = [col for col in matched_standards_df.columns if ".d" in col]
+        if d_columns:
+            print(
+                "[DEBUG] Calculating Sample Coverage (%) using combined intensities..."
+            )
+            matched_standards_df["Sample Coverage (%)"] = (
+                matched_standards_df[d_columns].gt(0.001).sum(axis=1)
+                / len(d_columns)
+                * 100
+            )
+            print("[DEBUG] Sample Coverage (%) added to DataFrame.")
+
+        # Normalize Sample Coverage
         if "Sample Coverage (%)" in matched_standards_df.columns:
+            print("[DEBUG] Calculating Normalized Coverage (%)...")
             matched_standards_df["Normalized Coverage (%)"] = (
                 matched_standards_df["Sample Coverage (%)"] / 100
             )
+            print("[DEBUG] Normalized Coverage (%) added to DataFrame.")
 
+        # Rename columns for better readability
         matched_standards_df.rename(
             columns={
                 "Experimental m/z": "Exp m/z",
@@ -606,21 +622,24 @@ def edit_and_save_standards_report(
             },
             inplace=True,
         )
+        print("[DEBUG] Columns renamed for readability.")
 
+        # Filter rows with specific criteria (e.g., CCS Error <= 2%)
         matched_standards_df = matched_standards_df[
             matched_standards_df["CCS Error (%)"] <= 2
         ]
+        print("[DEBUG] Rows filtered based on CCS Error (%).")
 
         # Save the edited report
         os.makedirs(output_folder, exist_ok=True)
-        file_path = os.path.join(output_folder, file_name)
-        matched_standards_df.to_csv(file_path, index=False)
-        print(f"[DEBUG] Standards report saved to {file_path}")
+        report_file = os.path.join(output_folder, file_name)
+        matched_standards_df.to_csv(report_file, index=False)
+        print(f"[DEBUG] Standards report saved to {report_file}")
 
         # Summary
         average_coverage = matched_standards_df["Sample Coverage (%)"].mean()
         print(
-            f"Standards report saved to {file_path}\n"
+            f"Standards report saved to {report_file}\n"
             f"Total Matches: {len(matched_standards_df)}\n"
             f"Average Coverage: {average_coverage:.2f}%"
         )
