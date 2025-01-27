@@ -478,40 +478,29 @@ def combine_matched_rows(
     Returns:
         list of dict: Consolidated matched rows.
     """
-    print("[DEBUG] combine_matched_rows function has been called.")
-
     # Convert matched rows to a DataFrame
     matched_df = pd.DataFrame(matched_rows)
-    print(f"[DEBUG] Initial matched rows DataFrame:\n{matched_df.head()}")
+
     # Ensure necessary columns are present
     required_columns = {"Experimental m/z", "Experimental CCS", "RT"}
     if not required_columns.issubset(matched_df.columns):
         raise ValueError(f"Matched rows must include {required_columns} columns.")
-    print("[DEBUG] All required columns are present.")
 
     # Sort for grouping
     matched_df = matched_df.sort_values(
         by=["Experimental m/z", "Experimental CCS", "RT"]
     )
-    print(f"[DEBUG] Sorted matched DataFrame:\n{matched_df.head()}")
 
     # Initialize list for consolidated rows
     consolidated_rows = []
 
     # Iterate to combine rows
-    iteration_count = 0
     while not matched_df.empty:
-        iteration_count += 1
-        print(f"[DEBUG] Iteration {iteration_count}, remaining rows: {len(matched_df)}")
-
         # Take the first row as the base
         base_row = matched_df.iloc[0]
         mz_base = base_row["Experimental m/z"]
         ccs_base = base_row["Experimental CCS"]
         rt_base = base_row["RT"]
-        print(
-            f"[DEBUG] Base row selected:\nm/z={mz_base}, CCS={ccs_base}, RT={rt_base}"
-        )
 
         # Identify rows within tolerances
         in_group = matched_df[
@@ -525,23 +514,17 @@ def combine_matched_rows(
             )
             & (matched_df["RT"].sub(rt_base).abs() <= rt_tolerance)
         ]
-        print(f"[DEBUG] Rows in group (iteration {iteration_count}):\n{in_group}")
 
         # Remove grouped rows from the DataFrame
         matched_df = matched_df.drop(in_group.index)
-        print(
-            f"[DEBUG] Remaining rows after drop (iteration {iteration_count}):\n{matched_df}"
-        )
 
         # Consolidate data
         combined_row = base_row.to_dict()
         for col in [c for c in in_group.columns if ".d" in c]:
             combined_row[f"Intensity ({col})"] = in_group[col].max()
-        print(f"[DEBUG] Combined row (iteration {iteration_count}):\n{combined_row}")
 
         consolidated_rows.append(combined_row)
 
-    print(f"[DEBUG] Final consolidated rows: {len(consolidated_rows)}")
     return consolidated_rows
 
 
@@ -553,22 +536,18 @@ def edit_and_save_standards_report(matched_rows, output_folder="PIMMS v1.2/.temp
         matched_rows (list): List of dictionaries containing matched rows data.
         output_folder (str): Folder path to save the standards report.
     """
-    print("[DEBUG] edit_and_save_standards_report called.")
     if not matched_rows:
         print("No matches found. Standards report is empty.")
         return
 
     try:
         # Call combine_matched_rows to consolidate matches
-        print("[DEBUG] Calling combine_matched_rows...")
         consolidated_rows = combine_matched_rows(
             matched_rows, mass_error_ppm=10, ccs_error_percentage=2, rt_tolerance=0.5
         )
-        print(f"[DEBUG] combine_matched_rows returned {len(consolidated_rows)} rows.")
 
         # Create a DataFrame for consolidated rows
         matched_standards_df = pd.DataFrame(consolidated_rows)
-        print("[DEBUG] Consolidated DataFrame created.")
 
         # Perform necessary edits to the report
         if "Sample Coverage (%)" in matched_standards_df.columns:
@@ -594,7 +573,6 @@ def edit_and_save_standards_report(matched_rows, output_folder="PIMMS v1.2/.temp
         os.makedirs(output_folder, exist_ok=True)
         report_file = os.path.join(output_folder, "Standards_report.csv")
         matched_standards_df.to_csv(report_file, index=False)
-        print(f"[DEBUG] Standards report saved to {report_file}")
 
         # Summary
         average_coverage = matched_standards_df["Sample Coverage (%)"].mean()
