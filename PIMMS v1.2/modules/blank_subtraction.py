@@ -264,16 +264,25 @@ def remove_standards_library(
         pd.DataFrame: Experimental DataFrame with unmatched features retained.
     """
     try:
-        print("[DEBUG] Loading standards library...")
         standards_df = pd.read_csv(standards_file)
         if "m/z" not in standards_df.columns or "CCS" not in standards_df.columns:
             raise ValueError(
                 "Standards library must contain 'm/z' and 'CCS' columns for matching."
             )
 
+        # Extract "m/z" and "CCS" values from the standards library
         standards_mz = standards_df["m/z"].dropna().to_numpy()
         standards_ccs = standards_df["CCS"].dropna().to_numpy()
 
+        # Create the "error standards mz" values
+        error_standards_mz = standards_mz - 1.003355
+
+        # Concatenate the original and error standard values
+        standards_mz = np.concatenate([standards_mz, error_standards_mz])
+        standards_ccs = np.concatenate(
+            [standards_ccs, standards_ccs]
+        )  # Duplicate CCS values for error standards
+        print(standards_mz)
         experimental_mz = experimental_df.iloc[:, 4].to_numpy()
         experimental_ccs = experimental_df.iloc[:, 3].to_numpy()
 
