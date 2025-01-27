@@ -266,17 +266,23 @@ def remove_standards_library(
     try:
         print("[DEBUG] Loading standards library...")
         standards_df = pd.read_csv(standards_file)
-        if "m/z" not in standards_df.columns or "CCS" not in standards_df.columns:
+        if (
+            "m/z" not in standards_df.columns
+            or "CCS" not in standards_df.columns
+            or "Name" not in standards_df.columns
+        ):
             raise ValueError(
-                "Standards library must contain 'm/z' and 'CCS' columns for matching."
+                "Standards library must contain 'm/z', 'CCS', and 'Name' columns for matching."
             )
 
         standards_mz = standards_df["m/z"].dropna().to_numpy()
         standards_ccs = standards_df["CCS"].dropna().to_numpy()
+        standards_names = standards_df["Name"].dropna().to_numpy()
 
         error_standards_mz = standards_mz - 1.003355
         all_standards_mz = np.concatenate([standards_mz, error_standards_mz])
         all_standards_ccs = np.concatenate([standards_ccs, standards_ccs])
+        all_standards_names = np.concatenate([standards_names, standards_names])
 
         experimental_mz = experimental_df.iloc[:, 4].to_numpy()
         experimental_ccs = experimental_df.iloc[:, 3].to_numpy()
@@ -287,7 +293,9 @@ def remove_standards_library(
         d_columns = [col for col in experimental_df.columns if ".d" in col]
 
         for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs)):
-            for std_mz, std_ccs in zip(all_standards_mz, all_standards_ccs):
+            for std_mz, std_ccs, std_name in zip(
+                all_standards_mz, all_standards_ccs, all_standards_names
+            ):
                 try:
                     mass_bound = mz * mass_error_ppm * 1e-6 / z
                     lower_bound = std_mz - mass_bound
@@ -316,6 +324,7 @@ def remove_standards_library(
                                 "Experimental CCS": ccs,
                                 "Standard m/z": std_mz,
                                 "Standard CCS": std_ccs,
+                                "Name": std_name,
                                 "Sample Coverage (%)": sample_coverage,
                                 "Mass Error (ppm)": round(
                                     (mz - std_mz) / std_mz * 1e6, 2
@@ -342,12 +351,12 @@ def remove_standards_library(
 
         edit_and_save_standards_report(
             matched_rows,
-            output_folder="PIMMS v1.2/.temp",
+            output_folder=output_folder,
             file_name="Standards_report.csv",
         )
         edit_and_save_standards_report(
             error_matched_rows,
-            output_folder="PIMMS v1.2/.temp",
+            output_folder=output_folder,
             file_name="Standards_error_report.csv",
         )
         print(f"[DEBUG] Total matched rows: {len(matched_rows)}")
