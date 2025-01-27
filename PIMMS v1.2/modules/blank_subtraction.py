@@ -350,13 +350,15 @@ def remove_standards_library(
         os.makedirs(output_folder, exist_ok=True)
 
         edit_and_save_standards_report(
-            matched_rows,
-            output_folder=output_folder,
+            matched_rows=matched_rows,
+            standards_file=standards_file,  # Pass the standards_file here
+            output_folder="PIMMS v1.2/.temp",
             file_name="Standards_report.csv",
         )
         edit_and_save_standards_report(
-            error_matched_rows,
-            output_folder=output_folder,
+            matched_rows=error_matched_rows,
+            standards_file=standards_file,  # Pass the standards_file here
+            output_folder="PIMMS v1.2/.temp",
             file_name="Standards_error_report.csv",
         )
         print(f"[DEBUG] Total matched rows: {len(matched_rows)}")
@@ -574,13 +576,14 @@ def combine_matched_rows(
 
 
 def edit_and_save_standards_report(
-    matched_rows, output_folder, file_name="Standards_report.csv"
+    matched_rows, standards_file, output_folder, file_name="Standards_report.csv"
 ):
     """
-    Edits and saves the matched standards report.
+    Edits and saves the matched standards report, ensuring unmatched standards are included.
 
     Args:
         matched_rows (list): List of dictionaries containing matched rows data.
+        standards_file (str): Path to the standards library CSV file.
         output_folder (str): Folder path to save the standards report.
         file_name (str): Name of the output file.
     """
@@ -589,68 +592,61 @@ def edit_and_save_standards_report(
         return
 
     try:
-        # Call combine_matched_rows to consolidate matches
+        print("[DEBUG] Loading standards library for unmatched standards...")
+        standards_df = pd.read_csv(standards_file)
+        if (
+            "m/z" not in standards_df.columns
+            or "CCS" not in standards_df.columns
+            or "Name" not in standards_df.columns
+        ):
+            raise ValueError(
+                "Standards library must contain 'm/z', 'CCS', and 'Name' columns."
+            )
+
+        # Create a DataFrame for matched rows
         print("[DEBUG] Combining matched rows...")
         consolidated_rows = combine_matched_rows(
             matched_rows, mass_error_ppm=10, ccs_error_percentage=2, rt_tolerance=0.5
         )
         print(f"[DEBUG] combine_matched_rows returned {len(consolidated_rows)} rows.")
-
-        # Create a DataFrame for consolidated rows
         matched_standards_df = pd.DataFrame(consolidated_rows)
-        print("[DEBUG] Consolidated DataFrame created.")
 
-        # Calculate Sample Coverage using combined row values
-        d_columns = [col for col in matched_standards_df.columns if ".d" in col]
-        if d_columns:
-            print(
-                "[DEBUG] Calculating Sample Coverage (%) using combined intensities..."
-            )
-            matched_standards_df["Sample Coverage (%)"] = (
-                matched_standards_df[d_columns].gt(0.001).sum(axis=1)
-                / len(d_columns)
-                * 100
-            )
-            print("[DEBUG] Sample Coverage (%) added to DataFrame.")
+        # Ensure all standards are included
+        unmatched_rows = []
+        for _, standard in standards_df.iterrows():
+            std_name = standard["Name"]
+            if std_name not in matched_standards_df["Name"].values:
+                unmatched_row = {
+                    "Standard m/z": standard["m/z"],
+                    "Standard CCS": standard["CCS"],
+                    "Name": std_name,
+                    "Experimental m/z": "NA",
+                    "Experimental CCS": "NA",
+                    "Sample Coverage (%)": 0,
+                    "Mass Error (ppm)": "NA",
+                    "CCS Error (%)": "NA",
+                }
+                unmatched_rows.append(unmatched_row)
 
-        # Normalize Sample Coverage
-        if "Sample Coverage (%)" in matched_standards_df.columns:
-            print("[DEBUG] Calculating Normalized Coverage (%)...")
-            matched_standards_df["Normalized Coverage (%)"] = (
-                matched_standards_df["Sample Coverage (%)"] / 100
-            )
-            print("[DEBUG] Normalized Coverage (%) added to DataFrame.")
+        unmatched_df = pd.DataFrame(unmatched_rows)
 
-        # Rename columns for better readability
-        matched_standards_df.rename(
-            columns={
-                "Experimental m/z": "Exp m/z",
-                "Experimental CCS": "Exp CCS",
-                "Standard m/z": "Std m/z",
-                "Standard CCS": "Std CCS",
-            },
-            inplace=True,
+        # Combine matched and unmatched rows
+        final_report_df = pd.concat(
+            [matched_standards_df, unmatched_df], ignore_index=True
         )
-        print("[DEBUG] Columns renamed for readability.")
-
-        # Filter rows with specific criteria (e.g., CCS Error <= 2%)
-        matched_standards_df = matched_standards_df[
-            matched_standards_df["CCS Error (%)"] <= 2
-        ]
-        print("[DEBUG] Rows filtered based on CCS Error (%).")
 
         # Save the edited report
         os.makedirs(output_folder, exist_ok=True)
         report_file = os.path.join(output_folder, file_name)
-        matched_standards_df.to_csv(report_file, index=False)
+        final_report_df.to_csv(report_file, index=False)
         print(f"[DEBUG] Standards report saved to {report_file}")
 
         # Summary
-        average_coverage = matched_standards_df["Sample Coverage (%)"].mean()
         print(
             f"Standards report saved to {report_file}\n"
             f"Total Matches: {len(matched_standards_df)}\n"
-            f"Average Coverage: {average_coverage:.2f}%"
+            f"Unmatched Standards: {len(unmatched_rows)}\n"
+            f"Total Standards: {len(final_report_df)}"
         )
 
     except Exception as e:
