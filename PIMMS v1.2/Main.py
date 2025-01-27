@@ -16,7 +16,7 @@ from blank_subtraction_workflow import (
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/raw_data_test_set.csv",
+        "PIMMS v1.2/data/debugging_data_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
@@ -38,7 +38,7 @@ def main():
     # Set tolerances
     mass_error_ppm = 10  # Mass error in ppm
     ccs_error_percentage = 2  # CCS variance as 2% tolerance
-
+    rt_tolerance = 0.5
     try:
         # Process files and separate data
         combined_data, control_df, experimental_df = process_files(

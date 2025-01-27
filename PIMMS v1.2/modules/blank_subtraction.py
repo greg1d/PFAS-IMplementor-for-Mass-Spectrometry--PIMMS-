@@ -238,62 +238,6 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
     return peaks_within_bounds, j_end - j_start
 
 
-def edit_and_save_standards_report(matched_rows, output_folder="PIMMS v1.2/.temp"):
-    """
-    Edits and saves the matched standards report.
-
-    Args:
-        matched_rows (list): List of dictionaries containing matched rows data.
-        output_folder (str): Folder path to save the standards report.
-    """
-    if not matched_rows:
-        print("No matches found. Standards report is empty.")
-        return
-
-    try:
-        # Create a DataFrame for matched rows
-        matched_standards_df = pd.DataFrame(matched_rows)
-
-        # Perform necessary edits to the report
-        # Example 1: Add a new column with calculated values (e.g., normalized intensity)
-        if "Sample Coverage (%)" in matched_standards_df.columns:
-            matched_standards_df["Normalized Coverage (%)"] = (
-                matched_standards_df["Sample Coverage (%)"] / 100
-            )
-
-        # Example 2: Rename columns for better readability
-        matched_standards_df.rename(
-            columns={
-                "Experimental m/z": "Exp m/z",
-                "Experimental CCS": "Exp CCS",
-                "Standard m/z": "Std m/z",
-                "Standard CCS": "Std CCS",
-            },
-            inplace=True,
-        )
-
-        # Example 3: Filter rows with specific criteria (e.g., high CCS error)
-        matched_standards_df = matched_standards_df[
-            matched_standards_df["CCS Error (%)"] <= 2
-        ]
-
-        # Save the edited report
-        os.makedirs(output_folder, exist_ok=True)
-        report_file = os.path.join(output_folder, "Standards_report.csv")
-        matched_standards_df.to_csv(report_file, index=False)
-
-        # Print summary
-        average_coverage = matched_standards_df["Sample Coverage (%)"].mean()
-        print(
-            f"Standards report saved to {report_file}\n"
-            f"Total Matches: {len(matched_standards_df)}\n"
-            f"Average Coverage: {average_coverage:.2f}%"
-        )
-
-    except Exception as e:
-        print(f"[ERROR] Failed to edit and save standards report: {e}")
-
-
 def remove_standards_library(
     control_df,
     experimental_df,
@@ -517,3 +461,148 @@ def process_standards_report_only(
         print("Error: Standards library file not found.")
     except Exception as e:
         print(f"[ERROR] Error during standards report generation: {e}")
+
+
+def combine_matched_rows(
+    matched_rows, mass_error_ppm, ccs_error_percentage, rt_tolerance
+):
+    """
+    Combines matched rows within specified tolerances for m/z, CCS, and RT.
+
+    Args:
+        matched_rows (list of dict): List of matched rows to process.
+        mass_error_ppm (float): Tolerance for m/z in parts per million (ppm).
+        ccs_error_percentage (float): Tolerance for CCS as a percentage.
+        rt_tolerance (float): Tolerance for RT in minutes.
+
+    Returns:
+        list of dict: Consolidated matched rows.
+    """
+    print("[DEBUG] combine_matched_rows function has been called.")
+
+    # Convert matched rows to a DataFrame
+    matched_df = pd.DataFrame(matched_rows)
+    print(f"[DEBUG] Initial matched rows DataFrame:\n{matched_df.head()}")
+    # Ensure necessary columns are present
+    required_columns = {"Experimental m/z", "Experimental CCS", "RT"}
+    if not required_columns.issubset(matched_df.columns):
+        raise ValueError(f"Matched rows must include {required_columns} columns.")
+    print("[DEBUG] All required columns are present.")
+
+    # Sort for grouping
+    matched_df = matched_df.sort_values(
+        by=["Experimental m/z", "Experimental CCS", "RT"]
+    )
+    print(f"[DEBUG] Sorted matched DataFrame:\n{matched_df.head()}")
+
+    # Initialize list for consolidated rows
+    consolidated_rows = []
+
+    # Iterate to combine rows
+    iteration_count = 0
+    while not matched_df.empty:
+        iteration_count += 1
+        print(f"[DEBUG] Iteration {iteration_count}, remaining rows: {len(matched_df)}")
+
+        # Take the first row as the base
+        base_row = matched_df.iloc[0]
+        mz_base = base_row["Experimental m/z"]
+        ccs_base = base_row["Experimental CCS"]
+        rt_base = base_row["RT"]
+        print(
+            f"[DEBUG] Base row selected:\nm/z={mz_base}, CCS={ccs_base}, RT={rt_base}"
+        )
+
+        # Identify rows within tolerances
+        in_group = matched_df[
+            (
+                matched_df["Experimental m/z"].sub(mz_base).div(mz_base).abs() * 1e6
+                <= mass_error_ppm
+            )
+            & (
+                matched_df["Experimental CCS"].sub(ccs_base).div(ccs_base).abs() * 100
+                <= ccs_error_percentage
+            )
+            & (matched_df["RT"].sub(rt_base).abs() <= rt_tolerance)
+        ]
+        print(f"[DEBUG] Rows in group (iteration {iteration_count}):\n{in_group}")
+
+        # Remove grouped rows from the DataFrame
+        matched_df = matched_df.drop(in_group.index)
+        print(
+            f"[DEBUG] Remaining rows after drop (iteration {iteration_count}):\n{matched_df}"
+        )
+
+        # Consolidate data
+        combined_row = base_row.to_dict()
+        for col in [c for c in in_group.columns if ".d" in c]:
+            combined_row[f"Intensity ({col})"] = in_group[col].max()
+        print(f"[DEBUG] Combined row (iteration {iteration_count}):\n{combined_row}")
+
+        consolidated_rows.append(combined_row)
+
+    print(f"[DEBUG] Final consolidated rows: {len(consolidated_rows)}")
+    return consolidated_rows
+
+
+def edit_and_save_standards_report(matched_rows, output_folder="PIMMS v1.2/.temp"):
+    """
+    Edits and saves the matched standards report.
+
+    Args:
+        matched_rows (list): List of dictionaries containing matched rows data.
+        output_folder (str): Folder path to save the standards report.
+    """
+    print("[DEBUG] edit_and_save_standards_report called.")
+    if not matched_rows:
+        print("No matches found. Standards report is empty.")
+        return
+
+    try:
+        # Call combine_matched_rows to consolidate matches
+        print("[DEBUG] Calling combine_matched_rows...")
+        consolidated_rows = combine_matched_rows(
+            matched_rows, mass_error_ppm=10, ccs_error_percentage=2, rt_tolerance=0.5
+        )
+        print(f"[DEBUG] combine_matched_rows returned {len(consolidated_rows)} rows.")
+
+        # Create a DataFrame for consolidated rows
+        matched_standards_df = pd.DataFrame(consolidated_rows)
+        print("[DEBUG] Consolidated DataFrame created.")
+
+        # Perform necessary edits to the report
+        if "Sample Coverage (%)" in matched_standards_df.columns:
+            matched_standards_df["Normalized Coverage (%)"] = (
+                matched_standards_df["Sample Coverage (%)"] / 100
+            )
+
+        matched_standards_df.rename(
+            columns={
+                "Experimental m/z": "Exp m/z",
+                "Experimental CCS": "Exp CCS",
+                "Standard m/z": "Std m/z",
+                "Standard CCS": "Std CCS",
+            },
+            inplace=True,
+        )
+
+        matched_standards_df = matched_standards_df[
+            matched_standards_df["CCS Error (%)"] <= 2
+        ]
+
+        # Save the edited report
+        os.makedirs(output_folder, exist_ok=True)
+        report_file = os.path.join(output_folder, "Standards_report.csv")
+        matched_standards_df.to_csv(report_file, index=False)
+        print(f"[DEBUG] Standards report saved to {report_file}")
+
+        # Summary
+        average_coverage = matched_standards_df["Sample Coverage (%)"].mean()
+        print(
+            f"Standards report saved to {report_file}\n"
+            f"Total Matches: {len(matched_standards_df)}\n"
+            f"Average Coverage: {average_coverage:.2f}%"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Failed to edit and save standards report: {e}")
