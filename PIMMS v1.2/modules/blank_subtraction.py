@@ -265,82 +265,49 @@ def remove_standards_library(
     """
     try:
         print("[DEBUG] Loading standards library...")
-        # Load the standards library
         standards_df = pd.read_csv(standards_file)
         if "m/z" not in standards_df.columns or "CCS" not in standards_df.columns:
             raise ValueError(
                 "Standards library must contain 'm/z' and 'CCS' columns for matching."
             )
 
-        # Extract "m/z" and "CCS" values from the standards library
         standards_mz = standards_df["m/z"].dropna().to_numpy()
         standards_ccs = standards_df["CCS"].dropna().to_numpy()
 
-        print(
-            f"[DEBUG] Standards library loaded with {len(standards_mz)} 'm/z' and {len(standards_ccs)} 'CCS' values."
-        )
+        experimental_mz = experimental_df.iloc[:, 4].to_numpy()
+        experimental_ccs = experimental_df.iloc[:, 3].to_numpy()
 
-        # Compare "m/z" (5th column) and "CCS" (4th column) in the experimental dataset
-        experimental_mz = experimental_df.iloc[:, 4].to_numpy()  # Column E (5th column)
-        experimental_ccs = experimental_df.iloc[
-            :, 3
-        ].to_numpy()  # Column D (4th column)
-
-        print(
-            f"[DEBUG] Experimental dataset contains {len(experimental_mz)} 'm/z' and {len(experimental_ccs)} 'CCS' values."
-        )
-
-        matched_indices = []  # Indices of matched rows
-        matched_rows = []  # To store the report data for matched experimental and standards values
-
-        # Identify `.d` columns for intensity calculations
+        matched_indices = []
+        matched_rows = []
         d_columns = [col for col in experimental_df.columns if ".d" in col]
 
-        # Helper function to clean sample names
-        def clean_sample_name(name):
-            return name.split(".d")[0].strip()
-
-        print("[DEBUG] Iterating through experimental dataset...")
         for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs)):
-            is_matched = False  # Flag to track if a match is found
-            for j, (std_mz, std_ccs) in enumerate(zip(standards_mz, standards_ccs)):
+            for std_mz, std_ccs in zip(standards_mz, standards_ccs):
                 try:
-                    # Calculate mass error bounds for the current standard m/z
-                    mass_bound = calculate_mass_error(std_mz, mass_error_ppm, z)
+                    # Calculate mass and CCS bounds
+                    mass_bound = mz * mass_error_ppm * 1e-6 / z
                     lower_bound = std_mz - mass_bound
                     upper_bound = std_mz + mass_bound
-
-                    # Calculate the CCS error percentage
                     ccs_error = round(abs(ccs - std_ccs) / std_ccs * 100, 2)
 
-                    # Debugging mass bounds and CCS error
-                    print(
-                        f"[DEBUG] Row {i}, Standard {j}: Experimental m/z={mz:.4f}, "
-                        f"Standard m/z={std_mz:.4f}, Mass Error Bounds=({lower_bound:.4f}, {upper_bound:.4f})"
-                    )
-                    print(
-                        f"[DEBUG] Row {i}, Standard {j}: Experimental CCS={ccs:.4f}, "
-                        f"Standard CCS={std_ccs:.4f}, CCS Error={ccs_error:.2f}%"
-                    )
-
-                    # Check if the experimental m/z falls within bounds and CCS is within error percentage
+                    # Check if the experimental value matches the standard
                     matches_standard = (
                         lower_bound <= mz <= upper_bound
                         and ccs_error <= ccs_error_percentage
                     )
 
                     if matches_standard:
+                        # Calculate sample coverage
                         row_values = experimental_df.iloc[i][d_columns]
                         non_zero_count = (row_values > 0.001).sum()
                         total_count = len(d_columns)
                         sample_coverage = round((non_zero_count / total_count) * 100, 2)
 
+                        # Create matched row entry
                         intensity_values = {
                             f"Intensity ({col})": experimental_df.iloc[i][col]
                             for col in d_columns
                         }
-
-                        # Add match to the Standards Report
                         matched_row = experimental_df.iloc[i, :5].to_dict()
                         matched_row.update(
                             {
@@ -349,77 +316,55 @@ def remove_standards_library(
                                 "Standard m/z": std_mz,
                                 "Standard CCS": std_ccs,
                                 "Sample Coverage (%)": sample_coverage,
-                                "Mass Error (ppm)": (mz - std_mz) / std_mz * 1e6,
+                                "Mass Error (ppm)": round(
+                                    (mz - std_mz) / std_mz * 1e6, 2
+                                ),
                                 "CCS Error (%)": ccs_error,
                             }
                         )
-                        matched_row.update(
-                            intensity_values
-                        )  # Add intensity values per `.d` column
+                        matched_row.update(intensity_values)
 
                         matched_rows.append(matched_row)
-                        matched_indices.append(i)  # Add to matched indices
-                        is_matched = True
-                        break  # No need to check further standards for this experimental row
-                    if matched_rows:
-                        matched_standards_df = pd.DataFrame(matched_rows)
+                        matched_indices.append(i)
 
-                        # Calculate the average sample coverage
-                        average_coverage = matched_standards_df[
-                            "Sample Coverage (%)"
-                        ].mean()
-
-                        # Print the appropriate message based on the average coverage
-                        if average_coverage == 100.0:
-                            print(
-                                "100% Standards Coverage in Sample Set: All standard peaks are present in all samples."
-                            )
-                        else:
-                            print(
-                                f"Average Standards Coverage in Sample Set: {average_coverage:.2f}%. "
-                                "Investigate Standards Report - some standard peaks are missing in some samples."
-                            )
-                    else:
-                        print(
-                            "No matches found. Standards report is empty. Investigate further."
-                        )
+                        # Stop checking after a match is found
+                        break
                 except Exception as e:
-                    print(
-                        f"[ERROR] Exception while checking match for Row {i} and Standard {j}: {e}"
-                    )
+                    print(f"[ERROR] Matching failed for row {i}: {e}")
 
+        # Remove matched rows from the experimental dataset
+        unmatched_experimental_df = experimental_df.drop(index=matched_indices)
+
+        # Create a DataFrame for matched rows
+        matched_standards_df = pd.DataFrame(matched_rows)
+
+        # Save results and report
+        if not matched_standards_df.empty:
+            average_coverage = matched_standards_df["Sample Coverage (%)"].mean()
+            print(
+                f"\nFinal Report: Total Matches={len(matched_rows)}, "
+                f"Average Coverage={average_coverage:.2f}%"
+            )
+
+            temp_folder = "PIMMS v1.2/.temp"
+            os.makedirs(temp_folder, exist_ok=True)
+            matched_standards_df.to_csv(
+                os.path.join(temp_folder, "Standards_report.csv"), index=False
+            )
+            print("Standards report saved.")
+        else:
+            print("No matches found. Standards report is empty.")
+
+        # Debug statements for total matched and unmatched rows
         print(f"[DEBUG] Total matched rows: {len(matched_rows)}")
         print(
             f"[DEBUG] Total unmatched rows: {len(experimental_df) - len(matched_indices)}"
         )
 
-        # Create DataFrame for unmatched features
-        unmatched_experimental_df = experimental_df.drop(index=matched_indices)
-
-        # Remove rows with empty cells in `.d` columns from the unmatched experimental DataFrame
-        unmatched_experimental_df = unmatched_experimental_df.dropna(
-            subset=d_columns, how="any"
-        )
-        print(
-            f"[DEBUG] Unmatched experimental features after filtering empty `.d` cells: {len(unmatched_experimental_df)}"
-        )
-
-        # Save the matched standards report
-        temp_folder = "PIMMS v1.2/.temp"
-        os.makedirs(temp_folder, exist_ok=True)
-
-        standards_report_file = os.path.join(temp_folder, "Standards_report.csv")
-        matched_standards_df = pd.DataFrame(matched_rows)
-        matched_standards_df.to_csv(standards_report_file, index=False)
-        print(f"Standards report saved to {standards_report_file}")
-
         return unmatched_experimental_df
 
-    except FileNotFoundError:
-        print("Error: Standards library file not found.")
-        return experimental_df
     except Exception as e:
-        print(f"Error during standards library removal: {e}")
+        print(f"[ERROR] An unexpected error occurred: {e}")
         return experimental_df
 
 
@@ -492,16 +437,6 @@ def process_standards_report_only(
                     # Calculate the CCS error percentage
                     ccs_error = round(abs(ccs - std_ccs) / std_ccs * 100, 2)
 
-                    # Debugging mass bounds and CCS error
-                    print(
-                        f"[DEBUG] Row {i}, Standard {j}: Experimental m/z={mz:.4f}, "
-                        f"Standard m/z={std_mz:.4f}, Mass Error Bounds=({lower_bound:.4f}, {upper_bound:.4f})"
-                    )
-                    print(
-                        f"[DEBUG] Row {i}, Standard {j}: Experimental CCS={ccs:.4f}, "
-                        f"Standard CCS={std_ccs:.4f}, CCS Error={ccs_error:.2f}%"
-                    )
-
                     # Check if the experimental m/z falls within bounds and CCS is within error percentage
                     matches_standard = (
                         lower_bound <= mz <= upper_bound
@@ -537,8 +472,28 @@ def process_standards_report_only(
                         matched_row.update(
                             intensity_values
                         )  # Add intensity values per `.d` column
-
+                        print(
+                            f"Match found for Experimental Row {i}: "
+                            f"m/z={mz:.4f}, CCS={ccs:.4f}, Standard m/z={std_mz:.4f}, "
+                            f"Standard CCS={std_ccs:.4f}, Sample Coverage={sample_coverage:.2f}%"
+                        )
                         matched_rows.append(matched_row)
+
+                        if matched_rows:
+                            matched_standards_df = pd.DataFrame(matched_rows)
+                            average_coverage = matched_standards_df[
+                                "Sample Coverage (%)"
+                            ].mean()
+
+                            print("\nFinal Report:")
+                            print(f"Total Matches: {len(matched_rows)}")
+                            print(
+                                f"Average Standards Coverage in Sample Set: {average_coverage:.2f}%"
+                            )
+                        else:
+                            print(
+                                "No matches found. Standards report is empty. Investigate further."
+                            )
                         break  # No need to check further standards for this experimental row
 
                 except Exception as e:

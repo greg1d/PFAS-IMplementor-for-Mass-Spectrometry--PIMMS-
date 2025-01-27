@@ -16,7 +16,7 @@ from blank_subtraction_workflow import (
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/raw_data_test_set.csv",
+        "PIMMS v1.2\data\debugging_data_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
@@ -27,6 +27,12 @@ def main():
         "Blank 1.d",
         "Blank 2.d",
         "Blank 3.d",
+        "Blank 4.d",
+        "Blank 5.d",
+        "Blank 6.d",
+        "Blank 7.d",
+        "Blank 8.d",
+        "Blank 9.d",
     ]
 
     # Set tolerances
