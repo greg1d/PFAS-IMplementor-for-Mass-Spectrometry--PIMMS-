@@ -553,7 +553,9 @@ def combine_matched_rows(
         # Consolidate data
         combined_row = base_row.to_dict()
         for col in [c for c in in_group.columns if ".d" in c]:
-            combined_row[f"Intensity ({col})"] = in_group[col].max()
+            # Combine intensities for each `.d` column separately
+            combined_row[col] = in_group[col].max()
+            print(f"[DEBUG] Combined intensity for {col}: {combined_row[col]}")
         print(f"[DEBUG] Combined row (iteration {iteration_count}):\n{combined_row}")
 
         consolidated_rows.append(combined_row)

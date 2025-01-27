@@ -36,9 +36,10 @@ def main():
     ]
 
     # Set tolerances
-    mass_error_ppm = 10  # Mass error in ppm
+    mass_error_ppm = 20  # Mass error in ppm
     ccs_error_percentage = 2  # CCS variance as 2% tolerance
     rt_tolerance = 0.5
+
     try:
         # Process files and separate data
         combined_data, control_df, experimental_df = process_files(
