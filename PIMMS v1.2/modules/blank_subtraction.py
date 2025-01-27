@@ -282,7 +282,6 @@ def remove_standards_library(
         standards_ccs = np.concatenate(
             [standards_ccs, standards_ccs]
         )  # Duplicate CCS values for error standards
-        print(standards_mz)
         experimental_mz = experimental_df.iloc[:, 4].to_numpy()
         experimental_ccs = experimental_df.iloc[:, 3].to_numpy()
 
