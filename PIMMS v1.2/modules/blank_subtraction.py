@@ -141,10 +141,18 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     Returns:
         tuple: Adjusted experimental DataFrame, control mean, and control std.
     """
+    # Reset indices to ensure alignment
+    control_df = control_df.reset_index(drop=True)
+    experimental_df = experimental_df.reset_index(drop=True)
+
+    # Debug: Check shapes of DataFrames
+    print(f"[DEBUG] Control DataFrame shape: {control_df.shape}")
+    print(f"[DEBUG] Experimental DataFrame shape: {experimental_df.shape}")
+
     # Count rows before subtraction
     group_avg, group_std = count_non_zero_rows(control_df)
     print(
-        f"Control Sample Set  - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Control Sample Set - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     group_avg, group_std = count_non_zero_rows(experimental_df)
     print(
@@ -159,16 +167,30 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     control_mean_array = control_mean.to_numpy()
     control_std_array = control_std.to_numpy()
 
+    # Debug: Check shapes of control arrays
+    print(f"[DEBUG] Control mean array shape: {control_mean_array.shape}")
+    print(f"[DEBUG] Control std array shape: {control_std_array.shape}")
+
     # Subtract control mean and apply standard deviation adjustment
-    adjusted_df = experimental_df.iloc[:, 5:].sub(control_mean_array, axis=0)
-    adjusted_df -= std_deviation_factor * control_std_array[:, np.newaxis]
+    experimental_values = experimental_df.iloc[:, 5:]
+    print(f"[DEBUG] Experimental values shape: {experimental_values.shape}")
+
+    # Broadcast subtraction
+    adjusted_df = experimental_values.sub(control_mean_array, axis=0)
+    adjusted_df = adjusted_df.sub(
+        std_deviation_factor * control_std_array[:, np.newaxis], axis=0
+    )
     adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+
+    # Debug: Check adjusted DataFrame shape
+    print(f"[DEBUG] Adjusted DataFrame shape: {adjusted_df.shape}")
 
     # Count rows after subtraction
     group_avg, group_std = count_non_zero_rows(adjusted_df)
     print(
         f"Experimental Sample Set After Blank Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
+
     return adjusted_df, control_mean, control_std
 
 
