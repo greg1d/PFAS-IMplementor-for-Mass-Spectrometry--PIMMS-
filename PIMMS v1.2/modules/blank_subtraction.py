@@ -567,9 +567,21 @@ def combine_matched_rows(
             # Combine intensities for each `.d` column separately
             combined_row[col] = in_group[col].max()
             print(f"[DEBUG] Combined intensity for {col}: {combined_row[col]}")
-        print(f"[DEBUG] Combined row (iteration {iteration_count}):\n{combined_row}")
+
+        # Calculate sample coverage
+        non_zero_count = sum(
+            1 for col in in_group.columns if ".d" in col and combined_row[col] > 0.001
+        )
+        total_count = sum(1 for col in in_group.columns if ".d" in col)
+        combined_row["Sample Coverage (%)"] = (
+            (non_zero_count / total_count) * 100 if total_count > 0 else 0
+        )
+        print(
+            f"[DEBUG] Sample Coverage (%) for combined row: {combined_row['Sample Coverage (%)']}"
+        )
 
         consolidated_rows.append(combined_row)
+        print(f"[DEBUG] Combined row (iteration {iteration_count}):\n{combined_row}")
 
     print(f"[DEBUG] Final consolidated rows: {len(consolidated_rows)}")
     return consolidated_rows
@@ -622,6 +634,7 @@ def edit_and_save_standards_report(
                     "Name": std_name,
                     "Experimental m/z": "NA",
                     "Experimental CCS": "NA",
+                    "Experimental DT": "NA",  # Adding "Experimental DT" for unmatched standards
                     "Sample Coverage (%)": 0,
                     "Mass Error (ppm)": "NA",
                     "CCS Error (%)": "NA",
@@ -634,6 +647,11 @@ def edit_and_save_standards_report(
         final_report_df = pd.concat(
             [matched_standards_df, unmatched_df], ignore_index=True
         )
+
+        # Drop unnecessary columns and rename `DT` to `Experimental DT`
+        final_report_df = final_report_df.drop(columns=["CCS", "m/z"], errors="ignore")
+        if "DT" in final_report_df.columns:
+            final_report_df.rename(columns={"DT": "Experimental DT"}, inplace=True)
 
         # Save the edited report
         os.makedirs(output_folder, exist_ok=True)
