@@ -155,6 +155,7 @@ def main():
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
+        print(adjusted_df.head())
 
         # Save the final dataset after standards removal
         final_csv_path = "PIMMS v1.2/.temp/final_adjusted_df.csv"

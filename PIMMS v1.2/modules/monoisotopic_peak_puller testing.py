@@ -1,86 +1,73 @@
 import pandas as pd
+import bisect
 
-from blank_subtraction import find_peaks_within_bounds
+
+def calculate_mass_error(mass, mass_error_ppm=10, z=1):
+    mass_error = mass * mass_error_ppm * 1e-6
+    return mass_error / z
+
+
+def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
+    mass_bound = calculate_mass_error(array[i], mass_error_ppm, z)
+    lower_bound = array[i] + (M / z) - mass_bound
+    upper_bound = array[i] + (M / z) + mass_bound
+    j_start = bisect.bisect_left(array, lower_bound, i + 1)
+    j_end = bisect.bisect_right(array, upper_bound, i + 1)
+    return array[j_start:j_end], j_end - j_start
 
 
 def expand_group(
-    array,
-    rt_array,
-    ccs_array,
+    adjusted_df,
     initial_peak,
     initial_rt,
     initial_ccs,
     z_range,
     mass_error_ppm=10,
+    rt_tolerance=0.5,
+    ccs_tolerance=2.0,
 ):
+    array = adjusted_df["m/z"].tolist()
+    rt_array = adjusted_df["RT"].tolist()
+    ccs_array = adjusted_df["CCS"].tolist()
+
     group = [initial_peak]
     identified_features = set(group)
-    i = array.index(initial_peak)
-    peak_count = {i: 0}
-    peak_charges = {i: []}
+    to_process = [initial_peak]
 
-    # First iteration: work through all charges to identify all candidate peaks
-    candidate_peaks = set()
-    selected_z = None
-    for z in z_range:
-        peaks, _ = find_peaks_within_bounds(array, z, 1, i, mass_error_ppm)
-        for peak in peaks:
-            if (
-                peak not in identified_features
-                and abs(rt_array[array.index(peak)] - initial_rt) <= 0.2
-                and abs(ccs_array[array.index(peak)] - initial_ccs) / initial_ccs
-                <= 0.02
-            ):
-                candidate_peaks.add((peak, z))
-                peak_count[i] += 1
-                peak_charges[i].append(z)
-        if peaks and selected_z is None:
-            selected_z = z
+    while to_process:
+        current_peak = to_process.pop(0)
+        current_idx = array.index(current_peak)
+        current_rt = rt_array[current_idx]
+        current_ccs = ccs_array[current_idx]
 
-    # Second iteration: expand the group with the same charge `selected_z` and incrementing M
-    if selected_z is not None and candidate_peaks:
-        # Find the peak with the highest charge
-        highest_charge_peak = max(candidate_peaks, key=lambda x: x[1])
-        selected_z = highest_charge_peak[1]
-        new_i = array.index(highest_charge_peak[0])
-        group.append(array[new_i])
-        while True:
-            new_peaks, _ = find_peaks_within_bounds(
-                array, selected_z, 1, new_i, mass_error_ppm
+        for z in z_range:
+            peaks, _ = find_peaks_within_bounds(
+                array, z, 1, current_idx, mass_error_ppm
             )
-            if not new_peaks:
-                break
-            for new_peak in new_peaks:
+            for peak in peaks:
+                idx = array.index(peak)
                 if (
-                    new_peak not in identified_features
-                    and abs(rt_array[array.index(new_peak)] - initial_rt) <= 0.2
-                    and abs(ccs_array[array.index(new_peak)] - initial_ccs)
-                    / initial_ccs
-                    <= 0.02
+                    peak not in identified_features
+                    and abs(rt_array[idx] - current_rt) <= rt_tolerance
+                    and abs(ccs_array[idx] - current_ccs) / current_ccs * 100
+                    <= ccs_tolerance
                 ):
-                    identified_features.add(new_peak)
-                    group.append(new_peak)
-            new_i = array.index(
-                new_peaks[-1]
-            )  # Update new_i to the last identified peak
+                    identified_features.add(peak)
+                    group.append(peak)
+                    to_process.append(peak)
 
     return group
 
 
-# Example usage
-def main():
-    # Read the CSV file
-    df = pd.read_csv("PIMMS v1.2/data/debugging_data_set.csv")
-
-    # Sort the DataFrame by the "m/z" column
-    df = df.sort_values(by="m/z")
-
-    # Extract the "m/z", "RT", and "CCS" columns as lists
-    array = df["m/z"].tolist()
-    rt_array = df["RT"].tolist()
-    ccs_array = df["CCS"].tolist()
-
-    z_range = range(1, 4)  # User-defined range for z from 1 to 3
+def analyze_adjusted_df(
+    adjusted_df,
+    z_range=range(1, 4),
+    mass_error_ppm=10,
+    rt_tolerance=0.5,
+    ccs_tolerance=2.0,
+):
+    adjusted_df = adjusted_df.sort_values(by="m/z")
+    array = adjusted_df["m/z"].tolist()
 
     identified_features = set()
     groups = []
@@ -88,24 +75,48 @@ def main():
     for i in range(len(array)):
         if array[i] not in identified_features:
             group = expand_group(
-                array, rt_array, ccs_array, array[i], rt_array[i], ccs_array[i], z_range
+                adjusted_df,
+                array[i],
+                adjusted_df["RT"].iloc[i],
+                adjusted_df["CCS"].iloc[i],
+                z_range,
+                mass_error_ppm,
+                rt_tolerance,
+                ccs_tolerance,
             )
-            if len(group) >= 2:  # Only add groups with more than 2 features
+            if len(group) > 1:
                 groups.append(group)
                 identified_features.update(group)
 
+    return groups
+
+
+def main():
+    # Example usage with adjusted_df
+    adjusted_df = pd.DataFrame(
+        {
+            "ID": [1, 2, 3, 4, 5],
+            "RT": [3.666, 5, 3.666, 3.666, 3.666],
+            "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
+            "CCS": [175.79, 175.79, 175.79, 175.79, 175.79],
+            "m/z": [277.2320, 278.2320, 279.2320, 280.2320, 281.2320],
+            "148 B2 16632.d.DeMP": [361274.0, 327743.0, 423382.0, 155202.0, 416438.0],
+            "149 B2 16631.d.DeMP": [361731.0, 324716.0, 422827.0, 154871.0, 416854.0],
+        }
+    )
+
+    z_range = range(1, 4)
+    mass_error_ppm = 10
+    rt_tolerance = 0.5
+    ccs_tolerance = 2.0
+
+    groups = analyze_adjusted_df(
+        adjusted_df, z_range, mass_error_ppm, rt_tolerance, ccs_tolerance
+    )
+
     print(f"Number of groups identified: {len(groups)}")
-    print("Groups identified:")
-
-    # Print each group with its details
-    for idx, group in enumerate(groups, start=1):
-        print(f"Group {idx}: {group}")
-
-    total_features = len(array)
-    grouped_features = sum(len(group) for group in groups if len(group) >= 2)
-    unrelated_features = total_features - grouped_features
-
-    print(f"Number of unrelated features: {unrelated_features}")
+    for group in groups:
+        print(f"Group: {group}")
 
 
 if __name__ == "__main__":
