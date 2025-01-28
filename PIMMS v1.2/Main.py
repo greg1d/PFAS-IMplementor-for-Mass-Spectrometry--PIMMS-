@@ -6,7 +6,6 @@ from blank_subtraction import (
     process_standards_report_only,
     remove_standards_library,
     save_adjusted_dataset,
-    count_non_zero_rows,
 )
 from blank_subtraction_workflow import (
     perform_blank_subtraction,
@@ -46,7 +45,7 @@ def main():
     min_intensity = 500  # Minimum intensity cutoff
     rt_min = 0.5  # Minimum RT
     rt_max = 10.0  # Maximum RT
-    mass_min = 50.0  # Minimum mass
+    mass_min = 500.0  # Minimum mass
     mass_max = 1500  # Maximum mass
 
     try:
@@ -58,27 +57,21 @@ def main():
         print(f"Error processing files: {e}")
         sys.exit(1)
 
-    # Remove standards library
-    print("Remove standards library from experimental dataset? (Y/N)")
-    choice = input("Enter your choice: ").strip().upper()
-    if choice == "Y":
-        print("Processing standards library...")
-        experimental_df = remove_standards_library(
-            control_df, experimental_df, standards_file
-        )
-    elif choice == "N":
-        print("Generating Standards Report without removing matched features...")
+    # Step 1: Generate Standards Report (No removal of features yet)
+    print("[INFO] Generating Standards Report without removing matched features...")
+    try:
         process_standards_report_only(
             experimental_df,
             standards_file,
-            mass_error_ppm=10,
-            ccs_error_percentage=2,
+            mass_error_ppm=mass_error_ppm,
+            ccs_error_percentage=ccs_error_percentage,
             z=1,
         )
-    else:
-        print("Invalid choice. Proceeding without processing standards library.")
+    except Exception as e:
+        print(f"[ERROR] Failed to generate Standards Report: {e}")
+        sys.exit(1)
 
-    # Select the blank subtraction method
+    # Step 2: Perform Blank Subtraction and Filtering
     print("Select blank subtraction method:")
     print("1: Method 1 (Highest signal from control samples)")
     print("2: Method 2 (Mean + x standard deviations)")
@@ -100,20 +93,32 @@ def main():
             print(f"[ERROR] Filtering failed: {e}")
             sys.exit(1)
 
-        # Count non-zero rows after filters
-        print("[INFO] Calculating non-zero row statistics after filters...")
-        group_avg, group_std = count_non_zero_rows(adjusted_df)
-        print(
-            f"[INFO] Summary After Filters:\n"
-            f"  Average Non-Zero Rows: {group_avg:.2f}\n"
-            f"  Std Dev of Non-Zero Rows: {group_std:.2f}"
-        )
-
         # Save the adjusted dataset, including the first 5 columns
         save_adjusted_dataset(adjusted_df, combined_data)
 
     except Exception as e:
         print(f"Error during blank subtraction: {e}")
+        sys.exit(1)
+
+    # Step 3: Remove Standards as Final Step
+    print("[INFO] Removing matched features from adjusted dataset...")
+    try:
+        adjusted_df = remove_standards_library(
+            adjusted_df,
+            standards_file,
+            mass_error_ppm=mass_error_ppm,
+            ccs_error_percentage=ccs_error_percentage,
+            z=1,
+        )
+
+        # Save the final dataset after standards removal
+        final_csv_path = "PIMMS v1.2/.temp/final_adjusted_df.csv"
+        os.makedirs(os.path.dirname(final_csv_path), exist_ok=True)
+        adjusted_df.to_csv(final_csv_path, index=False)
+        print(f"[INFO] Final adjusted dataset saved to {final_csv_path}")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to remove standards: {e}")
         sys.exit(1)
 
 
