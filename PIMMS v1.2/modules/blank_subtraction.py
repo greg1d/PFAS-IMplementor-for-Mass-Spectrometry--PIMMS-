@@ -433,6 +433,7 @@ def process_standards_report_only(
             raise ValueError(
                 "Experimental dataset must contain 'm/z', 'CCS', and 'RT' columns."
             )
+        experimental_df = experimental_df.applymap(lambda x: 0 if x == 0.001 else x)
 
         experimental_mz = experimental_df["m/z"].to_numpy()
         experimental_ccs = experimental_df["CCS"].to_numpy()
