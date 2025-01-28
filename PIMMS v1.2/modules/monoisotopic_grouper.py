@@ -1,4 +1,3 @@
-import pandas as pd
 import bisect
 
 
@@ -120,41 +119,3 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
         ]
 
     return adjusted_df
-
-
-def main():
-    # Example usage with adjusted_df
-    adjusted_df = pd.DataFrame(
-        {
-            "ID": [1, 2, 3, 4, 5],
-            "RT": [3.666, 3.666, 3.666, 3.666, 3.666],
-            "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [175.79, 175.79, 175.79, 175.79, 175.79],
-            "m/z": [277.2320, 278.2320, 279.2320, 280.2320, 281.2320],
-            "148 B2 16632.d.DeMP": [361274.0, 327743.0, 423382.0, 155202.0, 416438.0],
-            "149 B2 16631.d.DeMP": [361731.0, 324716.0, 422827.0, 154871.0, 416854.0],
-        }
-    )
-
-    z_range = range(1, 4)
-    mass_error_ppm = 10
-    rt_tolerance = 0.5
-    ccs_tolerance = 2.0
-
-    groups = analyze_adjusted_df(
-        adjusted_df, z_range, mass_error_ppm, rt_tolerance, ccs_tolerance
-    )
-
-    print(f"Number of groups identified: {len(groups)}")
-    for group in groups:
-        print(f"Group: {group}")
-
-    # Merge groups into a single feature
-    adjusted_df = merge_groups_into_adjusted_df(adjusted_df, groups)
-
-    print("\n[INFO] Updated adjusted_df after merging groups:")
-    print(adjusted_df)
-
-
-if __name__ == "__main__":
-    main()

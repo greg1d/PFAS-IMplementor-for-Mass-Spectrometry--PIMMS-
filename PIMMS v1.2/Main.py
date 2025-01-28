@@ -134,8 +134,6 @@ def main():
             ccs_tolerance=ccs_error_percentage,
         )
         print(f"[INFO] Number of groups identified: {len(groups)}")
-        for group in groups:
-            print(f"Group: {group}")
 
         # Merge groups into adjusted_df
         adjusted_df = merge_groups_into_adjusted_df(adjusted_df, groups)
