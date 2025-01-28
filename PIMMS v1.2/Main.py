@@ -11,12 +11,13 @@ from blank_subtraction_workflow import (
     perform_blank_subtraction,
     process_files,
 )
+from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
 
 
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/20202021_data_set.csv",
+        "PIMMS v1.2/data/raw_data_test_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
@@ -36,9 +37,16 @@ def main():
     ]
 
     # Set tolerances
-    mass_error_ppm = 20  # Mass error in ppm
+    mass_error_ppm = 10  # Mass error in ppm
     ccs_error_percentage = 2  # CCS variance as 2% tolerance
     rt_tolerance = 0.5
+
+    # Hardcoded filter parameters
+    min_intensity = 100  # Minimum intensity cutoff
+    rt_min = 1.0  # Minimum RT
+    rt_max = 10.0  # Maximum RT
+    mass_min = 50.0  # Minimum mass
+    mass_max = 500.0  # Maximum mass
 
     try:
         # Process files and separate data
@@ -80,6 +88,17 @@ def main():
         adjusted_df, control_mean, control_std = perform_blank_subtraction(
             method, control_df, experimental_df
         )
+
+        # Apply filters
+        print("[INFO] Applying filters to adjusted dataset...")
+        try:
+            print(adjusted_df)
+            adjusted_df = apply_min_intensity_filter(adjusted_df, min_intensity)
+            adjusted_df = apply_rt_filter(adjusted_df, rt_min, rt_max)
+            adjusted_df = apply_mass_filter(adjusted_df, mass_min, mass_max)
+        except Exception as e:
+            print(f"[ERROR] Filtering failed: {e}")
+            sys.exit(1)
 
         # Save the adjusted dataset, including the first 5 columns
         save_adjusted_dataset(adjusted_df, combined_data)

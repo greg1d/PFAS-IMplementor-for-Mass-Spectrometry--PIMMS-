@@ -220,7 +220,7 @@ def save_adjusted_dataset(adjusted_df, original_df):
 
     # Combine metadata (first 5 columns) with the adjusted dataset
     combined_df = pd.concat([original_df.iloc[:, :5], adjusted_df], axis=1)
-
+    print(adjusted_df.head())
     # Drop rows with any missing values
     combined_df = combined_df.dropna(how="any")
 
