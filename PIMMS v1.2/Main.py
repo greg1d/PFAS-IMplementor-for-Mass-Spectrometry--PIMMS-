@@ -10,7 +10,14 @@ from blank_subtraction import (
 )
 from blank_subtraction_workflow import perform_blank_subtraction, process_files
 from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
-from monoisotopic_grouper import analyze_adjusted_df, merge_groups_into_adjusted_df
+from branching_filter import (
+    analyze_adjusted_df as branching_analyze,
+    merge_groups_into_adjusted_df as branching_merge,
+)
+from monoisotopic_grouper import (
+    analyze_adjusted_df as mono_analyze,
+    merge_groups_into_adjusted_df as mono_merge,
+)
 
 
 def main():
@@ -122,35 +129,62 @@ def main():
         print(f"Error during blank subtraction: {e}")
         sys.exit(1)
 
-    # Step 3: Apply Grouping Logic and Merge
-    print("[INFO] Identifying, grouping, and merging features...")
+    # Step 3: Apply Grouping Logic (Branching Filter)
+    print("[INFO] Applying branching filter for grouping...")
     try:
-        z_range = range(1, 4)
-        groups = analyze_adjusted_df(
+        groups = branching_analyze(
             adjusted_df,
-            z_range=z_range,
             mass_error_ppm=mass_error_ppm,
             rt_tolerance=rt_tolerance,
             ccs_tolerance=ccs_error_percentage,
         )
-        print(f"[INFO] Number of groups identified: {len(groups)}")
+        print(f"[INFO] Number of groups identified by branching filter: {len(groups)}")
 
         # Merge groups into adjusted_df
-        adjusted_df = merge_groups_into_adjusted_df(adjusted_df, groups)
+        adjusted_df = branching_merge(adjusted_df, groups)
 
         # Count non-zero rows after merging
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
-            f"[INFO] After Merging Groups:\n"
+            f"[INFO] After Applying Branching Filter:\n"
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
 
     except Exception as e:
-        print(f"[ERROR] Grouping logic failed: {e}")
+        print(f"[ERROR] Branching filter logic failed: {e}")
         sys.exit(1)
 
-    # Step 4: Remove Standards as Final Step
+    # Step 4: Apply Monoisotopic Filter
+    print("[INFO] Applying monoisotopic filter for grouping...")
+    try:
+        groups = mono_analyze(
+            adjusted_df,
+            z_range=range(1, 4),
+            mass_error_ppm=mass_error_ppm,
+            rt_tolerance=rt_tolerance,
+            ccs_tolerance=ccs_error_percentage,
+        )
+        print(
+            f"[INFO] Number of groups identified by monoisotopic filter: {len(groups)}"
+        )
+
+        # Merge groups into adjusted_df
+        adjusted_df = mono_merge(adjusted_df, groups)
+
+        # Count non-zero rows after merging
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying Monoisotopic Filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Monoisotopic filter logic failed: {e}")
+        sys.exit(1)
+
+    # Step 5: Remove Standards as Final Step
     print("[INFO] Removing matched features from adjusted dataset...")
     try:
         adjusted_df = remove_standards_library(

@@ -131,10 +131,10 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
         rows_to_keep.append(representative_row)
 
     # Create a new DataFrame with only the representative rows
-    merged_df = pd.DataFrame(rows_to_keep)
+    adjusted_df = pd.DataFrame(rows_to_keep)
 
     print("[DEBUG] Group merging completed.")
-    return merged_df
+    return adjusted_df
 
 
 def main():
