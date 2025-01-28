@@ -99,11 +99,11 @@ def method_1_blank_subtraction(control_df, experimental_df):
     # Calculate statistics for control and experimental sets before subtraction
     group_avg, group_std = count_non_zero_rows(control_df)
     print(
-        f"Control Sample Set - Average Non-Zero Proportion: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Control Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     group_avg, group_std = count_non_zero_rows(experimental_df)
     print(
-        f"Experimental Sample Set - Average Non-Zero Proportion: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Experimental Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
 
     # Calculate the maximum value in the control set for each row
@@ -118,7 +118,7 @@ def method_1_blank_subtraction(control_df, experimental_df):
     # Calculate statistics after subtraction
     group_avg, group_std = count_non_zero_rows(adjusted_df)
     print(
-        f"After Blank Subtraction - Average Non-Zero Proportion: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"After Blank Subtraction - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
 
     # Calculate the control mean and control standard deviation
@@ -509,7 +509,6 @@ def combine_matched_rows(
 
     # Convert matched rows to a DataFrame
     matched_df = pd.DataFrame(matched_rows)
-    print(f"[DEBUG] Initial matched rows DataFrame:\n{matched_df.head()}")
 
     # Ensure necessary columns are present
     required_columns = {"Experimental m/z", "Experimental CCS", "RT"}
@@ -521,7 +520,6 @@ def combine_matched_rows(
     matched_df = matched_df.sort_values(
         by=["Experimental m/z", "Experimental CCS", "RT"]
     )
-    print(f"[DEBUG] Sorted matched DataFrame:\n{matched_df.head()}")
 
     # Initialize list for consolidated rows
     consolidated_rows = []
@@ -530,16 +528,12 @@ def combine_matched_rows(
     iteration_count = 0
     while not matched_df.empty:
         iteration_count += 1
-        print(f"[DEBUG] Iteration {iteration_count}, remaining rows: {len(matched_df)}")
 
         # Take the first row as the base
         base_row = matched_df.iloc[0]
         mz_base = base_row["Experimental m/z"]
         ccs_base = base_row["Experimental CCS"]
         rt_base = base_row["RT"]
-        print(
-            f"[DEBUG] Base row selected:\nm/z={mz_base}, CCS={ccs_base}, RT={rt_base}"
-        )
 
         # Identify rows within tolerances
         in_group = matched_df[
@@ -553,20 +547,15 @@ def combine_matched_rows(
             )
             & (matched_df["RT"].sub(rt_base).abs() <= rt_tolerance)
         ]
-        print(f"[DEBUG] Rows in group (iteration {iteration_count}):\n{in_group}")
 
         # Remove grouped rows from the DataFrame
         matched_df = matched_df.drop(in_group.index)
-        print(
-            f"[DEBUG] Remaining rows after drop (iteration {iteration_count}):\n{matched_df}"
-        )
 
         # Consolidate data
         combined_row = base_row.to_dict()
         for col in [c for c in in_group.columns if ".d" in c]:
             # Combine intensities for each `.d` column separately
             combined_row[col] = in_group[col].max()
-            print(f"[DEBUG] Combined intensity for {col}: {combined_row[col]}")
 
         # Calculate sample coverage
         non_zero_count = sum(
@@ -576,12 +565,8 @@ def combine_matched_rows(
         combined_row["Sample Coverage (%)"] = (
             (non_zero_count / total_count) * 100 if total_count > 0 else 0
         )
-        print(
-            f"[DEBUG] Sample Coverage (%) for combined row: {combined_row['Sample Coverage (%)']}"
-        )
 
         consolidated_rows.append(combined_row)
-        print(f"[DEBUG] Combined row (iteration {iteration_count}):\n{combined_row}")
 
     print(f"[DEBUG] Final consolidated rows: {len(consolidated_rows)}")
     return consolidated_rows
