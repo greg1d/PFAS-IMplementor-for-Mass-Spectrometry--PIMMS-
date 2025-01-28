@@ -1,6 +1,8 @@
 import bisect
 import time
 import numpy as np
+import os
+import pandas as pd
 
 # Example sorted array
 np.random.seed(42)  # For reproducibility
@@ -69,3 +71,36 @@ print(naive_results == binary_results)
 print("\nNumber of calculations:")
 print(f"Naive approach: {naive_calculations}")
 print(f"Binary search approach: {binary_calculations}")
+
+
+def main():
+    # File paths to the CSV files
+    file_paths = ["PIMMS v1.2/data/20202021_data_set.csv"]
+
+    # Load the dataset
+    experimental_df = pd.read_csv(file_paths[0])
+
+    # Define charge range and tolerances
+    z_range = range(1, 4)
+    mass_error_ppm = 10
+    rt_tolerance = 0.2
+    ccs_tolerance = 0.02
+
+    # Apply mass interval filter
+    experimental_df = binary_search_comparison(
+        experimental_df,
+        z_range,
+        mass_error_ppm=mass_error_ppm,
+        rt_tolerance=rt_tolerance,
+        ccs_tolerance=ccs_tolerance,
+    )
+
+    # Save the filtered dataset
+    filtered_csv_path = "PIMMS v1.2/.temp/filtered_experimental_dataset.csv"
+    os.makedirs(os.path.dirname(filtered_csv_path), exist_ok=True)
+    experimental_df.to_csv(filtered_csv_path, index=False)
+    print(f"[INFO] Filtered dataset saved to {filtered_csv_path}")
+
+
+if __name__ == "__main__":
+    main()
