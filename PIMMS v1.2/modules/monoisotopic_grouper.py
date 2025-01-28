@@ -91,12 +91,43 @@ def analyze_adjusted_df(
     return groups
 
 
+def merge_groups_into_adjusted_df(adjusted_df, groups):
+    """
+    Merges groups into a single feature in the adjusted_df.
+    The representative feature is the row with the lowest m/z in the group.
+    The intensity values are preserved from the first peak.
+    """
+    intensity_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+
+    for group in groups:
+        # Find the rows corresponding to the group
+        group_df = adjusted_df[adjusted_df["m/z"].isin(group)]
+        # Identify the representative row (lowest m/z)
+        representative_row = group_df.loc[group_df["m/z"].idxmin()]
+
+        # Set intensity columns of other rows in the group to match the representative row
+        for col in intensity_columns:
+            adjusted_df.loc[adjusted_df["m/z"].isin(group), col] = representative_row[
+                col
+            ]
+
+        # Remove all other rows in the group except the representative row
+        adjusted_df = adjusted_df[
+            ~(
+                adjusted_df["m/z"].isin(group)
+                & (adjusted_df["m/z"] != representative_row["m/z"])
+            )
+        ]
+
+    return adjusted_df
+
+
 def main():
     # Example usage with adjusted_df
     adjusted_df = pd.DataFrame(
         {
             "ID": [1, 2, 3, 4, 5],
-            "RT": [3.666, 5, 3.666, 3.666, 3.666],
+            "RT": [3.666, 3.666, 3.666, 3.666, 3.666],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
             "CCS": [175.79, 175.79, 175.79, 175.79, 175.79],
             "m/z": [277.2320, 278.2320, 279.2320, 280.2320, 281.2320],
@@ -117,6 +148,12 @@ def main():
     print(f"Number of groups identified: {len(groups)}")
     for group in groups:
         print(f"Group: {group}")
+
+    # Merge groups into a single feature
+    adjusted_df = merge_groups_into_adjusted_df(adjusted_df, groups)
+
+    print("\n[INFO] Updated adjusted_df after merging groups:")
+    print(adjusted_df)
 
 
 if __name__ == "__main__":

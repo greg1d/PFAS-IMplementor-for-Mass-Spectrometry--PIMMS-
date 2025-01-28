@@ -8,11 +8,9 @@ from blank_subtraction import (
     save_adjusted_dataset,
     count_non_zero_rows,
 )
-from blank_subtraction_workflow import (
-    perform_blank_subtraction,
-    process_files,
-)
+from blank_subtraction_workflow import perform_blank_subtraction, process_files
 from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
+from monoisotopic_grouper import analyze_adjusted_df, merge_groups_into_adjusted_df
 
 
 def main():
@@ -104,25 +102,12 @@ def main():
         print("[INFO] Applying filters to adjusted dataset...")
         try:
             adjusted_df = apply_min_intensity_filter(adjusted_df, min_intensity)
-            group_avg, group_std = count_non_zero_rows(adjusted_df)
-            print(
-                f"[INFO] After Intensity Filter:\n"
-                f"  Average Non-Zero Rows: {group_avg}\n"
-                f"  Std Dev of Non-Zero Rows: {group_std}"
-            )
-
             adjusted_df = apply_rt_filter(adjusted_df, rt_min, rt_max)
-            group_avg, group_std = count_non_zero_rows(adjusted_df)
-            print(
-                f"[INFO] After RT Filter:\n"
-                f"  Average Non-Zero Rows: {group_avg}\n"
-                f"  Std Dev of Non-Zero Rows: {group_std}"
-            )
-
             adjusted_df = apply_mass_filter(adjusted_df, mass_min, mass_max)
+
             group_avg, group_std = count_non_zero_rows(adjusted_df)
             print(
-                f"[INFO] After Mass Filter:\n"
+                f"[INFO] After Applying All Filters:\n"
                 f"  Average Non-Zero Rows: {group_avg}\n"
                 f"  Std Dev of Non-Zero Rows: {group_std}"
             )
@@ -130,14 +115,44 @@ def main():
             print(f"[ERROR] Filtering failed: {e}")
             sys.exit(1)
 
-        # Save the adjusted dataset, including the first 5 columns
+        # Save the adjusted dataset
         save_adjusted_dataset(adjusted_df, combined_data)
 
     except Exception as e:
         print(f"Error during blank subtraction: {e}")
         sys.exit(1)
 
-    # Step 3: Remove Standards as Final Step
+    # Step 3: Apply Grouping Logic and Merge
+    print("[INFO] Identifying, grouping, and merging features...")
+    try:
+        z_range = range(1, 4)
+        groups = analyze_adjusted_df(
+            adjusted_df,
+            z_range=z_range,
+            mass_error_ppm=mass_error_ppm,
+            rt_tolerance=rt_tolerance,
+            ccs_tolerance=ccs_error_percentage,
+        )
+        print(f"[INFO] Number of groups identified: {len(groups)}")
+        for group in groups:
+            print(f"Group: {group}")
+
+        # Merge groups into adjusted_df
+        adjusted_df = merge_groups_into_adjusted_df(adjusted_df, groups)
+
+        # Count non-zero rows after merging
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Merging Groups:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Grouping logic failed: {e}")
+        sys.exit(1)
+
+    # Step 4: Remove Standards as Final Step
     print("[INFO] Removing matched features from adjusted dataset...")
     try:
         adjusted_df = remove_standards_library(
