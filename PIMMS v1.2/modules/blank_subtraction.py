@@ -120,7 +120,7 @@ def align_control_experimental(control_df, experimental_df):
 def method_1_blank_subtraction(control_df, experimental_df):
     """
     Subtracts the highest value within the control set for each row from the experimental sample set.
-    Returns adjusted experimental DataFrame and statistics (control mean and control std).
+    Returns adjusted experimental DataFrame with the first five columns retained as identifiers.
     """
     # Calculate statistics for control and experimental sets before subtraction
     group_avg, group_std = count_non_zero_rows(control_df)
@@ -138,11 +138,14 @@ def method_1_blank_subtraction(control_df, experimental_df):
     )  # Exclude the first 5 columns (metadata)
 
     # Subtract the maximum control value from each row in the experimental set
-    adjusted_df = experimental_df.iloc[:, 5:].sub(control_max, axis=0)
-    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+    adjusted_values = experimental_df.iloc[:, 5:].sub(control_max, axis=0)
+    adjusted_values = adjusted_values.clip(lower=0)  # Ensure no negative values
+
+    # Concatenate the first 5 columns as identifiers
+    adjusted_df = pd.concat([experimental_df.iloc[:, :5], adjusted_values], axis=1)
 
     # Calculate statistics after subtraction
-    group_avg, group_std = count_non_zero_rows(adjusted_df)
+    group_avg, group_std = count_non_zero_rows(adjusted_values)
     print(
         f"After Blank Subtraction - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
@@ -157,7 +160,7 @@ def method_1_blank_subtraction(control_df, experimental_df):
 def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor=1):
     """
     Subtraction of the control mean and adjustment with standard deviation,
-    with non-zero row counts before and after subtraction.
+    while retaining identifier columns and consistent column names.
 
     Args:
         control_df (pd.DataFrame): Control DataFrame.
@@ -165,7 +168,7 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
         std_deviation_factor (float): Factor for standard deviation adjustment.
 
     Returns:
-        tuple: Adjusted experimental DataFrame, control mean, and control std.
+        tuple: Adjusted experimental DataFrame with identifier columns, control mean, and control std.
     """
     # Align control and experimental DataFrames
     control_df, experimental_df = align_control_experimental(
@@ -175,11 +178,11 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     # Count rows before subtraction
     group_avg, group_std = count_non_zero_rows(control_df)
     print(
-        f"Control Sample Set - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Control Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
     group_avg, group_std = count_non_zero_rows(experimental_df)
     print(
-        f"Experimental Sample Set - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"Experimental Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
 
     # Calculate row-wise mean and standard deviation for control samples
@@ -192,14 +195,25 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
 
     # Subtract control mean and apply standard deviation adjustment
     experimental_values = experimental_df.iloc[:, 5:]
-    adjusted_df = experimental_values.sub(control_mean_array, axis=0)
-    adjusted_df -= std_deviation_factor * control_std_array[:, np.newaxis]
-    adjusted_df = adjusted_df.clip(lower=0)  # Ensure no negative values
+    adjusted_values = experimental_values.sub(control_mean_array, axis=0)
+    adjusted_values -= std_deviation_factor * control_std_array[:, np.newaxis]
+    adjusted_values = adjusted_values.clip(lower=0)  # Ensure no negative values
+
+    # Concatenate identifier columns back with adjusted values
+    adjusted_df = pd.concat([experimental_df.iloc[:, :5], adjusted_values], axis=1)
+
+    # Ensure column consistency with method 1 (retain `m/z` naming)
+    adjusted_df.rename(
+        columns={
+            "m/z": "m/z",
+        },
+        inplace=True,
+    )
 
     # Count rows after subtraction
-    group_avg, group_std = count_non_zero_rows(adjusted_df)
+    group_avg, group_std = count_non_zero_rows(adjusted_values)
     print(
-        f"Experimental Sample Set After Blank Subtraction - Average Non-Zero Rows: {group_avg:.0f}, Std Dev: {group_std:.0f}"
+        f"After Blank Subtraction - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
     )
 
     return adjusted_df, control_mean, control_std

@@ -6,6 +6,7 @@ from blank_subtraction import (
     process_standards_report_only,
     remove_standards_library,
     save_adjusted_dataset,
+    count_non_zero_rows,
 )
 from blank_subtraction_workflow import (
     perform_blank_subtraction,
@@ -42,7 +43,7 @@ def main():
     rt_tolerance = 0.5
 
     # Hardcoded filter parameters
-    min_intensity = 100  # Minimum intensity cutoff
+    min_intensity = 1  # Minimum intensity cutoff
     rt_min = 1.0  # Minimum RT
     rt_max = 10.0  # Maximum RT
     mass_min = 50.0  # Minimum mass
@@ -92,13 +93,21 @@ def main():
         # Apply filters
         print("[INFO] Applying filters to adjusted dataset...")
         try:
-            print(adjusted_df)
             adjusted_df = apply_min_intensity_filter(adjusted_df, min_intensity)
             adjusted_df = apply_rt_filter(adjusted_df, rt_min, rt_max)
             adjusted_df = apply_mass_filter(adjusted_df, mass_min, mass_max)
         except Exception as e:
             print(f"[ERROR] Filtering failed: {e}")
             sys.exit(1)
+
+        # Count non-zero rows after filters
+        print("[INFO] Calculating non-zero row statistics after filters...")
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] Summary After Filters:\n"
+            f"  Average Non-Zero Rows: {group_avg:.2f}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std:.2f}"
+        )
 
         # Save the adjusted dataset, including the first 5 columns
         save_adjusted_dataset(adjusted_df, combined_data)
