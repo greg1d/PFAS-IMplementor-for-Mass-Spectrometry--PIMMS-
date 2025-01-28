@@ -18,7 +18,7 @@ from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_r
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/raw_data_test_set.csv",
+        "PIMMS v1.2/data/20202021_data_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
@@ -43,11 +43,11 @@ def main():
     rt_tolerance = 0.5
 
     # Hardcoded filter parameters
-    min_intensity = 1  # Minimum intensity cutoff
-    rt_min = 1.0  # Minimum RT
+    min_intensity = 500  # Minimum intensity cutoff
+    rt_min = 0.5  # Minimum RT
     rt_max = 10.0  # Maximum RT
     mass_min = 50.0  # Minimum mass
-    mass_max = 500.0  # Maximum mass
+    mass_max = 1500  # Maximum mass
 
     try:
         # Process files and separate data
