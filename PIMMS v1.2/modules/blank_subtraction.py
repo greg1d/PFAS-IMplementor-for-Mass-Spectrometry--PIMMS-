@@ -392,17 +392,20 @@ def process_standards_report_only(
     standards_file,
     mass_error_ppm=10,
     ccs_error_percentage=2,
+    rt_tolerance=0.5,
     z=1,
 ):
     """
     Creates a Standards Report by matching features in the experimental dataset
-    to the standards library without removing the matched peaks from the dataset.
+    to the standards library and consolidating matched rows within tolerances.
+    Rows with no matches are also included in the report with NA values.
 
     Args:
         experimental_df (pd.DataFrame): Experimental sample DataFrame.
         standards_file (str): Path to the standards library CSV file.
         mass_error_ppm (int): Mass error tolerance in ppm.
         ccs_error_percentage (float): CCS error percentage (e.g., 2 for 2%).
+        rt_tolerance (float): RT tolerance in minutes.
         z (int): Charge state.
 
     Returns:
@@ -426,21 +429,26 @@ def process_standards_report_only(
         standards_names = standards_df["Name"].dropna().to_numpy()
 
         # Validate experimental_df contains necessary columns
-        if "m/z" not in experimental_df.columns or "CCS" not in experimental_df.columns:
+        if not {"m/z", "CCS", "RT"}.issubset(experimental_df.columns):
             raise ValueError(
-                "Experimental dataset must contain 'm/z' and 'CCS' columns."
+                "Experimental dataset must contain 'm/z', 'CCS', and 'RT' columns."
             )
 
         experimental_mz = experimental_df["m/z"].to_numpy()
         experimental_ccs = experimental_df["CCS"].to_numpy()
+        experimental_rt = experimental_df["RT"].to_numpy()
 
         matched_rows = []
+        unmatched_standards = []
         d_columns = [col for col in experimental_df.columns if ".d" in col]
 
-        print("[DEBUG] Iterating through experimental dataset...")
-        for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs)):
-            for std_mz, std_ccs, std_name in zip(
-                standards_mz, standards_ccs, standards_names
+        print("[DEBUG] Iterating through standards library...")
+        for std_mz, std_ccs, std_name in zip(
+            standards_mz, standards_ccs, standards_names
+        ):
+            matched = False
+            for i, (mz, ccs, rt) in enumerate(
+                zip(experimental_mz, experimental_ccs, experimental_rt)
             ):
                 try:
                     # Calculate mass and CCS tolerances
@@ -460,6 +468,7 @@ def process_standards_report_only(
                         matched_row = {
                             "Experimental m/z": mz,
                             "Experimental CCS": ccs,
+                            "RT": rt,
                             "Standard m/z": std_mz,
                             "Standard CCS": std_ccs,
                             "Name": std_name,
@@ -476,17 +485,41 @@ def process_standards_report_only(
                             }
                         )
                         matched_rows.append(matched_row)
+                        matched = True
                         break
                 except Exception as e:
                     print(f"[ERROR] Matching failed for row {i}: {e}")
+            if not matched:
+                # Add unmatched standard to the report
+                unmatched_standards.append(
+                    {
+                        "Standard m/z": std_mz,
+                        "Standard CCS": std_ccs,
+                        "Name": std_name,
+                        "Experimental m/z": "NA",
+                        "Experimental CCS": "NA",
+                        "RT": "NA",
+                        "Sample Coverage (%)": 0,
+                        "Mass Error (ppm)": "NA",
+                        "CCS Error (%)": "NA",
+                    }
+                )
+
+        # Combine matched and unmatched rows
+        print("[DEBUG] Consolidating matched rows...")
+        consolidated_rows = combine_matched_rows(
+            matched_rows, mass_error_ppm, ccs_error_percentage, rt_tolerance
+        )
+        final_report = consolidated_rows + unmatched_standards
+        print(f"[DEBUG] Total rows in report: {len(final_report)}")
 
         # Create standards report
         output_folder = "PIMMS v1.2/.temp"
         os.makedirs(output_folder, exist_ok=True)
 
-        if matched_rows:
+        if final_report:
             matched_report_path = os.path.join(output_folder, "Standards_report.csv")
-            pd.DataFrame(matched_rows).to_csv(matched_report_path, index=False)
+            pd.DataFrame(final_report).to_csv(matched_report_path, index=False)
             print(f"[DEBUG] Standards report saved to {matched_report_path}")
 
     except Exception as e:
