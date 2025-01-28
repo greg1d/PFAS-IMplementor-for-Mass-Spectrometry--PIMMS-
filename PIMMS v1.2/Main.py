@@ -6,6 +6,7 @@ from blank_subtraction import (
     process_standards_report_only,
     remove_standards_library,
     save_adjusted_dataset,
+    count_non_zero_rows,
 )
 from blank_subtraction_workflow import (
     perform_blank_subtraction,
@@ -42,11 +43,11 @@ def main():
     rt_tolerance = 0.5
 
     # Hardcoded filter parameters
-    min_intensity = 500  # Minimum intensity cutoff
+    min_intensity = 100  # Minimum intensity cutoff
     rt_min = 0.5  # Minimum RT
     rt_max = 10.0  # Maximum RT
-    mass_min = 500.0  # Minimum mass
-    mass_max = 1500  # Maximum mass
+    mass_min = 50.0  # Minimum mass
+    mass_max = 1500.0  # Maximum mass
 
     try:
         # Process files and separate data
@@ -56,6 +57,14 @@ def main():
     except Exception as e:
         print(f"Error processing files: {e}")
         sys.exit(1)
+
+    # Count non-zero rows in the raw experimental dataset
+    group_avg, group_std = count_non_zero_rows(experimental_df)
+    print(
+        f"[INFO] Raw Experimental Data:\n"
+        f"  Average Non-Zero Rows: {group_avg}\n"
+        f"  Std Dev of Non-Zero Rows: {group_std}"
+    )
 
     # Step 1: Generate Standards Report (No removal of features yet)
     print("[INFO] Generating Standards Report without removing matched features...")
@@ -83,12 +92,40 @@ def main():
             method, control_df, experimental_df
         )
 
+        # Count non-zero rows after blank subtraction
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Blank Subtraction:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+
         # Apply filters
         print("[INFO] Applying filters to adjusted dataset...")
         try:
             adjusted_df = apply_min_intensity_filter(adjusted_df, min_intensity)
+            group_avg, group_std = count_non_zero_rows(adjusted_df)
+            print(
+                f"[INFO] After Intensity Filter:\n"
+                f"  Average Non-Zero Rows: {group_avg}\n"
+                f"  Std Dev of Non-Zero Rows: {group_std}"
+            )
+
             adjusted_df = apply_rt_filter(adjusted_df, rt_min, rt_max)
+            group_avg, group_std = count_non_zero_rows(adjusted_df)
+            print(
+                f"[INFO] After RT Filter:\n"
+                f"  Average Non-Zero Rows: {group_avg}\n"
+                f"  Std Dev of Non-Zero Rows: {group_std}"
+            )
+
             adjusted_df = apply_mass_filter(adjusted_df, mass_min, mass_max)
+            group_avg, group_std = count_non_zero_rows(adjusted_df)
+            print(
+                f"[INFO] After Mass Filter:\n"
+                f"  Average Non-Zero Rows: {group_avg}\n"
+                f"  Std Dev of Non-Zero Rows: {group_std}"
+            )
         except Exception as e:
             print(f"[ERROR] Filtering failed: {e}")
             sys.exit(1)
@@ -109,6 +146,14 @@ def main():
             mass_error_ppm=mass_error_ppm,
             ccs_error_percentage=ccs_error_percentage,
             z=1,
+        )
+
+        # Count non-zero rows after removing standards
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Removing Standards:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
         )
 
         # Save the final dataset after standards removal

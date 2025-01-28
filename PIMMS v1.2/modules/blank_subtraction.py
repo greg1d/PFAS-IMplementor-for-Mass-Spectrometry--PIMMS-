@@ -85,8 +85,8 @@ def count_non_zero_rows(df):
     )
 
     # Calculate group average and standard deviation
-    group_average = non_zero_counts.mean()
-    group_std_dev = non_zero_counts.std()
+    group_average = round(non_zero_counts.mean())
+    group_std_dev = round(non_zero_counts.std())
 
     return group_average, group_std_dev
 
@@ -290,17 +290,19 @@ def remove_standards_library(
     standards_file,
     mass_error_ppm=10,
     ccs_error_percentage=2,
+    rt_tolerance=0.5,
     z=1,
 ):
     """
     Processes the adjusted dataset to separate matched features and unmatched features.
-    Removes matched features from the adjusted dataset.
+    Removes matched features from the adjusted dataset and consolidates similar rows.
 
     Args:
         adjusted_df (pd.DataFrame): Adjusted sample DataFrame after blank subtraction.
         standards_file (str): Path to the standards library CSV file.
         mass_error_ppm (int): Mass error tolerance in ppm.
         ccs_error_percentage (float): CCS error percentage (e.g., 2 for 2%).
+        rt_tolerance (float): RT tolerance in minutes.
         z (int): Charge state.
 
     Returns:
@@ -318,6 +320,7 @@ def remove_standards_library(
         # Extract standards data
         standards_mz = standards_df["m/z"].dropna().to_numpy()
         standards_ccs = standards_df["CCS"].dropna().to_numpy()
+        standards_names = standards_df["Name"].dropna().to_numpy()
 
         # Validate adjusted_df contains necessary columns
         if "m/z" not in adjusted_df.columns or "CCS" not in adjusted_df.columns:
@@ -325,11 +328,16 @@ def remove_standards_library(
 
         experimental_mz = adjusted_df["m/z"].to_numpy()
         experimental_ccs = adjusted_df["CCS"].to_numpy()
+        experimental_rt = adjusted_df["RT"].to_numpy()
 
         # Match standards against the adjusted dataset
-        matched_indices = []
-        for i, (mz, ccs) in enumerate(zip(experimental_mz, experimental_ccs)):
-            for std_mz, std_ccs in zip(standards_mz, standards_ccs):
+        matched_rows = []
+        for i, (mz, ccs, rt) in enumerate(
+            zip(experimental_mz, experimental_ccs, experimental_rt)
+        ):
+            for std_mz, std_ccs, std_name in zip(
+                standards_mz, standards_ccs, standards_names
+            ):
                 mass_tolerance = mz * mass_error_ppm * 1e-6 / z
                 ccs_tolerance = std_ccs * ccs_error_percentage / 100
 
@@ -337,11 +345,38 @@ def remove_standards_library(
                     std_mz - mass_tolerance <= mz <= std_mz + mass_tolerance
                     and std_ccs - ccs_tolerance <= ccs <= std_ccs + ccs_tolerance
                 ):
-                    matched_indices.append(i)
+                    matched_row = adjusted_df.iloc[i].to_dict()
+                    matched_row.update(
+                        {
+                            "Experimental m/z": mz,
+                            "Experimental CCS": ccs,
+                            "Standard m/z": std_mz,
+                            "Standard CCS": std_ccs,
+                            "Name": std_name,
+                            "Mass Error (ppm)": round((mz - std_mz) / std_mz * 1e6, 2),
+                            "CCS Error (%)": round(
+                                abs(ccs - std_ccs) / std_ccs * 100, 2
+                            ),
+                        }
+                    )
+                    matched_rows.append(matched_row)
                     break
 
-        # Remove matched rows
-        unmatched_df = adjusted_df.drop(index=set(matched_indices), errors="ignore")
+        # Consolidate matched rows using combine_matched_rows
+        print("[DEBUG] Consolidating matched rows...")
+        consolidated_rows = combine_matched_rows(
+            matched_rows, mass_error_ppm, ccs_error_percentage, rt_tolerance
+        )
+        print(f"[DEBUG] Consolidated matched rows: {len(consolidated_rows)}")
+
+        # Identify indices to remove
+        matched_indices = [
+            adjusted_df.index[adjusted_df["m/z"] == row["Experimental m/z"]][0]
+            for row in consolidated_rows
+        ]
+
+        # Remove matched rows from the adjusted dataset
+        unmatched_df = adjusted_df.drop(index=matched_indices, errors="ignore")
         print(f"[DEBUG] Matched rows removed: {len(matched_indices)}")
         print(f"[DEBUG] Remaining unmatched rows: {len(unmatched_df)}")
 
