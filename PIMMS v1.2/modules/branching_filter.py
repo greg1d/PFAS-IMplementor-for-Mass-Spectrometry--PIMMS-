@@ -97,12 +97,11 @@ def analyze_adjusted_df(
 def merge_groups_into_adjusted_df(adjusted_df, groups):
     """
     Merges groups into a single feature in the adjusted_df.
-    The representative feature is the row with the lowest m/z in the group.
+    The representative feature calculates the average m/z, RT, and CCS.
     For intensity columns, sums the intensities of all rows in the group.
     Single rows with no group are retained as-is.
     """
     intensity_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
-
     print("[DEBUG] Starting group merging...")
     rows_to_keep = []
 
@@ -110,15 +109,24 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
         print(f"[DEBUG] Processing group: {group}")
         group_df = adjusted_df[adjusted_df["m/z"].isin(group)]
 
-        # Identify the representative row (lowest m/z)
-        representative_row = group_df.loc[group_df["m/z"].idxmin()].copy()
+        # Calculate average m/z, RT, and CCS
+        avg_mz = group_df["m/z"].mean()
+        avg_rt = group_df["RT"].mean()
+        avg_ccs = group_df["CCS"].mean()
+
+        # Create a representative row
+        representative_row = group_df.iloc[0].copy()  # Copy metadata from the first row
+        representative_row["m/z"] = avg_mz
+        representative_row["RT"] = avg_rt
+        representative_row["CCS"] = avg_ccs
 
         # Update intensities by summing across all rows in the group
         for col in intensity_columns:
             representative_row[col] = group_df[col].sum()
 
         print(
-            f"[DEBUG] Representative row for group {group}: {representative_row['m/z']}, updated intensities."
+            f"[DEBUG] Representative row for group {group}: "
+            f"m/z = {avg_mz}, RT = {avg_rt}, CCS = {avg_ccs}, intensities updated."
         )
         rows_to_keep.append(representative_row)
 
@@ -134,10 +142,10 @@ def main():
     adjusted_df = pd.DataFrame(
         {
             "ID": [1, 2, 3, 4, 5],
-            "RT": [3.666, 3.666, 3.665, 3.666, 3.664],
+            "RT": [3, 3.4, 3.665, 3.666, 3.664],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [175.79, 175.79, 175.79, 175.79, 175.79],
-            "m/z": [100, 100, 200, 300, 400],
+            "CCS": [175.79, 176.79, 175.79, 175.79, 175.79],
+            "m/z": [100, 100.00012, 200, 300, 400],
             "148 B2 16632.d.DeMP": [10, 10, 10, 10, 10],
             "149 B2 16631.d.DeMP": [20, 20, 10, 10, 10],
         }
