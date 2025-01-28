@@ -3,11 +3,21 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget
 
 from modules.cef_conversion import convert_files
 from modules.data_importing import create_data_importing_tab, open_settings
+from modules.pre_processing_tab import PreProcessingTab
 
 
 class HomeWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("PIMMS Application")
+        self.setGeometry(
+            100, 100, 1200, 800
+        )  # Set the initial position and size of the window
+        self.resize(1200, 800)  # Resize the window to a larger default size
+
         self.setWindowTitle("PIMMS v1.2")
 
         # Create a tab widget
@@ -19,6 +29,7 @@ class HomeWindow(QMainWindow):
 
         # Add tabs to the tab widget
         self.tabs.addTab(self.data_importing_tab, "Data Importing")
+        self.tabs.addTab(PreProcessingTab(), "Pre-Processing")
 
         # Set the tab widget as the central widget
         self.setCentralWidget(self.tabs)

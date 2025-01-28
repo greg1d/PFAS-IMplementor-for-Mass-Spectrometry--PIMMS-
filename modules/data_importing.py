@@ -173,7 +173,7 @@ def create_data_importing_tab(tab_widget, main_window):
 
     # Create a vertical layout for the processing hub and its label
     processing_layout = QVBoxLayout()
-    processing_label = QLabel("Processing Hub")
+    processing_label = QLabel("Importing Hub")
     processing_label.setStyleSheet(
         "font-family: 'Montserrat'; font-weight: bold; color: black; font-size: 20px; text-align: center;"
     )
