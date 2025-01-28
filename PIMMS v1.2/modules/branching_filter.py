@@ -98,6 +98,7 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
     """
     Merges groups into a single feature in the adjusted_df.
     The representative feature is the row with the lowest m/z in the group.
+    For intensity columns, sums the intensities of all rows in the group.
     Single rows with no group are retained as-is.
     """
     intensity_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
@@ -108,9 +109,16 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
     for group in groups:
         print(f"[DEBUG] Processing group: {group}")
         group_df = adjusted_df[adjusted_df["m/z"].isin(group)]
-        representative_row = group_df.loc[group_df["m/z"].idxmin()]
+
+        # Identify the representative row (lowest m/z)
+        representative_row = group_df.loc[group_df["m/z"].idxmin()].copy()
+
+        # Update intensities by summing across all rows in the group
+        for col in intensity_columns:
+            representative_row[col] = group_df[col].sum()
+
         print(
-            f"[DEBUG] Representative row for group {group}: {representative_row['m/z']}"
+            f"[DEBUG] Representative row for group {group}: {representative_row['m/z']}, updated intensities."
         )
         rows_to_keep.append(representative_row)
 
@@ -130,8 +138,8 @@ def main():
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
             "CCS": [175.79, 175.79, 175.79, 175.79, 175.79],
             "m/z": [100, 100, 200, 300, 400],
-            "148 B2 16632.d.DeMP": [361274.0, 327743.0, 423382.0, 155202.0, 416438.0],
-            "149 B2 16631.d.DeMP": [361731.0, 324716.0, 422827.0, 154871.0, 416854.0],
+            "148 B2 16632.d.DeMP": [10, 10, 10, 10, 10],
+            "149 B2 16631.d.DeMP": [20, 20, 10, 10, 10],
         }
     )
 
