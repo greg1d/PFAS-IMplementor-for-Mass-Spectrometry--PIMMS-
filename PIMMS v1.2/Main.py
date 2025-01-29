@@ -28,6 +28,7 @@ from smearing_filter import smearing_filter  # Importing the smearing filter mod
 from mass_defect_filter import (
     mass_defect_filter,
 )  # Importing the mass defect filter module
+from detection_frequency_filter import detection_frequency_filter
 
 
 def main():
@@ -66,6 +67,8 @@ def main():
 
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
+
+    frequency_threshold = 20  # Detection frequency threshold percentage
 
     try:
         # Process files and separate data
@@ -234,7 +237,7 @@ def main():
         )
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
-            f"[INFO] After Removing Standards:\n"
+            f"[INFO] After performing mass defect analysis:\n"
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
@@ -242,7 +245,24 @@ def main():
         print(f"[ERROR] Failed to perform mass defect filtering: {e}")
         sys.exit(1)
 
-    # Step 6: Remove Standards as Final Step
+    # Step 7: Detection Frequency Cutoff
+    print("[INFO] Performing detection frequency cutoff...")
+    try:
+        adjusted_df = detection_frequency_filter(adjusted_df, frequency_threshold)
+
+        # Count non-zero rows after removing standards
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After performing detection frequency cutoff:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Failed to perform detection frequency cutoff: {e}")
+        sys.exit(1)
+
+    # Step 8: Remove Standards as Final Step
     print("[INFO] Removing matched features from adjusted dataset...")
     try:
         adjusted_df = remove_standards_library(
