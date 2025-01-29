@@ -16,6 +16,9 @@ from branching_filter import (
     merge_groups_into_adjusted_df as branching_merge,
 )
 from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
+from ML_algorithm_density import (
+    fluorinated_density_filter,  # Importing fluorinated density filter
+)
 from monoisotopic_grouper import (
     analyze_adjusted_df as mono_analyze,
 )
@@ -28,7 +31,7 @@ from smearing_filter import smearing_filter  # Importing the smearing filter mod
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/debugging_data_set.csv",
+        "PIMMS v1.2/data/20202021_data_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
@@ -207,6 +210,19 @@ def main():
 
     except Exception as e:
         print(f"[ERROR] Monoisotopic filter logic failed: {e}")
+        sys.exit(1)
+
+    print("[INFO] Applying fluorinated density filter...")
+    try:
+        adjusted_df = fluorinated_density_filter(adjusted_df)
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying Fluorinated Density Filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+    except Exception as e:
+        print(f"[ERROR] Fluorinated density filter logic failed: {e}")
         sys.exit(1)
 
     # Step 6: Remove Standards as Final Step
