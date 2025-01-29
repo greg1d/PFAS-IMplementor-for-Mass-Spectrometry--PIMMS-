@@ -3,21 +3,26 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from blank_subtraction import (
+    count_non_zero_rows,
     process_standards_report_only,
     remove_standards_library,
     save_adjusted_dataset,
-    count_non_zero_rows,
 )
 from blank_subtraction_workflow import perform_blank_subtraction, process_files
-from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
 from branching_filter import (
     analyze_adjusted_df as branching_analyze,
+)
+from branching_filter import (
     merge_groups_into_adjusted_df as branching_merge,
 )
+from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
 from monoisotopic_grouper import (
     analyze_adjusted_df as mono_analyze,
+)
+from monoisotopic_grouper import (
     merge_groups_into_adjusted_df as mono_merge,
 )
+from smearing_filter import smearing_filter  # Importing the smearing filter module
 
 
 def main():
@@ -129,7 +134,28 @@ def main():
         print(f"Error during blank subtraction: {e}")
         sys.exit(1)
 
-    # Step 3: Apply Grouping Logic (Branching Filter)
+    # Step 3: Apply Smearing Filter
+    print("[INFO] Applying smearing filter to remove mass shift artifacts...")
+    try:
+        adjusted_df = smearing_filter(
+            adjusted_df,
+            rt_tolerance=rt_tolerance,
+            ccs_tolerance=ccs_error_percentage,
+        )
+
+        # Count non-zero rows after smearing filter
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying Smearing Filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Smearing filter logic failed: {e}")
+        sys.exit(1)
+
+    # Step 4: Apply Grouping Logic (Branching Filter)
     print("[INFO] Applying branching filter for grouping...")
     try:
         groups = branching_analyze(
@@ -155,7 +181,7 @@ def main():
         print(f"[ERROR] Branching filter logic failed: {e}")
         sys.exit(1)
 
-    # Step 4: Apply Monoisotopic Filter
+    # Step 5: Apply Monoisotopic Filter
     print("[INFO] Applying monoisotopic filter for grouping...")
     try:
         groups = mono_analyze(
@@ -184,7 +210,7 @@ def main():
         print(f"[ERROR] Monoisotopic filter logic failed: {e}")
         sys.exit(1)
 
-    # Step 5: Remove Standards as Final Step
+    # Step 6: Remove Standards as Final Step
     print("[INFO] Removing matched features from adjusted dataset...")
     try:
         adjusted_df = remove_standards_library(
@@ -202,13 +228,6 @@ def main():
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
-        print(adjusted_df.head())
-
-        # Save the final dataset after standards removal
-        final_csv_path = "PIMMS v1.2/.temp/final_adjusted_df.csv"
-        os.makedirs(os.path.dirname(final_csv_path), exist_ok=True)
-        adjusted_df.to_csv(final_csv_path, index=False)
-        print(f"[INFO] Final adjusted dataset saved to {final_csv_path}")
 
     except Exception as e:
         print(f"[ERROR] Failed to remove standards: {e}")
