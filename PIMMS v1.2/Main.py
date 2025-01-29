@@ -6,7 +6,6 @@ from blank_subtraction import (
     count_non_zero_rows,
     process_standards_report_only,
     remove_standards_library,
-    save_adjusted_dataset,
 )
 from blank_subtraction_workflow import perform_blank_subtraction, process_files
 from branching_filter import (
@@ -59,11 +58,11 @@ def main():
     rt_tolerance = 0.5
 
     # Hardcoded filter parameters
-    min_intensity = 100  # Minimum intensity cutoff
+    min_intensity = 500  # Minimum intensity cutoff
     rt_min = 0.5  # Minimum RT
-    rt_max = 10.0  # Maximum RT
-    mass_min = 50.0  # Minimum mass
-    mass_max = 1500.0  # Maximum mass
+    rt_max = 5  # Maximum RT
+    mass_min = 68.98  # Minimum mass
+    mass_max = 1700  # Maximum mass
 
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
@@ -135,9 +134,6 @@ def main():
         except Exception as e:
             print(f"[ERROR] Filtering failed: {e}")
             sys.exit(1)
-
-        # Save the adjusted dataset
-        save_adjusted_dataset(adjusted_df, combined_data)
 
     except Exception as e:
         print(f"Error during blank subtraction: {e}")
@@ -231,11 +227,17 @@ def main():
         print(f"[ERROR] Fluorinated density filter logic failed: {e}")
         sys.exit(1)
 
+    print("[INFO] Applying mass defect filter...")
     try:
         adjusted_df = mass_defect_filter(
             adjusted_df, lower_mass_filter_bound, upper_mass_filter_bound
         )
         group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Removing Standards:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
     except Exception as e:
         print(f"[ERROR] Failed to perform mass defect filtering: {e}")
         sys.exit(1)
@@ -262,6 +264,12 @@ def main():
     except Exception as e:
         print(f"[ERROR] Failed to remove standards: {e}")
         sys.exit(1)
+
+        print(adjusted_df)
+        output_path = "PIMMS v1.2/.temp/final_adjusted_df.csv"
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        adjusted_df.to_csv(output_path, index=False)
+        print(f"[INFO] Final adjusted dataset saved to {output_path}")
 
 
 if __name__ == "__main__":
