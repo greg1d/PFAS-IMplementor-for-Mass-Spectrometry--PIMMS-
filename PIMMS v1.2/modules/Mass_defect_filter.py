@@ -1,7 +1,9 @@
 import pandas as pd
 
 
-def mass_defect_filter(adjusted_df):
+def mass_defect_filter(
+    adjusted_df, lower_mass_filter_bound=-0.11, upper_mass_filter_bound=0.12
+):
     """
     Filters masses in the 'm/z' column that are within -0.11 to 0.12 of their nearest integer.
 
@@ -19,7 +21,8 @@ def mass_defect_filter(adjusted_df):
 
     # Filter rows where the deviation is within -0.11 to 0.12
     filtered_df = adjusted_df[
-        (adjusted_df["mass_defect"] >= -0.11) & (adjusted_df["mass_defect"] <= 0.12)
+        (adjusted_df["mass_defect"] >= lower_mass_filter_bound)
+        & (adjusted_df["mass_defect"] <= upper_mass_filter_bound)
     ].copy()
 
     # Drop the helper column
@@ -36,7 +39,7 @@ def main():
             "RT": [3, 3.4, 3.665, 3.666, 3.664],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
             "CCS": [175.79, 10.79, 175.79, 175.79, 175.79],
-            "m/z": [100.1, 100.05, 199.9, 300.3, 400.12],  # Example values
+            "m/z": [100.1, 100.05, 199.9, 300.3, 400.11],  # Example values
             "148 B2 16632.d.DeMP": [10, 10, 10, 10, 10],
             "149 B2 16631.d.DeMP": [20, 20, 10, 10, 10],
         }
@@ -44,9 +47,12 @@ def main():
 
     print("\n[INFO] Original adjusted_df:")
     print(adjusted_df)
-
+    lower_mass_filter_bound = -0.11
+    upper_mass_filter_bound = 0.12
     # Apply the mass filter
-    filtered_df = mass_defect_filter(adjusted_df)
+    filtered_df = mass_defect_filter(
+        adjusted_df, lower_mass_filter_bound, upper_mass_filter_bound
+    )
 
     print("\n[INFO] Filtered adjusted_df:")
     print(filtered_df)
