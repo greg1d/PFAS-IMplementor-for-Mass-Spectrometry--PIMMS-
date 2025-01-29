@@ -20,15 +20,15 @@ def mass_defect_filter(
     adjusted_df["mass_defect"] = adjusted_df["m/z"] - adjusted_df["m/z"].round()
 
     # Filter rows where the deviation is within -0.11 to 0.12
-    filtered_df = adjusted_df[
+    adjusted_df = adjusted_df[
         (adjusted_df["mass_defect"] >= lower_mass_filter_bound)
         & (adjusted_df["mass_defect"] <= upper_mass_filter_bound)
     ].copy()
 
     # Drop the helper column
-    filtered_df.drop(columns=["mass_defect"], inplace=True)
+    adjusted_df.drop(columns=["mass_defect"], inplace=True)
 
-    return filtered_df
+    return adjusted_df
 
 
 def main():
@@ -50,12 +50,12 @@ def main():
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
     # Apply the mass filter
-    filtered_df = mass_defect_filter(
+    adjusted_df = mass_defect_filter(
         adjusted_df, lower_mass_filter_bound, upper_mass_filter_bound
     )
 
     print("\n[INFO] Filtered adjusted_df:")
-    print(filtered_df)
+    print(adjusted_df)
 
 
 if __name__ == "__main__":

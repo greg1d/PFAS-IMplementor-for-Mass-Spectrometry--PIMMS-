@@ -26,6 +26,9 @@ from monoisotopic_grouper import (
     merge_groups_into_adjusted_df as mono_merge,
 )
 from smearing_filter import smearing_filter  # Importing the smearing filter module
+from mass_defect_filter import (
+    mass_defect_filter,
+)  # Importing the mass defect filter module
 
 
 def main():
@@ -61,6 +64,9 @@ def main():
     rt_max = 10.0  # Maximum RT
     mass_min = 50.0  # Minimum mass
     mass_max = 1500.0  # Maximum mass
+
+    lower_mass_filter_bound = -0.11
+    upper_mass_filter_bound = 0.12
 
     try:
         # Process files and separate data
@@ -223,6 +229,15 @@ def main():
         )
     except Exception as e:
         print(f"[ERROR] Fluorinated density filter logic failed: {e}")
+        sys.exit(1)
+
+    try:
+        adjusted_df = mass_defect_filter(
+            adjusted_df, lower_mass_filter_bound, upper_mass_filter_bound
+        )
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+    except Exception as e:
+        print(f"[ERROR] Failed to perform mass defect filtering: {e}")
         sys.exit(1)
 
     # Step 6: Remove Standards as Final Step
