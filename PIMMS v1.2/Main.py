@@ -265,11 +265,10 @@ def main():
         print(f"[ERROR] Failed to remove standards: {e}")
         sys.exit(1)
 
-        print(adjusted_df)
-        output_path = "PIMMS v1.2/.temp/final_adjusted_df.csv"
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        adjusted_df.to_csv(output_path, index=False)
-        print(f"[INFO] Final adjusted dataset saved to {output_path}")
+    output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    adjusted_df.to_csv(output_path, index=False)
+    print(f"[INFO] Final adjusted dataset saved to {output_path}")
 
 
 if __name__ == "__main__":
