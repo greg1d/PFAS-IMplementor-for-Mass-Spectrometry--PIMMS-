@@ -28,7 +28,7 @@ from smearing_filter import smearing_filter  # Importing the smearing filter mod
 def main():
     # File paths to the CSV files
     file_paths = [
-        "PIMMS v1.2/data/20202021_data_set.csv",
+        "PIMMS v1.2/data/debugging_data_set.csv",
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
@@ -150,7 +150,6 @@ def main():
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
-
     except Exception as e:
         print(f"[ERROR] Smearing filter logic failed: {e}")
         sys.exit(1)
