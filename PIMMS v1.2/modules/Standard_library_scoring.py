@@ -1,19 +1,15 @@
 import pandas as pd
 import bisect
-import os  # Import os module to handle file paths
+import os
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm=10):
-    """
-    Calculate the absolute mass error based on ppm.
-    """
+    """Calculate the absolute mass error based on ppm."""
     return mass * mass_error_ppm * 1e-6
 
 
 def find_similar_peaks(array, mass, mass_error_ppm=10):
-    """
-    Finds peaks within the mass error bounds using binary search.
-    """
+    """Finds peaks within the mass error bounds using binary search."""
     mass_bound = calculate_mass_error_no_charge(mass, mass_error_ppm)
     lower_bound = mass - mass_bound
     upper_bound = mass + mass_bound
@@ -25,9 +21,7 @@ def find_similar_peaks(array, mass, mass_error_ppm=10):
 
 
 def load_pfas_library(file_path):
-    """
-    Load the PFAS library from a CSV file.
-    """
+    """Load the PFAS library from a CSV file."""
     columns_to_read = [
         "PrecursorName",
         "PrecursorFormula",
@@ -43,18 +37,13 @@ def match_pfas_library(
     adjusted_df,
     pfas_library,
     file_path,
+    standards_library_file,  # Standards file to compare against
     mass_error_ppm=10,
     ccs_tolerance=2.0,
     rt_tolerance=0.5,
     include_rt=True,
 ):
-    """
-    Matches features in adjusted_df with PFAS library entries based on mass (ppm), CCS (%), and optionally RT.
-    Uses binary search for efficient mass matching, then filters by CCS and RT.
-
-    Returns:
-        pd.DataFrame: DataFrame with matched features and error values.
-    """
+    """Matches features in adjusted_df with PFAS library entries based on mass (ppm), CCS (%), and optionally RT."""
     matched_rows = []
 
     # Extract only the filename without the path or extension
@@ -87,11 +76,15 @@ def match_pfas_library(
                 if include_rt and rt_error > rt_tolerance:
                     continue  # Skip if RT doesn't match
 
+                # Determine classification type
+                classification_type = (
+                    "likely" if file_path == standards_library_file else "tentative"
+                )
+
                 # Append match details
                 match_str = f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})"
                 new_row = {
-                    "Match (adduct)": match_str,
-                    "Match Source": match_source,  # Store only the formatted filename
+                    "Match": match_str,
                     "ID": row["ID"],
                     "RT": row["RT"],
                     "DT": row["DT"],
@@ -100,6 +93,8 @@ def match_pfas_library(
                     "Mass Error (ppm)": round(mass_error, 2),
                     "CCS Error (%)": round(ccs_error, 2),
                     "RT Error (min)": round(rt_error, 2) if include_rt else "N/A",
+                    "Match Source": match_source,  # Store only the formatted filename
+                    "Classification Type": classification_type,  # Assign "likely" or "tentative"
                 }
 
                 # Include intensity columns (.d)
@@ -118,7 +113,7 @@ def main():
     adjusted_df = pd.DataFrame(
         {
             "ID": [1, 2, 3, 4, 5],
-            "RT": [1.83, 3.4, 3.665, 3.666, 3.664],
+            "RT": [1.83, 3.5, 3.665, 3.666, 3.664],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
             "CCS": [203.65, 142.20, 147.02212060071, 175.79, 175.79],
             "m/z": [698.9175, 348.9398, 418.9734, 300, 400],
@@ -132,17 +127,20 @@ def main():
     ccs_tolerance = 2.0
     include_rt = False
 
-    # Load PFAS library
-    pfas_library_file = (
+    # Define standards library file path
+    standards_library_file = (
         "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
-    pfas_library = load_pfas_library(pfas_library_file)
+
+    # Load PFAS library
+    pfas_library = load_pfas_library(standards_library_file)
 
     # Match PFAS library
     matched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
-        pfas_library_file,  # Pass the file path
+        standards_library_file,  # The file being matched
+        standards_library_file,  # The reference standards file
         mass_error_ppm,
         ccs_tolerance,
         rt_tolerance,
