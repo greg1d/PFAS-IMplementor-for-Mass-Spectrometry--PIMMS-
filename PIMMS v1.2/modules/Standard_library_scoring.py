@@ -37,7 +37,7 @@ def match_pfas_library(
     adjusted_df,
     pfas_library,
     file_path,
-    standards_library_file,  # Standards file to compare against
+    standards_library_file,
     mass_error_ppm=10,
     ccs_tolerance=2.0,
     rt_tolerance=0.5,
@@ -89,8 +89,8 @@ def match_pfas_library(
                 match_str = f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})"
                 new_row = {
                     "Match": match_str,
-                    "Match Source": match_source,  # Store only the formatted filename
-                    "Classification Type": classification_type,  # Assign "likely" or "tentative"
+                    "Match Source": match_source,
+                    "Classification Type": classification_type,
                     "ID": row["ID"],
                     "RT": row["RT"],
                     "DT": row["DT"],
@@ -113,7 +113,15 @@ def match_pfas_library(
     matched_df = pd.DataFrame(matched_rows)
 
     # Create unmatched DataFrame (features not found in standards library)
-    unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)]
+    unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
+
+    # Ensure unmatched_df has the same columns as matched_df
+    if not matched_df.empty:
+        for col in matched_df.columns:
+            if col not in unmatched_df.columns:
+                unmatched_df[col] = "N/A" if matched_df[col].dtype == object else None
+
+        unmatched_df = unmatched_df[matched_df.columns]  # Reorder columns
 
     return matched_df, unmatched_df
 
@@ -149,7 +157,7 @@ def main():
     matched_df, unmatched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
-        standards_library_file,  # The reference standards file
+        standards_library_file,
         standards_library_file,
         mass_error_ppm,
         ccs_tolerance,
