@@ -62,16 +62,20 @@ def match_pfas_library(
         matching_masses = find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm)
 
         for lib_mz in matching_masses:
-            lib_row = pfas_library[pfas_library["PrecursorMz"] == lib_mz].iloc[0]
+            matching_rows = pfas_library[pfas_library["PrecursorMz"] == lib_mz]
 
-            lib_ccs = lib_row["PrecursorCCS"]
-            lib_rt = lib_row["PrecursorRT"] if include_rt else None
+            if matching_rows.empty:
+                continue
+
+            lib_row = matching_rows.iloc[0]
 
             mass_error = ((mz - lib_mz) / lib_mz) * 1e6
-            ccs_error = ((ccs - lib_ccs) / lib_ccs) * 100
+            ccs_error = (
+                (ccs - lib_row["PrecursorCCS"]) / lib_row["PrecursorCCS"]
+            ) * 100
             rt_error = (
-                ((rt - lib_rt) / lib_rt) * 100
-                if include_rt and pd.notna(rt) and pd.notna(lib_rt)
+                ((rt - lib_row["PrecursorRT"]) / lib_row["PrecursorRT"]) * 100
+                if include_rt and pd.notna(rt) and pd.notna(lib_row["PrecursorRT"])
                 else "N/A"
             )
 
@@ -88,9 +92,8 @@ def match_pfas_library(
 
                 matched_ids.add(row["ID"])
 
-                match_str = f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})"
                 new_row = {
-                    "Match": match_str,
+                    "Match": f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})",
                     "Match Source": match_source,
                     "Classification Type": "likely",
                     "ID": row["ID"],
@@ -115,6 +118,11 @@ def match_pfas_library(
     likely_matched_df = pd.DataFrame(matched_rows)
     likely_unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
 
+    # Ensure 'Classification Type' is set for unmatched rows
+    likely_unmatched_df["Match"] = "No Match"
+    likely_unmatched_df["Match Source"] = "None"
+    likely_unmatched_df["Classification Type"] = "unmatched"
+
     return likely_matched_df, likely_unmatched_df
 
 
@@ -132,17 +140,21 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
         matching_masses = find_similar_peaks(sorted_external_masses, mz, mass_error_ppm)
 
         for lib_mz in matching_masses:
-            lib_row = external_targets_library[
+            matching_rows = external_targets_library[
                 external_targets_library["PrecursorMz"] == lib_mz
-            ].iloc[0]
+            ]
+
+            if matching_rows.empty:
+                continue
+
+            lib_row = matching_rows.iloc[0]
 
             mass_error = ((mz - lib_mz) / lib_mz) * 1e6
 
             matched_ids.add(row["ID"])
 
-            match_str = f"{lib_row['PrecursorName']}"
             new_row = {
-                "Match": match_str,
+                "Match": f"{lib_row['PrecursorName']}",
                 "Match Source": match_source,
                 "Classification Type": "tentative",
                 "ID": row["ID"],
@@ -164,6 +176,11 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
 
     external_matched_df = pd.DataFrame(matched_rows)
     external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
+
+    # Ensure 'Classification Type' is set for unmatched rows
+    external_unmatched_df["Match"] = "No Match"
+    external_unmatched_df["Match Source"] = "None"
+    external_unmatched_df["Classification Type"] = "unmatched"
 
     return external_matched_df, external_unmatched_df
 

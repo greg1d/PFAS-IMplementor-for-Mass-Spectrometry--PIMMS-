@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from blank_subtraction import (  # type: ignore
@@ -29,39 +30,40 @@ from mass_defect_filter import (  # type: ignore
     mass_defect_filter,
 )  # Importing the mass defect filter module
 from detection_frequency_filter import detection_frequency_filter  # type: ignore
+from Standard_library_scoring import (  # Import PFAS and External Library matching functions
+    match_pfas_library,
+    match_external_targets,
+    load_pfas_library,
+    load_external_targets_library,
+)
 
 
 def main():
-    # File paths to the CSV files
-    file_paths = [
-        "PIMMS v1.2/data/20202021_data_set.csv",
-    ]
+    # File paths
+    file_paths = ["PIMMS v1.2/data/20202021_data_set.csv"]
     standards_file = (
-        "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library file
+        "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
+    )
+    standards_library_file = (
+        "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+    )
+    external_targets_file = (
+        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.xlsx"
     )
 
     # Define control columns
-    control_samples = [
-        "Blank 1.d",
-        "Blank 2.d",
-        "Blank 3.d",
-        "Blank 4.d",
-        "Blank 5.d",
-        "Blank 6.d",
-        "Blank 7.d",
-        "Blank 8.d",
-        "Blank 9.d",
-    ]
+    control_samples = [f"Blank {i}.d" for i in range(1, 10)]
 
     # Set tolerances
     mass_error_ppm = 10  # Mass error in ppm
     ccs_error_percentage = 2  # CCS variance as 2% tolerance
     rt_tolerance = 0.5
+    include_rt = False
 
     # Hardcoded filter parameters
     min_intensity = 500  # Minimum intensity cutoff
     rt_min = 0.5  # Minimum RT
-    rt_max = 5  # Maximum RT
+    rt_max = 16  # Maximum RT
     mass_min = 68.98  # Minimum mass
     mass_max = 1700  # Maximum mass
 
@@ -285,10 +287,40 @@ def main():
         print(f"[ERROR] Failed to remove standards: {e}")
         sys.exit(1)
 
+    print("[INFO] Matching features against PFAS Standards Library...")
+    pfas_library = load_pfas_library(standards_library_file)
+    likely_matched_df, likely_unmatched_df = match_pfas_library(
+        adjusted_df,
+        pfas_library,
+        standards_library_file,
+        standards_library_file,
+        mass_error_ppm,
+        ccs_error_percentage,
+        rt_tolerance,
+        include_rt,
+    )
+
+    # **Step 2: Match Remaining Features Against External Targets Library**
+    print("[INFO] Matching remaining features against External Targets Library...")
+    external_targets_library = load_external_targets_library(external_targets_file)
+    external_matched_df, external_unmatched_df = match_external_targets(
+        likely_unmatched_df, external_targets_library, mass_error_ppm
+    )
+
+    # **Combine All Matches into Adjusted Dataset**
+    adjusted_df = pd.concat(
+        [likely_matched_df, external_matched_df, external_unmatched_df],
+        ignore_index=True,
+    )
+    adjusted_df["Score"] = adjusted_df["Classification Type"].apply(
+        lambda x: 1 if x == "likely" else 0
+    )
+
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     adjusted_df.to_csv(output_path, index=False)
     print(f"[INFO] Final adjusted dataset saved to {output_path}")
+    print(adjusted_df)
 
 
 if __name__ == "__main__":
