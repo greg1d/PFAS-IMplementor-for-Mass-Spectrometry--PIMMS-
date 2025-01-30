@@ -1,6 +1,5 @@
 import pandas as pd
 import bisect
-import os
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm=10):
@@ -33,24 +32,26 @@ def load_pfas_library(file_path):
     return pd.read_csv(file_path, usecols=columns_to_read)
 
 
+def load_external_targets_library(file_path):
+    """Load the external targets library from an Excel file. Only uses m/z values."""
+    return pd.read_excel(file_path, usecols=["PrecursorName", "PrecursorMz"])
+
+
 def match_pfas_library(
     adjusted_df,
     pfas_library,
     file_path,
     standards_library_file,
     mass_error_ppm=10,
-    ccs_tolerance=2.0,  # Now set from -2% to +2%
-    rt_tolerance=0.5,  # Absolute tolerance for RT
+    ccs_tolerance=2.0,
+    rt_tolerance=2.0,
     include_rt=True,
 ):
-    """Matches features in adjusted_df with PFAS library entries based on mass (ppm), CCS (%), and optionally RT."""
+    """Matches features in adjusted_df with PFAS library entries based on mass, CCS, and RT."""
     matched_rows = []
-    matched_ids = set()  # Store IDs of matched features
+    matched_ids = set()
+    match_source = "PFAS Standards"
 
-    # Extract only the filename without the path or extension
-    match_source = os.path.basename(file_path).replace(".csv", "")
-
-    # Sort PFAS library by mass for efficient binary search
     sorted_pfas_masses = sorted(pfas_library["PrecursorMz"].tolist())
 
     for _, row in adjusted_df.iterrows():
@@ -58,7 +59,6 @@ def match_pfas_library(
         ccs = row["CCS"]
         rt = row["RT"] if include_rt else None
 
-        # Get mass-matched peaks
         matching_masses = find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm)
 
         for lib_mz in matching_masses:
@@ -67,32 +67,32 @@ def match_pfas_library(
             lib_ccs = lib_row["PrecursorCCS"]
             lib_rt = lib_row["PrecursorRT"] if include_rt else None
 
-            # Calculate errors
-            mass_error = ((mz - lib_mz) / lib_mz) * 1e6  # ppm error
-            ccs_error = ((ccs - lib_ccs) / lib_ccs) * 100  # % error
+            mass_error = ((mz - lib_mz) / lib_mz) * 1e6
+            ccs_error = ((ccs - lib_ccs) / lib_ccs) * 100
             rt_error = (
-                (rt - lib_rt) if include_rt else None
-            )  # Absolute error in minutes
+                ((rt - lib_rt) / lib_rt) * 100
+                if include_rt and pd.notna(rt) and pd.notna(lib_rt)
+                else "N/A"
+            )
 
-            # Check if within CCS tolerance (-2% to +2%)
             if -ccs_tolerance <= ccs_error <= ccs_tolerance:
-                if include_rt and abs(rt_error) > rt_tolerance:
-                    continue  # Skip if RT is out of tolerance
+                if (
+                    include_rt
+                    and isinstance(rt_error, (int, float))
+                    and not (-rt_tolerance <= rt_error <= rt_tolerance)
+                ):
+                    continue
 
-                # Store ID of matched feature
+                if not (-mass_error_ppm <= mass_error <= mass_error_ppm):
+                    continue
+
                 matched_ids.add(row["ID"])
 
-                # Determine classification type
-                classification_type = (
-                    "likely" if file_path == standards_library_file else "tentative"
-                )
-
-                # Append match details
                 match_str = f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})"
                 new_row = {
                     "Match": match_str,
                     "Match Source": match_source,
-                    "Classification Type": classification_type,
+                    "Classification Type": "likely",
                     "ID": row["ID"],
                     "RT": row["RT"],
                     "DT": row["DT"],
@@ -100,10 +100,11 @@ def match_pfas_library(
                     "m/z": row["m/z"],
                     "Mass Error (ppm)": round(mass_error, 2),
                     "CCS Error (%)": round(ccs_error, 2),
-                    "RT Error (min)": round(rt_error, 2) if include_rt else "N/A",
+                    "RT Error (%)": round(rt_error, 2)
+                    if isinstance(rt_error, (int, float))
+                    else "N/A",
                 }
 
-                # Include intensity columns (.d)
                 intensity_cols = {
                     col: row[col] for col in adjusted_df.columns if ".d" in col
                 }
@@ -111,57 +112,23 @@ def match_pfas_library(
 
                 matched_rows.append(new_row)
 
-    # Create matched DataFrame (Ensuring structure even if empty)
-    column_order = [
-        "Match",
-        "Match Source",
-        "Classification Type",
-        "ID",
-        "RT",
-        "DT",
-        "CCS",
-        "m/z",
-        "Mass Error (ppm)",
-        "CCS Error (%)",
-        "RT Error (min)",
-    ]
-    intensity_cols = [col for col in adjusted_df.columns if ".d" in col]
-    column_order.extend(intensity_cols)
+    likely_matched_df = pd.DataFrame(matched_rows)
+    likely_unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
 
-    matched_df = pd.DataFrame(matched_rows, columns=column_order).fillna("N/A")
-
-    # Create unmatched DataFrame (features not found in standards library)
-    unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
-
-    # Ensure unmatched_df has the same columns as matched_df
-    for col in column_order:
-        if col not in unmatched_df.columns:
-            unmatched_df[col] = "N/A"
-
-    unmatched_df = unmatched_df[column_order]  # Reorder columns
-
-    return matched_df, unmatched_df
-
-
-def load_external_targets_library(file_path):
-    """Load the external targets library from an Excel file. Only uses m/z values."""
-    return pd.read_excel(file_path, usecols=["PrecursorName", "PrecursorMz"])
+    return likely_matched_df, likely_unmatched_df
 
 
 def match_external_targets(unmatched_df, external_targets_library, mass_error_ppm=10):
-    """Matches features in unmatched_df with External Targets library based on m/z only."""
+    """Matches unmatched_df with External Targets library based on m/z only."""
     matched_rows = []
     matched_ids = set()
-
     match_source = "External Targets"
 
-    # Sort External Targets library by mass for efficient binary search
     sorted_external_masses = sorted(external_targets_library["PrecursorMz"].tolist())
 
     for _, row in unmatched_df.iterrows():
         mz = row["m/z"]
 
-        # Get mass-matched peaks
         matching_masses = find_similar_peaks(sorted_external_masses, mz, mass_error_ppm)
 
         for lib_mz in matching_masses:
@@ -169,15 +136,11 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
                 external_targets_library["PrecursorMz"] == lib_mz
             ].iloc[0]
 
-            # Calculate mass error as percentage
-            mass_error = ((mz - lib_mz) / lib_mz) * 1e6  # ppm error (+/-)
+            mass_error = ((mz - lib_mz) / lib_mz) * 1e6
 
-            # Store ID of matched feature
             matched_ids.add(row["ID"])
 
-            # Append match details
             match_str = f"{lib_row['PrecursorName']}"
-
             new_row = {
                 "Match": match_str,
                 "Match Source": match_source,
@@ -188,11 +151,10 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
                 "CCS": row["CCS"],
                 "m/z": row["m/z"],
                 "Mass Error (ppm)": round(mass_error, 2),
-                "CCS Error (%)": "N/A",  # Not applicable
-                "RT Error (%)": "N/A",  # Not applicable
+                "CCS Error (%)": "N/A",
+                "RT Error (%)": "N/A",
             }
 
-            # Include intensity columns (.d)
             intensity_cols = {
                 col: row[col] for col in unmatched_df.columns if ".d" in col
             }
@@ -200,36 +162,10 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
 
             matched_rows.append(new_row)
 
-    # Create matched DataFrame
-    column_order = [
-        "Match",
-        "Match Source",
-        "Classification Type",
-        "ID",
-        "RT",
-        "DT",
-        "CCS",
-        "m/z",
-        "Mass Error (ppm)",
-        "CCS Error (%)",
-        "RT Error (%)",
-    ]
-    intensity_cols = [col for col in unmatched_df.columns if ".d" in col]
-    column_order.extend(intensity_cols)
+    external_matched_df = pd.DataFrame(matched_rows)
+    external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
 
-    matched_df = pd.DataFrame(matched_rows, columns=column_order).fillna("N/A")
-
-    # Create new unmatched DataFrame (features not found in external targets)
-    unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
-
-    # Ensure unmatched_df has the same columns as matched_df
-    for col in column_order:
-        if col not in unmatched_df.columns:
-            unmatched_df[col] = "N/A"
-
-    unmatched_df = unmatched_df[column_order]  # Reorder columns
-
-    return matched_df, unmatched_df
+    return external_matched_df, external_unmatched_df
 
 
 def main():
@@ -247,25 +183,21 @@ def main():
     )
 
     mass_error_ppm = 10
-    rt_tolerance = 0.5
-    ccs_tolerance = 2.0  # -2% to +2% tolerance
+    rt_tolerance = 2.0
+    ccs_tolerance = 2.0
     include_rt = False
 
-    # Define standards library file path
-    # Define standards library file path
     standards_library_file = (
         "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
-
     external_targets_file = (
         "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.xlsx"
     )
 
-    # Load Libraries
     pfas_library = load_pfas_library(standards_library_file)
     external_targets_library = load_external_targets_library(external_targets_file)
 
-    matched_df, unmatched_df = match_pfas_library(
+    likely_matched_df, likely_unmatched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
         standards_library_file,
@@ -276,23 +208,25 @@ def main():
         include_rt,
     )
 
-    # Match External Targets Library (Only on unmatched_df)
-    external_matched_df, unmatched_df = match_external_targets(
-        unmatched_df, external_targets_library, mass_error_ppm
+    external_matched_df, external_unmatched_df = match_external_targets(
+        likely_unmatched_df, external_targets_library, mass_error_ppm
     )
 
-    # Combine matched and unmatched for adjusted_df
     adjusted_df = pd.concat(
-        [matched_df, external_matched_df, unmatched_df], ignore_index=True
+        [likely_matched_df, external_matched_df, external_unmatched_df],
+        ignore_index=True,
     )
 
-    print("\n[INFO] Matched DataFrame:")
-    print(matched_df)
+    print("\n[INFO] Likely Matched DF:")
+    print(likely_matched_df)
 
-    print("\n[INFO] Unmatched DataFrame:")
-    print(unmatched_df)
+    print("\n[INFO] External Matched DF:")
+    print(external_matched_df)
 
-    print("\n[INFO] Adjusted DataFrame (Matched + Unmatched):")
+    print("\n[INFO] External Unmatched DF:")
+    print(external_unmatched_df)
+
+    print("\n[INFO] Adjusted DF (Final):")
     print(adjusted_df)
 
 
