@@ -109,19 +109,34 @@ def match_pfas_library(
 
                 matched_rows.append(new_row)
 
-    # Create matched DataFrame
-    matched_df = pd.DataFrame(matched_rows)
+    # Create matched DataFrame (Ensuring structure even if empty)
+    column_order = [
+        "Match",
+        "Match Source",
+        "Classification Type",
+        "ID",
+        "RT",
+        "DT",
+        "CCS",
+        "m/z",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (min)",
+    ]
+    intensity_cols = [col for col in adjusted_df.columns if ".d" in col]
+    column_order.extend(intensity_cols)
+
+    matched_df = pd.DataFrame(matched_rows, columns=column_order).fillna("N/A")
 
     # Create unmatched DataFrame (features not found in standards library)
     unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
 
     # Ensure unmatched_df has the same columns as matched_df
-    if not matched_df.empty:
-        for col in matched_df.columns:
-            if col not in unmatched_df.columns:
-                unmatched_df[col] = "N/A" if matched_df[col].dtype == object else None
+    for col in column_order:
+        if col not in unmatched_df.columns:
+            unmatched_df[col] = "N/A"
 
-        unmatched_df = unmatched_df[matched_df.columns]  # Reorder columns
+    unmatched_df = unmatched_df[column_order]  # Reorder columns
 
     return matched_df, unmatched_df
 
@@ -143,7 +158,7 @@ def main():
     mass_error_ppm = 10
     rt_tolerance = 0.5
     ccs_tolerance = 2.0
-    include_rt = False
+    include_rt = True
 
     # Define standards library file path
     standards_library_file = (
