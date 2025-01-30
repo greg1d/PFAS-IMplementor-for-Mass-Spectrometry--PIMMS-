@@ -2,33 +2,33 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-from blank_subtraction import (
+from blank_subtraction import (  # type: ignore
     count_non_zero_rows,
     process_standards_report_only,
     remove_standards_library,
 )
-from blank_subtraction_workflow import perform_blank_subtraction, process_files
-from branching_filter import (
+from blank_subtraction_workflow import perform_blank_subtraction, process_files  # type: ignore
+from branching_filter import (  # type: ignore
     analyze_adjusted_df as branching_analyze,
 )
-from branching_filter import (
+from branching_filter import (  # type: ignore
     merge_groups_into_adjusted_df as branching_merge,
 )
-from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter
-from ML_algorithm_density import (
+from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter  # type: ignore
+from ML_algorithm_density import (  # type: ignore
     fluorinated_density_filter,  # Importing fluorinated density filter
 )
-from monoisotopic_grouper import (
+from monoisotopic_grouper import (  # type: ignore
     analyze_adjusted_df as mono_analyze,
 )
-from monoisotopic_grouper import (
+from monoisotopic_grouper import (  # type: ignore
     merge_groups_into_adjusted_df as mono_merge,
 )
-from smearing_filter import smearing_filter  # Importing the smearing filter module
-from mass_defect_filter import (
+from smearing_filter import smearing_filter  # type: ignore # Importing the smearing filter module
+from mass_defect_filter import (  # type: ignore
     mass_defect_filter,
 )  # Importing the mass defect filter module
-from detection_frequency_filter import detection_frequency_filter
+from detection_frequency_filter import detection_frequency_filter  # type: ignore
 
 
 def main():

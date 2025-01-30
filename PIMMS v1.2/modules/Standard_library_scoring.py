@@ -1,5 +1,6 @@
 import pandas as pd
 import bisect
+import os  # Import os module to handle file paths
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm=10):
@@ -12,14 +13,6 @@ def calculate_mass_error_no_charge(mass, mass_error_ppm=10):
 def find_similar_peaks(array, mass, mass_error_ppm=10):
     """
     Finds peaks within the mass error bounds using binary search.
-
-    Args:
-        array (list): Sorted array of masses to search within.
-        mass (float): Experimental mass value.
-        mass_error_ppm (float): Mass error tolerance in ppm.
-
-    Returns:
-        list: List of matching masses.
     """
     mass_bound = calculate_mass_error_no_charge(mass, mass_error_ppm)
     lower_bound = mass - mass_bound
@@ -49,6 +42,7 @@ def load_pfas_library(file_path):
 def match_pfas_library(
     adjusted_df,
     pfas_library,
+    file_path,
     mass_error_ppm=10,
     ccs_tolerance=2.0,
     rt_tolerance=0.5,
@@ -62,6 +56,9 @@ def match_pfas_library(
         pd.DataFrame: DataFrame with matched features and error values.
     """
     matched_rows = []
+
+    # Extract only the filename without the path or extension
+    match_source = os.path.basename(file_path).replace(".csv", "")
 
     # Sort PFAS library by mass for efficient binary search
     sorted_pfas_masses = sorted(pfas_library["PrecursorMz"].tolist())
@@ -93,7 +90,8 @@ def match_pfas_library(
                 # Append match details
                 match_str = f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})"
                 new_row = {
-                    "Match": match_str,
+                    "Match (adduct)": match_str,
+                    "Match Source": match_source,  # Store only the formatted filename
                     "ID": row["ID"],
                     "RT": row["RT"],
                     "DT": row["DT"],
@@ -144,6 +142,7 @@ def main():
     matched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
+        pfas_library_file,  # Pass the file path
         mass_error_ppm,
         ccs_tolerance,
         rt_tolerance,
