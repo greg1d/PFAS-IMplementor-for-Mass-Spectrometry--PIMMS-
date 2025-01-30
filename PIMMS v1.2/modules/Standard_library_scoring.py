@@ -39,8 +39,8 @@ def match_pfas_library(
     file_path,
     standards_library_file,
     mass_error_ppm=10,
-    ccs_tolerance=2.0,
-    rt_tolerance=0.5,
+    ccs_tolerance=2.0,  # Now set from -2% to +2%
+    rt_tolerance=0.5,  # Absolute tolerance for RT
     include_rt=True,
 ):
     """Matches features in adjusted_df with PFAS library entries based on mass (ppm), CCS (%), and optionally RT."""
@@ -68,14 +68,16 @@ def match_pfas_library(
             lib_rt = lib_row["PrecursorRT"] if include_rt else None
 
             # Calculate errors
-            mass_error = abs(mz - lib_mz) / lib_mz * 1e6
-            ccs_error = abs(ccs - lib_ccs) / lib_ccs * 100
-            rt_error = abs(rt - lib_rt) if include_rt else None
+            mass_error = ((mz - lib_mz) / lib_mz) * 1e6  # ppm error
+            ccs_error = ((ccs - lib_ccs) / lib_ccs) * 100  # % error
+            rt_error = (
+                (rt - lib_rt) if include_rt else None
+            )  # Absolute error in minutes
 
-            # Check if within CCS tolerance
-            if ccs_error <= ccs_tolerance:
-                if include_rt and rt_error > rt_tolerance:
-                    continue  # Skip if RT doesn't match
+            # Check if within CCS tolerance (-2% to +2%)
+            if -ccs_tolerance <= ccs_error <= ccs_tolerance:
+                if include_rt and abs(rt_error) > rt_tolerance:
+                    continue  # Skip if RT is out of tolerance
 
                 # Store ID of matched feature
                 matched_ids.add(row["ID"])
@@ -146,7 +148,7 @@ def main():
     adjusted_df = pd.DataFrame(
         {
             "ID": [1, 2, 3, 4, 5],
-            "RT": [1.83, 3.5, 3.665, 3.666, 3.664],
+            "RT": [12.83, 3.5, 3.665, 3.666, 3.664],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
             "CCS": [203.65, 142.20, 147.02212060071, 175.79, 175.79],
             "m/z": [698.9175, 348.9398, 418.9734, 300, 400],
@@ -157,7 +159,7 @@ def main():
 
     mass_error_ppm = 10
     rt_tolerance = 0.5
-    ccs_tolerance = 2.0
+    ccs_tolerance = 2.0  # -2% to +2% tolerance
     include_rt = True
 
     # Define standards library file path
