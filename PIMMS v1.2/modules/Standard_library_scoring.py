@@ -21,7 +21,7 @@ def find_similar_peaks(array, mass, mass_error_ppm=10):
 
 
 def load_pfas_library(file_path):
-    """Load the PFAS library from a CSV file."""
+    """Load the PFAS primary standards library from a CSV file."""
     columns_to_read = [
         "PrecursorName",
         "PrecursorFormula",
@@ -143,6 +143,95 @@ def match_pfas_library(
     return matched_df, unmatched_df
 
 
+def load_external_targets_library(file_path):
+    """Load the external targets library from an Excel file. Only uses m/z values."""
+    return pd.read_excel(file_path, usecols=["PrecursorName", "PrecursorMz"])
+
+
+def match_external_targets(unmatched_df, external_targets_library, mass_error_ppm=10):
+    """Matches features in unmatched_df with External Targets library based on m/z only."""
+    matched_rows = []
+    matched_ids = set()
+
+    match_source = "External Targets"
+
+    # Sort External Targets library by mass for efficient binary search
+    sorted_external_masses = sorted(external_targets_library["PrecursorMz"].tolist())
+
+    for _, row in unmatched_df.iterrows():
+        mz = row["m/z"]
+
+        # Get mass-matched peaks
+        matching_masses = find_similar_peaks(sorted_external_masses, mz, mass_error_ppm)
+
+        for lib_mz in matching_masses:
+            lib_row = external_targets_library[
+                external_targets_library["PrecursorMz"] == lib_mz
+            ].iloc[0]
+
+            # Calculate mass error as percentage
+            mass_error = ((mz - lib_mz) / lib_mz) * 1e6  # ppm error (+/-)
+
+            # Store ID of matched feature
+            matched_ids.add(row["ID"])
+
+            # Append match details
+            match_str = f"{lib_row['PrecursorName']}"
+
+            new_row = {
+                "Match": match_str,
+                "Match Source": match_source,
+                "Classification Type": "tentative",
+                "ID": row["ID"],
+                "RT": row["RT"],
+                "DT": row["DT"],
+                "CCS": row["CCS"],
+                "m/z": row["m/z"],
+                "Mass Error (ppm)": round(mass_error, 2),
+                "CCS Error (%)": "N/A",  # Not applicable
+                "RT Error (%)": "N/A",  # Not applicable
+            }
+
+            # Include intensity columns (.d)
+            intensity_cols = {
+                col: row[col] for col in unmatched_df.columns if ".d" in col
+            }
+            new_row.update(intensity_cols)
+
+            matched_rows.append(new_row)
+
+    # Create matched DataFrame
+    column_order = [
+        "Match",
+        "Match Source",
+        "Classification Type",
+        "ID",
+        "RT",
+        "DT",
+        "CCS",
+        "m/z",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (%)",
+    ]
+    intensity_cols = [col for col in unmatched_df.columns if ".d" in col]
+    column_order.extend(intensity_cols)
+
+    matched_df = pd.DataFrame(matched_rows, columns=column_order).fillna("N/A")
+
+    # Create new unmatched DataFrame (features not found in external targets)
+    unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
+
+    # Ensure unmatched_df has the same columns as matched_df
+    for col in column_order:
+        if col not in unmatched_df.columns:
+            unmatched_df[col] = "N/A"
+
+    unmatched_df = unmatched_df[column_order]  # Reorder columns
+
+    return matched_df, unmatched_df
+
+
 def main():
     # Example adjusted_df with rows to process
     adjusted_df = pd.DataFrame(
@@ -160,17 +249,22 @@ def main():
     mass_error_ppm = 10
     rt_tolerance = 0.5
     ccs_tolerance = 2.0  # -2% to +2% tolerance
-    include_rt = True
+    include_rt = False
 
+    # Define standards library file path
     # Define standards library file path
     standards_library_file = (
         "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
 
-    # Load PFAS library
-    pfas_library = load_pfas_library(standards_library_file)
+    external_targets_file = (
+        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.xlsx"
+    )
 
-    # Match PFAS library and get matched/unmatched data
+    # Load Libraries
+    pfas_library = load_pfas_library(standards_library_file)
+    external_targets_library = load_external_targets_library(external_targets_file)
+
     matched_df, unmatched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
@@ -182,8 +276,15 @@ def main():
         include_rt,
     )
 
+    # Match External Targets Library (Only on unmatched_df)
+    external_matched_df, unmatched_df = match_external_targets(
+        unmatched_df, external_targets_library, mass_error_ppm
+    )
+
     # Combine matched and unmatched for adjusted_df
-    adjusted_df = pd.concat([matched_df, unmatched_df], ignore_index=True)
+    adjusted_df = pd.concat(
+        [matched_df, external_matched_df, unmatched_df], ignore_index=True
+    )
 
     print("\n[INFO] Matched DataFrame:")
     print(matched_df)
