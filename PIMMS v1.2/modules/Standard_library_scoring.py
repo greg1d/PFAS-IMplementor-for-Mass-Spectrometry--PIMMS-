@@ -45,6 +45,7 @@ def match_pfas_library(
 ):
     """Matches features in adjusted_df with PFAS library entries based on mass (ppm), CCS (%), and optionally RT."""
     matched_rows = []
+    matched_ids = set()  # Store IDs of matched features
 
     # Extract only the filename without the path or extension
     match_source = os.path.basename(file_path).replace(".csv", "")
@@ -76,6 +77,9 @@ def match_pfas_library(
                 if include_rt and rt_error > rt_tolerance:
                     continue  # Skip if RT doesn't match
 
+                # Store ID of matched feature
+                matched_ids.add(row["ID"])
+
                 # Determine classification type
                 classification_type = (
                     "likely" if file_path == standards_library_file else "tentative"
@@ -85,6 +89,8 @@ def match_pfas_library(
                 match_str = f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})"
                 new_row = {
                     "Match": match_str,
+                    "Match Source": match_source,  # Store only the formatted filename
+                    "Classification Type": classification_type,  # Assign "likely" or "tentative"
                     "ID": row["ID"],
                     "RT": row["RT"],
                     "DT": row["DT"],
@@ -93,8 +99,6 @@ def match_pfas_library(
                     "Mass Error (ppm)": round(mass_error, 2),
                     "CCS Error (%)": round(ccs_error, 2),
                     "RT Error (min)": round(rt_error, 2) if include_rt else "N/A",
-                    "Match Source": match_source,  # Store only the formatted filename
-                    "Classification Type": classification_type,  # Assign "likely" or "tentative"
                 }
 
                 # Include intensity columns (.d)
@@ -105,7 +109,13 @@ def match_pfas_library(
 
                 matched_rows.append(new_row)
 
-    return pd.DataFrame(matched_rows)
+    # Create matched DataFrame
+    matched_df = pd.DataFrame(matched_rows)
+
+    # Create unmatched DataFrame (features not found in standards library)
+    unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)]
+
+    return matched_df, unmatched_df
 
 
 def main():
@@ -135,20 +145,29 @@ def main():
     # Load PFAS library
     pfas_library = load_pfas_library(standards_library_file)
 
-    # Match PFAS library
-    matched_df = match_pfas_library(
+    # Match PFAS library and get matched/unmatched data
+    matched_df, unmatched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
-        standards_library_file,  # The file being matched
         standards_library_file,  # The reference standards file
+        standards_library_file,
         mass_error_ppm,
         ccs_tolerance,
         rt_tolerance,
         include_rt,
     )
 
+    # Combine matched and unmatched for adjusted_df
+    adjusted_df = pd.concat([matched_df, unmatched_df], ignore_index=True)
+
     print("\n[INFO] Matched DataFrame:")
     print(matched_df)
+
+    print("\n[INFO] Unmatched DataFrame:")
+    print(unmatched_df)
+
+    print("\n[INFO] Adjusted DataFrame (Matched + Unmatched):")
+    print(adjusted_df)
 
 
 if __name__ == "__main__":
