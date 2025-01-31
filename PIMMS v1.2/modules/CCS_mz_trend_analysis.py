@@ -102,9 +102,12 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     return groups
 
 
-def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
-    homologous_series_groups = []  # Store final groups
-    regression_results = {}  # Store regression results
+def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
+    sample_columns = [
+        col for col in adjusted_df.columns if ".d" in col
+    ]  # Identify sample columns
+    homologous_series_groups = []
+    regression_results = {}
 
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
@@ -139,21 +142,31 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         # Prepare the base plot
         fig = go.Figure()
 
-        # Add likely-matched points (blue)
-        fig.add_trace(
-            go.Scatter(
-                x=likely_mz_values,
-                y=likely_ccs_values,
-                mode="markers",
-                hovertemplate=(
-                    "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
-                    "Match: %{customdata[1]}<extra></extra>"
-                ),
-                name="Likely Match",
-                marker=dict(color="blue", size=8),
-                customdata=list(zip(likely_sources, likely_names)),
+        # Add likely-matched points (blue) with sample information in hover
+        for i, row in adjusted_df.iterrows():
+            mz, ccs, match_name = row["m/z"], row["CCS"], row["Match"]
+
+            # Get all nonzero `.d` sample columns
+            sample_info = [
+                f"{sample_col}: {row[sample_col]:.2f}"
+                for sample_col in sample_columns
+                if row[sample_col] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    name="Detected Point",
+                    marker=dict(size=8, color="blue"),
+                    hovertemplate=(
+                        f"m/z: {mz}<br>CCS: {ccs}<br>Match: {match_name}<br>"
+                        f"Samples:<br>{sample_text}<extra></extra>"
+                    ),
+                )
             )
-        )
 
         # Add regression line
         reg_line_x = sorted(likely_mz_values)
@@ -164,74 +177,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 y=reg_line_y,
                 mode="lines",
                 name="CCS vs m/z trendline",
-                line=dict(color="blue", dash="dash"),
+                line=dict(color="black", dash="dash"),
                 hoverinfo="skip",
             )
         )
-
-        # Separate included and excluded tentative/unmatched points
-        included_points = []
-        excluded_points = []
-
-        for point in tentative_group + unmatched_group:
-            mz, ccs, source, name, category = (
-                point[0],
-                point[2],
-                point[4],
-                point[5],
-                point[3],
-            )
-            predicted_ccs = slope * mz + intercept
-            residual = abs(ccs - predicted_ccs)
-            acceptable_variation = variation_threshold * predicted_ccs
-
-            if residual <= acceptable_variation:
-                included_points.append((mz, ccs, source, name, category))
-            else:
-                excluded_points.append((mz, ccs, source, name))
-
-        # Add included tentative (orange) and unmatched (purple) points
-        if included_points:
-            included_mz, included_ccs, included_sources, included_names, categories = (
-                zip(*included_points)
-            )
-
-            fig.add_trace(
-                go.Scatter(
-                    x=included_mz,
-                    y=included_ccs,
-                    mode="markers",
-                    name="Tentative (Orange) / Unmatched (Purple)",
-                    hovertemplate=(
-                        "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
-                        "Match: %{customdata[1]}<extra></extra>"
-                    ),
-                    marker=dict(
-                        color=[
-                            "orange" if cat == "tentative" else "purple"
-                            for cat in categories
-                        ],
-                        size=8,
-                    ),
-                    customdata=list(zip(included_sources, included_names)),
-                )
-            )
-
-        # Add excluded points (red X)
-        if excluded_points:
-            excluded_mz, excluded_ccs, excluded_sources, excluded_names = zip(
-                *excluded_points
-            )
-            fig.add_trace(
-                go.Scatter(
-                    x=excluded_mz,
-                    y=excluded_ccs,
-                    mode="markers",
-                    name="Excluded from trend line",
-                    marker=dict(color="red", size=8, symbol="x"),
-                    customdata=list(zip(excluded_sources, excluded_names)),
-                )
-            )
 
         fig.update_layout(
             title=f"Group {idx + 1}: CCS vs m/z",
@@ -249,30 +198,19 @@ def main():
     """Test and debug the analysis with sample adjusted_df before full integration."""
 
     # Define the file path
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
-
-    # Define the columns to read
-    columns_to_read = [
-        "Match",
-        "Match Source",
-        "Classification Type",
-        "ID",
-        "RT",
-        "DT",
-        "CCS",
-        "m/z",
-        "Mass Error (ppm)",
-        "CCS Error (%)",
-        "RT Error (%)",
-    ]
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
 
     # Read the CSV file
-    adjusted_df = pd.read_csv(file_path, usecols=columns_to_read)
+    adjusted_df = pd.read_csv(file_path)
 
     # Display the first few rows
     print(adjusted_df.head())
+
+    # Run the mass repeating unit analysis
     groups = mz_repeating_unit_analysis(adjusted_df)
-    CCS_vs_mz_trend_analysis(groups)
+
+    # Run CCS vs m/z trend analysis
+    CCS_vs_mz_trend_analysis(adjusted_df, groups)
 
 
 if __name__ == "__main__":
