@@ -2,77 +2,42 @@ import time
 import pandas as pd
 from scipy.stats import linregress
 import plotly.graph_objects as go
-import os
 
 
-def merge_and_extract_data(file_paths, required_columns):
-    """
-    Merges multiple CSV files and extracts required data while retaining the sample name.
-
-    Parameters:
-        file_paths (list): List of CSV file paths to merge.
-        required_columns (list): List of required columns to extract.
-
-    Returns:
-        pd.DataFrame: A combined DataFrame with relevant data and source file information.
-    """
-    combined_data = pd.DataFrame()  # Initialize an empty DataFrame
-    for file_path in file_paths:
-        if not os.path.exists(file_path):
-            print(f"File {file_path} does not exist. Skipping.")
-            continue
-        try:
-            # Read the CSV file
-            df = pd.read_csv(file_path)
-
-            # Check if required columns exist
-            missing_columns = set(required_columns) - set(df.columns)
-            if missing_columns:
-                print(
-                    f"File {file_path} is missing columns: {missing_columns}. Skipping."
-                )
-                continue
-
-            # Add the source file name as a column
-            df["source_file"] = os.path.basename(file_path)
-
-            # Extract only the required columns + source_file
-            df = df[required_columns + ["source_file"]]
-
-            # Append to the combined DataFrame
-            combined_data = pd.concat([combined_data, df], ignore_index=True)
-        except Exception as e:
-            print(f"Error processing file {file_path}: {e}")
-
-    if combined_data.empty:
-        raise ValueError(
-            "No valid data could be merged. Ensure the files and columns are correct."
-        )
-
-    print(
-        f"Combined dataset contains {len(combined_data)} rows from {len(file_paths)} files."
-    )
-    print("combined_data", combined_data)
-    return combined_data
-
-
-def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]):
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[100]):
     start_time = time.time()  # Start the timer
 
     # Ensure the required columns are present
-    required_columns = ["m/z", "Score", "CCS", "row.ID", "source_file", "Name_or_Class"]
-    if not all(col in data_df.columns for col in required_columns):
+    required_columns = [
+        "Match",
+        "Match Source",
+        "Classification Type",
+        "ID",
+        "RT",
+        "DT",
+        "CCS",
+        "m/z",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (%)",
+    ]
+
+    # Add intensity columns dynamically
+    intensity_columns = [col for col in adjusted_df.columns if ".d" in col]
+    required_columns.extend(intensity_columns)
+
+    if not all(col in adjusted_df.columns for col in required_columns):
         raise ValueError(
             f"DataFrame is missing one or more required columns: {required_columns}"
         )
 
     # Extract required data for processing
-    array = data_df["m/z"].tolist()
-    row_ids = data_df["row.ID"].tolist()
-    ccs_values = data_df["CCS"].tolist()
-    scores = data_df["Score"].tolist()
-    source_files = data_df["source_file"].tolist()
-    names_or_classes = data_df["Name_or_Class"].tolist()
+    array = adjusted_df["m/z"].tolist()
+    row_ids = adjusted_df["ID"].tolist()
+    ccs_values = adjusted_df["CCS"].tolist()
+    source_files = adjusted_df["Match Source"].tolist()
+    names_or_classes = adjusted_df["Match"].tolist()
+    scores = adjusted_df["Classification Type"].tolist()
 
     groups = []
     visited_indices = set()
@@ -127,7 +92,7 @@ def mz_repeating_unit_analysis(data_df, mass_error_ppm=10, repeating_units=[100]
         print(f"Group {idx + 1}:")
         for point in group:
             print(
-                f"  m/z: {point[0]}, Row ID: {point[1]}, CCS: {point[2]}, Score: {point[3]}, Source File: {point[4]}, Name_or_Class: {point[5]}"
+                f"  m/z: {point[0]}, ID: {point[1]}, CCS: {point[2]}, Classification: {point[3]}, Match Source: {point[4]}, Match: {point[5]}"
             )
 
     end_time = time.time()  # End the timer
@@ -143,42 +108,42 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
 
-        # Separate A-grade and non-A-grade elements
-        a_group = [point for point in group if point[3] in ["A+", "A", "A-"]]
-        non_a_group = [point for point in group if point[3] not in ["A+", "A-", "A"]]
+        # Separate likely and tentative identifications
+        likely_group = [point for point in group if point[3] == "likely"]
+        tentative_group = [point for point in group if point[3] == "tentative"]
 
-        # Extract m/z, CCS values, source file names, and Name_or_Class
-        a_mz_values = [point[0] for point in a_group]  # m/z
-        a_ccs_values = [point[2] for point in a_group]  # CCS
-        a_sources = [point[4] for point in a_group]  # Source file
-        a_names = [point[5] for point in a_group]  # Name_or_Class
+        # Extract m/z, CCS values, source file names, and Match data
+        likely_mz_values = [point[0] for point in likely_group]  # m/z
+        likely_ccs_values = [point[2] for point in likely_group]  # CCS
+        likely_sources = [point[4] for point in likely_group]  # Match Source
+        likely_names = [point[5] for point in likely_group]  # Match
 
-        if len(a_group) < 2:
+        if len(likely_group) < 2:
             print(f"Group {idx + 1}: Not enough points for regression.")
             continue
 
         # Prepare the base plot
         fig = go.Figure()
 
-        # Add A-grade points with hover information
+        # Add likely-matched points with hover information
         fig.add_trace(
             go.Scatter(
-                x=a_mz_values,
-                y=a_ccs_values,
+                x=likely_mz_values,
+                y=likely_ccs_values,
                 mode="markers",
-                name="A-grade Library match",
+                name="Likely Match",
                 marker=dict(color="blue", size=8),
                 hovertemplate=(
-                    "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
-                    "Name_or_Class: %{customdata[1]}<extra></extra>"
+                    "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
+                    "Match: %{customdata[1]}<extra></extra>"
                 ),
-                customdata=list(zip(a_sources, a_names)),  # Custom hover data
+                customdata=list(zip(likely_sources, likely_names)),  # Custom hover data
             )
         )
 
         # Perform regression analysis
         slope, intercept, r_value, p_value, std_err = linregress(
-            a_mz_values, a_ccs_values
+            likely_mz_values, likely_ccs_values
         )
         r_squared = r_value**2
 
@@ -188,7 +153,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         )
 
         # Add regression line
-        reg_line_x = sorted(a_mz_values)
+        reg_line_x = sorted(likely_mz_values)
         reg_line_y = [slope * mz + intercept for mz in reg_line_x]
         fig.add_trace(
             go.Scatter(
@@ -201,10 +166,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             )
         )
 
-        # Separate included and excluded non-A-grade points
+        # Separate included and excluded tentative identifications
         included_points = []
         excluded_points = []
-        for point in non_a_group:
+        for point in tentative_group:
             mz, ccs, source, name = point[0], point[2], point[4], point[5]
             predicted_ccs = slope * mz + intercept
             residual = abs(ccs - predicted_ccs)
@@ -227,30 +192,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                     name="Included in homologous series trend",
                     marker=dict(color="green", size=8),
                     hovertemplate=(
-                        "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
-                        "Name_or_Class: %{customdata[1]}<extra></extra>"
+                        "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
+                        "Match: %{customdata[1]}<extra></extra>"
                     ),
                     customdata=list(zip(included_sources, included_names)),
-                )
-            )
-
-        # Add a single trace for all excluded points
-        if excluded_points:
-            excluded_mz, excluded_ccs, excluded_sources, excluded_names = zip(
-                *excluded_points
-            )
-            fig.add_trace(
-                go.Scatter(
-                    x=excluded_mz,
-                    y=excluded_ccs,
-                    mode="markers",
-                    name="Excluded from homologous series trend",
-                    marker=dict(color="red", size=8),
-                    hovertemplate=(
-                        "m/z: %{x}<br>CCS: %{y}<br>Source File: %{customdata[0]}<br>"
-                        "Name_or_Class: %{customdata[1]}<extra></extra>"
-                    ),
-                    customdata=list(zip(excluded_sources, excluded_names)),
                 )
             )
 
@@ -274,3 +219,47 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         fig.show()
 
     return homologous_series_groups, regression_results
+
+
+def main():
+    """Test and debug the analysis with sample adjusted_df before full integration."""
+    adjusted_df = pd.DataFrame(
+        {
+            "Match": [
+                "PFBS",
+                "4,4,5,5,5-Pentafluoropentane-1-thiol",
+                "2-Pentanone, 1-chloro-4-hydroxy-5,5,5-trifluoro-4-(trifluoromethyl)-",
+                "ST50977988",
+                "7,8,8,8-Tetrafluoro-7-(trifluoromethyl)octan-1-ol",
+            ],
+            "Match Source": [
+                "PFAS Standards",
+                "External Targets",
+                "PFAS Standards",
+                "External Targets",
+                "None",
+            ],
+            "Classification Type": [
+                "likely",
+                "tentative",
+                "likely",
+                "likely",
+                "likely",
+            ],
+            "ID": [1, 2, 3, 4, 5],
+            "RT": [12.73, 3.5, 3.665, 3.666, 3.664],
+            "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
+            "CCS": [200, 300, 400, 500, 600],
+            "m/z": [100, 200, 300, 400.0, 500.0],
+            "Mass Error (ppm)": [-5, 3, 1, -2, 0],
+            "CCS Error (%)": ["N/A", 1.5, -0.5, 2.0, "N/A"],
+            "RT Error (%)": ["N/A", 0.5, -1.2, 1.0, "N/A"],
+        }
+    )
+
+    groups = mz_repeating_unit_analysis(adjusted_df)
+    CCS_vs_mz_trend_analysis(groups)
+
+
+if __name__ == "__main__":
+    main()
