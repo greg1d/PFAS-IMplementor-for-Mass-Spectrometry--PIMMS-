@@ -34,7 +34,9 @@ def load_pfas_library(file_path):
 
 def load_external_targets_library(file_path):
     """Load the external targets library from an Excel file. Only uses m/z values."""
-    return pd.read_excel(file_path, usecols=["PrecursorName", "PrecursorMz"])
+    return pd.read_csv(
+        file_path, usecols=["PrecursorName", "PrecursorMz"], encoding="latin1"
+    )
 
 
 def match_pfas_library(
@@ -127,8 +129,8 @@ def match_pfas_library(
 
 
 def match_external_targets(unmatched_df, external_targets_library, mass_error_ppm=10):
-    """Matches unmatched_df with External Targets library based on m/z only."""
-    matched_rows = []
+    """Matches unmatched_df with External Targets library based on m/z only, consolidating multiple matches and ppm errors into one row."""
+    matched_dict = {}
     matched_ids = set()
     match_source = "External Targets"
 
@@ -136,6 +138,8 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
 
     for _, row in unmatched_df.iterrows():
         mz = row["m/z"]
+        match_names = []
+        ppm_errors = []
 
         matching_masses = find_similar_peaks(sorted_external_masses, mz, mass_error_ppm)
 
@@ -147,14 +151,22 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
             if matching_rows.empty:
                 continue
 
-            lib_row = matching_rows.iloc[0]
+            for _, lib_row in matching_rows.iterrows():
+                mass_error = ((mz - lib_mz) / lib_mz) * 1e6
+                match_names.append(lib_row["PrecursorName"])  # Store matched names
+                ppm_errors.append(
+                    str(round(mass_error, 2))
+                )  # Store ppm error as string
+                matched_ids.add(row["ID"])
 
-            mass_error = ((mz - lib_mz) / lib_mz) * 1e6
-
-            matched_ids.add(row["ID"])
+        if match_names:
+            match_str = " or ".join(sorted(set(match_names)))  # Merge multiple matches
+            ppm_str = " or ".join(
+                sorted(set(ppm_errors), key=float)
+            )  # Merge multiple ppm errors
 
             new_row = {
-                "Match": f"{lib_row['PrecursorName']}",
+                "Match": match_str,
                 "Match Source": match_source,
                 "Classification Type": "tentative",
                 "ID": row["ID"],
@@ -162,7 +174,7 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
                 "DT": row["DT"],
                 "CCS": row["CCS"],
                 "m/z": row["m/z"],
-                "Mass Error (ppm)": round(mass_error, 2),
+                "Mass Error (ppm)": ppm_str,  # Store multiple ppm errors
                 "CCS Error (%)": "N/A",
                 "RT Error (%)": "N/A",
             }
@@ -172,9 +184,9 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
             }
             new_row.update(intensity_cols)
 
-            matched_rows.append(new_row)
+            matched_dict[row["ID"]] = new_row  # Store unique matches
 
-    external_matched_df = pd.DataFrame(matched_rows)
+    external_matched_df = pd.DataFrame(matched_dict.values())
     external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
 
     # Ensure 'Classification Type' is set for unmatched rows
@@ -192,8 +204,8 @@ def main():
             "ID": [1, 2, 3, 4, 5],
             "RT": [12.73, 3.5, 3.665, 3.666, 3.664],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [203.65, 142.20, 147.02212060071, 175.79, 175.79],
-            "m/z": [698.9155, 348.9398, 418.9734, 300, 400],
+            "CCS": [2, 142.20, 147.02212060071, 175.79, 175.79],
+            "m/z": [131.0125474, 348.9398, 418.9734, 300, 400],
             "148 B2 16632.d.DeMP": [10, 10, 10, 10, 10],
             "149 B2 16631.d.DeMP": [20, 20, 10, 10, 10],
         }
@@ -208,7 +220,7 @@ def main():
         "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
     external_targets_file = (
-        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.xlsx"
+        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
 
     pfas_library = load_pfas_library(standards_library_file)
