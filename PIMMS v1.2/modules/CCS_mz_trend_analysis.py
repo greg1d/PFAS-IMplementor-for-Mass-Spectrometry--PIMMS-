@@ -108,9 +108,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
 
-        # Separate likely and tentative identifications
+        # Separate likely, tentative, and unmatched identifications
         likely_group = [point for point in group if point[3] == "likely"]
         tentative_group = [point for point in group if point[3] == "tentative"]
+        unmatched_group = [point for point in group if point[3] == "unmatched"]
 
         # Extract m/z, CCS values, source file names, and Match data
         likely_mz_values = [point[0] for point in likely_group]  # m/z
@@ -118,28 +119,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         likely_sources = [point[4] for point in likely_group]  # Match Source
         likely_names = [point[5] for point in likely_group]  # Match
 
-        if len(likely_group) < 2:
+        # Regression uses only "likely" points
+        if len(likely_mz_values) < 2:
             print(f"Group {idx + 1}: Not enough points for regression.")
             continue
-
-        # Prepare the base plot
-        fig = go.Figure()
-
-        # Add likely-matched points with hover information
-        fig.add_trace(
-            go.Scatter(
-                x=likely_mz_values,
-                y=likely_ccs_values,
-                mode="markers",
-                name="Likely Match",
-                marker=dict(color="blue", size=8),
-                hovertemplate=(
-                    "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
-                    "Match: %{customdata[1]}<extra></extra>"
-                ),
-                customdata=list(zip(likely_sources, likely_names)),
-            )
-        )
 
         # Perform regression analysis
         slope, intercept, r_value, p_value, std_err = linregress(
@@ -150,6 +133,21 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
         print(
             f"Group {idx + 1} Regression: Slope={slope:.4f}, Intercept={intercept:.4f}, "
             f"R²={r_squared:.4f}, p={p_value:.4f}"
+        )
+
+        # Prepare the base plot
+        fig = go.Figure()
+
+        # Add likely-matched points (blue)
+        fig.add_trace(
+            go.Scatter(
+                x=likely_mz_values,
+                y=likely_ccs_values,
+                mode="markers",
+                name="Likely Match",
+                marker=dict(color="blue", size=8),
+                customdata=list(zip(likely_sources, likely_names)),
+            )
         )
 
         # Add regression line
@@ -166,36 +164,51 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             )
         )
 
-        # Separate included and excluded tentative identifications
+        # Separate included and excluded tentative/unmatched points
         included_points = []
         excluded_points = []
-        for point in tentative_group:
-            mz, ccs, source, name = point[0], point[2], point[4], point[5]
+
+        for point in tentative_group + unmatched_group:
+            mz, ccs, source, name, category = (
+                point[0],
+                point[2],
+                point[4],
+                point[5],
+                point[3],
+            )
             predicted_ccs = slope * mz + intercept
             residual = abs(ccs - predicted_ccs)
             acceptable_variation = variation_threshold * predicted_ccs
+
             if residual <= acceptable_variation:
-                included_points.append((mz, ccs, source, name))
+                included_points.append((mz, ccs, source, name, category))
             else:
                 excluded_points.append((mz, ccs, source, name))
 
-        # Add included points (green)
+        # Add included tentative (orange) and unmatched (purple) points
         if included_points:
-            included_mz, included_ccs, included_sources, included_names = zip(
-                *included_points
+            included_mz, included_ccs, included_sources, included_names, categories = (
+                zip(*included_points)
             )
+
             fig.add_trace(
                 go.Scatter(
                     x=included_mz,
                     y=included_ccs,
                     mode="markers",
-                    name="Included in homologous series trend",
-                    marker=dict(color="green", size=8),
+                    name="Tentative (Orange) / Unmatched (Purple)",
+                    marker=dict(
+                        color=[
+                            "orange" if cat == "tentative" else "purple"
+                            for cat in categories
+                        ],
+                        size=8,
+                    ),
                     customdata=list(zip(included_sources, included_names)),
                 )
             )
 
-        # Add excluded points (red)
+        # Add excluded points (red X)
         if excluded_points:
             excluded_mz, excluded_ccs, excluded_sources, excluded_names = zip(
                 *excluded_points
@@ -215,14 +228,6 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             title=f"Group {idx + 1}: CCS vs m/z",
             xaxis_title="m/z",
             yaxis_title="CCS",
-            legend=dict(
-                title="Legend",
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                x=0.5,
-                xanchor="center",
-            ),
             template="plotly_white",
         )
 
@@ -246,20 +251,20 @@ def main():
                 "PFAS Standards",
                 "PFAS Standards",
                 "PFAS Standards",
-                "Tentative",
+                "None",
                 "PFAS Standards",
             ],
             "Classification Type": [
                 "likely",
                 "likely",
                 "tentative",
-                "tentative",
+                "unmatched",
                 "likely",
             ],
             "ID": [1, 2, 3, 4, 5],
             "RT": [1.3, 3.2, 5.2, 7.03, 10.12],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [117.4, 125.1, 131.62, 133.2, 168.27],
+            "CCS": [117.4, 125.1, 131.62, 140.2, 168.27],
             "m/z": [198.9494, 248.9462, 298.943, 348.9398, 498.9302],
             "Mass Error (ppm)": [-5, 3, 1, -2, 0],
             "CCS Error (%)": ["N/A", 1.5, -0.5, 2.0, "N/A"],
