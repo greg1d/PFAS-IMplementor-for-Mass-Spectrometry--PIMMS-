@@ -16,7 +16,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     Identifies features with mass differences corresponding to specific repeating units.
     """
     start_time = time.time()
-
     selected_units = [
         REPEATING_UNITS[unit] for unit in repeating_units if unit in REPEATING_UNITS
     ]
@@ -33,7 +32,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
 
     print(f"[DEBUG] Total data points: {len(mz_values)}")
 
-    # Find homologous groups
     for M in selected_units:
         print(f"\n[INFO] Analyzing repeating unit M = {M:.6f}")
 
@@ -85,16 +83,13 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
 
 def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
     """
-    Plots CCS vs. m/z trends, allowing toggling of trendlines and related points.
+    Plots CCS vs. m/z trends with interactive group toggling.
     """
 
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
 
-    # Identify all points that belong to a homologous group
     grouped_mz_values = {point[0] for group in groups for point in group}
-
-    # Unrelated points: Keep them visible but retain their classification color
     unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(grouped_mz_values)]
 
     classification_colors = {
@@ -103,53 +98,53 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         "unmatched": "purple",
     }
 
-    for _, row in unrelated_df.iterrows():
-        mz, ccs, classification, match_name = (
-            row["m/z"],
-            row["CCS"],
-            row["Classification Type"],
-            row["Match"],
-        )
-        color = classification_colors.get(classification, "gray")
+    # Add an option to toggle unrelated points ON/OFF
+    toggle_unrelated = True  # Set to False to hide unrelated points initially
 
-        # Get `.d` sample intensities
-        sample_info = [
-            f"{col}: {row[col]:.2f}"
-            for col in sample_columns
-            if col in row and row[col] > 0
-        ]
-        sample_text = "<br>".join(sample_info) if sample_info else "None"
-
-        fig.add_trace(
-            go.Scatter(
-                x=[mz],
-                y=[ccs],
-                mode="markers",
-                marker=dict(size=6, color=color),
-                name=f"Standalone {classification.capitalize()}",
-                hovertemplate=f"m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                legendgroup="standalone",  # Keep them always visible
-                showlegend=False,
+    # Plot unrelated points (unless toggled off)
+    if toggle_unrelated:
+        for _, row in unrelated_df.iterrows():
+            mz, ccs, classification, match_name = (
+                row["m/z"],
+                row["CCS"],
+                row["Classification Type"],
+                row["Match"],
             )
-        )
+            color = classification_colors.get(classification, "gray")
 
-    # Now, plot homologous groups
+            sample_info = [
+                f"{col}: {row[col]:.2f}"
+                for col in sample_columns
+                if col in row and row[col] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    marker=dict(size=6, color=color),
+                    name=f"Standalone {classification.capitalize()}",
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
+                    legendgroup="standalone",
+                    showlegend=False,
+                    visible="legendonly",
+                )
+            )
+
+    # Plot homologous groups
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
         legend_group = f"group_{idx + 1}"
 
-        # Separate likely, tentative, and unmatched identifications
         likely_group = [point for point in group if point[3] == "likely"]
-        tentative_group = [point for point in group if point[3] == "tentative"]
-        unmatched_group = [point for point in group if point[3] == "unmatched"]
-
         likely_mz_values = [point[0] for point in likely_group]
         likely_ccs_values = [point[2] for point in likely_group]
 
         if len(likely_mz_values) < 2:
             continue  # Skip groups with too few points for regression
 
-        # Perform regression
         slope, intercept, r_value, p_value, std_err = linregress(
             likely_mz_values, likely_ccs_values
         )
@@ -168,7 +163,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 line=dict(color="black", dash="dash"),
                 legendgroup=legend_group,
                 hoverinfo="skip",
-                showlegend=True,
+                visible=True,
             )
         )
 
@@ -177,7 +172,6 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
             mz, ccs, classification, match_name = point[0], point[2], point[3], point[5]
             color = classification_colors.get(classification, "gray")
 
-            # Get `.d` sample intensities
             sample_info = [
                 f"{col}: {adjusted_df.loc[adjusted_df['m/z'] == mz, col].values[0]:.2f}"
                 for col in sample_columns
@@ -192,9 +186,9 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                     y=[ccs],
                     mode="markers",
                     marker=dict(size=8, color=color),
-                    hovertemplate=f"m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     legendgroup=legend_group,
-                    showlegend=False,  # Hide legend for individual points
+                    showlegend=False,
                 )
             )
 
@@ -203,6 +197,33 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         xaxis_title="m/z",
         yaxis_title="CCS",
         template="plotly_white",
+        updatemenus=[  # Add a dropdown menu to toggle unrelated points
+            {
+                "buttons": [
+                    {
+                        "label": "Show All Points",
+                        "method": "update",
+                        "args": [{"visible": [True] * len(fig.data)}],
+                    },
+                    {
+                        "label": "Show Points in Homologous Series Only",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup.startswith("group")
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                ],
+                "direction": "down",
+                "showactive": True,
+                "x": 0.9,
+                "y": 1.1,
+            }
+        ],
     )
 
     fig.show()
@@ -210,16 +231,13 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
 
 def main():
     """Run the analysis and plotting for interactive homologous series visualization."""
-
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
-
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
 
     print("[DEBUG] First few rows of dataset:")
     print(adjusted_df.head())
 
     groups = mz_repeating_unit_analysis(adjusted_df)
-
     CCS_vs_mz_trend_analysis(adjusted_df, groups)
 
 
