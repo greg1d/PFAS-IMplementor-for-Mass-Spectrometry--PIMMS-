@@ -144,6 +144,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 x=likely_mz_values,
                 y=likely_ccs_values,
                 mode="markers",
+                hovertemplate=(
+                    "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
+                    "Match: %{customdata[1]}<extra></extra>"
+                ),
                 name="Likely Match",
                 marker=dict(color="blue", size=8),
                 customdata=list(zip(likely_sources, likely_names)),
@@ -197,6 +201,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                     y=included_ccs,
                     mode="markers",
                     name="Tentative (Orange) / Unmatched (Purple)",
+                    hovertemplate=(
+                        "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
+                        "Match: %{customdata[1]}<extra></extra>"
+                    ),
                     marker=dict(
                         color=[
                             "orange" if cat == "tentative" else "purple"
