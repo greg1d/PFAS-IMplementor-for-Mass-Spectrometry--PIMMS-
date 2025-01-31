@@ -155,7 +155,7 @@ def plot_data(df):
 
     def smooth_data(column):
         spline = make_interp_spline(
-            dates, df[column], k=3
+            dates, df[column], k=1
         )  # Cubic spline interpolation
         return spline(x_smooth)
 
@@ -195,7 +195,7 @@ def plot_data(df):
 
     # Plot the sum of all code
     sum_of_all_code = df["JavaScript"] + df["CSS"] + df["HTML"] + df["Python"]
-    sum_of_all_code_smooth = make_interp_spline(dates, sum_of_all_code, k=3)(x_smooth)
+    sum_of_all_code_smooth = make_interp_spline(dates, sum_of_all_code, k=1)(x_smooth)
     ax.plot(
         x_smooth,
         sum_of_all_code_smooth,

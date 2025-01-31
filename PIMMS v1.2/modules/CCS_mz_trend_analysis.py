@@ -13,8 +13,8 @@ REPEATING_UNITS = {
 
 def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
     """
-    Identifies features with mass differences corresponding to specific repeating units,
-    compares only to the next peak down (A -> B, B -> C, C -> D).
+    Identifies features with mass differences corresponding to specific repeating units
+    without limiting matches to adjacent rows.
     """
     start_time = time.time()
 
@@ -41,7 +41,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     if not all(col in adjusted_df.columns for col in required_columns):
         raise ValueError(f"Missing required columns: {required_columns}")
 
-    # Extract required data
+    # Extract data
     array = adjusted_df["m/z"].tolist()
     row_ids = adjusted_df["ID"].tolist()
     ccs_values = adjusted_df["CCS"].tolist()
@@ -50,50 +50,51 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     scores = adjusted_df["Classification Type"].tolist()
 
     groups = []
+    visited_indices = set()
 
-    # Search using multiple repeating units, comparing only the next peak down
+    # Search across all peaks, not just adjacent ones
     for M in selected_units:
         print(f"\n[INFO] Analyzing with M = {M:.6f}")
 
-        current_group = []  # Store the current group of peaks
+        for i, mz_value in enumerate(array):
+            if i in visited_indices:
+                continue  # Skip already visited points
 
-        for i in range(len(array) - 1):  # Iterate over all peaks except the last
-            mz_value = array[i]
-            next_mz_value = array[i + 1]  # Only compare to the next peak
+            current_group = [
+                (
+                    mz_value,
+                    row_ids[i],
+                    ccs_values[i],
+                    scores[i],
+                    source_files[i],
+                    names_or_classes[i],
+                )
+            ]
 
-            # Check if the mass difference is a multiple of M
-            mass_diff = abs(mz_value - next_mz_value)
-            if any(
-                abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
-                for k in range(1, 7)  # Searches up to 6 repeating units down
-            ):
-                # Append the first peak if it's not in the group yet
-                if not current_group:
+            for j in range(len(array)):  # Compare with all peaks
+                if j == i or j in visited_indices:
+                    continue  # Skip self and already visited ones
+
+                # Check if the mass difference is a multiple of M
+                mass_diff = abs(mz_value - array[j])
+                if any(
+                    abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
+                    for k in range(1, 7)  # Searches up to 6 repeating units
+                ):
+                    visited_indices.add(j)
                     current_group.append(
                         (
-                            mz_value,
-                            row_ids[i],
-                            ccs_values[i],
-                            scores[i],
-                            source_files[i],
-                            names_or_classes[i],
+                            array[j],
+                            row_ids[j],
+                            ccs_values[j],
+                            scores[j],
+                            source_files[j],
+                            names_or_classes[j],
                         )
                     )
 
-                # Append the next peak to the group
-                current_group.append(
-                    (
-                        next_mz_value,
-                        row_ids[i + 1],
-                        ccs_values[i + 1],
-                        scores[i + 1],
-                        source_files[i + 1],
-                        names_or_classes[i + 1],
-                    )
-                )
-
-        if len(current_group) > 1:
-            groups.append(current_group)
+            if len(current_group) > 1:
+                groups.append(current_group)
 
     print(
         f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
@@ -246,40 +247,30 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
 
 def main():
     """Test and debug the analysis with sample adjusted_df before full integration."""
-    adjusted_df = pd.DataFrame(
-        {
-            "Match": [
-                "PFEtS",
-                "PFPrS",
-                "PFBS",
-                "PFPeS",
-                "PFOS",
-            ],
-            "Match Source": [
-                "PFAS Standards",
-                "PFAS Standards",
-                "PFAS Standards",
-                "None",
-                "PFAS Standards",
-            ],
-            "Classification Type": [
-                "likely",
-                "likely",
-                "tentative",
-                "unmatched",
-                "likely",
-            ],
-            "ID": [1, 2, 3, 4, 5],
-            "RT": [1.3, 3.2, 5.2, 7.03, 10.12],
-            "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [117.4, 125.1, 131.62, 140.2, 168.27],
-            "m/z": [198.9494, 248.9462, 298.943, 348.9398, 498.9302],
-            "Mass Error (ppm)": [-5, 3, 1, -2, 0],
-            "CCS Error (%)": ["N/A", 1.5, -0.5, 2.0, "N/A"],
-            "RT Error (%)": ["N/A", 0.5, -1.2, 1.0, "N/A"],
-        }
-    )
 
+    # Define the file path
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+
+    # Define the columns to read
+    columns_to_read = [
+        "Match",
+        "Match Source",
+        "Classification Type",
+        "ID",
+        "RT",
+        "DT",
+        "CCS",
+        "m/z",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (%)",
+    ]
+
+    # Read the CSV file
+    adjusted_df = pd.read_csv(file_path, usecols=columns_to_read)
+
+    # Display the first few rows
+    print(adjusted_df.head())
     groups = mz_repeating_unit_analysis(adjusted_df)
     CCS_vs_mz_trend_analysis(groups)
 
