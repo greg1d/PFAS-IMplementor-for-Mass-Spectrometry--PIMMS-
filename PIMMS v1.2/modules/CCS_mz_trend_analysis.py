@@ -4,10 +4,27 @@ from scipy.stats import linregress
 import plotly.graph_objects as go
 
 
-def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[100]):
-    start_time = time.time()  # Start the timer
+# Define repeating units
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "TEST": 100,
+}
 
-    # Ensure the required columns are present
+
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
+    """
+    Identifies features with mass differences corresponding to specific repeating units.
+    Compares only to the next peak down (A -> B, B -> C, C -> D).
+    """
+    start_time = time.time()
+
+    # Convert repeating unit names to numerical values
+    selected_units = [
+        REPEATING_UNITS[unit] for unit in repeating_units if unit in REPEATING_UNITS
+    ]
+
+    # Ensure required columns exist
     required_columns = [
         "Match",
         "Match Source",
@@ -22,16 +39,10 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
         "RT Error (%)",
     ]
 
-    # Add intensity columns dynamically
-    intensity_columns = [col for col in adjusted_df.columns if ".d" in col]
-    required_columns.extend(intensity_columns)
-
     if not all(col in adjusted_df.columns for col in required_columns):
-        raise ValueError(
-            f"DataFrame is missing one or more required columns: {required_columns}"
-        )
+        raise ValueError(f"Missing required columns: {required_columns}")
 
-    # Extract required data for processing
+    # Extract required data
     array = adjusted_df["m/z"].tolist()
     row_ids = adjusted_df["ID"].tolist()
     ccs_values = adjusted_df["CCS"].tolist()
@@ -40,64 +51,63 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     scores = adjusted_df["Classification Type"].tolist()
 
     groups = []
-    visited_indices = set()
 
-    # Find peaks within bounds for each value in the array for each M value
-    for M in repeating_units:
-        print(f"Analyzing with M = {M}")
-        for i, mz_value in enumerate(array):
-            if i in visited_indices:
-                continue  # Skip already visited points
+    # Search using multiple repeating units, comparing only the next peak down
+    for M in selected_units:
+        print(f"\n[INFO] Analyzing with M = {M:.6f}")
 
-            # Start the group with the initial peak
-            current_group = [
-                (
-                    mz_value,
-                    row_ids[i],
-                    ccs_values[i],
-                    scores[i],
-                    source_files[i],
-                    names_or_classes[i],
-                )
-            ]
-            # Iteratively check all other points
-            for j, other_mz in enumerate(array):
-                if j == i or j in visited_indices:
-                    continue  # Skip the same point or already visited ones
+        current_group = []  # Store the current group of peaks
 
-                # Check if the mass difference is a multiple of M
-                mass_diff = abs(mz_value - other_mz)
-                if any(
-                    abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
-                    for k in range(1, 6)
-                ):
-                    visited_indices.add(j)
+        for i in range(len(array) - 1):  # Iterate over all peaks except the last
+            mz_value = array[i]
+            next_mz_value = array[i + 1]  # Only compare to the next peak
+
+            # Check if the mass difference is a multiple of M
+            mass_diff = abs(mz_value - next_mz_value)
+            if any(
+                abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
+                for k in range(1, 4)  # Searches for M, 2M, 3M
+            ):
+                # Append the first peak if it's not in the group yet
+                if not current_group:
                     current_group.append(
                         (
-                            other_mz,
-                            row_ids[j],
-                            ccs_values[j],
-                            scores[j],
-                            source_files[j],
-                            names_or_classes[j],
+                            mz_value,
+                            row_ids[i],
+                            ccs_values[i],
+                            scores[i],
+                            source_files[i],
+                            names_or_classes[i],
                         )
                     )
 
-            # If a valid group is formed, add it to the groups list
-            if len(current_group) > 1:
-                groups.append(current_group)
+                # Append the next peak to the group
+                current_group.append(
+                    (
+                        next_mz_value,
+                        row_ids[i + 1],
+                        ccs_values[i + 1],
+                        scores[i + 1],
+                        source_files[i + 1],
+                        names_or_classes[i + 1],
+                    )
+                )
 
-    # Print the groups with detailed information
+        if len(current_group) > 1:
+            groups.append(current_group)
+
+    # Print the matched groups
     for idx, group in enumerate(groups):
-        print(f"Group {idx + 1}:")
+        print(f"\n[INFO] Group {idx + 1}:")
         for point in group:
             print(
-                f"  m/z: {point[0]}, ID: {point[1]}, CCS: {point[2]}, Classification: {point[3]}, Match Source: {point[4]}, Match: {point[5]}"
+                f"  m/z: {point[0]:.6f}, ID: {point[1]}, CCS: {point[2]}, "
+                f"Classification: {point[3]}, Match Source: {point[4]}, Match: {point[5]}"
             )
 
-    end_time = time.time()  # End the timer
-    execution_time = end_time - start_time
-    print(f"Mass repeating unit analysis: {execution_time:.4f} seconds")
+    print(
+        f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
+    )
     return groups
 
 
@@ -226,31 +236,31 @@ def main():
     adjusted_df = pd.DataFrame(
         {
             "Match": [
+                "PFEtS",
+                "PFPrS",
                 "PFBS",
-                "4,4,5,5,5-Pentafluoropentane-1-thiol",
-                "2-Pentanone, 1-chloro-4-hydroxy-5,5,5-trifluoro-4-(trifluoromethyl)-",
-                "ST50977988",
-                "7,8,8,8-Tetrafluoro-7-(trifluoromethyl)octan-1-ol",
+                "PFPeS",
+                "PFOS",
             ],
             "Match Source": [
                 "PFAS Standards",
-                "External Targets",
                 "PFAS Standards",
-                "External Targets",
-                "None",
+                "PFAS Standards",
+                "PFAS Standards",
+                "PFAS Standards",
             ],
             "Classification Type": [
                 "likely",
-                "tentative",
+                "likely",
                 "likely",
                 "likely",
                 "likely",
             ],
             "ID": [1, 2, 3, 4, 5],
-            "RT": [12.73, 3.5, 3.665, 3.666, 3.664],
+            "RT": [1.3, 3.2, 5.2, 7.03, 10.12],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [200, 300, 400, 500, 600],
-            "m/z": [100, 200, 300, 400.0, 500.0],
+            "CCS": [117.4, 125.1, 133.62, 142.2, 168.27],
+            "m/z": [198.9494, 248.9462, 298.943, 348.9398, 498.9302],
             "Mass Error (ppm)": [-5, 3, 1, -2, 0],
             "CCS Error (%)": ["N/A", 1.5, -0.5, 2.0, "N/A"],
             "RT Error (%)": ["N/A", 0.5, -1.2, 1.0, "N/A"],
