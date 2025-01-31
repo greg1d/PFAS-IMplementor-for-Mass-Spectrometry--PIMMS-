@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.stats import linregress
 import plotly.graph_objects as go
 
-
 # Define repeating units
 REPEATING_UNITS = {
     "CF2": 49.9968064,
@@ -14,8 +13,8 @@ REPEATING_UNITS = {
 
 def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
     """
-    Identifies features with mass differences corresponding to specific repeating units.
-    Compares only to the next peak down (A -> B, B -> C, C -> D).
+    Identifies features with mass differences corresponding to specific repeating units,
+    compares only to the next peak down (A -> B, B -> C, C -> D).
     """
     start_time = time.time()
 
@@ -66,7 +65,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
             mass_diff = abs(mz_value - next_mz_value)
             if any(
                 abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
-                for k in range(1, 4)  # Searches for M, 2M, 3M
+                for k in range(1, 7)  # Searches up to 6 repeating units down
             ):
                 # Append the first peak if it's not in the group yet
                 if not current_group:
@@ -95,15 +94,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
 
         if len(current_group) > 1:
             groups.append(current_group)
-
-    # Print the matched groups
-    for idx, group in enumerate(groups):
-        print(f"\n[INFO] Group {idx + 1}:")
-        for point in group:
-            print(
-                f"  m/z: {point[0]:.6f}, ID: {point[1]}, CCS: {point[2]}, "
-                f"Classification: {point[3]}, Match Source: {point[4]}, Match: {point[5]}"
-            )
 
     print(
         f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
@@ -147,7 +137,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                     "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
                     "Match: %{customdata[1]}<extra></extra>"
                 ),
-                customdata=list(zip(likely_sources, likely_names)),  # Custom hover data
+                customdata=list(zip(likely_sources, likely_names)),
             )
         )
 
@@ -172,7 +162,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 mode="lines",
                 name="CCS vs m/z trendline",
                 line=dict(color="blue", dash="dash"),
-                hoverinfo="skip",  # No hover for the trend line
+                hoverinfo="skip",
             )
         )
 
@@ -189,7 +179,7 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             else:
                 excluded_points.append((mz, ccs, source, name))
 
-        # Add a single trace for all included points
+        # Add included points (green)
         if included_points:
             included_mz, included_ccs, included_sources, included_names = zip(
                 *included_points
@@ -201,15 +191,26 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                     mode="markers",
                     name="Included in homologous series trend",
                     marker=dict(color="green", size=8),
-                    hovertemplate=(
-                        "m/z: %{x}<br>CCS: %{y}<br>Match Source: %{customdata[0]}<br>"
-                        "Match: %{customdata[1]}<extra></extra>"
-                    ),
                     customdata=list(zip(included_sources, included_names)),
                 )
             )
 
-        # Configure plot layout
+        # Add excluded points (red)
+        if excluded_points:
+            excluded_mz, excluded_ccs, excluded_sources, excluded_names = zip(
+                *excluded_points
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=excluded_mz,
+                    y=excluded_ccs,
+                    mode="markers",
+                    name="Excluded from trend line",
+                    marker=dict(color="red", size=8, symbol="x"),
+                    customdata=list(zip(excluded_sources, excluded_names)),
+                )
+            )
+
         fig.update_layout(
             title=f"Group {idx + 1}: CCS vs m/z",
             xaxis_title="m/z",
@@ -225,7 +226,6 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             template="plotly_white",
         )
 
-        # Display the plot
         fig.show()
 
     return homologous_series_groups, regression_results
@@ -246,20 +246,20 @@ def main():
                 "PFAS Standards",
                 "PFAS Standards",
                 "PFAS Standards",
-                "PFAS Standards",
+                "Tentative",
                 "PFAS Standards",
             ],
             "Classification Type": [
                 "likely",
                 "likely",
-                "likely",
-                "likely",
+                "tentative",
+                "tentative",
                 "likely",
             ],
             "ID": [1, 2, 3, 4, 5],
             "RT": [1.3, 3.2, 5.2, 7.03, 10.12],
             "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [117.4, 125.1, 133.62, 142.2, 168.27],
+            "CCS": [117.4, 125.1, 131.62, 133.2, 168.27],
             "m/z": [198.9494, 248.9462, 298.943, 348.9398, 498.9302],
             "Mass Error (ppm)": [-5, 3, 1, -2, 0],
             "CCS Error (%)": ["N/A", 1.5, -0.5, 2.0, "N/A"],
