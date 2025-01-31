@@ -48,7 +48,7 @@ def main():
         "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
     external_targets_file = (
-        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.xlsx"
+        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
 
     # Define control columns
@@ -311,9 +311,6 @@ def main():
     adjusted_df = pd.concat(
         [likely_matched_df, external_matched_df, external_unmatched_df],
         ignore_index=True,
-    )
-    adjusted_df["Score"] = adjusted_df["Classification Type"].apply(
-        lambda x: 1 if x == "likely" else 0
     )
 
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
