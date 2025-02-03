@@ -11,8 +11,16 @@ REPEATING_UNITS = {
 }
 
 
+# Define repeating units
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "TEST": 100,
+}
+
+
 def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
-    """Identifies homologous series trends with at least 3 points within 2 repeating units."""
+    """Identifies homologous series trends with at least 3 points using an expanding search approach."""
 
     start_time = time.time()
     selected_units = [
@@ -47,31 +55,41 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
             ]
             used_indices.add(i)
 
-            for j in range(i + 1, len(adjusted_df)):  # Only look forward
-                if j in used_indices:
-                    continue
+            # **Dynamic Expansion Search**
+            search_queue = [i]  # Queue to hold indices to check forward
 
-                next_mz_value = adjusted_df.iloc[j]["m/z"]
-                mass_diff = abs(mz_value - next_mz_value)
+            while search_queue:
+                current_idx = search_queue.pop(0)  # Pop the next index to search from
+                current_mz = adjusted_df.iloc[current_idx]["m/z"]
 
-                # Check if the difference matches M, 2M, 3M, or 4M
-                if any(
-                    abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * mz_value
-                    for k in range(1, 5)
-                ):
-                    current_group.append(
-                        {
-                            "m/z": next_mz_value,
-                            "ID": adjusted_df.iloc[j]["ID"],
-                            "CCS": adjusted_df.iloc[j]["CCS"],
-                            "Classification Type": adjusted_df.iloc[j][
-                                "Classification Type"
-                            ],
-                            "Match Source": adjusted_df.iloc[j]["Match Source"],
-                            "Match": adjusted_df.iloc[j]["Match"],
-                        }
-                    )
-                    used_indices.add(j)  # Mark as used
+                for j in range(current_idx + 1, len(adjusted_df)):  # Look forward
+                    if j in used_indices:
+                        continue
+
+                    next_mz_value = adjusted_df.iloc[j]["m/z"]
+                    mass_diff = abs(current_mz - next_mz_value)
+
+                    # **Check if the difference matches M or 2M from the latest point**
+                    if any(
+                        abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * current_mz
+                        for k in range(1, 3)  # Searches for M, 2M
+                    ):
+                        current_group.append(
+                            {
+                                "m/z": next_mz_value,
+                                "ID": adjusted_df.iloc[j]["ID"],
+                                "CCS": adjusted_df.iloc[j]["CCS"],
+                                "Classification Type": adjusted_df.iloc[j][
+                                    "Classification Type"
+                                ],
+                                "Match Source": adjusted_df.iloc[j]["Match Source"],
+                                "Match": adjusted_df.iloc[j]["Match"],
+                            }
+                        )
+                        used_indices.add(j)  # Mark as used
+                        search_queue.append(
+                            j
+                        )  # Add this index to keep searching forward
 
             if len(current_group) >= 3:  # Only store groups with 3+ points
                 groups.append(current_group)
@@ -80,7 +98,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
         f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
     )
 
-    # **🔹 Debugging: Print each group in tabular format**
+    # **Debugging: Print each group in tabular format**
     for idx, group in enumerate(groups):
         print(f"\n[DEBUG] Group {idx + 1} - Homologous Series:")
         df_debug = pd.DataFrame(group)
