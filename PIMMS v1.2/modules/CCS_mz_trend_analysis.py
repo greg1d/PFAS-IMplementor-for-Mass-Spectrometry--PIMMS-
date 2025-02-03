@@ -149,7 +149,10 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
             )
         )
 
-    # **🔹 Plot homologous series with trendlines**
+    # **🔹 Plot homologous groups with trendlines**
+    homologous_series_plotted = (
+        False  # Track if the homologous series legend has been added
+    )
     for idx, group in enumerate(groups):
         legend_group = f"group_{idx + 1}"
 
@@ -168,19 +171,23 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         reg_line_x = sorted(mz_values)
         reg_line_y = [slope * mz + intercept for mz in reg_line_x]
 
-        # **Trendline (Always in legend)**
+        # **Trendline (Show in legend only once)**
         fig.add_trace(
             go.Scatter(
                 x=reg_line_x,
                 y=reg_line_y,
                 mode="lines",
-                name="Homologous Series",
+                name="Homologous Series"
+                if not homologous_series_plotted
+                else None,  # Show legend only once
                 line=dict(color="black", dash="dash"),
                 legendgroup="homologous_series",
                 hoverinfo="skip",
                 visible=True,
+                showlegend=not homologous_series_plotted,  # Show legend only once
             )
         )
+        homologous_series_plotted = True  # Mark legend as added
 
         # **Homologous group points**
         for point in group:
@@ -205,19 +212,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 )
             )
 
-    # **🔹 Persistent Legend Elements**
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="lines",
-            line=dict(color="black", dash="dash"),
-            name="Homologous Series",
-            legendgroup="homologous_series",
-            showlegend=True,
-        )
-    )
-
+    # **🔹 Persistent Legend Elements (Avoid duplicates)**
     fig.add_trace(
         go.Scatter(
             x=[None],
