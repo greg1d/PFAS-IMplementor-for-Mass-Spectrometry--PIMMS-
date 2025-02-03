@@ -172,7 +172,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         slope, intercept, r_value, p_value, std_err = linregress(mz_values, ccs_values)
         r_squared = r_value**2
 
-        if r_squared <= 0.90:
+        if r_squared <= 0.99:
             continue
 
         reg_line_x = sorted(mz_values)
@@ -253,7 +253,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         )
     )
 
-    # **🔹 Dropdown to toggle visibility**
+    # ** Dropdown to toggle visibility**
     fig.update_layout(
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
