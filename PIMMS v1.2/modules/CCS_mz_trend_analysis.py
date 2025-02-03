@@ -135,6 +135,12 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         )
         color = classification_colors.get(classification, "gray")
 
+        # **🔹 Extract Sample Information (Intensity Data)**
+        sample_info = [
+            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
+        ]
+        sample_text = "<br>".join(sample_info) if sample_info else "None"
+
         fig.add_trace(
             go.Scatter(
                 x=[mz],
@@ -142,7 +148,8 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 mode="markers",
                 marker=dict(size=6, color=color),
                 name="All Data Points",
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<extra></extra>",
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 legendgroup="all_points",
                 showlegend=False,
                 visible=True,
@@ -170,6 +177,8 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
 
         reg_line_x = sorted(mz_values)
         reg_line_y = [slope * mz + intercept for mz in reg_line_x]
+
+        print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
 
         # **Trendline (Show in legend only once)**
         fig.add_trace(
@@ -199,16 +208,23 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
             )
             color = classification_colors.get(classification, "gray")
 
+            # **🔹 Extract Sample Information (Intensity Data)**
+            row = adjusted_df[adjusted_df["m/z"] == mz].iloc[0]
+            sample_info = [
+                f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
             fig.add_trace(
                 go.Scatter(
                     x=[mz],
                     y=[ccs],
                     mode="markers",
                     marker=dict(size=8, color=color),
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<extra></extra>",
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                    f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     legendgroup=legend_group,
                     showlegend=False,
-                    visible=True,
                 )
             )
 
