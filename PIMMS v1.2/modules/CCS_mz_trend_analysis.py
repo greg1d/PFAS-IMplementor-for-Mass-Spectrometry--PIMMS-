@@ -90,39 +90,54 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     return groups
 
 
-def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
-    """Plots CCS vs. m/z trends and ensures correct data structure."""
+def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
+    """
+    Plots CCS vs. m/z trends with interactive group toggling.
+    """
 
-    # **Debugging: Check type of `groups`**
-    print(f"[DEBUG] `groups` type: {type(groups)}")
-    if isinstance(groups, pd.DataFrame):
-        print("[ERROR] `groups` is a DataFrame but should be a list! Converting...")
-        groups = groups.to_dict(
-            orient="records"
-        )  # Convert it to a list of dictionaries
+    fig = go.Figure()
 
-    if not isinstance(groups, list):
-        print(f"[ERROR] `groups` should be a list, but it is {type(groups)}")
-        return
+    # Define colors for different classifications
+    classification_colors = {
+        "likely": "blue",
+        "tentative": "orange",
+        "unmatched": "purple",
+    }
 
-    if len(groups) == 0:
-        print("[ERROR] No groups found. Exiting function.")
-        return
+    # Grouped m/z values for homologous series
+    grouped_mz_values = {point["m/z"] for group in groups for point in group}
 
+    # Unrelated points (points NOT in homologous series)
+    unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(grouped_mz_values)]
+
+    # Plot ALL points first (to be toggled later)
+    for _, row in adjusted_df.iterrows():
+        mz, ccs, classification, match_name = (
+            row["m/z"],
+            row["CCS"],
+            row["Classification Type"],
+            row["Match"],
+        )
+        color = classification_colors.get(classification, "gray")
+
+        fig.add_trace(
+            go.Scatter(
+                x=[mz],
+                y=[ccs],
+                mode="markers",
+                marker=dict(size=6, color=color),
+                name=f"All {classification.capitalize()}",
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<extra></extra>",
+                legendgroup="all_points",
+                showlegend=False,
+                visible=True,
+            )
+        )
+
+    # Plot homologous groups with trendlines
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
-
-        if not isinstance(group, list):
-            print(f"[ERROR] Group {idx + 1} is not a list! It is type {type(group)}")
-            continue
-
-        if not all(isinstance(point, dict) for point in group):
-            print(
-                f"[ERROR] Group {idx + 1} contains invalid elements! Printing first 5:"
-            )
-            for point in group[:5]:  # Print first 5 elements for debugging
-                print(f"    - {point} (Type: {type(point)})")
-            continue
+        legend_group = f"group_{idx + 1}"
 
         mz_values = [point["m/z"] for point in group]
         ccs_values = [point["CCS"] for point in group]
@@ -138,15 +153,10 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
             print(f"[DEBUG] Group {idx + 1} skipped (R² {r_squared:.4f} too low)")
             continue
 
-        print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
-
-        # **Debugging: Print group data**
-        print(pd.DataFrame(group))
-
         reg_line_x = sorted(mz_values)
         reg_line_y = [slope * mz + intercept for mz in reg_line_x]
 
-        fig = go.Figure()
+        print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
 
         # Add trendline
         fig.add_trace(
@@ -156,7 +166,9 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 mode="lines",
                 name=f"Trend {idx + 1}",
                 line=dict(color="black", dash="dash"),
+                legendgroup=legend_group,
                 hoverinfo="skip",
+                visible="legendonly",  # Initially hidden but can be toggled
             )
         )
 
@@ -168,25 +180,57 @@ def CCS_vs_mz_trend_analysis(groups, variation_threshold=0.02):
                 point["Classification Type"],
                 point["Match"],
             )
+            color = classification_colors.get(classification, "gray")
 
             fig.add_trace(
                 go.Scatter(
                     x=[mz],
                     y=[ccs],
                     mode="markers",
-                    marker=dict(size=8, color="blue"),
+                    marker=dict(size=8, color=color),
                     hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<extra></extra>",
+                    legendgroup=legend_group,
+                    showlegend=False,
+                    visible="legendonly",
                 )
             )
 
-        fig.update_layout(
-            title=f"Group {idx + 1}: CCS vs m/z",
-            xaxis_title="m/z",
-            yaxis_title="CCS",
-            template="plotly_white",
-        )
+    # Add dropdown menu for toggling all points or homologous series only
+    fig.update_layout(
+        title="CCS vs m/z Trends",
+        xaxis_title="m/z",
+        yaxis_title="CCS",
+        template="plotly_white",
+        updatemenus=[
+            {
+                "buttons": [
+                    {
+                        "label": "Show All Points",
+                        "method": "update",
+                        "args": [{"visible": [True] * len(fig.data)}],
+                    },
+                    {
+                        "label": "Show Homologous Series Only",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup.startswith("group")
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                ],
+                "direction": "down",
+                "showactive": True,
+                "x": 0.9,
+                "y": 1.1,
+            }
+        ],
+    )
 
-        fig.show()
+    fig.show()
 
 
 def main():
@@ -198,14 +242,7 @@ def main():
     print(adjusted_df.head())
 
     groups = mz_repeating_unit_analysis(adjusted_df)
-
-    # **Verify `groups` before passing**
-    print(f"[DEBUG] `groups` after function call type: {type(groups)}")
-    if isinstance(groups, pd.DataFrame):
-        print("[ERROR] `groups` is a DataFrame! Converting to list...")
-        groups = groups.to_dict(orient="records")
-
-    CCS_vs_mz_trend_analysis(groups)  # ✅ Ensure only list is passed
+    CCS_vs_mz_trend_analysis(adjusted_df, groups)
 
 
 if __name__ == "__main__":
