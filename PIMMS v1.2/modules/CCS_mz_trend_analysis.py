@@ -108,9 +108,15 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     return groups
 
 
-def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
+def make_plotly_graph(adjusted_df, groups):
     """
-    Plots CCS vs. m/z trends with interactive group toggling.
+    Creates an interactive Plotly graph for visualizing CCS vs. m/z trends.
+
+    - Displays all data points initially.
+    - Allows toggling between all data points and homologous series.
+    - Includes a single "Homologous Series" trendline in the legend.
+    - Highlights tentative matches to external libraries and unmatched tentative points.
+    - Shows sample intensity information in tooltips.
     """
 
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
@@ -301,7 +307,7 @@ def main():
     print(adjusted_df.head())
 
     groups = mz_repeating_unit_analysis(adjusted_df)
-    CCS_vs_mz_trend_analysis(adjusted_df, groups)
+    make_plotly_graph(adjusted_df, groups)
 
 
 if __name__ == "__main__":
