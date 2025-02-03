@@ -118,6 +118,8 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
     fig = go.Figure()
 
     grouped_mz_values = {point["m/z"] for group in groups for point in group}
+
+    # Unrelated (non-homologous) points
     unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(grouped_mz_values)]
 
     classification_colors = {
@@ -126,7 +128,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         "unmatched": "purple",
     }
 
-    # Plot unrelated points
+    # 🔹 **Plot all unrelated points (Can be toggled)**
     for _, row in unrelated_df.iterrows():
         mz, ccs, classification, match_name = (
             row["m/z"],
@@ -136,7 +138,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         )
         color = classification_colors.get(classification, "gray")
 
-        # **Extract sample intensities**
+        # Extract sample intensities
         sample_info = [
             f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
         ]
@@ -148,15 +150,15 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 y=[ccs],
                 mode="markers",
                 marker=dict(size=6, color=color),
-                name=f"Standalone {classification.capitalize()}",
+                name="Unrelated Points",
                 hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                legendgroup="standalone",
-                showlegend=False,
-                visible="legendonly",
+                legendgroup="unrelated",
+                showlegend=True,
+                visible=True,  # Initially visible
             )
         )
 
-    # Plot homologous groups with trendlines
+    # 🔹 **Plot homologous groups with trendlines**
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
         legend_group = f"group_{idx + 1}"
@@ -180,7 +182,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
 
         print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
 
-        # Add trendline
+        # **Trendline (Only visible when homologous series is shown)**
         fig.add_trace(
             go.Scatter(
                 x=reg_line_x,
@@ -190,11 +192,11 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 line=dict(color="black", dash="dash"),
                 legendgroup=legend_group,
                 hoverinfo="skip",
-                visible=True,
+                visible="legendonly",  # Initially hidden, toggled ON with homologous series
             )
         )
 
-        # Add group points with sample origin tracking
+        # **Homologous group points**
         for point in group:
             mz, ccs, classification, match_name = (
                 point["m/z"],
@@ -204,7 +206,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
             )
             color = classification_colors.get(classification, "gray")
 
-            # **Extract sample sources and intensities**
+            # Extract sample sources and intensities
             sample_info = [
                 f"{col}: {adjusted_df.loc[adjusted_df['m/z'] == mz, col].values[0]:.2f}"
                 for col in sample_columns
@@ -222,14 +224,43 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                     hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Sample Sources:<br>{sample_text}<extra></extra>",
                     legendgroup=legend_group,
                     showlegend=False,
+                    visible="legendonly",  # Initially hidden, toggled ON with homologous series
                 )
             )
 
+    # **🔹 Toggle Button for "Show All Points" vs. "Only Homologous Series"**
     fig.update_layout(
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
         yaxis_title="CCS",
         template="plotly_white",
+        updatemenus=[
+            {
+                "buttons": [
+                    {
+                        "label": "Show All Points",
+                        "method": "update",
+                        "args": [{"visible": [True] * len(fig.data)}],
+                    },
+                    {
+                        "label": "Show Homologous Series Only",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup.startswith("group")
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                ],
+                "direction": "down",
+                "showactive": True,
+                "x": 0.9,
+                "y": 1.1,
+            }
+        ],
     )
 
     fig.show()
