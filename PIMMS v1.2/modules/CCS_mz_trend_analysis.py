@@ -110,26 +110,24 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
 
 def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
     """
-    Plots CCS vs. m/z trends with interactive group toggling.
+    Plots CCS vs. m/z trends with interactive group toggling and sample source tracking.
     """
 
+    # Identify all sample columns (columns containing '.d')
+    sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
 
-    # Define colors for different classifications
+    grouped_mz_values = {point["m/z"] for group in groups for point in group}
+    unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(grouped_mz_values)]
+
     classification_colors = {
         "likely": "blue",
         "tentative": "orange",
         "unmatched": "purple",
     }
 
-    # Grouped m/z values for homologous series
-    grouped_mz_values = {point["m/z"] for group in groups for point in group}
-
-    # Unrelated points (points NOT in homologous series)
-    unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(grouped_mz_values)]
-
-    # Plot ALL points first (to be toggled later)
-    for _, row in adjusted_df.iterrows():
+    # Plot unrelated points
+    for _, row in unrelated_df.iterrows():
         mz, ccs, classification, match_name = (
             row["m/z"],
             row["CCS"],
@@ -138,17 +136,23 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         )
         color = classification_colors.get(classification, "gray")
 
+        # **Extract sample intensities**
+        sample_info = [
+            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
+        ]
+        sample_text = "<br>".join(sample_info) if sample_info else "None"
+
         fig.add_trace(
             go.Scatter(
                 x=[mz],
                 y=[ccs],
                 mode="markers",
                 marker=dict(size=6, color=color),
-                name=f"All {classification.capitalize()}",
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<extra></extra>",
-                legendgroup="all_points",
+                name=f"Standalone {classification.capitalize()}",
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
+                legendgroup="standalone",
                 showlegend=False,
-                visible=True,
+                visible="legendonly",
             )
         )
 
@@ -186,11 +190,11 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 line=dict(color="black", dash="dash"),
                 legendgroup=legend_group,
                 hoverinfo="skip",
-                visible="legendonly",  # Initially hidden but can be toggled
+                visible=True,
             )
         )
 
-        # Add group points
+        # Add group points with sample origin tracking
         for point in group:
             mz, ccs, classification, match_name = (
                 point["m/z"],
@@ -200,52 +204,32 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
             )
             color = classification_colors.get(classification, "gray")
 
+            # **Extract sample sources and intensities**
+            sample_info = [
+                f"{col}: {adjusted_df.loc[adjusted_df['m/z'] == mz, col].values[0]:.2f}"
+                for col in sample_columns
+                if mz in adjusted_df["m/z"].values
+                and adjusted_df.loc[adjusted_df["m/z"] == mz, col].values[0] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
             fig.add_trace(
                 go.Scatter(
                     x=[mz],
                     y=[ccs],
                     mode="markers",
                     marker=dict(size=8, color=color),
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<extra></extra>",
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Sample Sources:<br>{sample_text}<extra></extra>",
                     legendgroup=legend_group,
                     showlegend=False,
-                    visible="legendonly",
                 )
             )
 
-    # Add dropdown menu for toggling all points or homologous series only
     fig.update_layout(
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
         yaxis_title="CCS",
         template="plotly_white",
-        updatemenus=[
-            {
-                "buttons": [
-                    {
-                        "label": "Show All Points",
-                        "method": "update",
-                        "args": [{"visible": [True] * len(fig.data)}],
-                    },
-                    {
-                        "label": "Show Homologous Series Only",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup.startswith("group")
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                ],
-                "direction": "down",
-                "showactive": True,
-                "x": 0.9,
-                "y": 1.1,
-            }
-        ],
     )
 
     fig.show()
