@@ -104,7 +104,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
         df_debug = pd.DataFrame(group)
         print(df_debug.to_string(index=False))  # Print clean table without row index
         print("-" * 80)  # Separator for readability
-
     return groups
 
 
