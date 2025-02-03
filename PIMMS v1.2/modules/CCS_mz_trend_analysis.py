@@ -128,7 +128,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
         "unmatched": "purple",
     }
 
-    # 🔹 **Plot all unrelated points (Can be toggled)**
+    # 🔹 **Plot all unrelated points (Visible by default)**
     for _, row in unrelated_df.iterrows():
         mz, ccs, classification, match_name = (
             row["m/z"],
@@ -158,7 +158,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
             )
         )
 
-    # 🔹 **Plot homologous groups with trendlines**
+    # 🔹 **Plot homologous groups with trendlines (Visible by default)**
     for idx, group in enumerate(groups):
         print(f"\nProcessing Group {idx + 1}:")
         legend_group = f"group_{idx + 1}"
@@ -182,7 +182,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
 
         print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
 
-        # **Trendline (Only visible when homologous series is shown)**
+        # **Trendline (Visible by default)**
         fig.add_trace(
             go.Scatter(
                 x=reg_line_x,
@@ -192,11 +192,11 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                 line=dict(color="black", dash="dash"),
                 legendgroup=legend_group,
                 hoverinfo="skip",
-                visible="legendonly",  # Initially hidden, toggled ON with homologous series
+                visible=True,  # Shown by default
             )
         )
 
-        # **Homologous group points**
+        # **Homologous group points (Visible by default)**
         for point in group:
             mz, ccs, classification, match_name = (
                 point["m/z"],
@@ -224,7 +224,7 @@ def CCS_vs_mz_trend_analysis(adjusted_df, groups, variation_threshold=0.02):
                     hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>Classification: {classification}<br>Sample Sources:<br>{sample_text}<extra></extra>",
                     legendgroup=legend_group,
                     showlegend=False,
-                    visible="legendonly",  # Initially hidden, toggled ON with homologous series
+                    visible=True,  # Shown by default
                 )
             )
 
