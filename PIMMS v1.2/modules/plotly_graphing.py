@@ -21,43 +21,53 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
 
     clean_df = adjusted_df[~adjusted_df["m/z"].isin(excluded_mz_values)]
 
-    classification_colors = {
-        "likely": "blue",
-        "tentative": "orange",
-        "unmatched": "purple",
-    }
+    # ** Separate DataFrames for Different Groups **
+    tentative_df = clean_df[clean_df["Classification Type"] == "tentative"]
+    unmatched_df = clean_df[clean_df["Classification Type"] == "unmatched"]
+    likely_df = clean_df[clean_df["Classification Type"] == "likely"]
 
-    # **🔹 Plot all data points first (excluding post-source decay & branched isomers)**
-    for _, row in clean_df.iterrows():
-        mz, ccs, classification, match_name = (
-            row["m/z"],
-            row["CCS"],
-            row["Classification Type"],
-            row["Match"],
-        )
-        color = classification_colors.get(classification, "gray")
-
-        # **🔹 Extract Sample Information (Intensity Data)**
-        intensity = sum([row[col] for col in sample_columns if row[col] > 0])
-        point_size = 6 + (intensity / max(1, intensity)) * 5  # Scale size dynamically
-
-        sample_info = [
-            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
-        ]
-        sample_text = "<br>".join(sample_info) if sample_info else "None"
-
+    # ** Plot Likely Identifications **
+    for _, row in likely_df.iterrows():
         fig.add_trace(
             go.Scatter(
-                x=[mz],
-                y=[ccs],
+                x=[row["m/z"]],
+                y=[row["CCS"]],
                 mode="markers",
-                marker=dict(size=point_size, color=color),
-                name="All Data Points",
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
-                f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                legendgroup="all_points",
-                showlegend=False,
-                visible=True,
+                marker=dict(size=8, color="blue"),
+                name="Likely Identified",
+                legendgroup="likely_identified",
+                showlegend=True,
+                visible=True,  # Initially visible
+            )
+        )
+
+    # ** Plot Tentative Points **
+    for _, row in tentative_df.iterrows():
+        fig.add_trace(
+            go.Scatter(
+                x=[row["m/z"]],
+                y=[row["CCS"]],
+                mode="markers",
+                marker=dict(size=8, color="orange"),
+                name="Tentative - matched to external library",
+                legendgroup="tentative_matched",
+                showlegend=True,
+                visible=True,  # Initially visible
+            )
+        )
+
+    # ** Plot Unmatched Points **
+    for _, row in unmatched_df.iterrows():
+        fig.add_trace(
+            go.Scatter(
+                x=[row["m/z"]],
+                y=[row["CCS"]],
+                mode="markers",
+                marker=dict(size=8, color="purple"),
+                name="Tentative - no match to a library",
+                legendgroup="tentative_no_match",
+                showlegend=True,
+                visible=True,  # Initially visible
             )
         )
 
@@ -99,51 +109,10 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         )
         homologous_series_plotted = True
 
-        # **Homologous group points**
-        for mz, ccs in group:
-            row_match = adjusted_df[adjusted_df["m/z"] == mz]
-
-            match_name = (
-                row_match["Match"].iloc[0] if not row_match.empty else "Unknown"
-            )
-            classification = (
-                row_match["Classification Type"].iloc[0]
-                if not row_match.empty
-                else "unmatched"
-            )
-            color = classification_colors.get(classification, "gray")
-
-            # ✅ Extract sample intensity info
-            sample_info = [
-                f"{col}: {row_match[col].values[0]:.2f}"
-                for col in sample_columns
-                if not row_match.empty and row_match[col].values[0] > 0
-            ]
-            sample_text = "<br>".join(sample_info) if sample_info else "None"
-
-            fig.add_trace(
-                go.Scatter(
-                    x=[mz],
-                    y=[ccs],
-                    mode="markers",
-                    marker=dict(size=8, color=color),
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
-                    f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                    legendgroup=legend_group,
-                    showlegend=False,
-                )
-            )
-
     # 🔹 Post-Source Decay Points
     for idx, group in enumerate(post_source_decay):
         for point in group:
             mz, ccs = point
-            related_series = " & ".join(
-                [str(p[0]) for p in best_subset[idx]]
-                if idx < len(best_subset)
-                else ["Unknown"]
-            )
-
             fig.add_trace(
                 go.Scatter(
                     x=[mz],
@@ -153,8 +122,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                     name=f"Post Source Decay {idx + 1}",
                     legendgroup="post_source_decay",
                     showlegend=True,
-                    hovertemplate=f"Post-source decay of homologous series: {related_series}<br>"
-                    f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
+                    visible=True,
                 )
             )
 
@@ -162,12 +130,6 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
     for idx, group in enumerate(branched_isomers):
         for point in group:
             mz, ccs = point
-            related_series = " & ".join(
-                [str(p[0]) for p in best_subset[idx]]
-                if idx < len(best_subset)
-                else ["Unknown"]
-            )
-
             fig.add_trace(
                 go.Scatter(
                     x=[mz],
@@ -177,37 +139,11 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                     name=f"Branched Isomer {idx + 1}",
                     legendgroup="branched_isomers",
                     showlegend=True,
-                    hovertemplate=f"Branched isomer of homologous series: {related_series}<br>"
-                    f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
+                    visible=True,
                 )
             )
 
-    # **🔹 Persistent Legend Elements**
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color="orange", size=8),
-            name="Tentative - matched to external library",
-            legendgroup="tentative_matched",
-            showlegend=True,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color="purple", size=8),
-            name="Tentative - no match to a library",
-            legendgroup="tentative_no_match",
-            showlegend=True,
-        )
-    )
-
-    # ** Update layout**
-    # ** Dropdown to toggle visibility**
+    # ** Dropdown to toggle visibility **
     fig.update_layout(
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
@@ -222,13 +158,51 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                         "args": [{"visible": [True] * len(fig.data)}],
                     },
                     {
+                        "label": "Hide Tentative & No Match Points",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup
+                                    not in ["tentative_matched", "tentative_no_match"]
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                    {
+                        "label": "Show Tentative & No Match Points",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup
+                                    in ["tentative_matched", "tentative_no_match"]
+                                    or trace.visible
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                    {
+                        "label": "Show Only Likely Identifications",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup == "likely_identified"
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                    {
                         "label": "Show Only Homologous Series",
                         "method": "update",
                         "args": [
                             {
                                 "visible": [
-                                    trace.legendgroup.startswith("homologous_series")
-                                    or trace.legendgroup.startswith("group")
+                                    "homologous_series" in (trace.legendgroup or "")
                                     for trace in fig.data
                                 ]
                             }
