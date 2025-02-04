@@ -13,9 +13,7 @@ REPEATING_UNITS = {
 }
 
 
-def mz_repeating_unit_analysis(
-    adjusted_df, mass_error_ppm=10, repeating_units=["CF2", "OCF2"]
-):
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
     """Identifies homologous series trends with at least 3 points using an expanding search approach."""
 
     start_time = time.time()
