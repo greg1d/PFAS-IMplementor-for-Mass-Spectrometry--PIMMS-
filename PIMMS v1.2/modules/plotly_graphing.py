@@ -146,7 +146,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 legendgroup="homologous_series",
                 hoverinfo="skip",
                 visible=True,
-                showlegend=not homologous_series_plotted,
+                showlegend=False,
             )
         )
     homologous_series_groups.append(legend_group)
@@ -279,6 +279,20 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
             marker=dict(size=8, color="purple"),
             name="Unmatched",
             legendgroup="tentative_no_match",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+    # ✅ Add a single legend entry (No extra lines plotted)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="lines",
+            line=dict(color="black", dash="dash"),
+            name="Homologous Series",
+            legendgroup="homologous_series",
             showlegend=True,
             visible=True,
         )
