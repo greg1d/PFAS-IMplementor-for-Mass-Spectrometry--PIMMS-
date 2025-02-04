@@ -5,7 +5,7 @@ from scipy.stats import linregress
 def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isomers):
     """
     Creates an interactive Plotly graph for visualizing CCS vs. m/z trends.
-    - Displays all data points initially.
+    - Displays all data points initially (excluding classified post-source decay & branched isomers).
     - Highlights homologous series trendlines.
     - Differentiates post-source decay and branched isomers.
     - Shows sample intensity information in tooltips.
@@ -14,9 +14,12 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
 
-    # Store all homologous m/z values to exclude from unrelated_df
-    homologous_mz_values = {point[0] for group in best_subset for point in group}
-    unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(homologous_mz_values)]
+    # ** Remove post-source decay & branched isomer points from general data **
+    decay_mz_values = {point[0] for group in post_source_decay for point in group}
+    branched_mz_values = {point[0] for group in branched_isomers for point in group}
+    excluded_mz_values = decay_mz_values.union(branched_mz_values)
+
+    clean_df = adjusted_df[~adjusted_df["m/z"].isin(excluded_mz_values)]
 
     classification_colors = {
         "likely": "blue",
@@ -24,8 +27,8 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         "unmatched": "purple",
     }
 
-    # **🔹 Plot all data points first**
-    for _, row in adjusted_df.iterrows():
+    # **🔹 Plot all data points first (excluding post-source decay & branched isomers)**
+    for _, row in clean_df.iterrows():
         mz, ccs, classification, match_name = (
             row["m/z"],
             row["CCS"],
@@ -35,9 +38,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         color = classification_colors.get(classification, "gray")
 
         # **🔹 Extract Sample Information (Intensity Data)**
-        intensity = sum(
-            [row[col] for col in sample_columns if row[col] > 0]
-        )  # Sum intensities
+        intensity = sum([row[col] for col in sample_columns if row[col] > 0])
         point_size = 6 + (intensity / max(1, intensity)) * 5  # Scale size dynamically
 
         sample_info = [
@@ -133,67 +134,53 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 )
             )
 
-    # 🔹 Post-Source Decay Points - Ensuring Correct Unpacking
+    # 🔹 Post-Source Decay Points
     for idx, group in enumerate(post_source_decay):
-        try:
-            if not isinstance(group, list):
-                group = [group]
+        for point in group:
+            mz, ccs = point
+            related_series = " & ".join(
+                [str(p[0]) for p in best_subset[idx]]
+                if idx < len(best_subset)
+                else ["Unknown"]
+            )
 
-            for point in group:
-                mz, ccs = point
-
-                related_series = " & ".join(
-                    [str(p[0]) for p in best_subset[idx]]
-                    if idx < len(best_subset)
-                    else ["Unknown"]
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    marker=dict(size=8, color="red"),
+                    name=f"Post Source Decay {idx + 1}",
+                    legendgroup="post_source_decay",
+                    showlegend=True,
+                    hovertemplate=f"Post-source decay of homologous series: {related_series}<br>"
+                    f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
                 )
+            )
 
-                fig.add_trace(
-                    go.Scatter(
-                        x=[mz],
-                        y=[ccs],
-                        mode="markers",
-                        marker=dict(size=8, color="red"),
-                        name=f"Post Source Decay {idx + 1}",
-                        legendgroup="post_source_decay",
-                        showlegend=True,
-                        hovertemplate=f"Post-source decay of homologous series: {related_series}<br>"
-                        f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
-                    )
-                )
-        except (ValueError, IndexError, TypeError) as e:
-            print(f"[ERROR] Invalid post-source decay point format: {group} - {e}")
-
-    # 🔹 Branched Isomer Points - Correctly Handled
+    # 🔹 Branched Isomer Points
     for idx, group in enumerate(branched_isomers):
-        try:
-            if not isinstance(group, list):
-                group = [group]
+        for point in group:
+            mz, ccs = point
+            related_series = " & ".join(
+                [str(p[0]) for p in best_subset[idx]]
+                if idx < len(best_subset)
+                else ["Unknown"]
+            )
 
-            for point in group:
-                mz, ccs = point
-
-                related_series = " & ".join(
-                    [str(p[0]) for p in best_subset[idx]]
-                    if idx < len(best_subset)
-                    else ["Unknown"]
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    marker=dict(size=8, color="black"),
+                    name=f"Branched Isomer {idx + 1}",
+                    legendgroup="branched_isomers",
+                    showlegend=True,
+                    hovertemplate=f"Branched isomer of homologous series: {related_series}<br>"
+                    f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
                 )
-
-                fig.add_trace(
-                    go.Scatter(
-                        x=[mz],
-                        y=[ccs],
-                        mode="markers",
-                        marker=dict(size=8, color="black"),
-                        name=f"Branched Isomer {idx + 1}",
-                        legendgroup="branched_isomers",
-                        showlegend=True,
-                        hovertemplate=f"Branched isomer of homologous series: {related_series}<br>"
-                        f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
-                    )
-                )
-        except (ValueError, IndexError, TypeError) as e:
-            print(f"[ERROR] Invalid branched isomer point format: {group} - {e}")
+            )
 
     # **🔹 Persistent Legend Elements**
     fig.add_trace(
@@ -219,12 +206,41 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         )
     )
 
+    # ** Update layout**
     # ** Dropdown to toggle visibility**
     fig.update_layout(
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
         yaxis_title="CCS",
         template="plotly_white",
+        updatemenus=[
+            {
+                "buttons": [
+                    {
+                        "label": "Show All Points",
+                        "method": "update",
+                        "args": [{"visible": [True] * len(fig.data)}],
+                    },
+                    {
+                        "label": "Show Only Homologous Series",
+                        "method": "update",
+                        "args": [
+                            {
+                                "visible": [
+                                    trace.legendgroup.startswith("homologous_series")
+                                    or trace.legendgroup.startswith("group")
+                                    for trace in fig.data
+                                ]
+                            }
+                        ],
+                    },
+                ],
+                "direction": "down",
+                "showactive": True,
+                "x": 0.9,
+                "y": 1.1,
+            }
+        ],
     )
 
     fig.show()
