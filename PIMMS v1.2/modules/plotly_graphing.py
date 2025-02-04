@@ -186,51 +186,65 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
             )
         )
 
-    # 🔹 Post-Source Decay Points
     for idx, group in enumerate(post_source_decay):
-        for mz, ccs in group:
-            fig.add_trace(
-                go.Scatter(
-                    x=[mz],
-                    y=[ccs],
-                    mode="markers",
-                    marker=dict(size=8, color="red"),
-                    name=f"Post Source Decay {idx + 1}",
-                    legendgroup="post_source_decay",
-                    showlegend=False,
-                    visible=True,
+        try:
+            if not isinstance(group, list):
+                group = [group]
+
+            for point in group:
+                mz, ccs = point
+
+                related_series = " & ".join(
+                    [str(p[0]) for p in best_subset[idx]]
+                    if idx < len(best_subset)
+                    else ["Unknown"]
                 )
-            )
 
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="markers",
-            marker=dict(size=8, color="red"),
-            name="Post Source Decay",
-            legendgroup="post_source_decay",
-            showlegend=True,
-            visible=True,
-        )
-    )
+                fig.add_trace(
+                    go.Scatter(
+                        x=[mz],
+                        y=[ccs],
+                        mode="markers",
+                        marker=dict(size=8, color="red"),
+                        name=f"Post Source Decay {idx + 1}",
+                        legendgroup="post_source_decay",
+                        showlegend=False,
+                        hovertemplate=f"Post-source decay of homologous series: {related_series}<br>"
+                        f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
+                    )
+                )
+        except (ValueError, IndexError, TypeError) as e:
+            print(f"[ERROR] Invalid post-source decay point format: {group} - {e}")
 
-    # 🔹 Branched Isomer Points
     for idx, group in enumerate(branched_isomers):
-        for point in group:
-            mz, ccs = point
-            fig.add_trace(
-                go.Scatter(
-                    x=[mz],
-                    y=[ccs],
-                    mode="markers",
-                    marker=dict(size=8, color="black"),
-                    name=f"Branched Isomer {idx + 1}",
-                    legendgroup="branched_isomers",
-                    showlegend=False,
-                    visible=True,
+        try:
+            if not isinstance(group, list):
+                group = [group]
+
+            for point in group:
+                mz, ccs = point
+
+                related_series = " & ".join(
+                    [str(p[0]) for p in best_subset[idx]]
+                    if idx < len(best_subset)
+                    else ["Unknown"]
                 )
-            )
+
+                fig.add_trace(
+                    go.Scatter(
+                        x=[mz],
+                        y=[ccs],
+                        mode="markers",
+                        marker=dict(size=8, color="black"),
+                        name=f"Branched Isomer {idx + 1}",
+                        legendgroup="branched_isomers",
+                        showlegend=False,
+                        hovertemplate=f"Branched isomer of homologous series: {related_series}<br>"
+                        f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
+                    )
+                )
+        except (ValueError, IndexError, TypeError) as e:
+            print(f"[ERROR] Invalid branched isomer point format: {group} - {e}")
 
     fig.add_trace(
         go.Scatter(
