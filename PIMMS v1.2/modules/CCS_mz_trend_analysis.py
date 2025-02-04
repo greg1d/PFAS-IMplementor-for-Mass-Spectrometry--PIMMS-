@@ -105,9 +105,8 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
 def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     """
     Finds the best-fit linear regression using all points first,
-    then excludes outliers with > 2% residual error.
-    Flags excluded points as "Potential Post Source Decay" (above trend)
-    or "Potential Branched Isomer" (below trend).
+    then iteratively removes the worst point until R² ≥ 0.99 is achieved.
+    Calls `find_best_high_r2_subset()` if necessary.
     """
 
     print("\n[DEBUG] Starting refine_group_by_best_fit function...")
@@ -116,10 +115,18 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
         print("[ERROR] Received empty group list. Exiting function.")
         return [], [], []
 
+    refined_group = []
+    post_source_decay = []
+    branched_isomers = []
+
     # Convert to NumPy arrays
     data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
     mz_values = np.array([p[0] for p in data_points])
     ccs_values = np.array([p[1] for p in data_points])
+
+    print(f"[DEBUG] Total points received: {len(data_points)}")
+    print(f"[DEBUG] m/z values: {mz_values}")
+    print(f"[DEBUG] CCS values: {ccs_values}")
 
     if len(mz_values) < 2:
         print(
@@ -135,53 +142,57 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
         f"[INFO] Initial Fit - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {r_squared:.6f}"
     )
 
-    # Step 2: Compute residuals and filter out large deviations (>2%)
-    refined_group = []
-    post_source_decay = []
-    branched_isomers = []
+    if r_squared >= min_r2:
+        print("[INFO] Initial group already meets R² ≥ 0.99. No need for filtering.")
+        return data_points, post_source_decay, branched_isomers
 
-    print("\n[DEBUG] Filtering outliers based on residuals...")
-    for mz, ccs in data_points:
-        predicted_ccs = slope * mz + intercept
-        residual = abs(ccs - predicted_ccs)
+    # Step 2: Iteratively remove the worst point until R² ≥ 0.99
+    remaining_points = data_points.copy()
 
-        if residual <= threshold * predicted_ccs:
-            refined_group.append((mz, ccs))
+    while len(remaining_points) > 2:
+        # Compute R² for the current subset
+        mz_values = np.array([p[0] for p in remaining_points])
+        ccs_values = np.array([p[1] for p in remaining_points])
+        slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+        r_squared = r_value**2
+
+        if r_squared >= min_r2:
+            break  # Stop if we've achieved R² ≥ 0.99
+
+        # Identify the worst point to remove (highest residual)
+        residuals = [
+            abs(ccs - (slope * mz + intercept)) for mz, ccs in remaining_points
+        ]
+        max_residual_idx = np.argmax(residuals)  # Index of the worst point
+
+        worst_point = remaining_points.pop(max_residual_idx)  # Remove the worst point
+
+        # Classify removed point
+        predicted_ccs = slope * worst_point[0] + intercept
+        if worst_point[1] > predicted_ccs:
+            post_source_decay.append(worst_point)
             print(
-                f"[KEEP] m/z={mz:.4f}, CCS={ccs:.4f}, Residual={residual:.6f} (within threshold)"
+                f"[FLAGGED] Post Source Decay - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
             )
         else:
-            if ccs > predicted_ccs:
-                post_source_decay.append((mz, ccs))
-                print(
-                    f"[FLAGGED] Post Source Decay - m/z={mz:.4f}, CCS={ccs:.4f}, Residual={residual:.6f}"
-                )
-            else:
-                branched_isomers.append((mz, ccs))
-                print(
-                    f"[FLAGGED] Branched Isomer - m/z={mz:.4f}, CCS={ccs:.4f}, Residual={residual:.6f}"
-                )
-
-    print(f"[DEBUG] Refined group size: {len(refined_group)}")
-    print(f"[DEBUG] Post Source Decay count: {len(post_source_decay)}")
-    print(f"[DEBUG] Branched Isomers count: {len(branched_isomers)}")
-
-    # Step 3: Ensure R² ≥ 0.99 after filtering
-    if len(refined_group) > 2:
-        final_mz_values = np.array([p[0] for p in refined_group])
-        final_ccs_values = np.array([p[1] for p in refined_group])
-        slope, intercept, r_value, _, _ = linregress(final_mz_values, final_ccs_values)
-        final_r_squared = r_value**2
-
-        print(
-            f"\n[INFO] Final Fit After Filtering - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {final_r_squared:.6f}"
-        )
-
-        if final_r_squared < min_r2:
+            branched_isomers.append(worst_point)
             print(
-                "[WARNING] Final group does not meet R² ≥ 0.99. Reverting to best subset."
+                f"[FLAGGED] Branched Isomer - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
             )
-            refined_group = find_best_high_r2_subset(data_points, min_r2)
+
+    print(
+        f"\n[INFO] Final R²: {r_squared:.6f} after removing {len(data_points) - len(remaining_points)} points."
+    )
+
+    # Step 3: Ensure we still have a valid group
+    if len(remaining_points) > 2:
+        print(f"[INFO] Final refined group contains {len(remaining_points)} points.")
+        refined_group = remaining_points
+    else:
+        print(
+            "[WARNING] Could not achieve R² ≥ 0.99 with at least 3 points. Calling `find_best_high_r2_subset()`."
+        )
+        refined_group = find_best_high_r2_subset(data_points, min_r2)
 
     print("\n[DEBUG] Final Processed Groups:")
     print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
@@ -191,17 +202,25 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     return refined_group, post_source_decay, branched_isomers
 
 
-def find_best_high_r2_subset(data_points, min_r2=0.99):
+def find_best_high_r2_subset(groups, min_r2=0.99):
     """Finds the longest subset with R² ≥ 0.99 when removing outliers."""
-    print("\n[DEBUG] Running find_best_high_r2_subset function...")
 
-    n = len(data_points)
+    print("\n[DEBUG] find_best_high_r2_subset() was called!")
+    print(f"[DEBUG] Received {len(groups)} data points for processing.")
+
+    if len(groups) < 2:
+        print(
+            "[WARNING] Not enough data points to compute regression. Returning empty list."
+        )
+        return []
+
+    n = len(groups)
     best_subset = []
     max_length = 0
 
     for start in range(n):
         for end in range(start + 2, n + 1):  # At least 2 points needed
-            subset = data_points[start:end]
+            subset = groups[start:end]
             subset_mz = np.array([p[0] for p in subset])
             subset_ccs = np.array([p[1] for p in subset])
 
@@ -210,6 +229,8 @@ def find_best_high_r2_subset(data_points, min_r2=0.99):
 
             slope, intercept, r_value, _, _ = linregress(subset_mz, subset_ccs)
             r_squared = r_value**2
+
+            print(f"[DEBUG] Evaluating subset {start}-{end}: R² = {r_squared:.6f}")
 
             if r_squared >= min_r2 and len(subset) > max_length:
                 best_subset = subset

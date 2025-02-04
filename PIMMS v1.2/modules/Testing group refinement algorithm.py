@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.stats import linregress
 
 # Example dataset with an outlier (m/z, CCS)
@@ -15,7 +15,7 @@ data_points = [
 ]
 
 
-def refine_group_by_best_fit(data_points, threshold=0.02, min_r2=0.99):
+def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     """
     Finds the best-fit linear regression using all points first,
     then excludes outliers with > 2% residual error.

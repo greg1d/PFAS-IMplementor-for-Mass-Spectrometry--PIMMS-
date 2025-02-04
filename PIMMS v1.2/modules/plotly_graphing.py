@@ -143,7 +143,40 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
             showlegend=True,
         )
     )
+    # **🔹 Ensure post-source decay points are always grey**
+    if post_source_decay:
+        for idx, group in enumerate(post_source_decay):
+            mz_values = [point[0] for point in group]
+            ccs_values = [point[1] for point in group]
 
+            fig.add_trace(
+                go.Scatter(
+                    x=mz_values,
+                    y=ccs_values,
+                    mode="markers",
+                    marker=dict(size=8, color="red"),  # ✅ Force grey color
+                    name=f"Post Source Decay {idx + 1}",
+                    legendgroup="post_source_decay",
+                    showlegend=True,
+                )
+            )
+    # **🔹 Plot branched isomer points**
+    if branched_isomers:
+        for idx, group in enumerate(branched_isomers):
+            mz_values = [point[0] for point in group]
+            ccs_values = [point[1] for point in group]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=mz_values,
+                    y=ccs_values,
+                    mode="markers",
+                    marker=dict(size=8, color="black"),
+                    name=f"Branched Isomers {idx + 1}",
+                    legendgroup="branched_isomers",
+                    showlegend=True,
+                )
+            )
     fig.add_trace(
         go.Scatter(
             x=[None],
