@@ -142,7 +142,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 y=reg_line_y,
                 mode="lines",
                 name="Homologous Series" if not homologous_series_plotted else None,
-                line=dict(color="black", dash="dash"),
+                line=dict(color="white", dash="dash"),
                 legendgroup="homologous_series",
                 hoverinfo="skip",
                 visible=True,
@@ -235,7 +235,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                         x=[mz],
                         y=[ccs],
                         mode="markers",
-                        marker=dict(size=8, color="black"),
+                        marker=dict(size=8, color="#FF69B4"),
                         name=f"Branched Isomer {idx + 1}",
                         legendgroup="branched_isomers",
                         showlegend=False,
@@ -264,7 +264,20 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
             x=[None],  # Dummy invisible point to appear in the legend
             y=[None],
             mode="markers",
-            marker=dict(size=8, color="black"),
+            marker=dict(size=8, color="red"),
+            name="Post Source Decay",
+            legendgroup="post_source_decay",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="markers",
+            marker=dict(size=8, color="#FF69B4"),
             name="Branched Isomers",
             legendgroup="branched_isomers",
             showlegend=True,
@@ -304,7 +317,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
             x=[None],  # Dummy invisible point to appear in the legend
             y=[None],
             mode="lines",
-            line=dict(color="black", dash="dash"),
+            line=dict(color="white", dash="dash"),
             name="Homologous Series",
             legendgroup="homologous_series",
             showlegend=True,
@@ -317,7 +330,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
         yaxis_title="CCS",
-        template="plotly_white",
+        template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
 
