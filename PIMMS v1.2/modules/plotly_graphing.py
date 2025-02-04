@@ -149,31 +149,42 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 showlegend=not homologous_series_plotted,
             )
         )
-        homologous_series_groups.append(legend_group)
-        homologous_series_plotted = True
+    homologous_series_groups.append(legend_group)
+    homologous_series_plotted = True
 
-        for mz, ccs in group:
-            classification = clean_df.loc[
-                clean_df["m/z"] == mz, "Classification Type"
-            ].values
-            color = (
-                classification_colors.get(classification[0], "gray")
-                if len(classification) > 0
-                else "gray"
-            )
+    for mz, ccs in group:
+        row_match = clean_df[clean_df["m/z"] == mz]
 
-            fig.add_trace(
-                go.Scatter(
-                    x=[mz],
-                    y=[ccs],
-                    mode="markers",
-                    marker=dict(size=8, color=color),
-                    name=f"Series {idx + 1} Point",
-                    legendgroup="homologous_series_points",
-                    showlegend=False,
-                    visible=True,
-                )
+        match_name = row_match["Match"].iloc[0] if not row_match.empty else "Unknown"
+        classification = (
+            row_match["Classification Type"].iloc[0]
+            if not row_match.empty
+            else "unmatched"
+        )
+        color = classification_colors.get(classification, "gray")
+
+        # ✅ Extract sample intensity info
+        sample_info = [
+            f"{col}: {row_match[col].values[0]:.2f}"
+            for col in sample_columns
+            if not row_match.empty and row_match[col].values[0] > 0
+        ]
+        sample_text = "<br>".join(sample_info) if sample_info else "None"
+
+        fig.add_trace(
+            go.Scatter(
+                x=[mz],
+                y=[ccs],
+                mode="markers",
+                marker=dict(size=8, color=color),
+                name=f"Series {idx + 1} Point",
+                legendgroup="homologous_series_points",
+                showlegend=False,
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
+                visible=True,
             )
+        )
 
     # 🔹 Post-Source Decay Points
     for idx, group in enumerate(post_source_decay):
