@@ -242,7 +242,7 @@ def find_best_high_r2_subset(groups, min_r2=0.99):
 
 def main():
     """Run the analysis and interactive plot."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
 
     print("[DEBUG] Loading dataset...")
     adjusted_df = pd.read_csv(file_path)
