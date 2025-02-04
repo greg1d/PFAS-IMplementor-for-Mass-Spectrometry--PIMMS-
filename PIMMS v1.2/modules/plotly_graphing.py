@@ -5,17 +5,16 @@ from scipy.stats import linregress
 def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isomers):
     """
     Creates an interactive Plotly graph for visualizing CCS vs. m/z trends.
-
     - Displays all data points initially.
-    - Allows toggling between all data points and homologous series.
-    - Includes a single "Homologous Series" trendline in the legend.
-    - Highlights tentative matches to external libraries and unmatched tentative points.
+    - Highlights homologous series trendlines.
+    - Differentiates post source decay and branched isomers.
     - Shows sample intensity information in tooltips.
     """
 
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
 
+    # Store all homologous m/z values to exclude from unrelated_df
     homologous_mz_values = {point[0] for group in best_subset for point in group}
     unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(homologous_mz_values)]
 
@@ -25,13 +24,13 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         "unmatched": "purple",
     }
 
-    # **🔹 Plot all points first (default ON)**
+    # **🔹 Plot all data points first**
     for _, row in adjusted_df.iterrows():
         mz, ccs, classification, match_name = (
             row["m/z"],
             row["CCS"],
             row["Classification Type"],
-            row["Match"],
+            row["Match"],  # ✅ Ensuring match name comes from correct column
         )
         color = classification_colors.get(classification, "gray")
 
@@ -56,44 +55,8 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
             )
         )
 
-    if post_source_decay:
-        for idx, group in enumerate(post_source_decay):
-            mz_values = [point[0] for point in group]
-            ccs_values = [point[1] for point in group]
-            fig.add_trace(
-                go.Scatter(
-                    x=mz_values,
-                    y=ccs_values,
-                    mode="markers",
-                    marker=dict(size=8, color="red"),
-                    name=f"Post Source Decay {idx + 1}",
-                    legendgroup="post_source_decay",
-                    showlegend=True,
-                )
-            )
-
-    # **🔹 Plot branched isomer points**
-    if branched_isomers:
-        for idx, group in enumerate(branched_isomers):
-            mz_values = [point[0] for point in group]
-            ccs_values = [point[1] for point in group]
-
-            fig.add_trace(
-                go.Scatter(
-                    x=mz_values,
-                    y=ccs_values,
-                    mode="markers",
-                    marker=dict(size=8, color="purple"),
-                    name=f"Branched Isomers {idx + 1}",
-                    legendgroup="branched_isomers",
-                    showlegend=True,
-                )
-            )
-
     # **🔹 Plot homologous groups with trendlines**
-    homologous_series_plotted = (
-        False  # Track if the homologous series legend has been added
-    )
+    homologous_series_plotted = False
     for idx, group in enumerate(best_subset):
         legend_group = f"group_{idx + 1}"
 
@@ -103,7 +66,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         if len(mz_values) < 3:
             continue
 
-        slope, intercept, r_value, p_value, std_err = linregress(mz_values, ccs_values)
+        slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
         r_squared = r_value**2
 
         if r_squared <= 0.99:
@@ -120,9 +83,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 x=reg_line_x,
                 y=reg_line_y,
                 mode="lines",
-                name="Homologous Series"
-                if not homologous_series_plotted
-                else None,  # Show legend only once
+                name="Homologous Series" if not homologous_series_plotted else None,
                 line=dict(color="black", dash="dash"),
                 legendgroup="homologous_series",
                 hoverinfo="skip",
@@ -130,46 +91,45 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 showlegend=not homologous_series_plotted,  # Show legend only once
             )
         )
-        homologous_series_plotted = True  # Mark legend as added
+        homologous_series_plotted = True
 
-    # **Homologous group points**
-    for point in group:
-        # ✅ Correctly unpacking tuple instead of assuming a dictionary
-        mz, ccs = (
-            point  # Since `point` is a tuple (m/z, CCS), no need for dictionary keys
-        )
+        # **Homologous group points**
+        for mz, ccs in group:
+            # ✅ Retrieve the correct match name from `adjusted_df`
+            row_match = adjusted_df[adjusted_df["m/z"] == mz]
 
-        fig.add_trace(
-            go.Scatter(
-                x=[mz],
-                y=[ccs],
-                mode="markers",
-                marker=dict(size=8, color="blue"),
-                hovertemplate=f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
-                legendgroup=legend_group,
-                showlegend=False,
+            # ✅ Ensure that match_name and classification exist
+            match_name = (
+                row_match["Match"].iloc[0] if not row_match.empty else "Unknown"
             )
-        )
-
-        # **🔹 Extract Sample Information (Intensity Data)**
-        row = adjusted_df[adjusted_df["m/z"] == mz].iloc[0]
-        sample_info = [
-            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
-        ]
-        sample_text = "<br>".join(sample_info) if sample_info else "None"
-
-        fig.add_trace(
-            go.Scatter(
-                x=[mz],
-                y=[ccs],
-                mode="markers",
-                marker=dict(size=8, color=color),
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
-                f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                legendgroup=legend_group,
-                showlegend=False,
+            classification = (
+                row_match["Classification Type"].iloc[0]
+                if not row_match.empty
+                else "unmatched"
             )
-        )
+
+            color = classification_colors.get(classification, "gray")
+
+            # ✅ Extract sample intensity info
+            sample_info = [
+                f"{col}: {row_match[col].values[0]:.2f}"
+                for col in sample_columns
+                if not row_match.empty and row_match[col].values[0] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    marker=dict(size=8, color=color),
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                    f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
+                    legendgroup=legend_group,
+                    showlegend=False,
+                )
+            )
 
     # **🔹 Persistent Legend Elements (Avoid duplicates)**
     fig.add_trace(

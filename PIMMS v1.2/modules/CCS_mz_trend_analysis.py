@@ -121,10 +121,6 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     mz_values = np.array([p[0] for p in data_points])
     ccs_values = np.array([p[1] for p in data_points])
 
-    print(f"[DEBUG] Total points received: {len(data_points)}")
-    print(f"[DEBUG] m/z values: {mz_values}")
-    print(f"[DEBUG] CCS values: {ccs_values}")
-
     if len(mz_values) < 2:
         print(
             "[WARNING] Not enough points to fit a regression model. Returning empty lists."
