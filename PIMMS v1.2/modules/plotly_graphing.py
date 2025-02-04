@@ -197,10 +197,23 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                     marker=dict(size=8, color="red"),
                     name=f"Post Source Decay {idx + 1}",
                     legendgroup="post_source_decay",
-                    showlegend=True,
+                    showlegend=False,
                     visible=True,
                 )
             )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="markers",
+            marker=dict(size=8, color="red"),
+            name="Post Source Decay",
+            legendgroup="post_source_decay",
+            showlegend=True,
+            visible=True,
+        )
+    )
 
     # 🔹 Branched Isomer Points
     for idx, group in enumerate(branched_isomers):
@@ -214,116 +227,70 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                     marker=dict(size=8, color="black"),
                     name=f"Branched Isomer {idx + 1}",
                     legendgroup="branched_isomers",
-                    showlegend=True,
+                    showlegend=False,
                     visible=True,
                 )
             )
 
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="markers",
+            marker=dict(size=8, color="blue"),
+            name="Likely Identified",
+            legendgroup="likely_identified",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="markers",
+            marker=dict(size=8, color="black"),
+            name="Branched Isomers",
+            legendgroup="branched_isomers",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="markers",
+            marker=dict(size=8, color="orange"),
+            name="Tentative - Library Match",
+            legendgroup="tentative_matched",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy invisible point to appear in the legend
+            y=[None],
+            mode="markers",
+            marker=dict(size=8, color="purple"),
+            name="Unmatched",
+            legendgroup="tentative_no_match",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+    # ** Update layout: Ensure Post-Source Decay Toggle Works Independently **
     fig.update_layout(
         title="CCS vs m/z Trends",
         xaxis_title="m/z",
         yaxis_title="CCS",
         template="plotly_white",
-        updatemenus=[
-            {
-                "buttons": [
-                    {
-                        "label": "Show All Points",
-                        "method": "update",
-                        "args": [{"visible": [True] * len(fig.data)}],
-                    },
-                    {
-                        "label": "Hide Tentative & No Match Points",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup
-                                    not in ["tentative_matched", "tentative_no_match"]
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                    {
-                        "label": "Show Tentative & No Match Points",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup
-                                    in ["tentative_matched", "tentative_no_match"]
-                                    or trace.visible
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                    {
-                        "label": "Show Only Likely Identifications",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup == "likely_identified"
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                    {
-                        "label": "Show Only Homologous Series",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup
-                                    in ["homologous_series", "homologous_series_points"]
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                ],
-                "direction": "down",
-                "showactive": True,
-                "x": 0.8,
-                "y": 1.15,
-            },
-            {
-                "type": "buttons",
-                "direction": "left",
-                "x": 0.8,
-                "y": 1.08,
-                "buttons": [
-                    {
-                        "label": "Show Post-Source Decay",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup != "post_source_decay"
-                                    or trace.visible
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                    {
-                        "label": "Hide Post-Source Decay",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup != "post_source_decay"
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                ],
-            },
-        ],
+        legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
 
     fig.show()
