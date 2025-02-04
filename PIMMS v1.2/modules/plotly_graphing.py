@@ -2,6 +2,78 @@ import plotly.graph_objects as go
 from scipy.stats import linregress
 
 
+def add_sample_column_filter(fig, sample_columns, adjusted_df):
+    """
+    Adds a selection box to filter by `.d` column intensities.
+    Selecting a column will show only points where that `.d` column has a nonzero value.
+    """
+
+    def filter_visibility(selected_col):
+        """
+        Returns visibility array where points with zero intensity for `selected_col` are hidden.
+        """
+        filtered_df = adjusted_df[
+            adjusted_df[selected_col] > 0
+        ]  # Filter nonzero values
+        print(f"\n[INFO] Selected Column: {selected_col}")
+        print(f"[DEBUG] Filtered DataFrame (first 5 rows):\n{filtered_df.head()}")
+
+        visibility_array = []
+        for trace in fig.data:
+            if trace.customdata:
+                # ✅ Check `.d` column values
+                intensity_values = trace.customdata[0]  # List of intensity values
+                col_idx = sample_columns.index(selected_col)  # Index of selected column
+                is_visible = intensity_values[col_idx] > 0  # Check if intensity > 0
+
+                # ✅ Debugging Output for Each Trace
+                print(
+                    f"[DEBUG] Trace: {trace.name}, Column: {selected_col}, "
+                    f"Intensity: {intensity_values[col_idx]}, Visible: {is_visible}"
+                )
+
+                visibility_array.append(is_visible)
+            else:
+                visibility_array.append(True)  # Default to visible if no `customdata`
+
+        return visibility_array
+
+    # ✅ Create dropdown for selecting `.d` column
+    dropdown_buttons = [
+        {
+            "label": col,
+            "method": "update",
+            "args": [{"visible": filter_visibility(col)}],
+        }
+        for col in sample_columns
+    ]
+
+    # ✅ Add an "All Samples" button
+    dropdown_buttons.insert(
+        0,
+        {
+            "label": "Show All",
+            "method": "update",
+            "args": [{"visible": [True] * len(fig.data)}],
+        },
+    )
+
+    # ✅ Attach dropdown menu
+    fig.update_layout(
+        updatemenus=[
+            {
+                "type": "dropdown",
+                "direction": "down",
+                "x": 1.1,
+                "y": 1.2,
+                "buttons": dropdown_buttons,
+            }
+        ]
+    )
+
+    print("[INFO] Sample column filter added successfully")
+
+
 def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isomers):
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
@@ -333,5 +405,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
+
+    add_sample_column_filter(fig, sample_columns, adjusted_df)
 
     fig.show()
