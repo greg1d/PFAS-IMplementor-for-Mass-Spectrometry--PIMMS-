@@ -1,15 +1,9 @@
 import time
+
+import numpy as np
 import pandas as pd
+from plotly_graphing import make_plotly_graph
 from scipy.stats import linregress
-import plotly.graph_objects as go
-
-# Define repeating units
-REPEATING_UNITS = {
-    "CF2": 49.9968064,
-    "OCF2": 65.9917214,
-    "TEST": 100,
-}
-
 
 # Define repeating units
 REPEATING_UNITS = {
@@ -104,209 +98,178 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
         df_debug = pd.DataFrame(group)
         print(df_debug.to_string(index=False))  # Print clean table without row index
         print("-" * 80)  # Separator for readability
+    print(groups)
     return groups
 
 
-def make_plotly_graph(adjusted_df, groups):
+def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     """
-    Creates an interactive Plotly graph for visualizing CCS vs. m/z trends.
-
-    - Displays all data points initially.
-    - Allows toggling between all data points and homologous series.
-    - Includes a single "Homologous Series" trendline in the legend.
-    - Highlights tentative matches to external libraries and unmatched tentative points.
-    - Shows sample intensity information in tooltips.
+    Finds the best-fit linear regression using all points first,
+    then excludes outliers with > 2% residual error.
+    Flags excluded points as "Potential Post Source Decay" (above trend)
+    or "Potential Branched Isomer" (below trend).
     """
 
-    sample_columns = [col for col in adjusted_df.columns if ".d" in col]
-    fig = go.Figure()
+    print("\n[DEBUG] Starting refine_group_by_best_fit function...")
 
-    grouped_mz_values = {point["m/z"] for group in groups for point in group}
-    unrelated_df = adjusted_df[~adjusted_df["m/z"].isin(grouped_mz_values)]
+    if not groups:
+        print("[ERROR] Received empty group list. Exiting function.")
+        return [], [], []
 
-    classification_colors = {
-        "likely": "blue",
-        "tentative": "orange",
-        "unmatched": "purple",
-    }
+    # Convert to NumPy arrays
+    data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
+    mz_values = np.array([p[0] for p in data_points])
+    ccs_values = np.array([p[1] for p in data_points])
 
-    # **🔹 Plot all points first (default ON)**
-    for _, row in adjusted_df.iterrows():
-        mz, ccs, classification, match_name = (
-            row["m/z"],
-            row["CCS"],
-            row["Classification Type"],
-            row["Match"],
+    print(f"[DEBUG] Total points received: {len(data_points)}")
+    print(f"[DEBUG] m/z values: {mz_values}")
+    print(f"[DEBUG] CCS values: {ccs_values}")
+
+    if len(mz_values) < 2:
+        print(
+            "[WARNING] Not enough points to fit a regression model. Returning empty lists."
         )
-        color = classification_colors.get(classification, "gray")
+        return [], [], []
 
-        # **🔹 Extract Sample Information (Intensity Data)**
-        sample_info = [
-            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
-        ]
-        sample_text = "<br>".join(sample_info) if sample_info else "None"
+    # Step 1: Find best fit for all points initially
+    slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+    r_squared = r_value**2
 
-        fig.add_trace(
-            go.Scatter(
-                x=[mz],
-                y=[ccs],
-                mode="markers",
-                marker=dict(size=6, color=color),
-                name="All Data Points",
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
-                f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                legendgroup="all_points",
-                showlegend=False,
-                visible=True,
-            )
-        )
-
-    # **🔹 Plot homologous groups with trendlines**
-    homologous_series_plotted = (
-        False  # Track if the homologous series legend has been added
+    print(
+        f"[INFO] Initial Fit - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {r_squared:.6f}"
     )
-    for idx, group in enumerate(groups):
-        legend_group = f"group_{idx + 1}"
 
-        mz_values = [point["m/z"] for point in group]
-        ccs_values = [point["CCS"] for point in group]
+    # Step 2: Compute residuals and filter out large deviations (>2%)
+    refined_group = []
+    post_source_decay = []
+    branched_isomers = []
 
-        if len(mz_values) < 3:
-            continue
+    print("\n[DEBUG] Filtering outliers based on residuals...")
+    for mz, ccs in data_points:
+        predicted_ccs = slope * mz + intercept
+        residual = abs(ccs - predicted_ccs)
 
-        slope, intercept, r_value, p_value, std_err = linregress(mz_values, ccs_values)
-        r_squared = r_value**2
-
-        if r_squared <= 0.99:
-            continue
-
-        reg_line_x = sorted(mz_values)
-        reg_line_y = [slope * mz + intercept for mz in reg_line_x]
-
-        print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
-
-        # **Trendline (Show in legend only once)**
-        fig.add_trace(
-            go.Scatter(
-                x=reg_line_x,
-                y=reg_line_y,
-                mode="lines",
-                name="Homologous Series"
-                if not homologous_series_plotted
-                else None,  # Show legend only once
-                line=dict(color="black", dash="dash"),
-                legendgroup="homologous_series",
-                hoverinfo="skip",
-                visible=True,
-                showlegend=not homologous_series_plotted,  # Show legend only once
+        if residual <= threshold * predicted_ccs:
+            refined_group.append((mz, ccs))
+            print(
+                f"[KEEP] m/z={mz:.4f}, CCS={ccs:.4f}, Residual={residual:.6f} (within threshold)"
             )
-        )
-        homologous_series_plotted = True  # Mark legend as added
-
-        # **Homologous group points**
-        for point in group:
-            mz, ccs, classification, match_name = (
-                point["m/z"],
-                point["CCS"],
-                point["Classification Type"],
-                point["Match"],
-            )
-            color = classification_colors.get(classification, "gray")
-
-            # **🔹 Extract Sample Information (Intensity Data)**
-            row = adjusted_df[adjusted_df["m/z"] == mz].iloc[0]
-            sample_info = [
-                f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
-            ]
-            sample_text = "<br>".join(sample_info) if sample_info else "None"
-
-            fig.add_trace(
-                go.Scatter(
-                    x=[mz],
-                    y=[ccs],
-                    mode="markers",
-                    marker=dict(size=8, color=color),
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
-                    f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
-                    legendgroup=legend_group,
-                    showlegend=False,
+        else:
+            if ccs > predicted_ccs:
+                post_source_decay.append((mz, ccs))
+                print(
+                    f"[FLAGGED] Post Source Decay - m/z={mz:.4f}, CCS={ccs:.4f}, Residual={residual:.6f}"
                 )
+            else:
+                branched_isomers.append((mz, ccs))
+                print(
+                    f"[FLAGGED] Branched Isomer - m/z={mz:.4f}, CCS={ccs:.4f}, Residual={residual:.6f}"
+                )
+
+    print(f"[DEBUG] Refined group size: {len(refined_group)}")
+    print(f"[DEBUG] Post Source Decay count: {len(post_source_decay)}")
+    print(f"[DEBUG] Branched Isomers count: {len(branched_isomers)}")
+
+    # Step 3: Ensure R² ≥ 0.99 after filtering
+    if len(refined_group) > 2:
+        final_mz_values = np.array([p[0] for p in refined_group])
+        final_ccs_values = np.array([p[1] for p in refined_group])
+        slope, intercept, r_value, _, _ = linregress(final_mz_values, final_ccs_values)
+        final_r_squared = r_value**2
+
+        print(
+            f"\n[INFO] Final Fit After Filtering - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {final_r_squared:.6f}"
+        )
+
+        if final_r_squared < min_r2:
+            print(
+                "[WARNING] Final group does not meet R² ≥ 0.99. Reverting to best subset."
             )
+            refined_group = find_best_high_r2_subset(data_points, min_r2)
 
-    # **🔹 Persistent Legend Elements (Avoid duplicates)**
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color="orange", size=8),
-            name="Tentative - matched to external library",
-            legendgroup="tentative_matched",
-            showlegend=True,
-        )
-    )
+    print("\n[DEBUG] Final Processed Groups:")
+    print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
+    print(f"Post Source Decay ({len(post_source_decay)} points): {post_source_decay}")
+    print(f"Branched Isomers ({len(branched_isomers)} points): {branched_isomers}")
 
-    fig.add_trace(
-        go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(color="purple", size=8),
-            name="Tentative - no match to a library",
-            legendgroup="tentative_no_match",
-            showlegend=True,
-        )
-    )
+    return refined_group, post_source_decay, branched_isomers
 
-    # ** Dropdown to toggle visibility**
-    fig.update_layout(
-        title="CCS vs m/z Trends",
-        xaxis_title="m/z",
-        yaxis_title="CCS",
-        template="plotly_white",
-        updatemenus=[
-            {
-                "buttons": [
-                    {
-                        "label": "Show All Points",
-                        "method": "update",
-                        "args": [{"visible": [True] * len(fig.data)}],
-                    },
-                    {
-                        "label": "Show Only Homologous Series",
-                        "method": "update",
-                        "args": [
-                            {
-                                "visible": [
-                                    trace.legendgroup.startswith("homologous_series")
-                                    or trace.legendgroup.startswith("group")
-                                    for trace in fig.data
-                                ]
-                            }
-                        ],
-                    },
-                ],
-                "direction": "down",
-                "showactive": True,
-                "x": 0.9,
-                "y": 1.1,
-            }
-        ],
-    )
 
-    fig.show()
+def find_best_high_r2_subset(data_points, min_r2=0.99):
+    """Finds the longest subset with R² ≥ 0.99 when removing outliers."""
+    print("\n[DEBUG] Running find_best_high_r2_subset function...")
+
+    n = len(data_points)
+    best_subset = []
+    max_length = 0
+
+    for start in range(n):
+        for end in range(start + 2, n + 1):  # At least 2 points needed
+            subset = data_points[start:end]
+            subset_mz = np.array([p[0] for p in subset])
+            subset_ccs = np.array([p[1] for p in subset])
+
+            if len(set(subset_mz)) < 2:
+                continue  # Skip if all x values are identical
+
+            slope, intercept, r_value, _, _ = linregress(subset_mz, subset_ccs)
+            r_squared = r_value**2
+
+            if r_squared >= min_r2 and len(subset) > max_length:
+                best_subset = subset
+                max_length = len(subset)
+
+    print(f"[DEBUG] Best subset found with {len(best_subset)} points (R² ≥ {min_r2})")
+    return best_subset
 
 
 def main():
     """Run the analysis and interactive plot."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+
+    print("[DEBUG] Loading dataset...")
     adjusted_df = pd.read_csv(file_path)
 
     print("[DEBUG] First few rows of dataset:")
     print(adjusted_df.head())
 
+    print("\n[INFO] Running mz_repeating_unit_analysis...")
     groups = mz_repeating_unit_analysis(adjusted_df)
-    make_plotly_graph(adjusted_df, groups)
+
+    if not groups:
+        print("[WARNING] No homologous series found. Exiting...")
+        return
+
+    # Storage for results
+    refined_groups = []
+    post_source_decay_groups = []
+    branched_isomer_groups = []
+
+    print("\n[INFO] Running refine_group_by_best_fit on detected groups...")
+    for idx, group in enumerate(groups):
+        print(
+            f"\n[DEBUG] Processing group {idx + 1}/{len(groups)} with {len(group)} points"
+        )
+        refined_group, post_source_decay, branched_isomers = refine_group_by_best_fit(
+            group
+        )
+
+        refined_groups.append(refined_group)
+        post_source_decay_groups.append(post_source_decay)
+        branched_isomer_groups.append(branched_isomers)
+
+    print("\n[INFO] Group refinement complete.")
+    print(f"[DEBUG] Refined Groups: {len(refined_groups)}")
+    print(f"[DEBUG] Post Source Decay Groups: {len(post_source_decay_groups)}")
+    print(f"[DEBUG] Branched Isomer Groups: {len(branched_isomer_groups)}")
+
+    # ✅ **Fixed function call – now passing all required arguments**
+    print("\n[INFO] Generating interactive plot...")
+    make_plotly_graph(
+        adjusted_df, refined_groups, post_source_decay_groups, branched_isomer_groups
+    )
+
+    print("\n[INFO] Analysis complete.")
 
 
 if __name__ == "__main__":
