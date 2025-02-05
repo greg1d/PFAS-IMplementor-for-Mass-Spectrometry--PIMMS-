@@ -11,7 +11,7 @@ from CCS_mz_trend_analysis import (
     mz_repeating_unit_analysis,
     refine_group_by_best_fit,
 )
-from plotly_graphing import make_plotly_graph
+from plotly_graphing import make_plotly_graph, update_graph
 
 # ✅ Load dataset **once** at startup
 file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
@@ -58,41 +58,8 @@ app.layout = html.Div(
 
 # ✅ Dash Callback to Update Graph
 @app.callback(Output("plotly_graph", "figure"), [Input("remove_columns", "value")])
-def update_graph(remove_columns):
-    """Updates the graph dynamically when columns are removed."""
-
-    print("[INFO] Graph update triggered.")
-
-    # ✅ Default to empty list if None
-    if remove_columns is None:
-        remove_columns = []
-
-    print(f"[DEBUG] Columns to remove: {remove_columns}")
-
-    # ✅ Filter dataset
-    filtered_df = adjusted_df.drop(
-        columns=[col for col in remove_columns if col in adjusted_df.columns],
-        errors="ignore",
-    )
-
-    # ✅ Run analysis (only if data exists)
-    groups = mz_repeating_unit_analysis(filtered_df)
-    if not groups:
-        print("[WARNING] No homologous series found. Returning empty plot.")
-        return go.Figure()
-
-    # ✅ Refine the groups
-    refined_groups, branched_isomer_groups = [], []
-    for group in groups:
-        refined_group, _, branched_isomers = refine_group_by_best_fit(group)
-        refined_groups.append(refined_group)
-        branched_isomer_groups.append(branched_isomers)
-
-    # ✅ Generate updated graph
-    fig = make_plotly_graph(filtered_df, refined_groups, branched_isomer_groups)
-
-    print("[INFO] Graph update successful.")
-    return fig
+def update_graph_callback(remove_columns):
+    return update_graph(remove_columns, adjusted_df)  # ✅ Call the imported function
 
 
 # ✅ Run Dash App
