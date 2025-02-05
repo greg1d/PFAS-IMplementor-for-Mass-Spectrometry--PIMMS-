@@ -276,4 +276,4 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
 
-    fig.show()
+    return fig
