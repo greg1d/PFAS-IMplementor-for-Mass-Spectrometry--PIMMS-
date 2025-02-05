@@ -36,6 +36,7 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
     load_pfas_library,
     load_external_targets_library,
 )
+from post_source_decay_filter import remove_post_source_decay
 
 
 def main():
@@ -312,6 +313,20 @@ def main():
         [likely_matched_df, external_matched_df, external_unmatched_df],
         ignore_index=True,
     )
+
+    print("[INFO] Applying post filter decay filter...")
+    try:
+        adjusted_df = remove_post_source_decay(adjusted_df)
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying post filter decay filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+    except Exception as e:
+        print(f"[ERROR] Failed to perform mass defect filtering: {e}")
+        sys.exit(1)
+
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     adjusted_df.to_csv(output_path, index=False)

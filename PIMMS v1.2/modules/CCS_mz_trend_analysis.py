@@ -116,7 +116,6 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
         return [], [], []
 
     refined_group = []
-    post_source_decay = []
     branched_isomers = []
 
     # Convert to NumPy arrays
@@ -144,7 +143,7 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
 
     if r_squared >= min_r2:
         print("[INFO] Initial group already meets R² ≥ 0.99. No need for filtering.")
-        return data_points, post_source_decay, branched_isomers
+        return data_points, branched_isomers
 
     # Step 2: Iteratively remove the worst point until R² ≥ 0.99
     remaining_points = data_points.copy()
@@ -169,12 +168,7 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
 
         # Classify removed point
         predicted_ccs = slope * worst_point[0] + intercept
-        if worst_point[1] > predicted_ccs:
-            post_source_decay.append(worst_point)
-            print(
-                f"[FLAGGED] Post Source Decay - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
-            )
-        else:
+        if worst_point[1] < predicted_ccs:
             branched_isomers.append(worst_point)
             print(
                 f"[FLAGGED] Branched Isomer - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
@@ -196,10 +190,9 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
 
     print("\n[DEBUG] Final Processed Groups:")
     print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
-    print(f"Post Source Decay ({len(post_source_decay)} points): {post_source_decay}")
     print(f"Branched Isomers ({len(branched_isomers)} points): {branched_isomers}")
 
-    return refined_group, post_source_decay, branched_isomers
+    return refined_group, branched_isomers
 
 
 def find_best_high_r2_subset(groups, min_r2=0.99):
@@ -244,7 +237,7 @@ def find_best_high_r2_subset(groups, min_r2=0.99):
 
 def main():
     """Run the analysis and interactive plot."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
 
     print("[DEBUG] Loading dataset...")
     adjusted_df = pd.read_csv(file_path)
@@ -261,7 +254,6 @@ def main():
 
     # Storage for results
     refined_groups = []
-    post_source_decay_groups = []
     branched_isomer_groups = []
 
     print("\n[INFO] Running refine_group_by_best_fit on detected groups...")
@@ -269,24 +261,18 @@ def main():
         print(
             f"\n[DEBUG] Processing group {idx + 1}/{len(groups)} with {len(group)} points"
         )
-        refined_group, post_source_decay, branched_isomers = refine_group_by_best_fit(
-            group
-        )
+        refined_group, branched_isomers = refine_group_by_best_fit(group)
 
         refined_groups.append(refined_group)
-        post_source_decay_groups.append(post_source_decay)
         branched_isomer_groups.append(branched_isomers)
 
     print("\n[INFO] Group refinement complete.")
     print(f"[DEBUG] Refined Groups: {len(refined_groups)}")
-    print(f"[DEBUG] Post Source Decay Groups: {len(post_source_decay_groups)}")
     print(f"[DEBUG] Branched Isomer Groups: {len(branched_isomer_groups)}")
 
     # ✅ **Fixed function call – now passing all required arguments**
     print("\n[INFO] Generating interactive plot...")
-    make_plotly_graph(
-        adjusted_df, refined_groups, post_source_decay_groups, branched_isomer_groups
-    )
+    make_plotly_graph(adjusted_df, refined_groups, branched_isomer_groups)
 
     print("\n[INFO] Analysis complete.")
 

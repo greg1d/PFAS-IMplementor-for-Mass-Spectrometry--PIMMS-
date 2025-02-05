@@ -2,17 +2,13 @@ import plotly.graph_objects as go
 from scipy.stats import linregress
 
 
-def make_plotly_graph(
-    adjusted_df, homologous_series_trendlines, post_source_decay, branched_isomers
-):
+def make_plotly_graph(adjusted_df, homologous_series_trendlines, branched_isomers):
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
 
     # ** Remove post-source decay & branched isomer points from general data **
-    decay_mz_values = {point[0] for group in post_source_decay for point in group}
     branched_mz_values = {point[0] for group in branched_isomers for point in group}
-    excluded_mz_values = decay_mz_values.union(branched_mz_values)
-    clean_df = adjusted_df[~adjusted_df["m/z"].isin(excluded_mz_values)]
+    clean_df = adjusted_df[~adjusted_df["m/z"].isin(branched_mz_values)]
 
     # ** Separate DataFrames for Different Groups **
     tentative_df = clean_df[clean_df["Classification Type"] == "tentative"]
@@ -188,36 +184,6 @@ def make_plotly_graph(
             )
         )
 
-    for idx, group in enumerate(post_source_decay):
-        try:
-            if not isinstance(group, list):
-                group = [group]
-
-            for point in group:
-                mz, ccs = point
-
-                related_series = " & ".join(
-                    [str(p[0]) for p in homologous_series_trendlines[idx]]
-                    if idx < len(homologous_series_trendlines)
-                    else ["Unknown"]
-                )
-
-                fig.add_trace(
-                    go.Scatter(
-                        x=[mz],
-                        y=[ccs],
-                        mode="markers",
-                        marker=dict(size=8, color="red"),
-                        name=f"Post Source Decay {idx + 1}",
-                        legendgroup="post_source_decay",
-                        showlegend=False,
-                        hovertemplate=f"Post-source decay of homologous series: {related_series}<br>"
-                        f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
-                    )
-                )
-        except (ValueError, IndexError, TypeError) as e:
-            print(f"[ERROR] Invalid post-source decay point format: {group} - {e}")
-
     for idx, group in enumerate(branched_isomers):
         try:
             if not isinstance(group, list):
@@ -256,19 +222,6 @@ def make_plotly_graph(
             marker=dict(size=8, color="blue"),
             name="Likely Identified",
             legendgroup="likely_identified",
-            showlegend=True,
-            visible=True,
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="markers",
-            marker=dict(size=8, color="red"),
-            name="Post Source Decay",
-            legendgroup="post_source_decay",
             showlegend=True,
             visible=True,
         )
