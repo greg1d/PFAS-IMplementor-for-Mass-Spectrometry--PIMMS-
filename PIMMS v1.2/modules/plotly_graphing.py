@@ -2,9 +2,62 @@ import plotly.graph_objects as go
 from scipy.stats import linregress
 
 
+def add_legend_entries(fig):
+    """
+    Adds legend entries as dummy Scatter traces without plotting actual points.
+    """
+    legend_items = [
+        {
+            "name": "Likely Identified",
+            "color": "blue",
+            "legendgroup": "likely_identified",
+        },
+        {
+            "name": "Branched Isomers",
+            "color": "#FF69B4",
+            "legendgroup": "branched_isomers",
+        },
+        {
+            "name": "Tentative - Library Match",
+            "color": "orange",
+            "legendgroup": "tentative_matched",
+        },
+        {"name": "Unmatched", "color": "purple", "legendgroup": "tentative_no_match"},
+    ]
+
+    for item in legend_items:
+        fig.add_trace(
+            go.Scatter(
+                x=[None],  # Dummy point for legend only
+                y=[None],
+                mode="markers",
+                marker=dict(size=8, color=item["color"]),
+                name=item["name"],
+                legendgroup=item["legendgroup"],
+                showlegend=True,
+                visible=True,
+            )
+        )
+
+    # ✅ Add a single legend entry for the homologous series (dashed white line)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy line for legend only
+            y=[None],
+            mode="lines",
+            line=dict(color="white", dash="dash"),
+            name="Homologous Series",
+            legendgroup="homologous_series",
+            showlegend=True,
+            visible=True,
+        )
+    )
+
+
 def make_plotly_graph(adjusted_df, homologous_series_trendlines, branched_isomers):
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
+    add_legend_entries(fig)
 
     # ** Remove post-source decay & branched isomer points from general data **
     branched_mz_values = {point[0] for group in branched_isomers for point in group}
@@ -213,72 +266,6 @@ def make_plotly_graph(adjusted_df, homologous_series_trendlines, branched_isomer
                 )
         except (ValueError, IndexError, TypeError) as e:
             print(f"[ERROR] Invalid branched isomer point format: {group} - {e}")
-
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="markers",
-            marker=dict(size=8, color="blue"),
-            name="Likely Identified",
-            legendgroup="likely_identified",
-            showlegend=True,
-            visible=True,
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="markers",
-            marker=dict(size=8, color="#FF69B4"),
-            name="Branched Isomers",
-            legendgroup="branched_isomers",
-            showlegend=True,
-            visible=True,
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="markers",
-            marker=dict(size=8, color="orange"),
-            name="Tentative - Library Match",
-            legendgroup="tentative_matched",
-            showlegend=True,
-            visible=True,
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="markers",
-            marker=dict(size=8, color="purple"),
-            name="Unmatched",
-            legendgroup="tentative_no_match",
-            showlegend=True,
-            visible=True,
-        )
-    )
-
-    # ✅ Add a single legend entry (No extra lines plotted)
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy invisible point to appear in the legend
-            y=[None],
-            mode="lines",
-            line=dict(color="white", dash="dash"),
-            name="Homologous Series",
-            legendgroup="homologous_series",
-            showlegend=True,
-            visible=True,
-        )
-    )
 
     # ** Update layout: Ensure Post-Source Decay Toggle Works Independently **
     fig.update_layout(
