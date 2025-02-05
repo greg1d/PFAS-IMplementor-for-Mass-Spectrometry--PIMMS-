@@ -1,9 +1,11 @@
 import time
-
+import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 from plotly_graphing import make_plotly_graph
 from scipy.stats import linregress
+import dash
+from dash import dcc, html, Input, Output
 
 # Define repeating units
 REPEATING_UNITS = {
@@ -300,61 +302,66 @@ def find_best_high_r2_subset(groups, min_r2=0.99):
     return best_subset
 
 
-def main():
-    """Run the analysis and interactive plot."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+# ** Load dataset **
+file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+adjusted_df = pd.read_csv(file_path)
 
-    print("[DEBUG] Loading dataset...")
-    adjusted_df = pd.read_csv(file_path)
+# ✅ **Identify `.d.DeMP` columns**
+d_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
 
-    print("[DEBUG] First few rows of dataset:")
-    print(adjusted_df.head())
-    remove_columns = [
-        "148 B2 16632.d.DeMP",
-        "149 B2 16631.d.DeMP",
-        "220 B3 16562.d.DeMP",
-        "221 B3 16563.d.DeMP",
+# ** Dash App Setup **
+app = dash.Dash(__name__)
+
+app.layout = html.Div(
+    [
+        html.H1("CCS vs m/z Trends", style={"text-align": "center"}),
+        # ** Dropdown for removing .d columns **
+        html.Label("Select `.d` columns to remove:"),
+        dcc.Dropdown(
+            id="remove_columns",
+            options=[{"label": col, "value": col} for col in d_columns],
+            multi=True,
+            placeholder="Select columns to remove...",
+        ),
+        # ** Graph Output **
+        dcc.Graph(id="plotly_graph"),
     ]
+)
 
-    # ✅ **Filter dataset before running analysis**
-    adjusted_df = filter_adjusted_df(adjusted_df, remove_columns)
-    print(adjusted_df.head())
-    print("\n[INFO] Running mz_repeating_unit_analysis...")
-    groups = mz_repeating_unit_analysis(adjusted_df)
-    print(adjusted_df.columns)
+
+# ** Dash Callback to Update Graph **
+@app.callback(Output("plotly_graph", "figure"), [Input("remove_columns", "value")])
+def update_graph(remove_columns):
+    """Updates the graph dynamically based on user-selected columns."""
+
+    # ** Default to empty list if None **
+    if remove_columns is None:
+        remove_columns = []
+
+    # ✅ **Filter dataset**
+    filtered_df = adjusted_df.drop(
+        columns=[col for col in remove_columns if col in adjusted_df.columns],
+        errors="ignore",
+    )
+
+    # ✅ **Run the analysis again**
+    groups = mz_repeating_unit_analysis(filtered_df)
     if not groups:
-        print("[WARNING] No homologous series found. Exiting...")
-        return
+        return go.Figure()  # Return empty figure if no data
 
-    # Storage for results
-    refined_groups = []
-    post_source_decay_groups = []
-    branched_isomer_groups = []
+    # ✅ **Refine the groups**
+    refined_groups, branched_isomer_groups = [], []
 
-    print("\n[INFO] Running refine_group_by_best_fit on detected groups...")
-    for idx, group in enumerate(groups):
-        print(
-            f"\n[DEBUG] Processing group {idx + 1}/{len(groups)} with {len(group)} points"
-        )
-        refined_group, post_source_decay, branched_isomers = refine_group_by_best_fit(
-            group
-        )
-
+    for group in groups:
+        refined_group, _, branched_isomers = refine_group_by_best_fit(group)
         refined_groups.append(refined_group)
-        post_source_decay_groups.append(post_source_decay)
         branched_isomer_groups.append(branched_isomers)
 
-    print("\n[INFO] Group refinement complete.")
-    print(f"[DEBUG] Refined Groups: {len(refined_groups)}")
-    print(f"[DEBUG] Post Source Decay Groups: {len(post_source_decay_groups)}")
-    print(f"[DEBUG] Branched Isomer Groups: {len(branched_isomer_groups)}")
-
-    # ✅ **Fixed function call – now passing all required arguments**
-    print("\n[INFO] Generating interactive plot...")
-    make_plotly_graph(adjusted_df, refined_groups, branched_isomer_groups)
-
-    print("\n[INFO] Analysis complete.")
+    # ✅ **Generate new graph**
+    fig = make_plotly_graph(filtered_df, refined_groups, branched_isomer_groups)
+    return fig
 
 
+# ✅ **Run Dash App**
 if __name__ == "__main__":
-    main()
+    app.run_server(debug=True)
