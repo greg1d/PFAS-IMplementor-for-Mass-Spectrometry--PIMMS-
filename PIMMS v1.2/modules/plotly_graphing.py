@@ -2,7 +2,9 @@ import plotly.graph_objects as go
 from scipy.stats import linregress
 
 
-def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isomers):
+def make_plotly_graph(
+    adjusted_df, homologous_series_trendlines, post_source_decay, branched_isomers
+):
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
 
@@ -115,7 +117,7 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
     homologous_series_plotted = False
     homologous_series_groups = []
 
-    for idx, group in enumerate(best_subset):
+    for idx, group in enumerate(homologous_series_trendlines):
         legend_group = f"group_{idx + 1}"
 
         mz_values = [point[0] for point in group]
@@ -195,8 +197,8 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 mz, ccs = point
 
                 related_series = " & ".join(
-                    [str(p[0]) for p in best_subset[idx]]
-                    if idx < len(best_subset)
+                    [str(p[0]) for p in homologous_series_trendlines[idx]]
+                    if idx < len(homologous_series_trendlines)
                     else ["Unknown"]
                 )
 
@@ -225,8 +227,8 @@ def make_plotly_graph(adjusted_df, best_subset, post_source_decay, branched_isom
                 mz, ccs = point
 
                 related_series = " & ".join(
-                    [str(p[0]) for p in best_subset[idx]]
-                    if idx < len(best_subset)
+                    [str(p[0]) for p in homologous_series_trendlines[idx]]
+                    if idx < len(homologous_series_trendlines)
                     else ["Unknown"]
                 )
 

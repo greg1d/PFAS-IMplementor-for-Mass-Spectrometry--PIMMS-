@@ -215,7 +215,7 @@ def find_best_high_r2_subset(groups, min_r2=0.99):
         return []
 
     n = len(groups)
-    best_subset = []
+    homologous_series_trendlines = []
     max_length = 0
 
     for start in range(n):
@@ -233,11 +233,13 @@ def find_best_high_r2_subset(groups, min_r2=0.99):
             print(f"[DEBUG] Evaluating subset {start}-{end}: R² = {r_squared:.6f}")
 
             if r_squared >= min_r2 and len(subset) > max_length:
-                best_subset = subset
+                homologous_series_trendlines = subset
                 max_length = len(subset)
 
-    print(f"[DEBUG] Best subset found with {len(best_subset)} points (R² ≥ {min_r2})")
-    return best_subset
+    print(
+        f"[DEBUG] Best subset found with {len(homologous_series_trendlines)} points (R² ≥ {min_r2})"
+    )
+    return homologous_series_trendlines
 
 
 def main():

@@ -312,12 +312,11 @@ def main():
         [likely_matched_df, external_matched_df, external_unmatched_df],
         ignore_index=True,
     )
-
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     adjusted_df.to_csv(output_path, index=False)
     print(f"[INFO] Final adjusted dataset saved to {output_path}")
-    print(adjusted_df)
+    print(adjusted_df.head())
 
 
 if __name__ == "__main__":
