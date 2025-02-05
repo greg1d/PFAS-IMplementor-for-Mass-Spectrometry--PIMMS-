@@ -102,7 +102,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     return groups
 
 
-def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
+def refine_group_by_best_fit(groups, min_r2=0.99):
     """
     Finds the best-fit linear regression using all points first,
     then iteratively removes the worst point until R² ≥ 0.99 is achieved.
@@ -115,13 +115,19 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
         print("[ERROR] Received empty group list. Exiting function.")
         return [], [], []
 
-    refined_group = []
+    homologous_series = []
     branched_isomers = []
 
-    # Convert to NumPy arrays
-    data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
-    mz_values = np.array([p[0] for p in data_points])
-    ccs_values = np.array([p[1] for p in data_points])
+    # **Ensure Proper Data Formatting**
+    try:
+        data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
+    except KeyError as e:
+        print(f"[ERROR] Missing expected keys in input data: {e}")
+        return [], [], []
+
+    # ✅ **Ensure data is numeric and properly shaped**
+    mz_values = np.array([p[0] for p in data_points], dtype=np.float64)
+    ccs_values = np.array([p[1] for p in data_points], dtype=np.float64)
 
     print(f"[DEBUG] Total points received: {len(data_points)}")
     print(f"[DEBUG] m/z values: {mz_values}")
@@ -181,58 +187,15 @@ def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     # Step 3: Ensure we still have a valid group
     if len(remaining_points) > 2:
         print(f"[INFO] Final refined group contains {len(remaining_points)} points.")
-        refined_group = remaining_points
+        homologous_series = remaining_points
     else:
         print(
-            "[WARNING] Could not achieve R² ≥ 0.99 with at least 3 points. Calling `find_best_high_r2_subset()`."
+            "[WARNING] Not enough points to form a valid group. Returning empty lists."
         )
-        refined_group = find_best_high_r2_subset(data_points, min_r2)
-
     print("\n[DEBUG] Final Processed Groups:")
-    print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
-    print(f"Branched Isomers ({len(branched_isomers)} points): {branched_isomers}")
+    print(f"Homologous series ({len(homologous_series)} points): {homologous_series}")
 
-    return refined_group, branched_isomers
-
-
-def find_best_high_r2_subset(groups, min_r2=0.99):
-    """Finds the longest subset with R² ≥ 0.99 when removing outliers."""
-
-    print("\n[DEBUG] find_best_high_r2_subset() was called!")
-    print(f"[DEBUG] Received {len(groups)} data points for processing.")
-
-    if len(groups) < 2:
-        print(
-            "[WARNING] Not enough data points to compute regression. Returning empty list."
-        )
-        return []
-
-    n = len(groups)
-    homologous_series_trendlines = []
-    max_length = 0
-
-    for start in range(n):
-        for end in range(start + 2, n + 1):  # At least 2 points needed
-            subset = groups[start:end]
-            subset_mz = np.array([p[0] for p in subset])
-            subset_ccs = np.array([p[1] for p in subset])
-
-            if len(set(subset_mz)) < 2:
-                continue  # Skip if all x values are identical
-
-            slope, intercept, r_value, _, _ = linregress(subset_mz, subset_ccs)
-            r_squared = r_value**2
-
-            print(f"[DEBUG] Evaluating subset {start}-{end}: R² = {r_squared:.6f}")
-
-            if r_squared >= min_r2 and len(subset) > max_length:
-                homologous_series_trendlines = subset
-                max_length = len(subset)
-
-    print(
-        f"[DEBUG] Best subset found with {len(homologous_series_trendlines)} points (R² ≥ {min_r2})"
-    )
-    return homologous_series_trendlines
+    return homologous_series, branched_isomers
 
 
 def main():
@@ -253,7 +216,7 @@ def main():
         return
 
     # Storage for results
-    refined_groups = []
+    homologous_series = []
     branched_isomer_groups = []
 
     print("\n[INFO] Running refine_group_by_best_fit on detected groups...")
@@ -261,18 +224,18 @@ def main():
         print(
             f"\n[DEBUG] Processing group {idx + 1}/{len(groups)} with {len(group)} points"
         )
-        refined_group, branched_isomers = refine_group_by_best_fit(group)
+        homologous_series, branched_isomers = refine_group_by_best_fit(group)
 
-        refined_groups.append(refined_group)
+        homologous_series.append(homologous_series)
         branched_isomer_groups.append(branched_isomers)
 
     print("\n[INFO] Group refinement complete.")
-    print(f"[DEBUG] Refined Groups: {len(refined_groups)}")
+    print(f"[DEBUG] Refined Groups: {len(homologous_series)}")
     print(f"[DEBUG] Branched Isomer Groups: {len(branched_isomer_groups)}")
 
     # ✅ **Fixed function call – now passing all required arguments**
     print("\n[INFO] Generating interactive plot...")
-    make_plotly_graph(adjusted_df, refined_groups, branched_isomer_groups)
+    make_plotly_graph(adjusted_df, homologous_series, branched_isomer_groups)
 
     print("\n[INFO] Analysis complete.")
 
