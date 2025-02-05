@@ -102,7 +102,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     return groups
 
 
-def refine_group_by_best_fit(groups, min_r2=0.99):
+def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
     """
     Finds the best-fit linear regression using all points first,
     then iteratively removes the worst point until R² ≥ 0.99 is achieved.
@@ -115,19 +115,14 @@ def refine_group_by_best_fit(groups, min_r2=0.99):
         print("[ERROR] Received empty group list. Exiting function.")
         return [], [], []
 
-    homologous_series = []
+    refined_group = []
+    post_source_decay = []
     branched_isomers = []
 
-    # **Ensure Proper Data Formatting**
-    try:
-        data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
-    except KeyError as e:
-        print(f"[ERROR] Missing expected keys in input data: {e}")
-        return [], [], []
-
-    # ✅ **Ensure data is numeric and properly shaped**
-    mz_values = np.array([p[0] for p in data_points], dtype=np.float64)
-    ccs_values = np.array([p[1] for p in data_points], dtype=np.float64)
+    # Convert to NumPy arrays
+    data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
+    mz_values = np.array([p[0] for p in data_points])
+    ccs_values = np.array([p[1] for p in data_points])
 
     print(f"[DEBUG] Total points received: {len(data_points)}")
     print(f"[DEBUG] m/z values: {mz_values}")
@@ -149,7 +144,7 @@ def refine_group_by_best_fit(groups, min_r2=0.99):
 
     if r_squared >= min_r2:
         print("[INFO] Initial group already meets R² ≥ 0.99. No need for filtering.")
-        return data_points, branched_isomers
+        return data_points, post_source_decay, branched_isomers
 
     # Step 2: Iteratively remove the worst point until R² ≥ 0.99
     remaining_points = data_points.copy()
@@ -174,7 +169,12 @@ def refine_group_by_best_fit(groups, min_r2=0.99):
 
         # Classify removed point
         predicted_ccs = slope * worst_point[0] + intercept
-        if worst_point[1] < predicted_ccs:
+        if worst_point[1] > predicted_ccs:
+            post_source_decay.append(worst_point)
+            print(
+                f"[FLAGGED] Post Source Decay - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
+            )
+        else:
             branched_isomers.append(worst_point)
             print(
                 f"[FLAGGED] Branched Isomer - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
@@ -187,20 +187,62 @@ def refine_group_by_best_fit(groups, min_r2=0.99):
     # Step 3: Ensure we still have a valid group
     if len(remaining_points) > 2:
         print(f"[INFO] Final refined group contains {len(remaining_points)} points.")
-        homologous_series = remaining_points
+        refined_group = remaining_points
     else:
         print(
-            "[WARNING] Not enough points to form a valid group. Returning empty lists."
+            "[WARNING] Could not achieve R² ≥ 0.99 with at least 3 points. Calling `find_best_high_r2_subset()`."
         )
-    print("\n[DEBUG] Final Processed Groups:")
-    print(f"Homologous series ({len(homologous_series)} points): {homologous_series}")
+        refined_group = find_best_high_r2_subset(data_points, min_r2)
 
-    return homologous_series, branched_isomers
+    print("\n[DEBUG] Final Processed Groups:")
+    print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
+    print(f"Post Source Decay ({len(post_source_decay)} points): {post_source_decay}")
+    print(f"Branched Isomers ({len(branched_isomers)} points): {branched_isomers}")
+
+    return refined_group, post_source_decay, branched_isomers
+
+
+def find_best_high_r2_subset(groups, min_r2=0.99):
+    """Finds the longest subset with R² ≥ 0.99 when removing outliers."""
+
+    print("\n[DEBUG] find_best_high_r2_subset() was called!")
+    print(f"[DEBUG] Received {len(groups)} data points for processing.")
+
+    if len(groups) < 2:
+        print(
+            "[WARNING] Not enough data points to compute regression. Returning empty list."
+        )
+        return []
+
+    n = len(groups)
+    best_subset = []
+    max_length = 0
+
+    for start in range(n):
+        for end in range(start + 2, n + 1):  # At least 2 points needed
+            subset = groups[start:end]
+            subset_mz = np.array([p[0] for p in subset])
+            subset_ccs = np.array([p[1] for p in subset])
+
+            if len(set(subset_mz)) < 2:
+                continue  # Skip if all x values are identical
+
+            slope, intercept, r_value, _, _ = linregress(subset_mz, subset_ccs)
+            r_squared = r_value**2
+
+            print(f"[DEBUG] Evaluating subset {start}-{end}: R² = {r_squared:.6f}")
+
+            if r_squared >= min_r2 and len(subset) > max_length:
+                best_subset = subset
+                max_length = len(subset)
+
+    print(f"[DEBUG] Best subset found with {len(best_subset)} points (R² ≥ {min_r2})")
+    return best_subset
 
 
 def main():
     """Run the analysis and interactive plot."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
 
     print("[DEBUG] Loading dataset...")
     adjusted_df = pd.read_csv(file_path)
@@ -216,7 +258,8 @@ def main():
         return
 
     # Storage for results
-    homologous_series = []
+    refined_groups = []
+    post_source_decay_groups = []
     branched_isomer_groups = []
 
     print("\n[INFO] Running refine_group_by_best_fit on detected groups...")
@@ -224,18 +267,22 @@ def main():
         print(
             f"\n[DEBUG] Processing group {idx + 1}/{len(groups)} with {len(group)} points"
         )
-        homologous_series, branched_isomers = refine_group_by_best_fit(group)
+        refined_group, post_source_decay, branched_isomers = refine_group_by_best_fit(
+            group
+        )
 
-        homologous_series.append(homologous_series)
+        refined_groups.append(refined_group)
+        post_source_decay_groups.append(post_source_decay)
         branched_isomer_groups.append(branched_isomers)
 
     print("\n[INFO] Group refinement complete.")
-    print(f"[DEBUG] Refined Groups: {len(homologous_series)}")
+    print(f"[DEBUG] Refined Groups: {len(refined_groups)}")
+    print(f"[DEBUG] Post Source Decay Groups: {len(post_source_decay_groups)}")
     print(f"[DEBUG] Branched Isomer Groups: {len(branched_isomer_groups)}")
 
     # ✅ **Fixed function call – now passing all required arguments**
     print("\n[INFO] Generating interactive plot...")
-    make_plotly_graph(adjusted_df, homologous_series, branched_isomer_groups)
+    make_plotly_graph(adjusted_df, refined_groups, branched_isomer_groups)
 
     print("\n[INFO] Analysis complete.")
 
