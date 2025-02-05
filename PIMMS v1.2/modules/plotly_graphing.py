@@ -54,7 +54,7 @@ def add_legend_entries(fig):
     )
 
 
-def make_plotly_graph(adjusted_df, homologous_series_trendlines, branched_isomers):
+def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
     sample_columns = [col for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
     add_legend_entries(fig)
@@ -166,7 +166,7 @@ def make_plotly_graph(adjusted_df, homologous_series_trendlines, branched_isomer
     homologous_series_plotted = False
     homologous_series_groups = []
 
-    for idx, group in enumerate(homologous_series_trendlines):
+    for idx, group in enumerate(refined_group):
         legend_group = f"group_{idx + 1}"
 
         mz_values = [point[0] for point in group]
@@ -246,8 +246,8 @@ def make_plotly_graph(adjusted_df, homologous_series_trendlines, branched_isomer
                 mz, ccs = point
 
                 related_series = " & ".join(
-                    [str(p[0]) for p in homologous_series_trendlines[idx]]
-                    if idx < len(homologous_series_trendlines)
+                    [str(p[0]) for p in refined_group[idx]]
+                    if idx < len(refined_group)
                     else ["Unknown"]
                 )
 
