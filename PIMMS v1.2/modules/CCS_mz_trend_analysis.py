@@ -13,6 +13,66 @@ REPEATING_UNITS = {
 }
 
 
+def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
+    """
+    Removes specified `.d` columns and filters out rows where all remaining `.d` columns are 0.
+
+    :param adjusted_df: The original DataFrame.
+    :param remove_d_columns: List of `.d` column names to remove.
+    :return: Filtered DataFrame.
+    """
+    filtered_df = adjusted_df.copy()
+
+    # **Normalize column names by stripping spaces**
+    filtered_df.columns = filtered_df.columns.str.strip()
+
+    # **Update column names in the original DataFrame**
+    adjusted_df.columns = adjusted_df.columns.str.strip()  # Strip spaces in-place
+
+    print(
+        f"[DEBUG] Existing Columns in adjusted_df after stripping spaces: {set(filtered_df.columns)}"
+    )
+
+    # **Remove selected .d columns**
+    found_columns = [col for col in remove_d_columns if col in filtered_df.columns]
+    missing_columns = [
+        col for col in remove_d_columns if col not in filtered_df.columns
+    ]
+
+    # **Warn about missing columns**
+    if missing_columns:
+        print(
+            f"[WARNING] The following columns were NOT found in adjusted_df and will not be removed: {missing_columns}"
+        )
+
+    if found_columns:
+        print(f"[INFO] Removing columns: {found_columns}")
+        filtered_df = filtered_df.drop(columns=found_columns, errors="ignore")
+
+    # **Identify remaining .d.DeMP columns**
+    d_columns = [col for col in filtered_df.columns if col.endswith(".d.DeMP")]
+
+    print(f"[DEBUG] Remaining .d.DeMP Columns after filtering: {d_columns}")
+
+    if not d_columns:
+        print(
+            "[WARNING] No remaining .d columns found after filtering. Returning DataFrame as-is."
+        )
+        return filtered_df  # No further filtering needed if no .d columns exist
+
+    # **Filter out rows where all remaining .d columns are 0**
+    mask = (filtered_df[d_columns] > 0).any(
+        axis=1
+    )  # Keep rows where at least one .d column is > 0
+    rows_removed = len(filtered_df) - len(filtered_df[mask])
+    filtered_df = filtered_df[mask]
+
+    print(f"[INFO] Removed {rows_removed} rows where all remaining .d columns were 0.")
+    print(f"[INFO] Remaining rows in DataFrame: {len(filtered_df)}")
+
+    return filtered_df
+
+
 def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
     """Identifies homologous series trends with at least 3 points using an expanding search approach."""
 
@@ -249,10 +309,19 @@ def main():
 
     print("[DEBUG] First few rows of dataset:")
     print(adjusted_df.head())
+    remove_columns = [
+        "148 B2 16632.d.DeMP",
+        "149 B2 16631.d.DeMP",
+        "220 B3 16562.d.DeMP",
+        "221 B3 16563.d.DeMP",
+    ]
 
+    # ✅ **Filter dataset before running analysis**
+    adjusted_df = filter_adjusted_df(adjusted_df, remove_columns)
+    print(adjusted_df.head())
     print("\n[INFO] Running mz_repeating_unit_analysis...")
     groups = mz_repeating_unit_analysis(adjusted_df)
-
+    print(adjusted_df.columns)
     if not groups:
         print("[WARNING] No homologous series found. Exiting...")
         return
