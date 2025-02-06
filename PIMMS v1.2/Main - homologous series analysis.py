@@ -1,10 +1,10 @@
-import plotly.graph_objects as go
-import pandas as pd
-import dash
-from dash import dcc, html, Input, Output
-
 import os
 import sys
+
+import dash
+import pandas as pd
+import plotly.graph_objects as go
+from dash import Input, Output, dcc, html
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from CCS_mz_trend_analysis import (
@@ -62,7 +62,19 @@ def update_graph_callback(remove_columns):
     return update_graph(remove_columns, adjusted_df)  # ✅ Call the imported function
 
 
-# ✅ Run Dash App
+import threading
+import webbrowser
+
+
+# ✅ Open the app automatically in the default browser
+def open_browser():
+    webbrowser.open_new("http://127.0.0.1:8050/")  # Adjust the URL if needed
+
+
 if __name__ == "__main__":
     print("[INFO] Starting Dash server...")
-    app.run_server(debug=True)
+
+    # ✅ Start the browser in a separate thread to avoid blocking
+    threading.Timer(1, open_browser).start()
+
+    app.run_server(debug=False)
