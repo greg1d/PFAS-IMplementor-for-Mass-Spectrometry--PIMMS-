@@ -82,6 +82,8 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
             row["Match"],
         )
 
+        RT = row.get("RT", "N/A")
+        print(RT)
         # ✅ Extract sample intensity info
         sample_info = [
             f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
@@ -97,7 +99,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name="Likely Identified",
                 legendgroup="likely_identified",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>RT: {RT}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,  # Initially visible
             )

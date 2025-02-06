@@ -17,7 +17,7 @@ from plotly_graphing import make_plotly_graph, update_graph
 # ✅ Load dataset **once** at startup
 file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
 adjusted_df = pd.read_csv(file_path)
-
+adjusted_df.columns = adjusted_df.columns.str.strip()  # ✅ Fix column names
 # ✅ Identify `.d.DeMP` columns
 d_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
 
