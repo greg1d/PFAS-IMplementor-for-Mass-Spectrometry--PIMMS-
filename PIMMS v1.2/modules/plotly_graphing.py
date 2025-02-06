@@ -1,6 +1,32 @@
 import plotly.graph_objects as go
 from scipy.stats import linregress
 import pandas as pd
+from CCS_mz_trend_analysis import (
+    mz_repeating_unit_analysis,
+    refine_group_by_best_fit,
+)
+
+FONT_CONFIG = dict(
+    family="NormativePro, Arial, sans-serif",  # Use Arial as a fallback
+    size=18,  # Default font size
+    color="white",  # Ensure visibility on dark backgrounds
+)
+
+
+def apply_plotly_font_styling(fig, font_family="NormativePro"):
+    """
+    Applies uniform font styling to all text elements in the Plotly figure.
+
+    :param fig: The Plotly figure object to be styled.
+    :param font_family: The font family to apply.
+    """
+    fig.update_layout(
+        title=dict(font=dict(family=font_family, size=18)),
+        xaxis=dict(title=dict(font=dict(family=font_family, size=16))),
+        yaxis=dict(title=dict(font=dict(family=font_family, size=16))),
+        legend=dict(font=dict(family=font_family, size=14)),
+        hoverlabel=dict(font=dict(family=font_family, size=12)),
+    )
 
 
 def add_legend_entries(fig):
@@ -102,7 +128,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name="Likely Identified",
                 legendgroup="likely_identified",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>RT: {RT}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz: .4f}<br>CCS: {ccs: .2f}<br>RT: {RT: .2f}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,  # Initially visible
             )
@@ -118,7 +144,6 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
         )
 
         RT = row["RT"] if pd.notna(row["RT"]) else "N/A"
-        print(RT)
 
         # ✅ Extract sample intensity info
         sample_info = [
@@ -135,7 +160,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name="Tentative - matched to external library",
                 legendgroup="tentative_matched",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT if RT != 'N/A' else 'N/A'}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz: .4f}<br>CCS: {ccs: .2f}<br>RT: {RT: .2f}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,  # Initially visible
             )
@@ -165,7 +190,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name="Tentative - no match to a library",
                 legendgroup="tentative_no_match",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>RT: {RT}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz: .4f}<br>CCS: {ccs: .2f}<br>RT: {RT: .2f}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,  # Initially visible
             )
@@ -240,7 +265,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name=f"Series {idx + 1} Point",
                 legendgroup="homologous_series_points",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz: .4f}<br>CCS: {ccs: .2f}<br>RT: {RT: .2f}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,
             )
@@ -270,28 +295,23 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                         legendgroup="branched_isomers",
                         showlegend=False,
                         hovertemplate=f"Branched isomer of homologous series: {related_series}<br>"
-                        f"m/z: {mz}<br>CCS: {ccs}<extra></extra>",
+                        f"m/z: {mz: .4f}<br>CCS: {ccs: .2f}<br>RT: {RT: .2f}<br>",
                     )
                 )
         except (ValueError, IndexError, TypeError) as e:
             print(f"[ERROR] Invalid branched isomer point format: {group} - {e}")
-
     # ** Update layout: Ensure Post-Source Decay Toggle Works Independently **
     fig.update_layout(
-        title="CCS v m/z trend analysis",
-        xaxis_title="m/z",
-        yaxis_title="CCS",
+        title=dict(text="CCS vs m/z Trend Analysis", font=FONT_CONFIG),
+        xaxis=dict(title="m/z", titlefont=FONT_CONFIG, tickfont=FONT_CONFIG),
+        yaxis=dict(title="CCS", titlefont=FONT_CONFIG, tickfont=FONT_CONFIG),
         template="plotly_dark",
-        legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
+        legend=dict(
+            itemclick="toggle", itemdoubleclick="toggleothers", font=FONT_CONFIG
+        ),
     )
 
     return fig
-
-
-from CCS_mz_trend_analysis import (
-    mz_repeating_unit_analysis,
-    refine_group_by_best_fit,
-)
 
 
 def update_graph(remove_columns, adjusted_df):

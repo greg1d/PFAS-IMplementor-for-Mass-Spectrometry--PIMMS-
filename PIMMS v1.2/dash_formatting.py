@@ -10,7 +10,7 @@ def get_dash_layout(d_columns, initial_figure):
                 style={"text-align": "center", "margin-bottom": "20px"},
             ),
             html.Label(
-                "Select `.d` columns to remove:",
+                "Select Samples to Remove:",
                 style={"font-size": "18px", "margin-bottom": "10px"},
             ),
             dcc.Dropdown(
