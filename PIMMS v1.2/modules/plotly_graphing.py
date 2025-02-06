@@ -287,7 +287,6 @@ from CCS_mz_trend_analysis import (
 
 def update_graph(remove_columns, adjusted_df):
     """Updates the graph dynamically when columns are removed."""
-
     print("[INFO] Graph update triggered.")
 
     # ✅ Default to empty list if None
@@ -300,6 +299,38 @@ def update_graph(remove_columns, adjusted_df):
     filtered_df = adjusted_df.drop(
         columns=[col for col in remove_columns if col in adjusted_df.columns],
         errors="ignore",
+    )
+
+    # ✅ Identify columns that contain ".d"
+    d_columns = [col for col in filtered_df.columns if ".d" in col]
+
+    # ✅ Remove rows where all ".d" columns contain only 0s
+    if d_columns:
+        before_removal = len(filtered_df)
+        filtered_df = filtered_df[~(filtered_df[d_columns] == 0).all(axis=1)]
+        after_removal = len(filtered_df)
+        print(
+            f"[INFO] Removed {before_removal - after_removal} rows where all '.d' columns were 0."
+        )
+
+    # ✅ Identify rows where "Samples:" is "None" and remove them
+    sample_columns = [col for col in filtered_df.columns if ".d" in col]
+
+    def get_sample_info(row):
+        """Extracts sample intensity info for hover text."""
+        sample_info = [
+            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
+        ]
+        return "<br>".join(sample_info) if sample_info else "None"
+
+    # **Filter out rows where the sample text is "None"**
+    before_sample_removal = len(filtered_df)
+    filtered_df["Sample_Info"] = filtered_df.apply(get_sample_info, axis=1)
+    filtered_df = filtered_df[filtered_df["Sample_Info"] != "None"]
+    after_sample_removal = len(filtered_df)
+
+    print(
+        f"[INFO] Removed {before_sample_removal - after_sample_removal} rows with 'None' sample info."
     )
 
     # ✅ Run analysis (only if data exists)
