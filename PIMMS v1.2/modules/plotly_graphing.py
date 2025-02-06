@@ -1,5 +1,6 @@
 import plotly.graph_objects as go
 from scipy.stats import linregress
+import pandas as pd
 
 
 def add_legend_entries(fig):
@@ -55,9 +56,10 @@ def add_legend_entries(fig):
 
 
 def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
-    sample_columns = [col for col in adjusted_df.columns if ".d" in col]
+    sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
     add_legend_entries(fig)
+    adjusted_df.columns = adjusted_df.columns.str.strip()
 
     # ** Remove post-source decay & branched isomer points from general data **
     branched_mz_values = {point[0] for group in branched_isomers for point in group}
@@ -83,10 +85,11 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
         )
 
         RT = row.get("RT", "N/A")
-        print(RT)
         # ✅ Extract sample intensity info
         sample_info = [
-            f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
+            f"{col.strip()}: {row[col.strip()]:.2f}"
+            for col in sample_columns
+            if row[col.strip()] > 0
         ]
         sample_text = "<br>".join(sample_info) if sample_info else "None"
 
@@ -114,6 +117,9 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
             row["Match"],
         )
 
+        RT = row["RT"] if pd.notna(row["RT"]) else "N/A"
+        print(RT)
+
         # ✅ Extract sample intensity info
         sample_info = [
             f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0
@@ -129,7 +135,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name="Tentative - matched to external library",
                 legendgroup="tentative_matched",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT if RT != 'N/A' else 'N/A'}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,  # Initially visible
             )
@@ -142,6 +148,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
             row["Classification Type"],
             row["Match"],
         )
+        RT = row.get("RT", "N/A")
 
         # ✅ Extract sample intensity info
         sample_info = [
@@ -158,7 +165,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 name="Tentative - no match to a library",
                 legendgroup="tentative_no_match",
                 showlegend=False,
-                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>"
+                hovertemplate=f"Match: {match_name}<br>m/z: {mz}<br>CCS: {ccs}<br>RT: {RT}<br>"
                 f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                 visible=True,  # Initially visible
             )
