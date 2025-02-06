@@ -4,13 +4,14 @@ import sys
 import dash
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Input, Output, dcc, html
+from dash import Input, Output
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from CCS_mz_trend_analysis import (
     mz_repeating_unit_analysis,
     refine_group_by_best_fit,
 )
+from dash_formatting import get_dash_layout
 from plotly_graphing import make_plotly_graph, update_graph
 
 # ✅ Load dataset **once** at startup
@@ -38,22 +39,7 @@ else:
 
 # ✅ Dash App Setup
 app = dash.Dash(__name__)
-
-app.layout = html.Div(
-    [
-        html.H1("CCS vs m/z Trends", style={"text-align": "center"}),
-        # ✅ Dropdown for selecting `.d` columns to remove
-        html.Label("Select `.d` columns to remove:"),
-        dcc.Dropdown(
-            id="remove_columns",
-            options=[{"label": col, "value": col} for col in d_columns],
-            multi=True,
-            placeholder="Select columns to remove...",
-        ),
-        # ✅ Graph Output
-        dcc.Graph(id="plotly_graph", figure=initial_figure),
-    ]
-)
+app.layout = get_dash_layout(d_columns, initial_figure)
 
 
 # ✅ Dash Callback to Update Graph

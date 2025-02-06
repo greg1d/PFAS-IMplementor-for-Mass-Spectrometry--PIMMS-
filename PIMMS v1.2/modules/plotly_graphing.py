@@ -269,7 +269,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
 
     # ** Update layout: Ensure Post-Source Decay Toggle Works Independently **
     fig.update_layout(
-        title="CCS vs m/z Trends",
+        title="CCS v m/z trend analysis",
         xaxis_title="m/z",
         yaxis_title="CCS",
         template="plotly_dark",

@@ -1,0 +1,32 @@
+/* Ensure the entire webpage is black */
+html,
+body {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+}
+
+/* Dash app container */
+#_dash-app-content {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+/* Remove borders from Dash graphs */
+.dash-graph {
+    border: none !important;
+}
+
+/* Style dropdowns */
+.Select-control {
+    background-color: #333333 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #444 !important;
+}
+
+/* Remove white borders on Dash components */
+.Select-menu-outer {
+    background-color: #222222 !important;
+}
