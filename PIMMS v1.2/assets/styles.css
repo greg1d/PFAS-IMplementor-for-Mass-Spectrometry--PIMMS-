@@ -1,6 +1,14 @@
-/* Ensure the entire webpage is black */
-html,
+/* ✅ Define the custom font */
+@font-face {
+    font-family: 'NormativePro';
+    src: url('NormativePro-Bold.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* ✅ Ensure the entire webpage uses black background & white text */
 body {
+    font-family: 'NormativePro', sans-serif !important;
     background-color: #000000 !important;
     color: #FFFFFF !important;
     margin: 0 !important;
@@ -8,25 +16,46 @@ body {
     overflow-x: hidden;
 }
 
-/* Dash app container */
+/* ✅ Apply the font to all text elements */
+h1, h2, h3, h4, h5, h6, p, label, span, div, button {
+    font-family: 'NormativePro', sans-serif !important;
+}
+
+/* ✅ Dash app container */
 #_dash-app-content {
     background-color: #000000 !important;
     color: #FFFFFF !important;
 }
 
-/* Remove borders from Dash graphs */
+/* ✅ Remove borders from Dash graphs */
 .dash-graph {
     border: none !important;
 }
 
-/* Style dropdowns */
+/* ✅ Style dropdowns */
 .Select-control {
     background-color: #333333 !important;
     color: #FFFFFF !important;
     border: 1px solid #444 !important;
 }
 
-/* Remove white borders on Dash components */
+/* ✅ Remove white borders on Dash components */
 .Select-menu-outer {
     background-color: #222222 !important;
+}
+
+/* ✅ Style buttons */
+button {
+    background-color: #444 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #666 !important;
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+}
+
+/* ✅ Hover effects for buttons */
+button:hover {
+    background-color: #555 !important;
+    border-color: #777 !important;
 }
