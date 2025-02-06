@@ -38,7 +38,7 @@ else:
     initial_figure = go.Figure()
 
 # ✅ Dash App Setup
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, title="IMspector Gadget")  # Set custom title
 app.layout = get_dash_layout(d_columns, initial_figure)
 
 
