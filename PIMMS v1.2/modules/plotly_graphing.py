@@ -1,10 +1,10 @@
-import plotly.graph_objects as go
-from scipy.stats import linregress
 import pandas as pd
+import plotly.graph_objects as go
 from CCS_mz_trend_analysis import (
     mz_repeating_unit_analysis,
     refine_group_by_best_fit,
 )
+from scipy.stats import linregress
 
 FONT_CONFIG = dict(
     family="NormativePro, Arial, sans-serif",  # Use Arial as a fallback
@@ -302,13 +302,11 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
             print(f"[ERROR] Invalid branched isomer point format: {group} - {e}")
     # ** Update layout: Ensure Post-Source Decay Toggle Works Independently **
     fig.update_layout(
-        title=dict(text="CCS vs m/z Trend Analysis", font=FONT_CONFIG),
-        xaxis=dict(title="m/z", titlefont=FONT_CONFIG, tickfont=FONT_CONFIG),
-        yaxis=dict(title="CCS", titlefont=FONT_CONFIG, tickfont=FONT_CONFIG),
+        title=dict(text="CCS vs m/z Trend Analysis"),
+        xaxis=dict(title="m/z"),
+        yaxis=dict(title="CCS"),
         template="plotly_dark",
-        legend=dict(
-            itemclick="toggle", itemdoubleclick="toggleothers", font=FONT_CONFIG
-        ),
+        legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
 
     return fig
