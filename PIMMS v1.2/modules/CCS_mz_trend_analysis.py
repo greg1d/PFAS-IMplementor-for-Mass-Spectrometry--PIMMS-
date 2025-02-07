@@ -1,4 +1,5 @@
 import time
+
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -71,7 +72,9 @@ def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
     return filtered_df
 
 
-def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
+def mz_repeating_unit_analysis(
+    adjusted_df, mass_error_ppm=10, repeating_units=["OCF2"]
+):
     """Identifies homologous series trends with at least 3 points using an expanding search approach."""
 
     start_time = time.time()
@@ -156,7 +159,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
         df_debug = pd.DataFrame(group)
         print(df_debug.to_string(index=False))  # Print clean table without row index
         print("-" * 80)  # Separator for readability
-    print(groups)
     return groups
 
 
