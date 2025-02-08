@@ -79,15 +79,7 @@ def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
     return filtered_df
 
 
-def mz_repeating_unit_analysis(
-    adjusted_df,
-    mass_error_ppm=10,
-    repeating_units=[
-        "CF2",
-        "OCF2",
-        "C2F4",
-    ],
-):
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[]):
     """Identifies homologous series trends by sequentially checking different repeating units.
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
     """
@@ -105,7 +97,7 @@ def mz_repeating_unit_analysis(
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
 
     unique_group_ids = set()  # Stores sets of IDs for unique groups
-    groups = []  # List to store final DataFrame groups
+    mass_groups = []  # List to store final DataFrame groups
 
     print(f"[DEBUG] Total data points: {len(adjusted_df)}")
 
@@ -179,14 +171,16 @@ def mz_repeating_unit_analysis(
 
                 if group_ids not in unique_group_ids:  # ✅ Prevent duplicate groups
                     unique_group_ids.add(group_ids)  # Track unique group
-                    groups.append(pd.DataFrame(current_group))  # Store as DataFrame
+                    mass_groups.append(
+                        pd.DataFrame(current_group)
+                    )  # Store as DataFrame
 
     print(
         f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
     )
 
     # **Debugging: Print each group with repeating unit**
-    for idx, group_df in enumerate(groups):
+    for idx, group_df in enumerate(mass_groups):
         repeating_unit = group_df["Repeating Unit"].iloc[0]  # Extract repeating unit
         print(
             f"\n[DEBUG] Group {idx + 1} - Homologous Series (Repeating Unit: {repeating_unit}):"
@@ -194,28 +188,28 @@ def mz_repeating_unit_analysis(
         print(group_df.to_string(index=False))  # Print clean table without row index
         print("-" * 80)  # Separator for readability
 
-    return groups
+    return mass_groups
 
 
-def CCS_v_mz_analysis(groups, threshold=0.02, min_r2=0.99):
+def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     """
-    Finds the best-fit linear regression using all points first,
-    then iteratively removes the worst point until R² ≥ 0.99 is achieved.
-    Calls `find_best_high_r2_subset()` if necessary.
+    Identifies homologous series trends by checking if CCS and m/z values are correlated.
+    - Iteratively removes the highest residual point until a statistically significant (p ≤ 0.05) positive correlation is found.
+    - Groups are classified as:
+        - "IM_group": Points that form a statistically significant correlation.
+        - "mass_only_group": Groups where no significant correlation is found.
+        - "post_source_decay": Removed points above the regression line.
+        - "branched_isomer": Removed points below the regression line.
     """
 
-    print("\n[DEBUG] Starting refine_group_by_best_fit function...")
+    print("\n[DEBUG] Starting CCS_v_mz_analysis function...")
 
-    if not groups:
+    if mass_groups.empty:
         print("[ERROR] Received empty group list. Exiting function.")
-        return [], [], []
-
-    refined_group = []
-    post_source_decay = []
-    branched_isomers = []
+        return [], [], [], []
 
     # Convert to NumPy arrays
-    data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
+    data_points = list(zip(mass_groups["m/z"], mass_groups["CCS"]))
     mz_values = np.array([p[0] for p in data_points])
     ccs_values = np.array([p[1] for p in data_points])
 
@@ -223,44 +217,63 @@ def CCS_v_mz_analysis(groups, threshold=0.02, min_r2=0.99):
     print(f"[DEBUG] m/z values: {mz_values}")
     print(f"[DEBUG] CCS values: {ccs_values}")
 
-    if len(mz_values) < 2:
+    if len(mz_values) < 3:
         print(
-            "[WARNING] Not enough points to fit a regression model. Returning empty lists."
+            "[WARNING] Not enough points to fit a regression model. Returning as mass_only_group."
         )
-        return [], [], []
+        return [], [], [], data_points  # Return everything as mass_only_group
 
     # Step 1: Find best fit for all points initially
-    slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+    slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
     r_squared = r_value**2
 
     print(
-        f"[INFO] Initial Fit - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {r_squared:.6f}"
+        f"[INFO] Initial Fit - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {r_squared:.6f}, p-value: {p_value:.6f}"
     )
 
-    if r_squared >= min_r2:
-        print("[INFO] Initial group already meets R² ≥ 0.99. No need for filtering.")
-        return data_points, post_source_decay, branched_isomers
+    if p_value <= significance_cutoff and slope > 0:
+        print(
+            "[INFO] Initial group already meets significance and is positively correlated."
+        )
+        return (
+            data_points,
+            [],
+            [],
+            [],
+        )  # IM_group, post_source_decay, branched_isomer, mass_only_group
 
-    # Step 2: Iteratively remove the worst point until R² ≥ 0.99
+    # Step 2: Iteratively remove the worst point until significance is met
     remaining_points = data_points.copy()
+    post_source_decay = []
+    branched_isomer = []
 
     while len(remaining_points) > 2:
-        # Compute R² for the current subset
         mz_values = np.array([p[0] for p in remaining_points])
         ccs_values = np.array([p[1] for p in remaining_points])
-        slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+        slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
         r_squared = r_value**2
 
-        if r_squared >= min_r2:
-            break  # Stop if we've achieved R² ≥ 0.99
+        print(
+            f"[DEBUG] Current Fit - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {r_squared:.6f}, p-value: {p_value:.6f}"
+        )
+
+        if p_value <= significance_cutoff and slope > 0:
+            print(
+                f"[INFO] Significant positive correlation achieved with {len(remaining_points)} points."
+            )
+            return (
+                remaining_points,
+                post_source_decay,
+                branched_isomer,
+                [],
+            )  # Return as IM_group
 
         # Identify the worst point to remove (highest residual)
         residuals = [
             abs(ccs - (slope * mz + intercept)) for mz, ccs in remaining_points
         ]
-        max_residual_idx = np.argmax(residuals)  # Index of the worst point
-
-        worst_point = remaining_points.pop(max_residual_idx)  # Remove the worst point
+        max_residual_idx = np.argmax(residuals)
+        worst_point = remaining_points.pop(max_residual_idx)
 
         # Classify removed point
         predicted_ccs = slope * worst_point[0] + intercept
@@ -270,69 +283,16 @@ def CCS_v_mz_analysis(groups, threshold=0.02, min_r2=0.99):
                 f"[FLAGGED] Post Source Decay - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
             )
         else:
-            branched_isomers.append(worst_point)
+            branched_isomer.append(worst_point)
             print(
                 f"[FLAGGED] Branched Isomer - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
             )
 
+    # Step 3: If we exit the loop and still don't have a significant model, return as mass_only_group
     print(
-        f"\n[INFO] Final R²: {r_squared:.6f} after removing {len(data_points) - len(remaining_points)} points."
+        "[WARNING] Could not achieve a statistically significant positive correlation with at least 3 points."
     )
-
-    # Step 3: Ensure we still have a valid group
-    if len(remaining_points) > 2:
-        print(f"[INFO] Final refined group contains {len(remaining_points)} points.")
-        refined_group = remaining_points
-    else:
-        print(
-            "[WARNING] Could not achieve R² ≥ 0.99 with at least 3 points. Calling `find_best_high_r2_subset()`."
-        )
-        refined_group = find_best_high_r2_subset(data_points, min_r2)
-
-    print("\n[DEBUG] Final Processed Groups:")
-    print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
-    print(f"Post Source Decay ({len(post_source_decay)} points): {post_source_decay}")
-    print(f"Branched Isomers ({len(branched_isomers)} points): {branched_isomers}")
-
-    return refined_group, post_source_decay, branched_isomers
-
-
-def find_best_high_r2_subset(groups, min_r2=0.99):
-    """Finds the longest subset with R² ≥ 0.99 when removing outliers."""
-
-    print("\n[DEBUG] find_best_high_r2_subset() was called!")
-    print(f"[DEBUG] Received {len(groups)} data points for processing.")
-
-    if len(groups) < 2:
-        print(
-            "[WARNING] Not enough data points to compute regression. Returning empty list."
-        )
-        return []
-
-    n = len(groups)
-    best_subset = []
-    max_length = 0
-
-    for start in range(n):
-        for end in range(start + 2, n + 1):  # At least 2 points needed
-            subset = groups[start:end]
-            subset_mz = np.array([p[0] for p in subset])
-            subset_ccs = np.array([p[1] for p in subset])
-
-            if len(set(subset_mz)) < 2:
-                continue  # Skip if all x values are identical
-
-            slope, intercept, r_value, _, _ = linregress(subset_mz, subset_ccs)
-            r_squared = r_value**2
-
-            print(f"[DEBUG] Evaluating subset {start}-{end}: R² = {r_squared:.6f}")
-
-            if r_squared >= min_r2 and len(subset) > max_length:
-                best_subset = subset
-                max_length = len(subset)
-
-    print(f"[DEBUG] Best subset found with {len(best_subset)} points (R² ≥ {min_r2})")
-    return best_subset
+    return [], [], [], data_points  # Return as mass_only_group
 
 
 def main():
@@ -342,12 +302,8 @@ def main():
     print("[DEBUG] Loading dataset...")
     adjusted_df = pd.read_csv(file_path)
 
-    # REPEATING_UNITS = {CF2, OCF2, HF, CF2CF2O, CH2CF2, CH2CHF,
-    # CH2CH2CF2CF2, CF2CFCl, CH2CH2CF2CFCl, OCF2CFCF3}
-    repeating_units = [
-        "CF2",
-        "OCF2",
-    ]
+    # Define the repeating units to use
+    repeating_units = ["CF2", "OCF2"]
 
     # Filter to only include valid repeating units
     valid_units = [unit for unit in repeating_units if unit in REPEATING_UNITS]
@@ -359,9 +315,40 @@ def main():
     print(
         f"\n[INFO] Running mz_repeating_unit_analysis with repeating units: {valid_units}"
     )
-    groups = mz_repeating_unit_analysis(adjusted_df, repeating_units=valid_units)
+    mass_groups = mz_repeating_unit_analysis(adjusted_df, repeating_units=valid_units)
 
-    # Debugging output: Print the groups with repeating unit column
+    if not mass_groups:
+        print("[WARNING] No homologous series found. Exiting...")
+        return
+
+    # Debugging output: Print the groups and classify them
+    for idx, mass_group in enumerate(mass_groups):
+        print(f"\n[DEBUG] Processing Mass Group {idx + 1}:")
+
+        # Perform CCS_v_mz_analysis
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(mass_group)
+        )
+
+        if IM_group:
+            print(f"\n[INFO] Group {idx + 1} identified as an IM_group:")
+            print(pd.DataFrame(IM_group).to_string(index=False))
+        else:
+            print(f"\n[INFO] Group {idx + 1} remains a Mass_Only group:")
+            print(pd.DataFrame(mass_only_group).to_string(index=False))
+
+        print("-" * 80)
+
+        # Print the excluded points (if any)
+        if post_source_decay:
+            print(f"\n[DEBUG] Post Source Decay for Group {idx + 1}:")
+            print(pd.DataFrame(post_source_decay).to_string(index=False))
+            print("-" * 80)
+
+        if branched_isomer:
+            print(f"\n[DEBUG] Branched Isomer for Group {idx + 1}:")
+            print(pd.DataFrame(branched_isomer).to_string(index=False))
+            print("-" * 80)
 
 
 if __name__ == "__main__":
