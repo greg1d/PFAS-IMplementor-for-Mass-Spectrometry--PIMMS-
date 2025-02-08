@@ -182,6 +182,17 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                         processed_indices.add(j)
                         search_queue.append(j)
 
+            # **Enforce Minimum 10 ppm Separation Rule**
+            min_mz = min(entry["m/z"] for entry in current_group)
+            max_mz = max(entry["m/z"] for entry in current_group)
+            ppm_separation = (abs(max_mz - min_mz) / min_mz) * 1e6
+
+            if ppm_separation < 10:
+                print(
+                    f"[WARNING] Group rejected due to insufficient ppm separation ({ppm_separation:.2f} ppm)."
+                )
+                continue  # Skip storing this group
+
             # **Ensure the group has at least 2 points and is unique based on ID set**
             if len(current_group) >= 2:
                 group_ids = frozenset(
