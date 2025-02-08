@@ -1,7 +1,6 @@
 import plotly.graph_objects as go
 from CCS_mz_trend_analysis import (
     mz_repeating_unit_analysis,
-    refine_group_by_best_fit,
 )
 from scipy.stats import linregress
 
@@ -48,7 +47,11 @@ def add_legend_entries(fig):
             "color": "orange",
             "legendgroup": "tentative_matched",
         },
-        {"name": "Unmatched", "color": "purple", "legendgroup": "tentative_no_match"},
+        {
+            "name": "Unmatched",
+            "color": "purple",
+            "legendgroup": "tentative_no_match",
+        },
     ]
 
     for item in legend_items:

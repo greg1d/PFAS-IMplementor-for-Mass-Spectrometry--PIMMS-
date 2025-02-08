@@ -191,7 +191,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         mz_values = np.array([p[0] for p in remaining_points])
         ccs_values = np.array([p[1] for p in remaining_points])
         slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
-        r_squared = r_value**2
 
         if p_value <= significance_cutoff and slope > 0:
             print(
