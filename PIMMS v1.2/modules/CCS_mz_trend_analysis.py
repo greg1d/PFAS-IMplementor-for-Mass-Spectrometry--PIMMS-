@@ -72,10 +72,16 @@ def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
     return filtered_df
 
 
-def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
-    """Identifies homologous series trends with at least 3 points using an expanding search approach."""
+def mz_repeating_unit_analysis(
+    adjusted_df, mass_error_ppm=10, repeating_units=["CF2", "OCF2"]
+):
+    """Identifies homologous series trends by sequentially checking different repeating units.
+    Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
+    """
 
     start_time = time.time()
+
+    # Convert user-provided repeating units into masses using the REPEATING_UNITS dictionary
     selected_units = {
         unit: REPEATING_UNITS[unit]
         for unit in repeating_units
@@ -85,17 +91,22 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     # **Sort data by m/z to ensure proper trend building**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
 
-    used_indices = set()  # Track indices that are already included in a group
-    groups = []
+    unique_group_ids = set()  # Stores sets of IDs for unique groups
+    groups = []  # List to store final DataFrame groups
 
     print(f"[DEBUG] Total data points: {len(adjusted_df)}")
 
-    for unit_name, M in selected_units.items():  # ✅ Fixed iteration
-        print(f"\n[INFO] Analyzing with M = {M:.6f} ({unit_name})")
+    # Iterate over each repeating unit sequentially
+    for unit_name, M in selected_units.items():
+        print(
+            f"\n[INFO] Searching for homologous series with repeating unit: {unit_name} (M = {M:.6f})"
+        )
+
+        processed_indices = set()  # Track indices already used in a group for this unit
 
         for i in range(len(adjusted_df)):  # Iterate over all peaks
-            if i in used_indices:
-                continue  # Skip if already assigned to a group
+            if i in processed_indices:
+                continue  # Skip if already assigned to a group for this unit
 
             mz_value = adjusted_df.iloc[i]["m/z"]
             current_group = [
@@ -106,10 +117,9 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                     "Classification Type": adjusted_df.iloc[i]["Classification Type"],
                     "Match Source": adjusted_df.iloc[i]["Match Source"],
                     "Match": adjusted_df.iloc[i]["Match"],
-                    "Repeating Unit": unit_name,  # ✅ Store repeating unit name
+                    "Repeating Unit": unit_name,  # ✅ Store repeating unit type
                 }
             ]
-            used_indices.add(i)
 
             # **Dynamic Expansion Search**
             search_queue = [i]  # Queue to hold indices to check forward
@@ -119,17 +129,14 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                 current_mz = adjusted_df.iloc[current_idx]["m/z"]
 
                 for j in range(current_idx + 1, len(adjusted_df)):  # Look forward
-                    if j in used_indices:
-                        continue
+                    if j in processed_indices:
+                        continue  # Skip if already processed for this unit
 
                     next_mz_value = adjusted_df.iloc[j]["m/z"]
                     mass_diff = abs(current_mz - next_mz_value)
 
-                    # **Check if the difference matches M or 2M from the latest point**
-                    if any(
-                        abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * current_mz
-                        for k in range(1, 3)  # Searches for M, 2M
-                    ):
+                    # **Check if the difference matches M**
+                    if abs(mass_diff - M) <= (mass_error_ppm / 1e6) * current_mz:
                         current_group.append(
                             {
                                 "m/z": next_mz_value,
@@ -140,16 +147,23 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                                 ],
                                 "Match Source": adjusted_df.iloc[j]["Match Source"],
                                 "Match": adjusted_df.iloc[j]["Match"],
-                                "Repeating Unit": unit_name,  # ✅ Store repeating unit name
+                                "Repeating Unit": unit_name,  # ✅ Store repeating unit type
                             }
                         )
-                        used_indices.add(j)  # Mark as used
+                        processed_indices.add(j)  # Mark as used for this unit
                         search_queue.append(
                             j
                         )  # Add this index to keep searching forward
 
-            if len(current_group) >= 3:  # Only store groups with 3+ points
-                groups.append(pd.DataFrame(current_group))  # Store as DataFrame
+            # **Ensure the group has at least 3 points and is unique based on ID set**
+            if len(current_group) >= 3:
+                group_ids = frozenset(
+                    entry["ID"] for entry in current_group
+                )  # Unique ID set
+
+                if group_ids not in unique_group_ids:  # ✅ Prevent duplicate groups
+                    unique_group_ids.add(group_ids)  # Track unique group
+                    groups.append(pd.DataFrame(current_group))  # Store as DataFrame
 
     print(
         f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
