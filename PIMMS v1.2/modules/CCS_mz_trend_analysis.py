@@ -9,6 +9,13 @@ REPEATING_UNITS = {
     "CF2": 49.9968064,
     "OCF2": 65.9917214,
     "HF": 20.006228,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "CH2CHF": 46.021878,
+    "CH2CH2CF2CF2": 128.024912,
+    "CF2CFCl": 115.964062,
+    "CH2CH2CF2CFCl": 143.995362,
+    "OCF2CFCF3": 165.985333,
 }
 
 
@@ -165,7 +172,7 @@ def mz_repeating_unit_analysis(
                         )  # Add this index to keep searching forward
 
             # **Ensure the group has at least 3 points and is unique based on ID set**
-            if len(current_group) >= 3:
+            if len(current_group) >= 2:
                 group_ids = frozenset(
                     entry["ID"] for entry in current_group
                 )  # Unique ID set
@@ -190,7 +197,7 @@ def mz_repeating_unit_analysis(
     return groups
 
 
-def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
+def CCS_v_mz_analysis(groups, threshold=0.02, min_r2=0.99):
     """
     Finds the best-fit linear regression using all points first,
     then iteratively removes the worst point until R² ≥ 0.99 is achieved.
