@@ -8,7 +8,7 @@ from scipy.stats import linregress
 REPEATING_UNITS = {
     "CF2": 49.9968064,
     "OCF2": 65.9917214,
-    "TEST": 100,
+    "HF": 20.006228,
 }
 
 
@@ -73,7 +73,13 @@ def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
 
 
 def mz_repeating_unit_analysis(
-    adjusted_df, mass_error_ppm=10, repeating_units=["CF2", "OCF2"]
+    adjusted_df,
+    mass_error_ppm=10,
+    repeating_units=[
+        "CF2",
+        "OCF2",
+        "C2F4",
+    ],
 ):
     """Identifies homologous series trends by sequentially checking different repeating units.
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
@@ -130,13 +136,16 @@ def mz_repeating_unit_analysis(
 
                 for j in range(current_idx + 1, len(adjusted_df)):  # Look forward
                     if j in processed_indices:
-                        continue  # Skip if already processed for this unit
+                        continue
 
                     next_mz_value = adjusted_df.iloc[j]["m/z"]
                     mass_diff = abs(current_mz - next_mz_value)
 
-                    # **Check if the difference matches M**
-                    if abs(mass_diff - M) <= (mass_error_ppm / 1e6) * current_mz:
+                    # **Check if the difference matches M or 2M from the latest point**
+                    if any(
+                        abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * current_mz
+                        for k in range(1, 3)  # Searches for M, 2M
+                    ):
                         current_group.append(
                             {
                                 "m/z": next_mz_value,
