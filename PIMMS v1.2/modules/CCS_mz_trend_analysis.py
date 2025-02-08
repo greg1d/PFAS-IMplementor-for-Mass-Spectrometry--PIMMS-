@@ -342,8 +342,26 @@ def main():
     print("[DEBUG] Loading dataset...")
     adjusted_df = pd.read_csv(file_path)
 
-    print("\n[INFO] Running mz_repeating_unit_analysis...")
-    groups = mz_repeating_unit_analysis(adjusted_df)
+    # REPEATING_UNITS = {CF2, OCF2, HF, CF2CF2O, CH2CF2, CH2CHF,
+    # CH2CH2CF2CF2, CF2CFCl, CH2CH2CF2CFCl, OCF2CFCF3}
+    repeating_units = [
+        "CF2",
+        "OCF2",
+    ]
+
+    # Filter to only include valid repeating units
+    valid_units = [unit for unit in repeating_units if unit in REPEATING_UNITS]
+
+    if not valid_units:
+        print("[ERROR] No valid repeating units selected. Exiting...")
+        return
+
+    print(
+        f"\n[INFO] Running mz_repeating_unit_analysis with repeating units: {valid_units}"
+    )
+    groups = mz_repeating_unit_analysis(adjusted_df, repeating_units=valid_units)
+
+    # Debugging output: Print the groups with repeating unit column
 
 
 if __name__ == "__main__":
