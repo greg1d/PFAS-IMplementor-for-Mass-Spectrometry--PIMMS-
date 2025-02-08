@@ -72,15 +72,15 @@ def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
     return filtered_df
 
 
-def mz_repeating_unit_analysis(
-    adjusted_df, mass_error_ppm=10, repeating_units=["OCF2"]
-):
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
     """Identifies homologous series trends with at least 3 points using an expanding search approach."""
 
     start_time = time.time()
-    selected_units = [
-        REPEATING_UNITS[unit] for unit in repeating_units if unit in REPEATING_UNITS
-    ]
+    selected_units = {
+        unit: REPEATING_UNITS[unit]
+        for unit in repeating_units
+        if unit in REPEATING_UNITS
+    }
 
     # **Sort data by m/z to ensure proper trend building**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
@@ -90,8 +90,8 @@ def mz_repeating_unit_analysis(
 
     print(f"[DEBUG] Total data points: {len(adjusted_df)}")
 
-    for M in selected_units:
-        print(f"\n[INFO] Analyzing with M = {M:.6f}")
+    for unit_name, M in selected_units.items():  # ✅ Fixed iteration
+        print(f"\n[INFO] Analyzing with M = {M:.6f} ({unit_name})")
 
         for i in range(len(adjusted_df)):  # Iterate over all peaks
             if i in used_indices:
@@ -106,6 +106,7 @@ def mz_repeating_unit_analysis(
                     "Classification Type": adjusted_df.iloc[i]["Classification Type"],
                     "Match Source": adjusted_df.iloc[i]["Match Source"],
                     "Match": adjusted_df.iloc[i]["Match"],
+                    "Repeating Unit": unit_name,  # ✅ Store repeating unit name
                 }
             ]
             used_indices.add(i)
@@ -139,6 +140,7 @@ def mz_repeating_unit_analysis(
                                 ],
                                 "Match Source": adjusted_df.iloc[j]["Match Source"],
                                 "Match": adjusted_df.iloc[j]["Match"],
+                                "Repeating Unit": unit_name,  # ✅ Store repeating unit name
                             }
                         )
                         used_indices.add(j)  # Mark as used
@@ -147,18 +149,21 @@ def mz_repeating_unit_analysis(
                         )  # Add this index to keep searching forward
 
             if len(current_group) >= 3:  # Only store groups with 3+ points
-                groups.append(current_group)
+                groups.append(pd.DataFrame(current_group))  # Store as DataFrame
 
     print(
         f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
     )
 
-    # **Debugging: Print each group in tabular format**
-    for idx, group in enumerate(groups):
-        print(f"\n[DEBUG] Group {idx + 1} - Homologous Series:")
-        df_debug = pd.DataFrame(group)
-        print(df_debug.to_string(index=False))  # Print clean table without row index
+    # **Debugging: Print each group with repeating unit**
+    for idx, group_df in enumerate(groups):
+        repeating_unit = group_df["Repeating Unit"].iloc[0]  # Extract repeating unit
+        print(
+            f"\n[DEBUG] Group {idx + 1} - Homologous Series (Repeating Unit: {repeating_unit}):"
+        )
+        print(group_df.to_string(index=False))  # Print clean table without row index
         print("-" * 80)  # Separator for readability
+
     return groups
 
 
@@ -298,3 +303,18 @@ def find_best_high_r2_subset(groups, min_r2=0.99):
 
     print(f"[DEBUG] Best subset found with {len(best_subset)} points (R² ≥ {min_r2})")
     return best_subset
+
+
+def main():
+    """Run the analysis and interactive plot."""
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+
+    print("[DEBUG] Loading dataset...")
+    adjusted_df = pd.read_csv(file_path)
+
+    print("\n[INFO] Running mz_repeating_unit_analysis...")
+    groups = mz_repeating_unit_analysis(adjusted_df)
+
+
+if __name__ == "__main__":
+    main()

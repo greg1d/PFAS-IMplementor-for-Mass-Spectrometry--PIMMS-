@@ -1,5 +1,5 @@
 Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),150 B2 6915.d.DeMP, 158 B2 7099.d.DeMP
-PFDoS (M-H),PFAS Standards,likely,4.0,1.0,21.095,203.67,698.9174,0.0,0.0,N/A,401295.0,408142.0
-No Match,None,unmatched,1.0,3.23,21.095,100.0,99.0,,,,401295.0,408142.0
-No Match,None,unmatched,3.0,3.23,21.095,100.0,500.0,,,,0.0,408142.0
-No Match,None,unmatched,5.0,3.23,21.095,100.0,502.0,,,,401295.0,408142.0
+PFDoS (M-H),PFAS Standards,likely,1,1,21.095,203.67,698.9174,0,0,N/A,401295,408142
+No Match,None,unmatched,2,3.23,21.095,100,748.9142064,,,,401295,408142
+No Match,None,unmatched,3,3.23,21.095,100,798.9110128,,,,0,408142
+No Match,None,unmatched,4,3.23,21.095,100,848.9078192,,,,401295,408142
