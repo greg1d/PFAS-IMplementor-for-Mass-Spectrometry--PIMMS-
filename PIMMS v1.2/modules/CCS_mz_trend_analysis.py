@@ -125,6 +125,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                     "Repeating Unit": unit_name,  # ✅ Store repeating unit type
                 }
             ]
+            processed_indices.add(i)
 
             # **Dynamic Expansion Search**
             search_queue = [i]  # Queue to hold indices to check forward
@@ -139,12 +140,12 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
 
                     next_mz_value = adjusted_df.iloc[j]["m/z"]
                     mass_diff = abs(current_mz - next_mz_value)
+                    ppm_tolerance = (
+                        mass_error_ppm / 1e6
+                    ) * current_mz  # Allow tolerance
 
-                    # **Check if the difference matches M or 2M from the latest point**
-                    if any(
-                        abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * current_mz
-                        for k in range(1, 3)  # Searches for M, 2M
-                    ):
+                    # **Allow close m/z values within ppm tolerance to be included**
+                    if mass_diff <= ppm_tolerance:  # ✅ Include very close values
                         current_group.append(
                             {
                                 "m/z": next_mz_value,
@@ -158,12 +159,30 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                                 "Repeating Unit": unit_name,  # ✅ Store repeating unit type
                             }
                         )
-                        processed_indices.add(j)  # Mark as used for this unit
-                        search_queue.append(
-                            j
-                        )  # Add this index to keep searching forward
+                        processed_indices.add(j)
+                        search_queue.append(j)
 
-            # **Ensure the group has at least 3 points and is unique based on ID set**
+                    # **Check if the difference matches M or 2M from the latest point**
+                    elif any(
+                        abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
+                    ):  # ✅ Searches for M, 2M
+                        current_group.append(
+                            {
+                                "m/z": next_mz_value,
+                                "ID": adjusted_df.iloc[j]["ID"],
+                                "CCS": adjusted_df.iloc[j]["CCS"],
+                                "Classification Type": adjusted_df.iloc[j][
+                                    "Classification Type"
+                                ],
+                                "Match Source": adjusted_df.iloc[j]["Match Source"],
+                                "Match": adjusted_df.iloc[j]["Match"],
+                                "Repeating Unit": unit_name,  # ✅ Store repeating unit type
+                            }
+                        )
+                        processed_indices.add(j)
+                        search_queue.append(j)
+
+            # **Ensure the group has at least 2 points and is unique based on ID set**
             if len(current_group) >= 2:
                 group_ids = frozenset(
                     entry["ID"] for entry in current_group
@@ -272,18 +291,30 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         residuals = [
             abs(ccs - (slope * mz + intercept)) for mz, ccs in remaining_points
         ]
+        for i, (mz, ccs) in enumerate(remaining_points):
+            print(
+                f"[DEBUG] Residual for m/z={mz:.4f}, CCS={ccs:.4f}: {residuals[i]:.6f}"
+            )
+
         max_residual_idx = np.argmax(residuals)
         worst_point = remaining_points.pop(max_residual_idx)
 
         # Classify removed point
         predicted_ccs = slope * worst_point[0] + intercept
-        if worst_point[1] > predicted_ccs:
-            post_source_decay.append(worst_point)
+        full_point_metadata = (
+            mass_groups.loc[mass_groups["m/z"] == worst_point[0]].iloc[0].to_dict()
+        )
+
+        if worst_point[1] > (predicted_ccs):
+            full_point_metadata["Classification"] = "Post Source Decay"
+            post_source_decay.append(full_point_metadata)
+
             print(
                 f"[FLAGGED] Post Source Decay - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
             )
         else:
-            branched_isomer.append(worst_point)
+            full_point_metadata["Classification"] = "Branched Isomer"
+            branched_isomer.append(full_point_metadata)
             print(
                 f"[FLAGGED] Branched Isomer - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
             )
