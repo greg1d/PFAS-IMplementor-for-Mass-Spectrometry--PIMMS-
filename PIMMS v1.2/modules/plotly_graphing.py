@@ -1,7 +1,7 @@
+import pandas as pd
 import plotly.graph_objects as go
-from CCS_mz_trend_analysis import (
-    mz_repeating_unit_analysis,
-)
+import plotly.io as pio
+from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from scipy.stats import linregress
 
 FONT_CONFIG = dict(
@@ -83,26 +83,24 @@ def add_legend_entries(fig):
     )
 
 
-def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
+def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_decay):
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
     add_legend_entries(fig)
     adjusted_df.columns = adjusted_df.columns.str.strip()
 
     # ** Remove post-source decay & branched isomer points from general data **
-    branched_mz_values = {point[0] for group in branched_isomers for point in group}
-    clean_df = adjusted_df[~adjusted_df["m/z"].isin(branched_mz_values)]
+    flagged_mz_values = {
+        point["m/z"]
+        for group in (branched_isomers + post_source_decay)
+        for point in group
+    }
+    clean_df = adjusted_df[~adjusted_df["m/z"].isin(flagged_mz_values)]
 
     # ** Separate DataFrames for Different Groups **
     tentative_df = clean_df[clean_df["Classification Type"] == "tentative"]
     unmatched_df = clean_df[clean_df["Classification Type"] == "unmatched"]
     likely_df = clean_df[clean_df["Classification Type"] == "likely"]
-
-    classification_colors = {
-        "likely": "blue",
-        "tentative": "orange",
-        "unmatched": "purple",
-    }
 
     # ** Plot Data Points for Different Groups **
     for df, color, legend_group, legend_name in [
@@ -142,9 +140,7 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
 
     # **🔹 Plot homologous groups with trendlines**
     homologous_series_plotted = False
-    if refined_group and any(
-        len(group) >= 3 for group in refined_group
-    ):  # ✅ Only attempt if valid groups exist
+    if refined_group and any(len(group) >= 3 for group in refined_group):
         for idx, group in enumerate(refined_group):
             if len(group) < 3:
                 continue
@@ -176,6 +172,42 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 )
             )
             homologous_series_plotted = True
+
+    # **🔹 Plot Branched Isomers**
+    for group in branched_isomers:
+        for point in group:
+            fig.add_trace(
+                go.Scatter(
+                    x=[point["m/z"]],
+                    y=[point["CCS"]],
+                    mode="markers",
+                    marker=dict(size=8, color="#FF69B4"),
+                    name="Branched Isomers",
+                    legendgroup="branched_isomers",
+                    showlegend=False,
+                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
+                    f"Classification: Branched Isomer<extra></extra>",
+                    visible=True,
+                )
+            )
+
+    # **🔹 Plot Post Source Decay**
+    for group in post_source_decay:
+        for point in group:
+            fig.add_trace(
+                go.Scatter(
+                    x=[point["m/z"]],
+                    y=[point["CCS"]],
+                    mode="markers",
+                    marker=dict(size=8, color="red"),
+                    name="Post Source Decay",
+                    legendgroup="post_source_decay",
+                    showlegend=False,
+                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
+                    f"Classification: Post Source Decay<extra></extra>",
+                    visible=True,
+                )
+            )
 
     # ** Update layout **
     fig.update_layout(
@@ -237,23 +269,66 @@ def update_graph(remove_columns, adjusted_df):
         f"[INFO] Removed {before_sample_removal - after_sample_removal} rows with 'None' sample info."
     )
 
-    # ✅ Run analysis (only if data exists)
-    groups = mz_repeating_unit_analysis(filtered_df)
+    # ✅ Run homologous series detection
+    mass_groups = mz_repeating_unit_analysis(filtered_df)
 
-    # **Fix: Ensure the plot always renders even if no groups are found**
-    if not groups:
+    # **Ensure the plot always renders even if no groups are found**
+    if mass_groups.empty:
         print("[WARNING] No homologous series found. Returning a placeholder plot.")
-        return make_plotly_graph(filtered_df, [], [])  # 🔹 Pass empty groups
+        return make_plotly_graph(filtered_df, [], [], [])
 
-    # ✅ Refine the groups
-    refined_groups, branched_isomer_groups = [], []
-    for group in groups:
-        refined_group, _, branched_isomers = refine_group_by_best_fit(group)
-        refined_groups.append(refined_group)
-        branched_isomer_groups.append(branched_isomers)
+    # ✅ Process each group through CCS_v_mz_analysis
+    refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
+    for _, group_df in mass_groups.groupby("GroupID"):
+        IM_group, post_source_decay, branched_isomer, _ = CCS_v_mz_analysis(group_df)
+
+        refined_groups.append(IM_group)
+        branched_isomer_groups.append(branched_isomer)
+        post_source_decay_groups.append(post_source_decay)
 
     # ✅ Generate updated graph
-    fig = make_plotly_graph(filtered_df, refined_groups, branched_isomer_groups)
+    fig = make_plotly_graph(
+        filtered_df, refined_groups, branched_isomer_groups, post_source_decay_groups
+    )
 
     print("[INFO] Graph update successful.")
     return fig
+
+
+def main():
+    """Runs full analysis pipeline and generates an interactive Plotly plot."""
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    adjusted_df = pd.read_csv(file_path)
+
+    repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
+
+    # **Step 1: Identify homologous series**
+    mass_groups = mz_repeating_unit_analysis(
+        adjusted_df, repeating_units=repeating_units
+    )
+    if mass_groups.empty:
+        print("\n[WARNING] No homologous series groups identified. Exiting.")
+        return
+
+    # **Step 2: Perform CCS vs. m/z analysis**
+    refined_groups, branched_isomer_groups = [], []
+    for _, group_df in mass_groups.groupby("GroupID"):
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(group_df)
+        )
+
+        # Append results for plotting
+        refined_groups.append(IM_group)
+        branched_isomer_groups.append(branched_isomer)
+
+    # **Step 3: Generate Plotly plot**
+    fig = make_plotly_graph(
+        adjusted_df, refined_groups, branched_isomer_groups, post_source_decay
+    )
+
+    # **Step 4: Display the Plotly plot**
+    pio.show(fig)
+
+
+if __name__ == "__main__":
+    main()
