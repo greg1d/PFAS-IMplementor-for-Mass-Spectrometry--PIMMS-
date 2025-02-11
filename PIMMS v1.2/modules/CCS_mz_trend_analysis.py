@@ -8,14 +8,9 @@ from scipy.stats import linregress
 REPEATING_UNITS = {
     "CF2": 49.9968064,
     "OCF2": 65.9917214,
-    "HF": 20.006228,
     "CF2CF2O": 115.988527,
     "CH2CF2": 64.012456,
-    "CH2CHF": 46.021878,
-    "CH2CH2CF2CF2": 128.024912,
-    "CF2CFCl": 115.964062,
-    "CH2CH2CF2CFCl": 143.995362,
-    "OCF2CFCF3": 165.985333,
+    "HF": 20.0062278,
 }
 
 
@@ -103,52 +98,54 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                         processed_indices.add(j)
                         search_queue.append(j)
 
-            # **Only run expansion algorithm if the group already has more than 1 point**
-            if len(current_group) > 1:
-                expanded = True
-                while expanded:
-                    expanded = False  # Reset flag for each iteration
-                    new_entries = []  # Store new points found in this pass
+            # **Only process groups that have at least 3 points BEFORE expansion**
+            if len(current_group) <= 3:
+                continue  # Skip storing this group
 
-                    for entry in current_group:  # Iterate over confirmed group
-                        current_mz = entry["m/z"]
+            # **Expand the group if it has 3 or more points**
+            expanded = True
+            while expanded:
+                expanded = False  # Reset flag for each iteration
+                new_entries = []  # Store new points found in this pass
 
-                        for j in range(len(adjusted_df)):
-                            if j in processed_indices:
-                                continue
+                for entry in current_group:  # Iterate over confirmed group
+                    current_mz = entry["m/z"]
 
-                            next_mz_value = adjusted_df.at[j, "m/z"]
-                            mass_diff = abs(current_mz - next_mz_value)
-                            ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
+                    for j in range(len(adjusted_df)):
+                        if j in processed_indices:
+                            continue
 
-                            # Add if within 10 ppm of any existing point in the group
-                            if mass_diff <= ppm_tolerance:
-                                new_entries.append(
-                                    {
-                                        "m/z": next_mz_value,
-                                        "ID": adjusted_df.at[j, "ID"],
-                                        "CCS": adjusted_df.at[j, "CCS"],
-                                        "Classification Type": adjusted_df.at[
-                                            j, "Classification Type"
-                                        ],
-                                        "Match Source": adjusted_df.at[
-                                            j, "Match Source"
-                                        ],
-                                        "Match": adjusted_df.at[j, "Match"],
-                                        "Repeating Unit": unit_name,
-                                    }
-                                )
-                                processed_indices.add(j)
+                        next_mz_value = adjusted_df.at[j, "m/z"]
+                        mass_diff = abs(current_mz - next_mz_value)
+                        ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
 
-                    # If new entries were found, add them and continue expanding
-                    if new_entries:
-                        current_group.extend(new_entries)
-                        expanded = True  # Continue checking
+                        # Add if within 10 ppm of any existing point in the group
+                        if mass_diff <= ppm_tolerance:
+                            new_entries.append(
+                                {
+                                    "m/z": next_mz_value,
+                                    "ID": adjusted_df.at[j, "ID"],
+                                    "CCS": adjusted_df.at[j, "CCS"],
+                                    "Classification Type": adjusted_df.at[
+                                        j, "Classification Type"
+                                    ],
+                                    "Match Source": adjusted_df.at[j, "Match Source"],
+                                    "Match": adjusted_df.at[j, "Match"],
+                                    "Repeating Unit": unit_name,
+                                }
+                            )
+                            processed_indices.add(j)
 
-            # **Ensure a valid group has at least 2 points with a min-max m/z difference of at least 10**
+                # If new entries were found, add them and continue expanding
+                if new_entries:
+                    current_group.extend(new_entries)
+                    expanded = True  # Continue checking
+
+            # **Ensure a valid group has at least 2 points AFTER expansion**
             if len(current_group) < 2:
                 continue  # Skip storing this group
 
+            # **Ensure min-max m/z difference is at least 10**
             min_mz = min(entry["m/z"] for entry in current_group)
             max_mz = max(entry["m/z"] for entry in current_group)
             if max_mz - min_mz < 10:
@@ -275,24 +272,9 @@ def main():
     """Run the analysis and interactive plot."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
-    repeating_units = ["CF2", "OCF2", "HF"]
+    repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
-    print(
-        f"\n[INFO] Running mz_repeating_unit_analysis with repeating units: {repeating_units}"
-    )
-    mass_groups = mz_repeating_unit_analysis(
-        adjusted_df, repeating_units=repeating_units
-    )
-
-    if not mass_groups:
-        print("[WARNING] No homologous series found. Exiting...")
-        return
-
-    for idx, mass_group in enumerate(mass_groups):
-        print(f"\n[DEBUG] Processing Mass Group {idx + 1}:")
-        IM_group, post_source_decay, branched_isomer, mass_only_group = (
-            CCS_v_mz_analysis(mass_group)
-        )
+    mz_repeating_unit_analysis(adjusted_df, repeating_units=repeating_units)
 
 
 if __name__ == "__main__":
