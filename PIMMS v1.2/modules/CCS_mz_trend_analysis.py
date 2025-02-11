@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -229,11 +230,14 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
 
 def main():
-    """Run the full analysis pipeline: Identify homologous series, analyze trends, and classify groups."""
+    """Run the full analysis pipeline: Identify homologous series, analyze trends, classify groups, and generate plots."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
     repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
+    print(
+        "\n[INFO] Running mz_repeating_unit_analysis to identify homologous series..."
+    )
     mass_groups = mz_repeating_unit_analysis(
         adjusted_df, repeating_units=repeating_units
     )
@@ -245,12 +249,14 @@ def main():
     # Storage for classified groups
     IM_groups = []
     mass_only_groups = []
+    post_source_decay_groups = []
+    branched_isomer_groups = []
+
+    print("\n[INFO] Performing CCS_v_mz_analysis on identified groups...")
 
     # Treat each mass group independently
-    for idx, (group_id, group_df) in enumerate(
-        mass_groups.groupby("GroupID")
-    ):  # Process each group separately
-        print(f"\n[DEBUG] Analyzing Mass Group {idx + 1}:")
+    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
+        print(f"\n[DEBUG] Analyzing Mass Group {idx + 1} (GroupID: {group_id}):")
 
         # Print the received group before analysis
         print("\n[DEBUG] Received Mass Group for Analysis:")
@@ -261,33 +267,130 @@ def main():
             CCS_v_mz_analysis(group_df)
         )
 
-        if IM_group:  # If a statistically significant trend is found
-            print(f"[INFO] Mass Group {idx + 1} classified as IM_group.")
-            IM_groups.append(pd.DataFrame(IM_group, columns=["m/z", "CCS"]))
-        else:  # If no significant trend is found, classify as mass_only_group
+        # Store IM Groups with GroupID
+        if IM_group:
             print(
-                f"[WARNING] Mass Group {idx + 1} did NOT meet statistical significance."
+                f"[INFO] Mass Group {idx + 1} (GroupID: {group_id}) classified as IM_group."
             )
-            print(f"[INFO] Mass Group {idx + 1} classified as mass_only_group.")
+            im_group_df = pd.DataFrame(IM_group, columns=["m/z", "CCS"])
+            im_group_df["GroupID"] = group_id  # Preserve group ID
+            IM_groups.append(im_group_df)
+
+        # Store Mass-Only Groups with GroupID
+        else:
+            print(
+                f"[WARNING] Mass Group {idx + 1} (GroupID: {group_id}) did NOT meet statistical significance."
+            )
+            print(
+                f"[INFO] Mass Group {idx + 1} (GroupID: {group_id}) classified as mass_only_group."
+            )
             if mass_only_group:
-                mass_only_groups.append(
-                    pd.DataFrame(mass_only_group, columns=["m/z", "CCS"])
+                mass_only_group_df = pd.DataFrame(
+                    mass_only_group, columns=["m/z", "CCS"]
                 )
+                mass_only_group_df["GroupID"] = group_id
+                mass_only_groups.append(mass_only_group_df)
             else:
-                print(f"[DEBUG] Mass Group {idx + 1} is empty after analysis.")
+                print(
+                    f"[DEBUG] Mass Group {idx + 1} (GroupID: {group_id}) is empty after analysis."
+                )
 
-    # Convert lists of DataFrames into single DataFrames
-    if IM_groups:
-        IM_groups_df = pd.concat(IM_groups, ignore_index=True)
-    else:
-        IM_groups_df = pd.DataFrame(columns=["m/z", "CCS"])
+        # Store and print Post Source Decay groups with GroupID
+        if post_source_decay:
+            post_source_decay_df = pd.DataFrame(post_source_decay)
+            post_source_decay_df["GroupID"] = group_id
+            post_source_decay_groups.append(post_source_decay_df)
+            print(f"\n[INFO] Post Source Decay Identified in Mass Group {idx + 1}:")
+            print(post_source_decay_df.to_string(index=False))
+            print("-" * 80)
 
-    if mass_only_groups:
-        mass_only_groups_df = pd.concat(mass_only_groups, ignore_index=True)
-    else:
-        mass_only_groups_df = pd.DataFrame(columns=["m/z", "CCS"])
+        # Store and print Branched Isomer groups with GroupID
+        if branched_isomer:
+            branched_isomer_df = pd.DataFrame(branched_isomer)
+            branched_isomer_df["GroupID"] = group_id
+            branched_isomer_groups.append(branched_isomer_df)
+            print(f"\n[INFO] Branched Isomer Identified in Mass Group {idx + 1}:")
+            print(branched_isomer_df.to_string(index=False))
+            print("-" * 80)
+
+    # Convert lists of DataFrames into single DataFrames, ensuring 'GroupID' is included
+    IM_groups_df = (
+        pd.concat(IM_groups, ignore_index=True)
+        if IM_groups
+        else pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+    )
+    mass_only_groups_df = (
+        pd.concat(mass_only_groups, ignore_index=True)
+        if mass_only_groups
+        else pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+    )
+    post_source_decay_df = (
+        pd.concat(post_source_decay_groups, ignore_index=True)
+        if post_source_decay_groups
+        else pd.DataFrame(columns=["GroupID", "m/z", "CCS", "Classification"])
+    )
+    branched_isomer_df = (
+        pd.concat(branched_isomer_groups, ignore_index=True)
+        if branched_isomer_groups
+        else pd.DataFrame(columns=["GroupID", "m/z", "CCS", "Classification"])
+    )
 
     # Print final classification results
+    print("\n[INFO] Final Classification Results:")
+    print(f"  - Identified {len(IM_groups_df)} points in IM_groups")
+    print(f"  - Identified {len(mass_only_groups_df)} points in mass_only_groups")
+    print(
+        f"  - Identified {len(post_source_decay_df)} points in post_source_decay groups"
+    )
+    print(f"  - Identified {len(branched_isomer_df)} points in branched_isomer groups")
+
+    print("\n[DEBUG] IM_groups DataFrame:")
+    print(IM_groups_df.to_string(index=False))
+
+    print("\n[DEBUG] mass_only_groups DataFrame:")
+    print(mass_only_groups_df.to_string(index=False))
+
+    print("\n[DEBUG] post_source_decay DataFrame:")
+    print(post_source_decay_df.to_string(index=False))
+
+    print("\n[DEBUG] branched_isomer DataFrame:")
+    print(branched_isomer_df.to_string(index=False))
+
+    # Plot the mass groups using Matplotlib
+    plot_mass_groups(IM_groups_df, mass_only_groups_df)
+
+
+def plot_mass_groups(IM_groups_df, mass_only_groups_df):
+    """Plots mass groups for debugging purposes."""
+    plt.figure(figsize=(10, 6))
+
+    # Plot IM Groups
+    if not IM_groups_df.empty:
+        for group_id, group_df in IM_groups_df.groupby("GroupID"):
+            plt.scatter(
+                group_df["m/z"],
+                group_df["CCS"],
+                label=f"IM Group {group_id}",
+                alpha=0.7,
+            )
+
+    # Plot Mass-Only Groups
+    if not mass_only_groups_df.empty:
+        for group_id, group_df in mass_only_groups_df.groupby("GroupID"):
+            plt.scatter(
+                group_df["m/z"],
+                group_df["CCS"],
+                marker="x",
+                label=f"Mass-Only {group_id}",
+                alpha=0.7,
+            )
+
+    plt.xlabel("m/z")
+    plt.ylabel("CCS")
+    plt.legend()
+    plt.title("Mass Groups Debugging Plot")
+    plt.grid(True)
+    plt.show()
 
 
 if __name__ == "__main__":
