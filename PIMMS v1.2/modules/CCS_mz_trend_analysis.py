@@ -186,16 +186,10 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         if residual_ratio < 95:  # Branched Isomer
             full_point_metadata["Classification"] = "Branched Isomer"
             branched_isomer.append(full_point_metadata)
-            print(
-                f"[INFO] Branched Isomer Identified: m/z={mz:.5f}, CCS={ccs:.5f}, Residual={residual_ratio:.2f}%"
-            )
 
         elif residual_ratio > 105:  # Post Source Decay
             full_point_metadata["Classification"] = "Post Source Decay"
             post_source_decay.append(full_point_metadata)
-            print(
-                f"[INFO] Post Source Decay Identified: m/z={mz:.5f}, CCS={ccs:.5f}, Residual={residual_ratio:.2f}%"
-            )
 
         else:  # Valid point remains in trendline
             refined_data_points.append((mz, ccs))
