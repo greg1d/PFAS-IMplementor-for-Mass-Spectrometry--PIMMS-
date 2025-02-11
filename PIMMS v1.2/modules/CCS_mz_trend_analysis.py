@@ -176,21 +176,26 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     # Calculate residuals for each point
     for mz, ccs in data_points:
         predicted_ccs = slope * mz + intercept
-        residual_ratio = ccs / predicted_ccs  # Ratio of actual to predicted CCS
+        residual_ratio = (ccs / predicted_ccs) * 100  # Residual as a percentage
 
-        if residual_ratio < 0.95:  # Branched Isomer
-            full_point_metadata = (
-                mass_groups.loc[mass_groups["m/z"] == mz].iloc[0].to_dict()
-            )
+        full_point_metadata = (
+            mass_groups.loc[mass_groups["m/z"] == mz].iloc[0].to_dict()
+        )
+        full_point_metadata["Residual"] = residual_ratio  # Store residual
+
+        if residual_ratio < 95:  # Branched Isomer
             full_point_metadata["Classification"] = "Branched Isomer"
             branched_isomer.append(full_point_metadata)
-
-        elif residual_ratio > 1.05:  # Post Source Decay
-            full_point_metadata = (
-                mass_groups.loc[mass_groups["m/z"] == mz].iloc[0].to_dict()
+            print(
+                f"[INFO] Branched Isomer Identified: m/z={mz:.5f}, CCS={ccs:.5f}, Residual={residual_ratio:.2f}%"
             )
+
+        elif residual_ratio > 105:  # Post Source Decay
             full_point_metadata["Classification"] = "Post Source Decay"
             post_source_decay.append(full_point_metadata)
+            print(
+                f"[INFO] Post Source Decay Identified: m/z={mz:.5f}, CCS={ccs:.5f}, Residual={residual_ratio:.2f}%"
+            )
 
         else:  # Valid point remains in trendline
             refined_data_points.append((mz, ccs))
