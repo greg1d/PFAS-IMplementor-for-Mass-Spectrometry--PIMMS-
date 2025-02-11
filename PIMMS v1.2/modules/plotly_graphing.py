@@ -89,11 +89,26 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_
     add_legend_entries(fig)
     adjusted_df.columns = adjusted_df.columns.str.strip()
 
+    # ** Ensure `branched_isomers` and `post_source_decay` are lists of dictionaries **
+    if not isinstance(branched_isomers, list):
+        branched_isomers = []
+    if not isinstance(post_source_decay, list):
+        post_source_decay = []
+
+    # ** Ensure each element in `branched_isomers` and `post_source_decay` is a list of dicts **
+    branched_isomers = [
+        group if isinstance(group, list) else [] for group in branched_isomers
+    ]
+    post_source_decay = [
+        group if isinstance(group, list) else [] for group in post_source_decay
+    ]
+
     # ** Remove post-source decay & branched isomer points from general data **
     flagged_mz_values = {
         point["m/z"]
         for group in (branched_isomers + post_source_decay)
         for point in group
+        if isinstance(point, dict)
     }
     clean_df = adjusted_df[~adjusted_df["m/z"].isin(flagged_mz_values)]
 
@@ -175,7 +190,11 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_
 
     # **🔹 Plot Branched Isomers**
     for group in branched_isomers:
+        if not isinstance(group, list):
+            continue  # Ensure group is a list
         for point in group:
+            if not isinstance(point, dict):
+                continue  # Ensure each point is a dictionary
             fig.add_trace(
                 go.Scatter(
                     x=[point["m/z"]],
@@ -193,7 +212,11 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_
 
     # **🔹 Plot Post Source Decay**
     for group in post_source_decay:
+        if not isinstance(group, list):
+            continue  # Ensure group is a list
         for point in group:
+            if not isinstance(point, dict):
+                continue  # Ensure each point is a dictionary
             fig.add_trace(
                 go.Scatter(
                     x=[point["m/z"]],
