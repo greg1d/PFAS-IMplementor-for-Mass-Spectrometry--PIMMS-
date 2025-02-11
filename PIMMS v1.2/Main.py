@@ -41,7 +41,7 @@ from post_source_decay_filter import remove_post_source_decay
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/data/debugging_data_set.csv"]
+    file_paths = ["PIMMS v1.2/data/20202021_data_set.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -115,7 +115,11 @@ def main():
         adjusted_df, control_mean, control_std = perform_blank_subtraction(
             method, control_df, experimental_df
         )
-        print(adjusted_df)
+        # Save the adjusted dataframe after blank subtraction to a CSV file
+        adjusted_df.to_csv(
+            "PIMMS v1.2/Data_output/adjusted_after_blank_subtraction.csv", index=False
+        )
+
         # Count non-zero rows after blank subtraction
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
