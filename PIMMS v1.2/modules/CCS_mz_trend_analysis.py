@@ -138,7 +138,8 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     Performs correlation analysis to classify homologous series.
     If a statistically significant trend is found, returns as an IM_group.
     If no trend is found, returns as a mass_only_group.
-    Adds debugging statements to help understand the execution flow.
+    Branched isomers: Residuals < 98% of predicted CCS.
+    Post source decay: Residuals > 102% of predicted CCS.
     """
 
     print("\n[DEBUG] Starting CCS_v_mz_analysis function...")
@@ -146,8 +147,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     if mass_groups.empty:
         print("[ERROR] Received empty group list. Exiting function.")
         return [], [], [], []
-
-    iteration_count = 0
 
     # Extract m/z and CCS values
     data_points = list(zip(mass_groups["m/z"], mass_groups["CCS"]))
@@ -159,9 +158,9 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         print(
             "[WARNING] Not enough points to fit a regression model. Returning as mass_only_group."
         )
-        return [], [], [], data_points  # Return in mass_only_group
+        return [], [], [], data_points
 
-    # Perform linear regression
+    # Perform initial linear regression
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
     r_squared = r_value**2
 
@@ -169,64 +168,61 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         f"[DEBUG] Initial regression results: slope={slope:.5f}, r_squared={r_squared:.5f}, p_value={p_value:.5f}"
     )
 
-    # If the initial group meets significance and is positively correlated, return as IM_group
-    if p_value <= significance_cutoff and slope > 0:
-        print(
-            "[INFO] Initial group meets significance and is positively correlated. Returning as IM_group."
-        )
-        return data_points, [], [], []  # Return in IM_group
-
-    # Iteratively refine the dataset to check if any subset meets the significance criteria
-    remaining_points = data_points.copy()
+    # Store classified points
     post_source_decay = []
     branched_isomer = []
+    refined_data_points = []
 
-    while len(remaining_points) > 2:
-        iteration_count += 1
+    # Calculate residuals for each point
+    for mz, ccs in data_points:
+        predicted_ccs = slope * mz + intercept
+        residual_ratio = ccs / predicted_ccs  # Ratio of actual to predicted CCS
 
-        mz_values = np.array([p[0] for p in remaining_points])
-        ccs_values = np.array([p[1] for p in remaining_points])
-        slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
-
-        print(
-            f"[DEBUG] Iteration {iteration_count}: slope={slope:.5f}, r_squared={r_squared:.5f}, p_value={p_value:.5f}"
-        )
-
-        if p_value <= significance_cutoff and slope > 0:
-            print(
-                f"[INFO] Significant positive correlation achieved with {len(remaining_points)} points. Returning as IM_group."
+        if residual_ratio < 0.95:  # Branched Isomer
+            full_point_metadata = (
+                mass_groups.loc[mass_groups["m/z"] == mz].iloc[0].to_dict()
             )
-            return remaining_points, post_source_decay, branched_isomer, []
-
-        # Find and remove the worst outlier (highest residual)
-        residuals = [
-            abs(ccs - (slope * mz + intercept)) for mz, ccs in remaining_points
-        ]
-        max_residual_idx = np.argmax(residuals)
-        worst_point = remaining_points.pop(max_residual_idx)
-
-        predicted_ccs = slope * worst_point[0] + intercept
-        full_point_metadata = (
-            mass_groups.loc[mass_groups["m/z"] == worst_point[0]].iloc[0].to_dict()
-        )
-
-        # Classify the removed point
-        if worst_point[1] > predicted_ccs:
-            full_point_metadata["Classification"] = "Post Source Decay"
-            post_source_decay.append(full_point_metadata)
-        else:
             full_point_metadata["Classification"] = "Branched Isomer"
             branched_isomer.append(full_point_metadata)
 
-        print(
-            f"[DEBUG] Removed outlier with m/z={worst_point[0]:.5f}, classified as {full_point_metadata['Classification']}"
-        )
+        elif residual_ratio > 1.05:  # Post Source Decay
+            full_point_metadata = (
+                mass_groups.loc[mass_groups["m/z"] == mz].iloc[0].to_dict()
+            )
+            full_point_metadata["Classification"] = "Post Source Decay"
+            post_source_decay.append(full_point_metadata)
 
-    # If no significant trend was found, return as mass_only_group
+        else:  # Valid point remains in trendline
+            refined_data_points.append((mz, ccs))
+
+    # If fewer than 3 points remain after filtering, return as mass_only_group
+    if len(refined_data_points) < 3:
+        print(
+            "[WARNING] Not enough valid points remain after filtering. Returning as mass_only_group."
+        )
+        return [], post_source_decay, branched_isomer, refined_data_points
+
+    # Recalculate regression after removing branched isomers and post source decay points
+    mz_values = np.array([p[0] for p in refined_data_points])
+    ccs_values = np.array([p[1] for p in refined_data_points])
+    slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
+
+    print(
+        f"[DEBUG] Refined regression results: slope={slope:.5f}, r_squared={r_squared:.5f}, p_value={p_value:.5f}"
+    )
+
+    # Final classification: if statistically significant, return as IM_group
+    if p_value <= significance_cutoff and slope > 0:
+        print(
+            f"[INFO] Significant positive correlation achieved with {len(refined_data_points)} points. Returning as IM_group."
+        )
+        return refined_data_points, post_source_decay, branched_isomer, []
+
+    # Otherwise, return as mass_only_group
     print(
         "[WARNING] No statistically significant trend found. Returning as mass_only_group."
     )
-    return [], [], [], data_points
+    return [], post_source_decay, branched_isomer, refined_data_points
 
 
 def main():
