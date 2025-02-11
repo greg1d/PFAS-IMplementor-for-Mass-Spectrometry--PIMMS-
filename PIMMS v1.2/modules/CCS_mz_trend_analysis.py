@@ -157,6 +157,9 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         print(
             "[WARNING] Not enough points to fit a regression model. Returning as mass_only_group."
         )
+        print("\n[INFO] Mass-Only Group Contents:")
+        for mz, ccs in data_points:
+            print(f"  m/z: {mz:.5f}, CCS: {ccs:.5f}")
         return [], [], [], data_points
 
     # Perform initial linear regression
@@ -200,12 +203,22 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
             f"Classification: {point['Classification']}, Residual: {point['Residual']:.2f}%"
         )
 
-    # If fewer than 3 points remain after filtering, return as mass_only_group
+    # If fewer than 3 points remain after filtering, add ALL flagged points to mass-only group
     if len(refined_data_points) < 3:
         print(
             "[WARNING] Not enough valid points remain after filtering. Returning as mass_only_group."
         )
-        return [], post_source_decay, branched_isomer, refined_data_points
+
+        # Combine flagged points + remaining valid points
+        mass_only_group = (
+            post_source_decay
+            + branched_isomer
+            + [
+                {"m/z": mz, "CCS": ccs, "Classification": "Mass-Only"}
+                for mz, ccs in refined_data_points
+            ]
+        )
+        return [], post_source_decay, branched_isomer, mass_only_group
 
     # Recalculate regression after removing flagged points
     mz_values = np.array([p[0] for p in refined_data_points])
@@ -224,15 +237,34 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         )
         return refined_data_points, post_source_decay, branched_isomer, []
 
+    # Otherwise, return everything as mass_only_group
     print(
         "[WARNING] No statistically significant trend found. Returning as mass_only_group."
     )
-    return [], post_source_decay, branched_isomer, refined_data_points
+
+    # Combine flagged points + remaining valid points
+    mass_only_group = (
+        post_source_decay
+        + branched_isomer
+        + [
+            {"m/z": mz, "CCS": ccs, "Classification": "Mass-Only"}
+            for mz, ccs in refined_data_points
+        ]
+    )
+
+    # Print the full mass-only group
+    print("\n[INFO] Mass-Only Group Contents:")
+    for point in mass_only_group:
+        print(
+            f"  m/z: {point['m/z']:.5f}, CCS: {point['CCS']:.5f}, Classification: {point['Classification']}"
+        )
+
+    return [], post_source_decay, branched_isomer, mass_only_group
 
 
 def main():
     """Run the analysis pipeline and return results."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
     repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
