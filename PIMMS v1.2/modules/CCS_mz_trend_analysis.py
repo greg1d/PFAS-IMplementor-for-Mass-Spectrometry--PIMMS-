@@ -84,7 +84,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                     mass_diff = abs(current_mz - next_mz_value)
                     ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
 
-                    if mass_diff <= ppm_tolerance or any(
+                    if any(
                         abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
                     ):
                         current_group.append(
@@ -103,24 +103,55 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                         processed_indices.add(j)
                         search_queue.append(j)
 
-            # **Ensure the group has at least 3 points before performing ppm separation**
-            if len(current_group) < 3:
-                print(
-                    f"[WARNING] Group with {len(current_group)} points is too small. Skipping ppm separation."
-                )
-                print(pd.DataFrame(current_group).to_string(index=False))  # Debug print
+            # **Only run expansion algorithm if the group already has more than 1 point**
+            if len(current_group) > 1:
+                expanded = True
+                while expanded:
+                    expanded = False  # Reset flag for each iteration
+                    new_entries = []  # Store new points found in this pass
+
+                    for entry in current_group:  # Iterate over confirmed group
+                        current_mz = entry["m/z"]
+
+                        for j in range(len(adjusted_df)):
+                            if j in processed_indices:
+                                continue
+
+                            next_mz_value = adjusted_df.at[j, "m/z"]
+                            mass_diff = abs(current_mz - next_mz_value)
+                            ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
+
+                            # Add if within 10 ppm of any existing point in the group
+                            if mass_diff <= ppm_tolerance:
+                                new_entries.append(
+                                    {
+                                        "m/z": next_mz_value,
+                                        "ID": adjusted_df.at[j, "ID"],
+                                        "CCS": adjusted_df.at[j, "CCS"],
+                                        "Classification Type": adjusted_df.at[
+                                            j, "Classification Type"
+                                        ],
+                                        "Match Source": adjusted_df.at[
+                                            j, "Match Source"
+                                        ],
+                                        "Match": adjusted_df.at[j, "Match"],
+                                        "Repeating Unit": unit_name,
+                                    }
+                                )
+                                processed_indices.add(j)
+
+                    # If new entries were found, add them and continue expanding
+                    if new_entries:
+                        current_group.extend(new_entries)
+                        expanded = True  # Continue checking
+
+            # **Ensure a valid group has at least 2 points with a min-max m/z difference of at least 10**
+            if len(current_group) < 2:
                 continue  # Skip storing this group
 
-            # **Apply ppm separation only within detected groups**
             min_mz = min(entry["m/z"] for entry in current_group)
             max_mz = max(entry["m/z"] for entry in current_group)
-            ppm_separation = (abs(max_mz - min_mz) / min_mz) * 1e6
-
-            if ppm_separation < 10:
-                print(
-                    f"[WARNING] Group rejected due to insufficient ppm separation ({ppm_separation:.2f} ppm)."
-                )
-                print(pd.DataFrame(current_group).to_string(index=False))  # Debug print
+            if max_mz - min_mz < 10:
                 continue  # Skip storing this group
 
             # **Ensure the group is unique and store it**
@@ -138,6 +169,22 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                     group_df.to_string(index=False)
                 )  # Print clean table without row index
                 print("-" * 80)  # Separator for readability
+
+    # **Combine all groups into a single DataFrame**
+    if mass_groups:
+        mass_groups = pd.concat(mass_groups, ignore_index=True)
+    else:
+        mass_groups = pd.DataFrame(
+            columns=[
+                "m/z",
+                "ID",
+                "CCS",
+                "Classification Type",
+                "Match Source",
+                "Match",
+                "Repeating Unit",
+            ]
+        )
 
     total_time = time.perf_counter() - start_time
     print(
@@ -228,7 +275,7 @@ def main():
     """Run the analysis and interactive plot."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
-    repeating_units = ["CF2", "OCF2"]
+    repeating_units = ["CF2", "OCF2", "HF"]
 
     print(
         f"\n[INFO] Running mz_repeating_unit_analysis with repeating units: {repeating_units}"
