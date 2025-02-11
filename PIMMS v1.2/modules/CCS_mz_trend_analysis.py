@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -19,7 +17,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
     """
 
-    start_time = time.perf_counter()
     iteration_count = 0  # Track loop iterations
     group_counter = 0  # Track unique Group ID
 
@@ -36,12 +33,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     unique_group_ids = set()
     mass_groups = []
 
-    print(f"[DEBUG] Total data points: {len(adjusted_df)}")
-
     for unit_name, M in selected_units.items():
-        print(
-            f"\n[INFO] Searching for homologous series with repeating unit: {unit_name} (M = {M:.6f})"
-        )
         processed_indices = set()
 
         for i in range(len(adjusted_df)):
@@ -102,7 +94,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                         search_queue.append(j)
 
             # **Only process groups that have at least 3 points BEFORE expansion**
-            if len(current_group) < 3:
+            if len(current_group) <= 3:
                 continue  # Skip storing this group
 
             # **Ensure min-max m/z difference is at least 10**
@@ -119,13 +111,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                 mass_groups.append(group_df)
 
                 # **Debugging: Print Group Composition**
-                print(
-                    f"\n[DEBUG] Identified Group {group_counter} - Homologous Series (Repeating Unit: {unit_name}):"
-                )
-                print(
-                    group_df.to_string(index=False)
-                )  # Print clean table without row index
-                print("-" * 80)  # Separator for readability
 
     # **Combine all groups into a single DataFrame**
     if mass_groups:
@@ -144,14 +129,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
             ]
         )
 
-    total_time = time.perf_counter() - start_time
-    print(
-        f"\n[INFO] Mass repeating unit analysis completed in {total_time:.4f} seconds."
-    )
-    print(
-        f"[METRIC] Total iterations: {iteration_count}, Processing speed: {iteration_count / total_time:.2f} iters/sec"
-    )
-
     return mass_groups
 
 
@@ -165,25 +142,16 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
     print("\n[DEBUG] Starting CCS_v_mz_analysis function...")
 
-    # Print received mass groups
-    print("\n[DEBUG] Received Mass Groups for Analysis:")
-    print(mass_groups.to_string(index=False))
-
-    print("\n[DEBUG] Starting CCS_v_mz_analysis function...")
-
     if mass_groups.empty:
         print("[ERROR] Received empty group list. Exiting function.")
         return [], [], [], []
 
-    start_time = time.perf_counter()
     iteration_count = 0
 
     # Extract m/z and CCS values
     data_points = list(zip(mass_groups["m/z"], mass_groups["CCS"]))
     mz_values = np.array([p[0] for p in data_points])
     ccs_values = np.array([p[1] for p in data_points])
-
-    print(f"[DEBUG] Initial data points count: {len(mz_values)}")
 
     # If there are fewer than 3 points, return as mass_only_group
     if len(mz_values) < 3:
@@ -253,11 +221,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
             f"[DEBUG] Removed outlier with m/z={worst_point[0]:.5f}, classified as {full_point_metadata['Classification']}"
         )
 
-    total_time = time.perf_counter() - start_time
-    print(
-        f"\n[METRIC] Total iterations: {iteration_count}, Processing speed: {iteration_count / total_time:.2f} iters/sec"
-    )
-
     # If no significant trend was found, return as mass_only_group
     print(
         "[WARNING] No statistically significant trend found. Returning as mass_only_group."
@@ -271,9 +234,6 @@ def main():
     adjusted_df = pd.read_csv(file_path)
     repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
-    print(
-        "\n[INFO] Running mz_repeating_unit_analysis to identify homologous series..."
-    )
     mass_groups = mz_repeating_unit_analysis(
         adjusted_df, repeating_units=repeating_units
     )
@@ -286,10 +246,8 @@ def main():
     IM_groups = []
     mass_only_groups = []
 
-    print("\n[INFO] Performing CCS_v_mz_analysis on identified groups...")
-
     # Treat each mass group independently
-    for idx, group_df in enumerate(
+    for idx, (group_id, group_df) in enumerate(
         mass_groups.groupby("GroupID")
     ):  # Process each group separately
         print(f"\n[DEBUG] Analyzing Mass Group {idx + 1}:")
@@ -330,15 +288,6 @@ def main():
         mass_only_groups_df = pd.DataFrame(columns=["m/z", "CCS"])
 
     # Print final classification results
-    print("\n[INFO] Final Classification Results:")
-    print(f"  - Identified {len(IM_groups_df)} points in IM_groups")
-    print(f"  - Identified {len(mass_only_groups_df)} points in mass_only_groups")
-
-    print("\n[DEBUG] IM_groups DataFrame:")
-    print(IM_groups_df.to_string(index=False))
-
-    print("\n[DEBUG] mass_only_groups DataFrame:")
-    print(mass_only_groups_df.to_string(index=False))
 
 
 if __name__ == "__main__":
