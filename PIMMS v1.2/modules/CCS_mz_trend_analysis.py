@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -194,6 +193,13 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         else:  # Valid point remains in trendline
             refined_data_points.append((mz, ccs))
 
+    # Print all classified points with residuals
+    for point in post_source_decay + branched_isomer:
+        print(
+            f"[FLAGGED] m/z: {point['m/z']:.5f}, CCS: {point['CCS']:.5f}, "
+            f"Classification: {point['Classification']}, Residual: {point['Residual']:.2f}%"
+        )
+
     # If fewer than 3 points remain after filtering, return as mass_only_group
     if len(refined_data_points) < 3:
         print(
@@ -201,10 +207,11 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         )
         return [], post_source_decay, branched_isomer, refined_data_points
 
-    # Recalculate regression after removing branched isomers and post source decay points
+    # Recalculate regression after removing flagged points
     mz_values = np.array([p[0] for p in refined_data_points])
     ccs_values = np.array([p[1] for p in refined_data_points])
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
+    r_squared = r_value**2
 
     print(
         f"[DEBUG] Refined regression results: slope={slope:.5f}, r_squared={r_squared:.5f}, p_value={p_value:.5f}"
@@ -217,197 +224,31 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         )
         return refined_data_points, post_source_decay, branched_isomer, []
 
-    # Otherwise, return as mass_only_group
     print(
         "[WARNING] No statistically significant trend found. Returning as mass_only_group."
     )
     return [], post_source_decay, branched_isomer, refined_data_points
 
 
-import seaborn as sns
-
-
-def plot_mass_groups(
-    IM_groups_df, mass_only_groups_df, post_source_decay_df, branched_isomer_df
-):
-    """Plots mass groups with different colors and highlights branched isomer & post source decay points."""
-
-    plt.figure(figsize=(12, 7))
-
-    # Use a Seaborn color palette for distinct colors
-    color_palette = sns.color_palette("tab10", n_colors=10)
-
-    # Plot IM Groups with different colors
-    if not IM_groups_df.empty:
-        for idx, (group_id, group_df) in enumerate(IM_groups_df.groupby("GroupID")):
-            plt.scatter(
-                group_df["m/z"],
-                group_df["CCS"],
-                label=f"IM Group {group_id}",
-                alpha=0.7,
-                color=color_palette[idx % len(color_palette)],
-            )
-
-    # Plot Mass-Only Groups with different colors
-    if not mass_only_groups_df.empty:
-        for idx, (group_id, group_df) in enumerate(
-            mass_only_groups_df.groupby("GroupID")
-        ):
-            plt.scatter(
-                group_df["m/z"],
-                group_df["CCS"],
-                marker="x",
-                label=f"Mass-Only {group_id}",
-                alpha=0.7,
-                color=color_palette[(idx + 5) % len(color_palette)],
-            )
-
-    # Plot Post Source Decay points
-    if not post_source_decay_df.empty:
-        plt.scatter(
-            post_source_decay_df["m/z"],
-            post_source_decay_df["CCS"],
-            color="red",
-            marker="s",
-            label="Post Source Decay",
-            edgecolors="black",
-            s=100,
-        )
-        print("\n[INFO] Post Source Decay Points:")
-        print(post_source_decay_df.to_string(index=False))
-
-    # Plot Branched Isomer points
-    if not branched_isomer_df.empty:
-        plt.scatter(
-            branched_isomer_df["m/z"],
-            branched_isomer_df["CCS"],
-            color="purple",
-            marker="D",
-            label="Branched Isomer",
-            edgecolors="black",
-            s=100,
-        )
-        print("\n[INFO] Branched Isomer Points:")
-        print(branched_isomer_df.to_string(index=False))
-
-    plt.xlabel("m/z")
-    plt.ylabel("CCS")
-    plt.legend()
-    plt.title("Mass Groups Debugging Plot")
-    plt.grid(True)
-    plt.show()
-
-
 def main():
-    """Run the full analysis pipeline: Identify homologous series, analyze trends, classify groups, and generate plots."""
+    """Run the analysis pipeline and return results."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
     repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
-    print(
-        "\n[INFO] Running mz_repeating_unit_analysis to identify homologous series..."
-    )
     mass_groups = mz_repeating_unit_analysis(
         adjusted_df, repeating_units=repeating_units
     )
-
     if mass_groups.empty:
-        print("\n[WARNING] No homologous series groups were identified.")
-        return
+        return None  # Exit if no groups found
 
-    # Storage for classified groups
-    IM_groups, mass_only_groups = [], []
-    post_source_decay_groups, branched_isomer_groups = [], []
-
-    print("\n[INFO] Performing CCS_v_mz_analysis on identified groups...")
-
-    # Process each group
-    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
-        print(f"\n[DEBUG] Analyzing Mass Group {idx + 1} (GroupID: {group_id}):")
-
-        # Perform correlation analysis
-        IM_group, post_source_decay, branched_isomer, mass_only_group = (
-            CCS_v_mz_analysis(group_df)
+    # Explicitly exclude the 'GroupID' column while applying the function
+    return mass_groups.groupby("GroupID", group_keys=False).apply(
+        lambda group: CCS_v_mz_analysis(
+            group.drop(columns=["GroupID"], errors="ignore")
         )
-
-        # Store IM Groups
-        if IM_group:
-            im_group_df = pd.DataFrame(IM_group, columns=["m/z", "CCS"])
-            im_group_df["GroupID"] = group_id
-            IM_groups.append(im_group_df)
-
-        # Store Mass-Only Groups
-        if mass_only_group:
-            mass_only_group_df = pd.DataFrame(mass_only_group, columns=["m/z", "CCS"])
-            mass_only_group_df["GroupID"] = group_id
-            mass_only_groups.append(mass_only_group_df)
-
-        # Store Post Source Decay groups
-        if post_source_decay:
-            post_source_decay_df = pd.DataFrame(post_source_decay)
-            post_source_decay_df["GroupID"] = group_id
-            post_source_decay_groups.append(post_source_decay_df)
-
-        # Store Branched Isomer groups
-        if branched_isomer:
-            branched_isomer_df = pd.DataFrame(branched_isomer)
-            branched_isomer_df["GroupID"] = group_id
-            branched_isomer_groups.append(branched_isomer_df)
-
-    # Convert lists to DataFrames
-    IM_groups_df = (
-        pd.concat(IM_groups, ignore_index=True)
-        if IM_groups
-        else pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
     )
-    mass_only_groups_df = (
-        pd.concat(mass_only_groups, ignore_index=True)
-        if mass_only_groups
-        else pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
-    )
-    post_source_decay_df = (
-        pd.concat(post_source_decay_groups, ignore_index=True)
-        if post_source_decay_groups
-        else pd.DataFrame(columns=["GroupID", "m/z", "CCS", "Classification"])
-    )
-    branched_isomer_df = (
-        pd.concat(branched_isomer_groups, ignore_index=True)
-        if branched_isomer_groups
-        else pd.DataFrame(columns=["GroupID", "m/z", "CCS", "Classification"])
-    )
-
-    # Final classification results
-    print("\n[INFO] Final Classification Results:")
-    print(f"  - Identified {len(IM_groups_df)} points in IM_groups")
-    print(f"  - Identified {len(mass_only_groups_df)} points in mass_only_groups")
-    print(
-        f"  - Identified {len(post_source_decay_df)} points in post_source_decay groups"
-    )
-    print(f"  - Identified {len(branched_isomer_df)} points in branched_isomer groups")
-
-    # Debugging before plotting
-    print("\n[DEBUG] DataFrames before plotting:")
-    print(f"IM_groups_df: {len(IM_groups_df)} points")
-    print(f"Mass-Only Groups: {len(mass_only_groups_df)} points")
-    print(f"Post Source Decay: {len(post_source_decay_df)} points")
-    print(f"Branched Isomer: {len(branched_isomer_df)} points")
-
-    # Ensure something is plotted
-    if (
-        IM_groups_df.empty
-        and mass_only_groups_df.empty
-        and post_source_decay_df.empty
-        and branched_isomer_df.empty
-    ):
-        print("\n[WARNING] No data available for plotting. Skipping plot.")
-    else:
-        print("\n[INFO] Plotting results...")
-        plot_mass_groups(
-            IM_groups_df, mass_only_groups_df, post_source_decay_df, branched_isomer_df
-        )
-
-    plt.show()  # Ensure the plot is displayed
 
 
 if __name__ == "__main__":
-    main()
+    results = main()
