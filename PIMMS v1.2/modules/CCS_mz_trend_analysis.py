@@ -1,4 +1,5 @@
 import time
+
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -7,292 +8,245 @@ from scipy.stats import linregress
 REPEATING_UNITS = {
     "CF2": 49.9968064,
     "OCF2": 65.9917214,
-    "TEST": 100,
+    "HF": 20.006228,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "CH2CHF": 46.021878,
+    "CH2CH2CF2CF2": 128.024912,
+    "CF2CFCl": 115.964062,
+    "CH2CH2CF2CFCl": 143.995362,
+    "OCF2CFCF3": 165.985333,
 }
 
 
-def filter_adjusted_df(adjusted_df, remove_d_columns=[]):
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[]):
+    """Identifies homologous series trends by sequentially checking different repeating units.
+    Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
     """
-    Removes specified `.d` columns and filters out rows where all remaining `.d` columns are 0.
 
-    :param adjusted_df: The original DataFrame.
-    :param remove_d_columns: List of `.d` column names to remove.
-    :return: Filtered DataFrame.
-    """
-    filtered_df = adjusted_df.copy()
+    import time
 
-    # **Normalize column names by stripping spaces**
-    filtered_df.columns = filtered_df.columns.str.strip()
+    start_time = time.perf_counter()
+    iteration_count = 0  # Track loop iterations
 
-    # **Update column names in the original DataFrame**
-    adjusted_df.columns = adjusted_df.columns.str.strip()  # Strip spaces in-place
+    # Convert user-provided repeating units into masses
+    selected_units = {
+        unit: REPEATING_UNITS[unit]
+        for unit in repeating_units
+        if unit in REPEATING_UNITS
+    }
 
-    print(
-        f"[DEBUG] Existing Columns in adjusted_df after stripping spaces: {set(filtered_df.columns)}"
-    )
-
-    # **Remove selected .d columns**
-    found_columns = [col for col in remove_d_columns if col in filtered_df.columns]
-    missing_columns = [
-        col for col in remove_d_columns if col not in filtered_df.columns
-    ]
-
-    # **Warn about missing columns**
-    if missing_columns:
-        print(
-            f"[WARNING] The following columns were NOT found in adjusted_df and will not be removed: {missing_columns}"
-        )
-
-    if found_columns:
-        print(f"[INFO] Removing columns: {found_columns}")
-        filtered_df = filtered_df.drop(columns=found_columns, errors="ignore")
-
-    # **Identify remaining .d.DeMP columns**
-    d_columns = [col for col in filtered_df.columns if col.endswith(".d.DeMP")]
-
-    print(f"[DEBUG] Remaining .d.DeMP Columns after filtering: {d_columns}")
-
-    if not d_columns:
-        print(
-            "[WARNING] No remaining .d columns found after filtering. Returning DataFrame as-is."
-        )
-        return filtered_df  # No further filtering needed if no .d columns exist
-
-    # **Filter out rows where all remaining .d columns are 0**
-    mask = (filtered_df[d_columns] > 0).any(
-        axis=1
-    )  # Keep rows where at least one .d column is > 0
-    rows_removed = len(filtered_df) - len(filtered_df[mask])
-    filtered_df = filtered_df[mask]
-
-    print(f"[INFO] Removed {rows_removed} rows where all remaining .d columns were 0.")
-    print(f"[INFO] Remaining rows in DataFrame: {len(filtered_df)}")
-
-    return filtered_df
-
-
-def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=["CF2"]):
-    """Identifies homologous series trends with at least 3 points using an expanding search approach."""
-
-    start_time = time.time()
-    selected_units = [
-        REPEATING_UNITS[unit] for unit in repeating_units if unit in REPEATING_UNITS
-    ]
-
-    # **Sort data by m/z to ensure proper trend building**
+    # **Sort data by m/z for efficient searching**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
 
-    used_indices = set()  # Track indices that are already included in a group
-    groups = []
+    unique_group_ids = set()
+    mass_groups = []
 
     print(f"[DEBUG] Total data points: {len(adjusted_df)}")
 
-    for M in selected_units:
-        print(f"\n[INFO] Analyzing with M = {M:.6f}")
+    for unit_name, M in selected_units.items():
+        print(
+            f"\n[INFO] Searching for homologous series with repeating unit: {unit_name} (M = {M:.6f})"
+        )
+        processed_indices = set()
 
-        for i in range(len(adjusted_df)):  # Iterate over all peaks
-            if i in used_indices:
-                continue  # Skip if already assigned to a group
+        for i in range(len(adjusted_df)):
+            iteration_count += 1
+            if i in processed_indices:
+                continue
 
-            mz_value = adjusted_df.iloc[i]["m/z"]
+            mz_value = adjusted_df.at[i, "m/z"]
             current_group = [
                 {
                     "m/z": mz_value,
-                    "ID": adjusted_df.iloc[i]["ID"],
-                    "CCS": adjusted_df.iloc[i]["CCS"],
-                    "Classification Type": adjusted_df.iloc[i]["Classification Type"],
-                    "Match Source": adjusted_df.iloc[i]["Match Source"],
-                    "Match": adjusted_df.iloc[i]["Match"],
+                    "ID": adjusted_df.at[i, "ID"],
+                    "CCS": adjusted_df.at[i, "CCS"],
+                    "Classification Type": adjusted_df.at[i, "Classification Type"],
+                    "Match Source": adjusted_df.at[i, "Match Source"],
+                    "Match": adjusted_df.at[i, "Match"],
+                    "Repeating Unit": unit_name,
                 }
             ]
-            used_indices.add(i)
+            processed_indices.add(i)
 
-            # **Dynamic Expansion Search**
-            search_queue = [i]  # Queue to hold indices to check forward
+            search_queue = [i]
 
             while search_queue:
-                current_idx = search_queue.pop(0)  # Pop the next index to search from
-                current_mz = adjusted_df.iloc[current_idx]["m/z"]
+                current_idx = search_queue.pop(0)
+                current_mz = adjusted_df.at[current_idx, "m/z"]
 
-                for j in range(current_idx + 1, len(adjusted_df)):  # Look forward
-                    if j in used_indices:
+                for j in range(current_idx + 1, len(adjusted_df)):
+                    iteration_count += 1
+                    if j in processed_indices:
                         continue
 
-                    next_mz_value = adjusted_df.iloc[j]["m/z"]
+                    next_mz_value = adjusted_df.at[j, "m/z"]
                     mass_diff = abs(current_mz - next_mz_value)
+                    ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
 
-                    # **Check if the difference matches M or 2M from the latest point**
-                    if any(
-                        abs(mass_diff - M * k) <= (mass_error_ppm / 1e6) * current_mz
-                        for k in range(1, 3)  # Searches for M, 2M
+                    if mass_diff <= ppm_tolerance or any(
+                        abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
                     ):
                         current_group.append(
                             {
                                 "m/z": next_mz_value,
-                                "ID": adjusted_df.iloc[j]["ID"],
-                                "CCS": adjusted_df.iloc[j]["CCS"],
-                                "Classification Type": adjusted_df.iloc[j][
-                                    "Classification Type"
+                                "ID": adjusted_df.at[j, "ID"],
+                                "CCS": adjusted_df.at[j, "CCS"],
+                                "Classification Type": adjusted_df.at[
+                                    j, "Classification Type"
                                 ],
-                                "Match Source": adjusted_df.iloc[j]["Match Source"],
-                                "Match": adjusted_df.iloc[j]["Match"],
+                                "Match Source": adjusted_df.at[j, "Match Source"],
+                                "Match": adjusted_df.at[j, "Match"],
+                                "Repeating Unit": unit_name,
                             }
                         )
-                        used_indices.add(j)  # Mark as used
-                        search_queue.append(
-                            j
-                        )  # Add this index to keep searching forward
+                        processed_indices.add(j)
+                        search_queue.append(j)
 
-            if len(current_group) >= 3:  # Only store groups with 3+ points
-                groups.append(current_group)
+            # **Ensure the group has at least 3 points before performing ppm separation**
+            if len(current_group) < 3:
+                print(
+                    f"[WARNING] Group with {len(current_group)} points is too small. Skipping ppm separation."
+                )
+                print(pd.DataFrame(current_group).to_string(index=False))  # Debug print
+                continue  # Skip storing this group
 
+            # **Apply ppm separation only within detected groups**
+            min_mz = min(entry["m/z"] for entry in current_group)
+            max_mz = max(entry["m/z"] for entry in current_group)
+            ppm_separation = (abs(max_mz - min_mz) / min_mz) * 1e6
+
+            if ppm_separation < 10:
+                print(
+                    f"[WARNING] Group rejected due to insufficient ppm separation ({ppm_separation:.2f} ppm)."
+                )
+                print(pd.DataFrame(current_group).to_string(index=False))  # Debug print
+                continue  # Skip storing this group
+
+            # **Ensure the group is unique and store it**
+            group_ids = frozenset(entry["ID"] for entry in current_group)
+            if group_ids not in unique_group_ids:
+                unique_group_ids.add(group_ids)
+                group_df = pd.DataFrame(current_group)
+                mass_groups.append(group_df)
+
+                # **Debugging: Print Group Composition**
+                print(
+                    f"\n[DEBUG] Identified Group {len(mass_groups)} - Homologous Series (Repeating Unit: {unit_name}):"
+                )
+                print(
+                    group_df.to_string(index=False)
+                )  # Print clean table without row index
+                print("-" * 80)  # Separator for readability
+
+    total_time = time.perf_counter() - start_time
     print(
-        f"\n[INFO] Mass repeating unit analysis completed in {time.time() - start_time:.4f} seconds."
+        f"\n[INFO] Mass repeating unit analysis completed in {total_time:.4f} seconds."
+    )
+    print(
+        f"[METRIC] Total iterations: {iteration_count}, Processing speed: {iteration_count / total_time:.2f} iters/sec"
     )
 
-    # **Debugging: Print each group in tabular format**
-    for idx, group in enumerate(groups):
-        print(f"\n[DEBUG] Group {idx + 1} - Homologous Series:")
-        df_debug = pd.DataFrame(group)
-        print(df_debug.to_string(index=False))  # Print clean table without row index
-        print("-" * 80)  # Separator for readability
-    print(groups)
-    return groups
+    return mass_groups
 
 
-def refine_group_by_best_fit(groups, threshold=0.02, min_r2=0.99):
+def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     """
-    Finds the best-fit linear regression using all points first,
-    then iteratively removes the worst point until R² ≥ 0.99 is achieved.
-    Calls `find_best_high_r2_subset()` if necessary.
+    Performs correlation analysis to classify homologous series.
+    Adds PSU metrics to assess computational efficiency.
     """
 
-    print("\n[DEBUG] Starting refine_group_by_best_fit function...")
+    print("\n[DEBUG] Starting CCS_v_mz_analysis function...")
 
-    if not groups:
+    if mass_groups.empty:
         print("[ERROR] Received empty group list. Exiting function.")
-        return [], [], []
+        return [], [], [], []
 
-    refined_group = []
-    post_source_decay = []
-    branched_isomers = []
+    start_time = time.perf_counter()
+    iteration_count = 0
 
-    # Convert to NumPy arrays
-    data_points = [(entry["m/z"], entry["CCS"]) for entry in groups]
+    data_points = list(zip(mass_groups["m/z"], mass_groups["CCS"]))
     mz_values = np.array([p[0] for p in data_points])
     ccs_values = np.array([p[1] for p in data_points])
 
-    print(f"[DEBUG] Total points received: {len(data_points)}")
-    print(f"[DEBUG] m/z values: {mz_values}")
-    print(f"[DEBUG] CCS values: {ccs_values}")
-
-    if len(mz_values) < 2:
+    if len(mz_values) < 3:
         print(
-            "[WARNING] Not enough points to fit a regression model. Returning empty lists."
+            "[WARNING] Not enough points to fit a regression model. Returning as mass_only_group."
         )
-        return [], [], []
+        return [], [], [], data_points
 
-    # Step 1: Find best fit for all points initially
-    slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+    slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
     r_squared = r_value**2
 
-    print(
-        f"[INFO] Initial Fit - Slope: {slope:.6f}, Intercept: {intercept:.6f}, R²: {r_squared:.6f}"
-    )
+    if p_value <= significance_cutoff and slope > 0:
+        print("[INFO] Initial group meets significance and is positively correlated.")
+        return data_points, [], [], []
 
-    if r_squared >= min_r2:
-        print("[INFO] Initial group already meets R² ≥ 0.99. No need for filtering.")
-        return data_points, post_source_decay, branched_isomers
-
-    # Step 2: Iteratively remove the worst point until R² ≥ 0.99
     remaining_points = data_points.copy()
+    post_source_decay = []
+    branched_isomer = []
 
     while len(remaining_points) > 2:
-        # Compute R² for the current subset
+        iteration_count += 1
         mz_values = np.array([p[0] for p in remaining_points])
         ccs_values = np.array([p[1] for p in remaining_points])
-        slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
-        r_squared = r_value**2
+        slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
 
-        if r_squared >= min_r2:
-            break  # Stop if we've achieved R² ≥ 0.99
+        if p_value <= significance_cutoff and slope > 0:
+            print(
+                f"[INFO] Significant positive correlation achieved with {len(remaining_points)} points."
+            )
+            return remaining_points, post_source_decay, branched_isomer, []
 
-        # Identify the worst point to remove (highest residual)
         residuals = [
             abs(ccs - (slope * mz + intercept)) for mz, ccs in remaining_points
         ]
-        max_residual_idx = np.argmax(residuals)  # Index of the worst point
+        max_residual_idx = np.argmax(residuals)
+        worst_point = remaining_points.pop(max_residual_idx)
 
-        worst_point = remaining_points.pop(max_residual_idx)  # Remove the worst point
-
-        # Classify removed point
         predicted_ccs = slope * worst_point[0] + intercept
-        if worst_point[1] > predicted_ccs:
-            post_source_decay.append(worst_point)
-            print(
-                f"[FLAGGED] Post Source Decay - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
-            )
-        else:
-            branched_isomers.append(worst_point)
-            print(
-                f"[FLAGGED] Branched Isomer - Removed m/z={worst_point[0]:.4f}, CCS={worst_point[1]:.4f}"
-            )
+        full_point_metadata = (
+            mass_groups.loc[mass_groups["m/z"] == worst_point[0]].iloc[0].to_dict()
+        )
 
+        if worst_point[1] > predicted_ccs:
+            full_point_metadata["Classification"] = "Post Source Decay"
+            post_source_decay.append(full_point_metadata)
+        else:
+            full_point_metadata["Classification"] = "Branched Isomer"
+            branched_isomer.append(full_point_metadata)
+
+    total_time = time.perf_counter() - start_time
     print(
-        f"\n[INFO] Final R²: {r_squared:.6f} after removing {len(data_points) - len(remaining_points)} points."
+        f"\n[METRIC] Total iterations: {iteration_count}, Processing speed: {iteration_count / total_time:.2f} iters/sec"
     )
 
-    # Step 3: Ensure we still have a valid group
-    if len(remaining_points) > 2:
-        print(f"[INFO] Final refined group contains {len(remaining_points)} points.")
-        refined_group = remaining_points
-    else:
-        print(
-            "[WARNING] Could not achieve R² ≥ 0.99 with at least 3 points. Calling `find_best_high_r2_subset()`."
+    return [], [], [], data_points
+
+
+def main():
+    """Run the analysis and interactive plot."""
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    adjusted_df = pd.read_csv(file_path)
+    repeating_units = ["CF2", "OCF2"]
+
+    print(
+        f"\n[INFO] Running mz_repeating_unit_analysis with repeating units: {repeating_units}"
+    )
+    mass_groups = mz_repeating_unit_analysis(
+        adjusted_df, repeating_units=repeating_units
+    )
+
+    if not mass_groups:
+        print("[WARNING] No homologous series found. Exiting...")
+        return
+
+    for idx, mass_group in enumerate(mass_groups):
+        print(f"\n[DEBUG] Processing Mass Group {idx + 1}:")
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(mass_group)
         )
-        refined_group = find_best_high_r2_subset(data_points, min_r2)
-
-    print("\n[DEBUG] Final Processed Groups:")
-    print(f"Homologous Series ({len(refined_group)} points): {refined_group}")
-    print(f"Post Source Decay ({len(post_source_decay)} points): {post_source_decay}")
-    print(f"Branched Isomers ({len(branched_isomers)} points): {branched_isomers}")
-
-    return refined_group, post_source_decay, branched_isomers
 
 
-def find_best_high_r2_subset(groups, min_r2=0.99):
-    """Finds the longest subset with R² ≥ 0.99 when removing outliers."""
-
-    print("\n[DEBUG] find_best_high_r2_subset() was called!")
-    print(f"[DEBUG] Received {len(groups)} data points for processing.")
-
-    if len(groups) < 2:
-        print(
-            "[WARNING] Not enough data points to compute regression. Returning empty list."
-        )
-        return []
-
-    n = len(groups)
-    best_subset = []
-    max_length = 0
-
-    for start in range(n):
-        for end in range(start + 2, n + 1):  # At least 2 points needed
-            subset = groups[start:end]
-            subset_mz = np.array([p[0] for p in subset])
-            subset_ccs = np.array([p[1] for p in subset])
-
-            if len(set(subset_mz)) < 2:
-                continue  # Skip if all x values are identical
-
-            slope, intercept, r_value, _, _ = linregress(subset_mz, subset_ccs)
-            r_squared = r_value**2
-
-            print(f"[DEBUG] Evaluating subset {start}-{end}: R² = {r_squared:.6f}")
-
-            if r_squared >= min_r2 and len(subset) > max_length:
-                best_subset = subset
-                max_length = len(subset)
-
-    print(f"[DEBUG] Best subset found with {len(best_subset)} points (R² ≥ {min_r2})")
-    return best_subset
+if __name__ == "__main__":
+    main()
