@@ -1,70 +1,95 @@
-import plotly.graph_objects as go
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html
+from dash.dependencies import Input, Output, State
+import plotly.graph_objects as go
+import time
+import logging
 import numpy as np
 from scipy.spatial import ConvexHull
 
-# Sample Data (Replace with actual mass-only group data)
-mass_only_points = [
-    (440.92, 200.0),
-    (374.93, 60.0),
-    (506.91, 40.0),
-    (308.94, 100.0),
-    (572.90, 100.0),
-]
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-# Compute Convex Hull (Boundary)
-if len(mass_only_points) > 2:
-    points = np.array(mass_only_points)
-    hull = ConvexHull(points)
-    hull_x = points[hull.vertices, 0].tolist()
-    hull_y = points[hull.vertices, 1].tolist()
-    hull_x.append(hull_x[0])  # Close the polygon
-    hull_y.append(hull_y[0])
-else:
-    hull_x, hull_y = [], []  # No boundary if less than 3 points
-
-# Initialize Dash app
 app = dash.Dash(__name__)
 
+# ** Sample Data: Two Mass-Only Groups **
+mass_only_groups = {
+    "Group A": [(440.92, 200.0), (374.93, 60.0), (506.91, 40.0)],
+    "Group B": [(308.94, 100.0), (572.90, 100.0), (400.91, 20.0)],
+}
 
-# Define initial figure
-def create_figure(show_boundary=False):
+# ** Non-Mass-Only Points **
+other_points = [
+    (600.00, 150.0),  # Example of a point that should NOT trigger any boundary
+]
+
+
+# ** Generate Figure Function **
+def create_figure(active_group=None):
     fig = go.Figure()
 
-    # ** Plot Mass-Only Points (Always Visible in Green) **
-    for mz, ccs in mass_only_points:
+    # ** Plot Mass-Only Points **
+    for group_name, points in mass_only_groups.items():
+        for mz, ccs in points:
+            fig.add_trace(
+                go.Scatter(
+                    x=[mz],
+                    y=[ccs],
+                    mode="markers",
+                    marker=dict(size=8, color="green"),
+                    name=f"Mass-Only ({group_name})",
+                    legendgroup=f"mass_only_group_{group_name}",
+                    showlegend=False,
+                    hoverinfo="text",
+                    hovertext=f"m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>Group: {group_name}",
+                    customdata=[[mz, ccs, group_name]],  # ✅ Corrected formatting
+                )
+            )
+
+    # ** Plot Other Points (Not in Mass-Only Groups) **
+    for mz, ccs in other_points:
         fig.add_trace(
             go.Scatter(
                 x=[mz],
                 y=[ccs],
                 mode="markers",
-                marker=dict(size=8, color="green"),
-                name="Mass-Only",
-                legendgroup="mass_only_group",
+                marker=dict(size=8, color="red"),  # Different color
+                name="Other Points",
                 showlegend=False,
                 hoverinfo="text",
-                hovertext=f"m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>Classification: Mass-Only",
-                customdata=[mz, ccs],  # For interaction
+                hovertext=f"m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>Classification: Other",
             )
         )
 
-    # ** Plot Convex Hull Boundary (Initially Hidden, Controlled by Callback) **
-    fig.add_trace(
-        go.Scatter(
-            x=hull_x,
-            y=hull_y,
-            fill="toself",
-            mode="lines",
-            line=dict(color="green", width=2, dash="dash"),
-            fillcolor="rgba(0, 255, 0, 0.2)",  # Semi-transparent green
-            name="Mass-Only Group Boundary",
-            legendgroup="mass_only_group",
-            hoverinfo="skip",
-            showlegend=False,
-            visible=show_boundary,  # Control visibility dynamically
-        )
-    )
+    # ** Draw Convex Hull for Active Group Only **
+    if active_group and active_group in mass_only_groups:
+        points = np.array(mass_only_groups[active_group])
+        if len(points) > 2:  # Convex hull requires at least 3 points
+            hull = ConvexHull(points)
+            hull_x = points[hull.vertices, 0].tolist()
+            hull_y = points[hull.vertices, 1].tolist()
+
+            # Close the polygon
+            hull_x.append(hull_x[0])
+            hull_y.append(hull_y[0])
+
+            fig.add_trace(
+                go.Scatter(
+                    x=hull_x,
+                    y=hull_y,
+                    fill="toself",
+                    mode="lines",
+                    line=dict(color="green", width=2, dash="dash"),
+                    fillcolor="rgba(0, 255, 0, 0.2)",  # Semi-transparent green
+                    name=f"Boundary ({active_group})",
+                    legendgroup=f"mass_only_group_{active_group}",
+                    hoverinfo="skip",  # Hide hover text for boundary
+                    showlegend=False,
+                    visible=True,  # ✅ Controlled dynamically
+                )
+            )
 
     fig.update_layout(
         title="CCS vs m/z Trend Analysis",
@@ -73,33 +98,65 @@ def create_figure(show_boundary=False):
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
+
     return fig
 
 
-# Define App Layout
+# ** Dash Layout **
 app.layout = html.Div(
     [
         dcc.Graph(id="scatter-plot", figure=create_figure()),
-        dcc.Store(id="hover-state", data=False),  # Store hover state
+        dcc.Interval(
+            id="interval-timer", interval=1000, n_intervals=0
+        ),  # ✅ Check every second
+        dcc.Store(id="last-hover-time", data=0),  # ✅ Track last hover timestamp
+        dcc.Store(id="active-group", data=None),  # ✅ Track active mass-only group
     ]
 )
 
 
-# Callback to toggle visibility of boundary based on hover event
-@app.callback(Output("scatter-plot", "figure"), Input("scatter-plot", "hoverData"))
-def toggle_boundary(hover_data):
-    """Shows boundary when hovering over Mass-Only points, hides otherwise."""
+@app.callback(
+    [
+        Output("scatter-plot", "figure"),
+        Output("last-hover-time", "data"),
+        Output("active-group", "data"),
+    ],
+    [Input("scatter-plot", "hoverData"), Input("interval-timer", "n_intervals")],
+    [State("last-hover-time", "data"), State("active-group", "data")],
+)
+def toggle_boundary_and_timer(hover_data, n_intervals, last_hover_time, active_group):
+    logging.debug("\n[DEBUG] Hover Event Triggered")
+    current_time = time.time()
+
+    # ** Check if Hover Event is Valid **
     if hover_data and "points" in hover_data:
-        hovered_mz = hover_data["points"][0]["x"]
-        hovered_ccs = hover_data["points"][0]["y"]
+        logging.debug(f"[DEBUG] Hover Data Received: {hover_data}")
 
-        # Check if hovered point belongs to mass-only group
-        if (hovered_mz, hovered_ccs) in mass_only_points:
-            return create_figure(show_boundary=True)
+        hovered_point = hover_data["points"][0]  # Extract hovered point
+        hovered_customdata = hovered_point.get("customdata", [])
 
-    return create_figure(show_boundary=False)
+        if isinstance(hovered_customdata, list) and len(hovered_customdata) >= 3:
+            hovered_group = hovered_customdata[2]  # ✅ Get the group name
+            logging.debug(f"[DEBUG] Hovered over Mass-Only Group: {hovered_group}")
+
+            if hovered_group != active_group:
+                logging.debug(f"[INFO] Updating Active Group: {hovered_group}")
+                return (
+                    create_figure(active_group=hovered_group),
+                    current_time,
+                    hovered_group,
+                )
+
+    # ** Check if Boundary Should be Hidden After 5s **
+    if active_group and (current_time - last_hover_time > 5):
+        logging.debug(
+            f"[INFO] No Hover in Last 5s, Hiding Boundary for: {active_group}"
+        )
+        return create_figure(active_group=None), current_time, None
+
+    logging.debug(f"[INFO] No Updates Needed, Active Group: {active_group}")
+    return dash.no_update, last_hover_time, active_group
 
 
-# Run Dash app
 if __name__ == "__main__":
     app.run_server(debug=True)
