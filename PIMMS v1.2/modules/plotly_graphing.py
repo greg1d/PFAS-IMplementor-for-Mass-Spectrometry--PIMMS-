@@ -3,6 +3,8 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from scipy.stats import linregress
+from scipy.spatial import ConvexHull
+import numpy as np
 
 FONT_CONFIG = dict(
     family="NormativePro, Arial, sans-serif",  # Use Arial as a fallback
@@ -109,13 +111,6 @@ def make_plotly_graph(
     mass_only_group = [
         group if isinstance(group, list) else [] for group in mass_only_group
     ]
-
-    print("\n[DEBUG] Mass-Only Groups Read in for Plotting:")
-    for group in mass_only_group:
-        for point in group:
-            print(
-                f"m/z: {point['m/z']:.4f}, CCS: {point['CCS']:.2f}, Classification: Mass-Only"
-            )
 
     # ** Remove post-source decay & branched isomer points from general data **
     flagged_mz_values = {
@@ -246,29 +241,72 @@ def make_plotly_graph(
                 )
             )
 
-    # **🔹 Plot Mass-Only Groups (Unique Color)**
+    if not isinstance(mass_only_group, list):
+        mass_only_group = []
+    mass_only_group = [
+        group if isinstance(group, list) else [] for group in mass_only_group
+    ]
+
+    print("\n[DEBUG] Mass-Only Groups Read in for Plotting:")
     for group in mass_only_group:
-        if not isinstance(group, list):
-            continue
         for point in group:
-            if not isinstance(point, dict):
-                continue
-            fig.add_trace(
-                go.Scatter(
-                    x=[point["m/z"]],
-                    y=[point["CCS"]],
-                    mode="markers",
-                    marker=dict(
-                        size=8, color="green"
-                    ),  # Unique color for mass-only points
-                    name="Mass-Only",
-                    legendgroup="mass_only_group",
-                    showlegend=False,
-                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
-                    f"Classification: Mass-Only<extra></extra>",
-                    visible=True,
-                )
+            print(
+                f"m/z: {point['m/z']:.4f}, CCS: {point['CCS']:.2f}, Classification: Mass-Only"
             )
+
+    # **🔹 Extract m/z and CCS for mass-only points**
+    mass_only_points = []
+    for group in mass_only_group:
+        for point in group:
+            if isinstance(point, dict):
+                mass_only_points.append((point["m/z"], point["CCS"]))
+
+    # ** Plot Mass-Only Points (Always Visible in Green) **
+    for group in mass_only_group:
+        for point in group:
+            if isinstance(point, dict):
+                fig.add_trace(
+                    go.Scatter(
+                        x=[point["m/z"]],
+                        y=[point["CCS"]],
+                        mode="markers",
+                        marker=dict(size=8, color="green"),
+                        name="Mass-Only",
+                        legendgroup="mass_only_group",
+                        showlegend=False,
+                        hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
+                        f"Classification: Mass-Only<extra></extra>",
+                        visible=True,
+                    )
+                )
+
+    # ** Draw Convex Hull Around Mass-Only Points if Enough Exist **
+    if len(mass_only_points) > 2:
+        points = np.array(mass_only_points)
+        hull = ConvexHull(points)
+
+        # ** Create a boundary polygon **
+        hull_x = points[hull.vertices, 0].tolist()
+        hull_y = points[hull.vertices, 1].tolist()
+
+        # Close the polygon
+        hull_x.append(hull_x[0])
+        hull_y.append(hull_y[0])
+
+        fig.add_trace(
+            go.Scatter(
+                x=hull_x,
+                y=hull_y,
+                fill="toself",
+                mode="lines",
+                line=dict(color="green", width=2, dash="dash"),
+                fillcolor="rgba(0, 255, 0, 0.2)",  # Semi-transparent green
+                name="Mass-Only Group Boundary",
+                legendgroup="mass_only_group",
+                hoverinfo="skip",
+                visible=True,  # Initially hidden, will be shown on hover
+            )
+        )
 
     # ** Update layout **
     fig.update_layout(
