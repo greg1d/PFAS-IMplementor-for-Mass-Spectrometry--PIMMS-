@@ -1,10 +1,11 @@
+import logging
+import time
+
 import dash
+import numpy as np
+import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
-import plotly.graph_objects as go
-import time
-import logging
-import numpy as np
 from scipy.spatial import ConvexHull
 
 # Configure logging
@@ -60,6 +61,9 @@ def create_figure(active_group=None):
                 showlegend=False,
                 hoverinfo="text",
                 hovertext=f"m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>Classification: Other",
+                customdata=[
+                    [mz, ccs, None]
+                ],  # ✅ Assign None to prevent boundary trigger
             )
         )
 
@@ -137,6 +141,14 @@ def toggle_boundary_and_timer(hover_data, n_intervals, last_hover_time, active_g
 
         if isinstance(hovered_customdata, list) and len(hovered_customdata) >= 3:
             hovered_group = hovered_customdata[2]  # ✅ Get the group name
+
+            # ** Hide the boundary if hovering over a non-mass-only point **
+            if hovered_group is None:
+                logging.debug(
+                    "[INFO] Hovered over a Non-Mass-Only Point: Hiding Boundary"
+                )
+                return create_figure(active_group=None), current_time, None
+
             logging.debug(f"[DEBUG] Hovered over Mass-Only Group: {hovered_group}")
 
             if hovered_group != active_group:
