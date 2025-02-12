@@ -68,23 +68,54 @@ def create_figure(active_group=None):
             )
         )
 
-    # ** Draw Convex Hull for Active Group Only **
-    # ** Draw Smooth Curved Boundary for Active Group **
+    # ** Generate Smooth and Fading Boundary for Active Group **
+    def generate_smooth_boundary(points, expansion_factor=1.05, smoothing=1):
+        """
+        Creates a smoothed and expanded convex hull boundary for a group of points.
+
+        :param points: Array of (m/z, CCS) points.
+        :param expansion_factor: Factor to slightly expand the convex hull boundary.
+        :param smoothing: Spline smoothing parameter.
+        :return: Extended and smoothed boundary x and y coordinates.
+        """
+        if len(points) < 3:
+            return points[:, 0].tolist(), points[
+                :, 1
+            ].tolist()  # Return original hull for small groups
+
+        hull = ConvexHull(points)
+        hull_points = points[hull.vertices]
+
+        # Compute centroid
+        centroid = np.mean(hull_points, axis=0)
+
+        # Expand the boundary slightly outward
+        expanded_points = centroid + (hull_points - centroid) * expansion_factor
+
+        # Close the boundary loop
+        expanded_points = np.vstack([expanded_points, expanded_points[0]])
+
+        # Fit a spline if enough points exist
+        if len(expanded_points) > 3:
+            tck, u = splprep(
+                expanded_points.T,
+                s=smoothing,
+                per=True,
+                k=min(3, len(expanded_points) - 1),
+            )
+            smooth_x, smooth_y = splev(
+                np.linspace(0, 1, 80), tck
+            )  # 80 points for slight curve
+        else:
+            smooth_x, smooth_y = expanded_points[:, 0], expanded_points[:, 1]
+
+        return smooth_x, smooth_y
+
+    # ** Draw Smoothed Curved Boundary for Active Group **
     if active_group and active_group in mass_only_groups:
         points = np.array(mass_only_groups[active_group])
         if len(points) > 2:  # Convex hull requires at least 3 points
-            hull = ConvexHull(points)
-            hull_x = points[hull.vertices, 0].tolist()
-            hull_y = points[hull.vertices, 1].tolist()
-
-            # Close the polygon
-            hull_x.append(hull_x[0])
-            hull_y.append(hull_y[0])
-
-            tck, u = splprep(
-                [hull_x, hull_y], s=0.1, per=True
-            )  # `s` controls smoothness
-            smooth_x, smooth_y = splev(np.linspace(0, 1, 100), tck)
+            smooth_x, smooth_y = generate_smooth_boundary(points)
 
             fig.add_trace(
                 go.Scatter(
@@ -92,13 +123,13 @@ def create_figure(active_group=None):
                     y=smooth_y,
                     fill="toself",
                     mode="lines",
-                    line=dict(color="green", width=2, dash="dash"),
-                    fillcolor="rgba(0, 255, 0, 0.2)",  # Semi-transparent green
+                    line=dict(color="rgba(0, 255, 0, 0.8)", width=2, dash="solid"),
+                    fillcolor="rgba(0, 255, 0, 0.15)",  # More transparent for smooth fading effect
                     name=f"Boundary ({active_group})",
                     legendgroup=f"mass_only_group_{active_group}",
-                    hoverinfo="skip",  # Hide hover text for boundary
+                    hoverinfo="skip",
                     showlegend=False,
-                    visible=True,  # ✅ Controlled dynamically
+                    visible=True,
                 )
             )
 
