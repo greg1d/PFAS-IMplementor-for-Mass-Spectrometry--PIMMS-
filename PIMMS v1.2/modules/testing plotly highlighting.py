@@ -6,6 +6,7 @@ import numpy as np
 import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
+from scipy.interpolate import splev, splprep
 from scipy.spatial import ConvexHull
 
 # Configure logging
@@ -68,6 +69,7 @@ def create_figure(active_group=None):
         )
 
     # ** Draw Convex Hull for Active Group Only **
+    # ** Draw Smooth Curved Boundary for Active Group **
     if active_group and active_group in mass_only_groups:
         points = np.array(mass_only_groups[active_group])
         if len(points) > 2:  # Convex hull requires at least 3 points
@@ -79,10 +81,15 @@ def create_figure(active_group=None):
             hull_x.append(hull_x[0])
             hull_y.append(hull_y[0])
 
+            tck, u = splprep(
+                [hull_x, hull_y], s=0.1, per=True
+            )  # `s` controls smoothness
+            smooth_x, smooth_y = splev(np.linspace(0, 1, 100), tck)
+
             fig.add_trace(
                 go.Scatter(
-                    x=hull_x,
-                    y=hull_y,
+                    x=smooth_x,
+                    y=smooth_y,
                     fill="toself",
                     mode="lines",
                     line=dict(color="green", width=2, dash="dash"),
