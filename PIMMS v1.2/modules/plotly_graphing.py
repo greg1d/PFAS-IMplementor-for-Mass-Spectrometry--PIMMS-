@@ -83,25 +83,39 @@ def add_legend_entries(fig):
     )
 
 
-def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_decay):
+def make_plotly_graph(
+    adjusted_df, refined_group, branched_isomers, post_source_decay, mass_only_group
+):
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
     add_legend_entries(fig)
     adjusted_df.columns = adjusted_df.columns.str.strip()
 
-    # ** Ensure `branched_isomers` and `post_source_decay` are lists of dictionaries **
+    # ** Ensure `branched_isomers`, `post_source_decay`, and `mass_only_groups` are lists of dictionaries **
     if not isinstance(branched_isomers, list):
         branched_isomers = []
     if not isinstance(post_source_decay, list):
         post_source_decay = []
+    if not isinstance(mass_only_group, list):
+        mass_only_group = []
 
-    # ** Ensure each element in `branched_isomers` and `post_source_decay` is a list of dicts **
+    # ** Ensure each element in the lists is a list of dicts **
     branched_isomers = [
         group if isinstance(group, list) else [] for group in branched_isomers
     ]
     post_source_decay = [
         group if isinstance(group, list) else [] for group in post_source_decay
     ]
+    mass_only_group = [
+        group if isinstance(group, list) else [] for group in mass_only_group
+    ]
+
+    print("\n[DEBUG] Mass-Only Groups Read in for Plotting:")
+    for group in mass_only_group:
+        for point in group:
+            print(
+                f"m/z: {point['m/z']:.4f}, CCS: {point['CCS']:.2f}, Classification: Mass-Only"
+            )
 
     # ** Remove post-source decay & branched isomer points from general data **
     flagged_mz_values = {
@@ -191,10 +205,10 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_
     # **🔹 Plot Branched Isomers**
     for group in branched_isomers:
         if not isinstance(group, list):
-            continue  # Ensure group is a list
+            continue
         for point in group:
             if not isinstance(point, dict):
-                continue  # Ensure each point is a dictionary
+                continue
             fig.add_trace(
                 go.Scatter(
                     x=[point["m/z"]],
@@ -213,10 +227,10 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_
     # **🔹 Plot Post Source Decay**
     for group in post_source_decay:
         if not isinstance(group, list):
-            continue  # Ensure group is a list
+            continue
         for point in group:
             if not isinstance(point, dict):
-                continue  # Ensure each point is a dictionary
+                continue
             fig.add_trace(
                 go.Scatter(
                     x=[point["m/z"]],
@@ -228,6 +242,30 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers, post_source_
                     showlegend=False,
                     hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
                     f"Classification: Post Source Decay<extra></extra>",
+                    visible=True,
+                )
+            )
+
+    # **🔹 Plot Mass-Only Groups (Unique Color)**
+    for group in mass_only_group:
+        if not isinstance(group, list):
+            continue
+        for point in group:
+            if not isinstance(point, dict):
+                continue
+            fig.add_trace(
+                go.Scatter(
+                    x=[point["m/z"]],
+                    y=[point["CCS"]],
+                    mode="markers",
+                    marker=dict(
+                        size=8, color="green"
+                    ),  # Unique color for mass-only points
+                    name="Mass-Only",
+                    legendgroup="mass_only_group",
+                    showlegend=False,
+                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
+                    f"Classification: Mass-Only<extra></extra>",
                     visible=True,
                 )
             )
@@ -325,17 +363,31 @@ def main():
 
     repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
+    print("\n[INFO] Starting mz_repeating_unit_analysis...")
+
     # **Step 1: Identify homologous series**
     mass_groups = mz_repeating_unit_analysis(
         adjusted_df, repeating_units=repeating_units
     )
+
     if mass_groups.empty:
         print("\n[WARNING] No homologous series groups identified. Exiting.")
         return
 
+    print(f"[DEBUG] Identified {len(mass_groups)} homologous series.")
+
     # **Step 2: Perform CCS vs. m/z analysis**
-    refined_groups, branched_isomer_groups = [], []
-    for _, group_df in mass_groups.groupby("GroupID"):
+    (
+        refined_groups,
+        branched_isomer_groups,
+        post_source_decay_groups,
+        mass_only_groups,
+    ) = [], [], [], []
+
+    print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
+    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
+        print(f"[DEBUG] Analyzing Group {idx + 1} (GroupID: {group_id})")
+
         IM_group, post_source_decay, branched_isomer, mass_only_group = (
             CCS_v_mz_analysis(group_df)
         )
@@ -343,13 +395,33 @@ def main():
         # Append results for plotting
         refined_groups.append(IM_group)
         branched_isomer_groups.append(branched_isomer)
+        post_source_decay_groups.append(post_source_decay)
+        mass_only_groups.append(mass_only_group)
 
-    # **Step 3: Generate Plotly plot**
-    fig = make_plotly_graph(
-        adjusted_df, refined_groups, branched_isomer_groups, post_source_decay
+    # **Step 3: Print Debugging Before Plotting**
+    print("\n[INFO] Final Data Sent to Plot:")
+    print(f"  - IM Groups: {sum(len(group) for group in refined_groups)} points")
+    print(
+        f"  - Branched Isomers: {sum(len(group) for group in branched_isomer_groups)} points"
+    )
+    print(
+        f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups)} points"
+    )
+    print(
+        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups)} points"
     )
 
-    # **Step 4: Display the Plotly plot**
+    # **Step 4: Generate Plotly plot**
+    fig = make_plotly_graph(
+        adjusted_df,
+        refined_groups,
+        branched_isomer_groups,
+        post_source_decay_groups,
+        mass_only_groups,
+    )
+
+    # **Step 5: Display the Plotly plot**
+    print("[INFO] Plot generation complete. Displaying plot...")
     pio.show(fig)
 
 

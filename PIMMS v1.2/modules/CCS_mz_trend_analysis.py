@@ -218,6 +218,14 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
                 for mz, ccs in refined_data_points
             ]
         )
+        print("\n[DEBUG] Mass-Only Group Identified:")
+        if mass_only_group:
+            for point in mass_only_group:
+                print(
+                    f"  m/z: {point['m/z']:.5f}, CCS: {point['CCS']:.5f}, Classification: {point['Classification']}"
+                )
+        else:
+            print("[ERROR] Mass-Only Group is empty after processing!")
         return [], post_source_decay, branched_isomer, mass_only_group
 
     # Recalculate regression after removing flagged points
