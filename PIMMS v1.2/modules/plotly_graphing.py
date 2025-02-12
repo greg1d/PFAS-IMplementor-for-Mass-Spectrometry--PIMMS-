@@ -293,6 +293,27 @@ def make_plotly_graph(
         hull_x.append(hull_x[0])
         hull_y.append(hull_y[0])
 
+        # ** Modify Mass-Only Points to Include Hover Trigger for Boundary **
+        for group in mass_only_group:
+            for point in group:
+                if isinstance(point, dict):
+                    fig.add_trace(
+                        go.Scatter(
+                            x=[point["m/z"]],
+                            y=[point["CCS"]],
+                            mode="markers",
+                            marker=dict(size=8, color="green"),
+                            name="Mass-Only",
+                            legendgroup="mass_only_group",
+                            showlegend=False,
+                            hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
+                            f"Classification: Mass-Only<extra></extra>",
+                            customdata=[1],  # Links to boundary trace
+                            visible=True,
+                        )
+                    )
+
+        # ** Mass-Only Boundary (Controlled by Hover) **
         fig.add_trace(
             go.Scatter(
                 x=hull_x,
@@ -304,7 +325,8 @@ def make_plotly_graph(
                 name="Mass-Only Group Boundary",
                 legendgroup="mass_only_group",
                 hoverinfo="skip",
-                visible=True,  # Initially hidden, will be shown on hover
+                showlegend=False,
+                visible=False,  # Hidden initially, toggled by hover
             )
         )
 
