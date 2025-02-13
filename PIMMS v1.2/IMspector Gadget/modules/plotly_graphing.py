@@ -4,30 +4,6 @@ import plotly.io as pio
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from scipy.stats import linregress
 
-FONT_CONFIG = dict(
-    family="NormativePro, Arial, sans-serif",  # Use Arial as a fallback
-)
-
-
-def apply_plotly_font_styling(fig, font_family="Normative Bold"):
-    print("[DEBUG] Applying Plotly Font Styling")  # ✅ Debugging print
-    fig.update_layout(
-        title=dict(
-            font=dict(family=font_family, size=22, color="red")
-        ),  # ✅ Change to red for debugging
-        xaxis=dict(
-            title=dict(font=dict(family=font_family, size=18, color="red")),
-            tickfont=dict(family=font_family, size=14, color="red"),  # ✅ Tick labels
-        ),
-        yaxis=dict(
-            title=dict(font=dict(family=font_family, size=18, color="red")),
-            tickfont=dict(family=font_family, size=14, color="red"),  # ✅ Tick labels
-        ),
-        legend=dict(font=dict(family=font_family, size=14, color="red")),
-        hoverlabel=dict(font=dict(family=font_family, size=12, color="red")),
-    )
-
-
 HOMOLOGOUS_SERIES_COLORS = [
     "cyan",
     "magenta",

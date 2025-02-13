@@ -8,7 +8,7 @@
 
 /* ✅ Ensure the entire webpage uses black background & white text */
 body {
-    font-family: 'NormativePro', sans-serif !important;
+    font-family: 'NormativePro' !important;
     background-color: #000000 !important;
     color: #FFFFFF !important;
     margin: 0 !important;
@@ -68,7 +68,8 @@ button {
 .dash-graph .ytitle,
 .dash-graph .ticktext,
 .dash-graph .legendtext {
-    font-family: 'NormativePro', sans-serif !important;
+    font-family: 'NormativePro' !important;
+    font-weight: bold !important;
 }
 
 /* ✅ Hover effects for buttons */
