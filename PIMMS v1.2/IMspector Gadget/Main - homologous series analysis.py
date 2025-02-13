@@ -14,7 +14,7 @@ from dash_formatting import get_dash_layout
 from plotly_graphing import make_plotly_graph, update_graph
 
 # ✅ Load Data Before Initializing Layout
-file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
 adjusted_df = pd.read_csv(file_path)
 
 # ✅ Define Available Repeating Units
@@ -37,7 +37,7 @@ app = dash.Dash(__name__)
 app.layout = get_dash_layout(d_columns, initial_figure)
 
 # ✅ Define repeating_units globally BEFORE Dash starts
-repeating_units = ["CF2"]  # ✅ Default setting
+repeating_units = ["CF2", "OCF2"]  # ✅ Default setting
 
 
 def main():

@@ -132,7 +132,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                 "Repeating Unit",
             ]
         )
-    print("mass groups", mass_groups)
     return mass_groups
 
 

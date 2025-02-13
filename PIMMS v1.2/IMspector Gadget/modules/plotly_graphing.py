@@ -41,9 +41,6 @@ def add_homologous_series_trendlines(fig, refined_groups):
             slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
             r_squared = r_value**2
 
-            if r_squared <= 0.99:
-                continue
-
             reg_line_x = sorted(mz_values)
             reg_line_y = [slope * mz + intercept for mz in reg_line_x]
 
