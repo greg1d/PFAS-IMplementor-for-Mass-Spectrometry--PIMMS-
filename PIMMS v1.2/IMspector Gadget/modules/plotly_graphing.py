@@ -167,58 +167,6 @@ def add_homologous_series_trendlines(
             )
         )
 
-        # 🔹 Collect and overlay branched isomers associated with this homologous series
-        branched_isomer_points = [
-            (point["m/z"], point["CCS"])
-            for group in branched_isomers
-            for point in group
-            if is_point_in_series(point["m/z"], mz_values)
-        ]
-        print(
-            f"[DEBUG] Branched Isomer Points for HS {idx + 1}: {branched_isomer_points}"
-        )
-
-        if branched_isomer_points:
-            fig.add_trace(
-                go.Scatter(
-                    x=[p[0] for p in branched_isomer_points],
-                    y=[p[1] for p in branched_isomer_points],
-                    mode="markers",
-                    marker=dict(size=8, color="pink"),
-                    name=f"Branched Isomers {idx + 1}",
-                    legendgroup=legend_group_name,
-                    showlegend=True,
-                    hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<br>Classification: Branched Isomer<extra></extra>",
-                    visible="legendonly",
-                )
-            )
-
-        # 🔹 Collect and overlay post-source decay points associated with this homologous series
-        post_source_decay_points = [
-            (point["m/z"], point["CCS"])
-            for group in post_source_decay
-            for point in group
-            if is_point_in_series(point["m/z"], mz_values)
-        ]
-        print(
-            f"[DEBUG] Post Source Decay Points for HS {idx + 1}: {post_source_decay_points}"
-        )
-
-        if post_source_decay_points:
-            fig.add_trace(
-                go.Scatter(
-                    x=[p[0] for p in post_source_decay_points],
-                    y=[p[1] for p in post_source_decay_points],
-                    mode="markers",
-                    marker=dict(size=8, color="red"),
-                    name=f"Post Source Decay {idx + 1}",
-                    legendgroup=legend_group_name,
-                    showlegend=True,
-                    hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<br>Classification: Post Source Decay<extra></extra>",
-                    visible="legendonly",
-                )
-            )
-
 
 def add_legend_entries(fig):
     """
@@ -329,20 +277,42 @@ def make_plotly_graph(
                 )
             )
 
-    # **Step 6: Plot Branched Isomers**
     for group in branched_isomers:
         for point in group:
+            mz = point["m/z"]
+            ccs = point["CCS"]
+
+            # Extract metadata for the current point
+            row = adjusted_df.loc[adjusted_df["m/z"] == mz]
+
+            match_name = row["Match"].iloc[0] if not row.empty else "No Match"
+            classification = (
+                row["Classification Type"].iloc[0] if not row.empty else "Unknown"
+            )
+            RT = row["RT"].iloc[0] if not row.empty else "N/A"
+
+            # Extract sample information
+            sample_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+            sample_info = [
+                f"{col.strip()}: {row[col.strip()].iloc[0]:.2f}"
+                for col in sample_columns
+                if not row.empty
+                and pd.notna(row[col.strip()].iloc[0])
+                and row[col.strip()].iloc[0] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
             fig.add_trace(
                 go.Scatter(
-                    x=[point["m/z"]],
-                    y=[point["CCS"]],
+                    x=[mz],
+                    y=[ccs],
                     mode="markers",
                     marker=dict(size=8, color="#FF69B4"),
                     name="Branched Isomers",
                     legendgroup="branched_isomers",
                     showlegend=False,
-                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
-                    f"Classification: Branched Isomer<extra></extra>",
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT}<br>"
+                    f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     visible=True,
                 )
             )
@@ -359,8 +329,8 @@ def make_plotly_graph(
                     name="Post Source Decay",
                     legendgroup="post_source_decay",
                     showlegend=False,
-                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
-                    f"Classification: Post Source Decay<extra></extra>",
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT}<br>"
+                    f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     visible=True,
                 )
             )
