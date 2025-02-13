@@ -96,7 +96,7 @@ def main():
 # ✅ Define the callback function outside `main()`
 @app.callback(Output("plotly_graph", "figure"), [Input("remove_columns", "value")])
 def update_graph_callback(remove_columns):
-    return update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"])
+    return update_graph(remove_columns, adjusted_df)
 
 
 # ✅ Function to Open Browser
