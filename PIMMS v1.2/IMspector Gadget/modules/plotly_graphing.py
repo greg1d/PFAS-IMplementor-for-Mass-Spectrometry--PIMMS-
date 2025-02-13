@@ -317,13 +317,35 @@ def make_plotly_graph(
                 )
             )
 
-    # **Step 7: Plot Post Source Decay**
     for group in post_source_decay:
         for point in group:
+            mz = point["m/z"]
+            ccs = point["CCS"]
+
+            # Extract metadata for the current point
+            row = adjusted_df.loc[adjusted_df["m/z"] == mz]
+
+            match_name = row["Match"].iloc[0] if not row.empty else "No Match"
+            classification = (
+                row["Classification Type"].iloc[0] if not row.empty else "Unknown"
+            )
+            RT = row["RT"].iloc[0] if not row.empty else "N/A"
+
+            # Extract sample information
+            sample_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+            sample_info = [
+                f"{col.strip()}: {row[col.strip()].iloc[0]:.2f}"
+                for col in sample_columns
+                if not row.empty
+                and pd.notna(row[col.strip()].iloc[0])
+                and row[col.strip()].iloc[0] > 0
+            ]
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
             fig.add_trace(
                 go.Scatter(
-                    x=[point["m/z"]],
-                    y=[point["CCS"]],
+                    x=[mz],
+                    y=[ccs],
                     mode="markers",
                     marker=dict(size=8, color="red"),
                     name="Post Source Decay",
