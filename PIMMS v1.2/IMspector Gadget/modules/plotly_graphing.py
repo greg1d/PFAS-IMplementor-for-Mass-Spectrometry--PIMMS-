@@ -353,10 +353,11 @@ def make_plotly_graph(
             )
 
     # **Final Layout Update**
+    # **Final Layout Update**
     fig.update_layout(
         title="CCS vs m/z Trend Analysis",
-        xaxis=dict(title="m/z"),
-        yaxis=dict(title="CCS"),
+        xaxis=dict(title=r"<b><i>m/z</i></b>"),  # ✅ Bold and italicized using HTML
+        yaxis=dict(title="CCS (&#8491;<sup>2</sup>)"),  # &#8491; is the HTML code for Å
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
