@@ -90,18 +90,21 @@ def add_homologous_series_trendlines(
 
         # ✅ Extract sample and classification metadata
         # ✅ Extract sample and classification metadata
+        # ✅ Extract sample and classification metadata
         hover_texts = []
 
         for mz in mz_values:
             row = adjusted_df.loc[adjusted_df["m/z"] == mz]
 
-            # ✅ Extract classification-related information
+            # ✅ Extract metadata
             match_name = row["Match"].values[0] if not row.empty else "No Match"
             classification = (
                 row["Classification Type"].values[0] if not row.empty else "Unknown"
             )
             rt = row["RT"].values[0] if not row.empty else "N/A"
-            ccs = [point["CCS"] for point in group]
+
+            # ✅ Extract the correct CCS value **for this individual point**
+            ccs = row["CCS"].values[0] if not row.empty else "N/A"
 
             # ✅ Extract sample-related information
             sample_columns = [
