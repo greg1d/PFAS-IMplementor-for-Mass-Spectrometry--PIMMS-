@@ -8,16 +8,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output
 
-# ✅ Dynamically Add the `modules` Directory to Python Path
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script directory
-MODULES_DIR = os.path.join(SCRIPT_DIR, "modules")  # Define the `modules` directory
-sys.path.append(MODULES_DIR)  # Add `modules` directory to sys.path
-
-# ✅ Now safely import modules
+sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from dash_formatting import get_dash_layout
 from plotly_graphing import make_plotly_graph, update_graph
-
 
 # ✅ Load Data Before Initializing Layout
 file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
@@ -37,19 +31,13 @@ app.layout = get_dash_layout(d_columns, initial_figure)  # ✅ Pass Required Arg
 def main():
     """Runs full analysis pipeline and generates an interactive Plotly plot."""
 
-    repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
+    repeating_units = ["CF2", "OCF2"]
     print("\n[INFO] Starting mz_repeating_unit_analysis...")
 
     # **Step 1: Identify homologous series**
     mass_groups = mz_repeating_unit_analysis(
         adjusted_df, repeating_units=repeating_units
     )
-
-    if mass_groups.empty:
-        print("\n[WARNING] No homologous series groups identified. Exiting.")
-        return
-
-    print(f"[DEBUG] Identified {len(mass_groups)} homologous series.")
 
     # **Step 2: Perform CCS vs. m/z analysis**
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
@@ -59,36 +47,42 @@ def main():
     for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
         print(f"[DEBUG] Analyzing Group {idx + 1} (GroupID: {group_id})")
 
-        IM_group, post_source_decay, branched_isomer, mass_only_groups = (
+        refined_data_points, post_source_decay, branched_isomer, mass_only_group = (
             CCS_v_mz_analysis(group_df)
         )
 
-        # Append results for plotting
-        refined_groups.append(IM_group)
+        print(f"[DEBUG] Refined Data Points for Group {idx + 1}: {refined_data_points}")
+
+        # ✅ Store results properly
+        if refined_data_points:  # Only add if homologous series exist
+            refined_groups.append(refined_data_points)  # ✅ Homologous series points
+
         branched_isomer_groups.append(branched_isomer)
         post_source_decay_groups.append(post_source_decay)
 
-        # ✅ Ensure mass-only groups are stored in a dictionary
-        if isinstance(mass_only_groups, list) and len(mass_only_groups) > 0:
-            mass_only_groups[f"Group {idx + 1}"] = mass_only_groups
+        # ✅ Store mass-only groups in a dictionary
+        if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
+            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
 
     # **Step 3: Print Debugging Before Plotting**
     print("\n[INFO] Final Data Sent to Plot:")
-    print(f"  - IM Groups: {sum(len(group) for group in refined_groups)} points")
     print(
-        f"  - Branched Isomers: {sum(len(group) for group in branched_isomer_groups)} points"
+        f"  - IM Groups: {sum(len(group) for group in refined_groups if group)} points"
     )
     print(
-        f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups)} points"
+        f"  - Branched Isomers: {sum(len(group) for group in branched_isomer_groups if group)} points"
     )
     print(
-        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values())} points"
+        f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups if group)} points"
+    )
+    print(
+        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values() if group)} points"
     )
 
     # **Step 4: Generate Plotly plot**
     fig = make_plotly_graph(
         adjusted_df,
-        refined_groups,
+        refined_groups,  # ✅ Now properly stored
         branched_isomer_groups,
         post_source_decay_groups,
         mass_only_groups,
@@ -102,7 +96,7 @@ def main():
 # ✅ Define the callback function outside `main()`
 @app.callback(Output("plotly_graph", "figure"), [Input("remove_columns", "value")])
 def update_graph_callback(remove_columns):
-    return update_graph(remove_columns, adjusted_df)
+    return update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"])
 
 
 # ✅ Function to Open Browser

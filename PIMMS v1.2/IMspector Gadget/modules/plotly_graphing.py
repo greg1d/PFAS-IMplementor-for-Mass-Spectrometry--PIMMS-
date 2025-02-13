@@ -27,6 +27,44 @@ def apply_plotly_font_styling(fig, font_family="NormativePro"):
     )
 
 
+def add_homologous_series_trendlines(fig, refined_groups):
+    """Adds homologous series trendlines to the Plotly figure."""
+    homologous_series_plotted = False
+
+    if refined_groups and any(len(group) >= 3 for group in refined_groups):
+        for idx, group in enumerate(refined_groups):
+            if len(group) < 3:
+                continue
+
+            mz_values = [point[0] for point in group]
+            ccs_values = [point[1] for point in group]
+            slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+            r_squared = r_value**2
+
+            if r_squared <= 0.99:
+                continue
+
+            reg_line_x = sorted(mz_values)
+            reg_line_y = [slope * mz + intercept for mz in reg_line_x]
+
+            print(f"[DEBUG] Homologous Series {idx + 1} Regression: R²={r_squared:.4f}")
+
+            fig.add_trace(
+                go.Scatter(
+                    x=reg_line_x,
+                    y=reg_line_y,
+                    mode="lines",
+                    name="Homologous Series" if not homologous_series_plotted else None,
+                    line=dict(color="white", dash="dash"),
+                    legendgroup="homologous_series",
+                    hoverinfo="skip",
+                    visible=True,
+                    showlegend=False,
+                )
+            )
+            homologous_series_plotted = True
+
+
 def add_legend_entries(fig):
     """
     Adds legend entries as dummy Scatter traces without plotting actual points.
@@ -84,12 +122,13 @@ def add_legend_entries(fig):
 
 
 def make_plotly_graph(
-    adjusted_df, refined_group, branched_isomers, post_source_decay, mass_only_groups
+    adjusted_df, refined_groups, branched_isomers, post_source_decay, mass_only_groups
 ):
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
     add_legend_entries(fig)
     adjusted_df.columns = adjusted_df.columns.str.strip()
+    add_homologous_series_trendlines(fig, refined_groups)
 
     # ** Ensure `branched_isomers`, `post_source_decay`, and `mass_only_groups` are lists of dictionaries **
     if not isinstance(branched_isomers, list):
@@ -106,7 +145,7 @@ def make_plotly_graph(
     post_source_decay = [
         group if isinstance(group, list) else [] for group in post_source_decay
     ]
-    mass_only_group = [
+    mass_only_groups = [
         group if isinstance(group, list) else [] for group in mass_only_groups
     ]
 
@@ -159,41 +198,6 @@ def make_plotly_graph(
                     visible=True,
                 )
             )
-
-    # **🔹 Plot homologous groups with trendlines**
-    homologous_series_plotted = False
-    if refined_group and any(len(group) >= 3 for group in refined_group):
-        for idx, group in enumerate(refined_group):
-            if len(group) < 3:
-                continue
-
-            mz_values = [point[0] for point in group]
-            ccs_values = [point[1] for point in group]
-            slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
-            r_squared = r_value**2
-
-            if r_squared <= 0.99:
-                continue
-
-            reg_line_x = sorted(mz_values)
-            reg_line_y = [slope * mz + intercept for mz in reg_line_x]
-
-            print(f"[DEBUG] Group {idx + 1} Regression: R²={r_squared:.4f}")
-
-            fig.add_trace(
-                go.Scatter(
-                    x=reg_line_x,
-                    y=reg_line_y,
-                    mode="lines",
-                    name="Homologous Series" if not homologous_series_plotted else None,
-                    line=dict(color="white", dash="dash"),
-                    legendgroup="homologous_series",
-                    hoverinfo="skip",
-                    visible=True,
-                    showlegend=False,
-                )
-            )
-            homologous_series_plotted = True
 
     # **🔹 Plot Branched Isomers**
     for group in branched_isomers:
@@ -297,7 +301,7 @@ def make_plotly_graph(
     return fig
 
 
-def update_graph(remove_columns, adjusted_df):
+def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
     """Updates the graph dynamically when columns are removed."""
     print("[INFO] Graph update triggered.")
 
@@ -345,26 +349,56 @@ def update_graph(remove_columns, adjusted_df):
         f"[INFO] Removed {before_sample_removal - after_sample_removal} rows with 'None' sample info."
     )
 
-    # ✅ Run homologous series detection
-    mass_groups = mz_repeating_unit_analysis(filtered_df)
-
-    # **Ensure the plot always renders even if no groups are found**
-    if mass_groups.empty:
-        print("[WARNING] No homologous series found. Returning a placeholder plot.")
-        return make_plotly_graph(filtered_df, [], [], [], {})
+    # ✅ Ensure repeating units are passed correctly
+    print(
+        f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {repeating_units}"
+    )
+    mass_groups = mz_repeating_unit_analysis(
+        filtered_df, repeating_units=repeating_units
+    )
 
     # ✅ Process each group through CCS_v_mz_analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
-    for _, group_df in mass_groups.groupby("GroupID"):
-        IM_group, post_source_decay, branched_isomer, _ = CCS_v_mz_analysis(group_df)
+    mass_only_groups = {}
+
+    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
+        print(
+            f"[DEBUG] Updating Graph - Analyzing Group {idx + 1} (GroupID: {group_id})"
+        )
+
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(group_df)
+        )
 
         refined_groups.append(IM_group)
         branched_isomer_groups.append(branched_isomer)
         post_source_decay_groups.append(post_source_decay)
 
+        if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
+            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
+
+    # ✅ Debugging before sending to plotting function
+    print("\n[INFO] Final Data Sent to Plot:")
+    print(
+        f"  - Homologous Series: {sum(len(group) for group in refined_groups)} points"
+    )
+    print(
+        f"  - Branched Isomers: {sum(len(group) for group in branched_isomer_groups)} points"
+    )
+    print(
+        f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups)} points"
+    )
+    print(
+        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values())} points"
+    )
+
     # ✅ Generate updated graph
     fig = make_plotly_graph(
-        filtered_df, refined_groups, branched_isomer_groups, post_source_decay_groups
+        filtered_df,
+        refined_groups,  # ✅ Now included!
+        branched_isomer_groups,
+        post_source_decay_groups,
+        mass_only_groups,  # ✅ Ensure mass-only groups are passed properly
     )
 
     print("[INFO] Graph update successful.")

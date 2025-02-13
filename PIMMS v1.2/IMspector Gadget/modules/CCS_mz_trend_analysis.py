@@ -17,6 +17,10 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
     """
 
+    print(
+        f"\n[DEBUG] Running mz_repeating_unit_analysis on DataFrame with shape: {adjusted_df.shape}"
+    )
+
     iteration_count = 0  # Track loop iterations
     group_counter = 0  # Track unique Group ID
 
@@ -26,7 +30,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
         for unit in repeating_units
         if unit in REPEATING_UNITS
     }
-
+    print(f"[DEBUG] Selected repeating units: {selected_units}")
     # **Sort data by m/z for efficient searching**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
 
@@ -128,7 +132,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                 "Repeating Unit",
             ]
         )
-
+    print("mass groups", mass_groups)
     return mass_groups
 
 
