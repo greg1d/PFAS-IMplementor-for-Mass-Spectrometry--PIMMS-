@@ -271,7 +271,7 @@ def make_plotly_graph(
                     name=legend_name,
                     legendgroup=legend_group,
                     showlegend=False,
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT}<br>"
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT:.2f}<br>"
                     f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     visible=True,
                 )
@@ -311,7 +311,7 @@ def make_plotly_graph(
                     name="Branched Isomers",
                     legendgroup="branched_isomers",
                     showlegend=False,
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT}<br>"
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT:.2f}<br>"
                     f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     visible=True,
                 )
@@ -351,7 +351,7 @@ def make_plotly_graph(
                     name="Post Source Decay",
                     legendgroup="post_source_decay",
                     showlegend=False,
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT}<br>"
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT:.2f}<br>"
                     f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     visible=True,
                 )
