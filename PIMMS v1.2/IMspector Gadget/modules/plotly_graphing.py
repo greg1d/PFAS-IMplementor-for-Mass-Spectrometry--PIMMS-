@@ -54,14 +54,9 @@ def add_homologous_series_trendlines(
     print(f"\n[INFO] Total Refined Homologous Series: {len(refined_groups)}")
     print(f"[INFO] Total Post Source Decay Groups: {len(post_source_decay)}")
 
-    # ✅ Matching function with small tolerance to include nearby branched/post-source points
-    def is_point_in_series(
-        mz, ccs, series_mz_values, series_ccs_values, mz_tol=0.1, ccs_tol=50
-    ):
-        return any(
-            abs(mz - series_mz) < mz_tol and abs(ccs - series_ccs) < ccs_tol
-            for series_mz, series_ccs in zip(series_mz_values, series_ccs_values)
-        )
+    # ✅ Function to match homologous series points with branched/post-source points
+    def is_point_in_series(mz, series_mz_values, mz_tol=0.1):
+        return any(abs(mz - series_mz) < mz_tol for series_mz in series_mz_values)
 
     for idx, group in enumerate(refined_groups):
         if len(group) < 3:
@@ -79,13 +74,62 @@ def add_homologous_series_trendlines(
             print(
                 f"[WARNING] Group {idx + 1} contains tuples instead of dictionaries. Converting..."
             )
-            group = [
-                {"m/z": point[0], "CCS": point[1]} for point in group
-            ]  # Assuming (m/z, CCS) format
+            group = [{"m/z": point[0], "CCS": point[1]} for point in group]
 
         # ✅ Extract homologous series point information
         mz_values = [point["m/z"] for point in group]
         ccs_values = [point["CCS"] for point in group]
+
+        # ✅ Extract RT values
+        rt_values = [
+            adjusted_df.loc[adjusted_df["m/z"] == mz, "RT"].values[0]
+            if not adjusted_df.loc[adjusted_df["m/z"] == mz].empty
+            else "N/A"
+            for mz in mz_values
+        ]
+
+        # ✅ Extract sample and classification metadata
+        # ✅ Extract sample and classification metadata
+        hover_texts = []
+
+        for mz in mz_values:
+            row = adjusted_df.loc[adjusted_df["m/z"] == mz]
+
+            # ✅ Extract classification-related information
+            match_name = row["Match"].values[0] if not row.empty else "No Match"
+            classification = (
+                row["Classification Type"].values[0] if not row.empty else "Unknown"
+            )
+            rt = row["RT"].values[0] if not row.empty else "N/A"
+            ccs = [point["CCS"] for point in group]
+
+            # ✅ Extract sample-related information
+            sample_columns = [
+                col for col in adjusted_df.columns if col.startswith("Sample")
+            ]
+            sample_info = []
+
+            for col in sample_columns:
+                if not row.empty and col.strip() in row:
+                    val = row[col.strip()].values[0]
+                    val = pd.to_numeric(val, errors="coerce")  # ✅ Convert to numeric
+
+                    if pd.notna(val) and val > 0:  # ✅ Ensure valid number
+                        sample_info.append(f"{col.strip()}: {val:.2f}")
+
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
+            # ✅ Construct hover text
+            hover_text = (
+                f"Match: {match_name}<br>"
+                f"m/z: {mz:.4f}<br>"
+                f"CCS: {ccs}<br>"
+                f"RT: {rt}<br>"
+                f"Classification: {classification}<br>"
+                f"Samples:<br>{sample_text}<extra></extra>"
+            )
+
+            hover_texts.append(hover_text)
 
         # Perform linear regression for trendline
         slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
@@ -117,7 +161,7 @@ def add_homologous_series_trendlines(
             )
         )
 
-        # 🔹 Overlay main homologous series points
+        # 🔹 Overlay main homologous series points with metadata
         fig.add_trace(
             go.Scatter(
                 x=mz_values,
@@ -128,6 +172,8 @@ def add_homologous_series_trendlines(
                 legendgroup=legend_group_name,
                 showlegend=True,
                 visible="legendonly",
+                text=hover_texts,  # ✅ Full metadata in hover
+                hovertemplate="%{text}<extra></extra>",  # ✅ Injects metadata dynamically
             )
         )
 
@@ -136,7 +182,7 @@ def add_homologous_series_trendlines(
             (point["m/z"], point["CCS"])
             for group in branched_isomers
             for point in group
-            if is_point_in_series(point["m/z"], point["CCS"], mz_values, ccs_values)
+            if is_point_in_series(point["m/z"], mz_values)
         ]
         print(
             f"[DEBUG] Branched Isomer Points for HS {idx + 1}: {branched_isomer_points}"
@@ -150,7 +196,7 @@ def add_homologous_series_trendlines(
                     mode="markers",
                     marker=dict(size=8, color="pink"),
                     name=f"Branched Isomers {idx + 1}",
-                    legendgroup=legend_group_name,  # 🔹 Same group as homologous series
+                    legendgroup=legend_group_name,
                     showlegend=True,
                     hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<br>Classification: Branched Isomer<extra></extra>",
                     visible="legendonly",
@@ -162,7 +208,7 @@ def add_homologous_series_trendlines(
             (point["m/z"], point["CCS"])
             for group in post_source_decay
             for point in group
-            if is_point_in_series(point["m/z"], point["CCS"], mz_values, ccs_values)
+            if is_point_in_series(point["m/z"], mz_values)
         ]
         print(
             f"[DEBUG] Post Source Decay Points for HS {idx + 1}: {post_source_decay_points}"
@@ -176,7 +222,7 @@ def add_homologous_series_trendlines(
                     mode="markers",
                     marker=dict(size=8, color="red"),
                     name=f"Post Source Decay {idx + 1}",
-                    legendgroup=legend_group_name,  # 🔹 Same group as homologous series
+                    legendgroup=legend_group_name,
                     showlegend=True,
                     hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<br>Classification: Post Source Decay<extra></extra>",
                     visible="legendonly",
