@@ -278,7 +278,7 @@ def main():
     """Run the analysis pipeline and return results."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
-    repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
+    repeating_units = ["CF2"]
 
     mass_groups = mz_repeating_unit_analysis(
         adjusted_df, repeating_units=repeating_units

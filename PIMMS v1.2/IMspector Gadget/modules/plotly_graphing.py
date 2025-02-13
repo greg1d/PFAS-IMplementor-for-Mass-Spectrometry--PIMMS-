@@ -304,6 +304,7 @@ def make_plotly_graph(
 def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
     """Updates the graph dynamically when columns are removed."""
     print("[INFO] Graph update triggered.")
+    print(f"[DEBUG] Using repeating units in update_graph: {repeating_units}")
 
     # ✅ Default to empty list if None
     if remove_columns is None:
