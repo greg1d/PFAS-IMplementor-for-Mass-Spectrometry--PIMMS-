@@ -87,10 +87,6 @@ def add_homologous_series_trendlines(
             else "N/A"
             for mz in mz_values
         ]
-
-        # ✅ Extract sample and classification metadata
-        # ✅ Extract sample and classification metadata
-        # ✅ Extract sample and classification metadata
         hover_texts = []
 
         for mz in mz_values:
@@ -107,9 +103,7 @@ def add_homologous_series_trendlines(
             ccs = row["CCS"].values[0] if not row.empty else "N/A"
 
             # ✅ Extract sample-related information
-            sample_columns = [
-                col for col in adjusted_df.columns if col.startswith("Sample")
-            ]
+            sample_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
             sample_info = []
 
             for col in sample_columns:
