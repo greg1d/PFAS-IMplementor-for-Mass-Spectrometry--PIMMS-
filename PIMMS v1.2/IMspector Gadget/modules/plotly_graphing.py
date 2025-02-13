@@ -80,13 +80,6 @@ def add_homologous_series_trendlines(
         mz_values = [point["m/z"] for point in group]
         ccs_values = [point["CCS"] for point in group]
 
-        # ✅ Extract RT values
-        rt_values = [
-            adjusted_df.loc[adjusted_df["m/z"] == mz, "RT"].values[0]
-            if not adjusted_df.loc[adjusted_df["m/z"] == mz].empty
-            else "N/A"
-            for mz in mz_values
-        ]
         hover_texts = []
 
         for mz in mz_values:
