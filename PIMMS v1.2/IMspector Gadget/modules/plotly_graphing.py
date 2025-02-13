@@ -31,38 +31,65 @@ HOMOLOGOUS_SERIES_COLORS = [
     "cyan",
     "magenta",
     "lime",
-    "gold",
     "deepskyblue",
     "orchid",
     "chartreuse",
 ]
 
 
-def add_homologous_series_trendlines(fig, refined_groups):
+def add_homologous_series_trendlines(
+    fig, refined_groups, branched_isomers, post_source_decay, adjusted_df
+):
     """
-    Adds homologous series trendlines and uniquely classifies their corresponding points.
+    Adds homologous series trendlines and uniquely classifies their corresponding points,
+    including branched isomers and post-source decay points.
     """
+
     if not refined_groups or all(len(group) < 3 for group in refined_groups):
         print(
             "[WARNING] No valid homologous series found. Skipping trendline plotting."
         )
         return
 
+    print(f"\n[INFO] Total Refined Homologous Series: {len(refined_groups)}")
+    print(f"[INFO] Total Post Source Decay Groups: {len(post_source_decay)}")
+
+    # ✅ Matching function with small tolerance to include nearby branched/post-source points
+    def is_point_in_series(
+        mz, ccs, series_mz_values, series_ccs_values, mz_tol=0.1, ccs_tol=50
+    ):
+        return any(
+            abs(mz - series_mz) < mz_tol and abs(ccs - series_ccs) < ccs_tol
+            for series_mz, series_ccs in zip(series_mz_values, series_ccs_values)
+        )
+
     for idx, group in enumerate(refined_groups):
         if len(group) < 3:
             continue  # Skip small groups
 
-        # Extract m/z and CCS values
-        mz_values = [point[0] for point in group]  # Assuming (m/z, CCS) format
-        ccs_values = [point[1] for point in group]
+        print(
+            f"\n[DEBUG] Checking Group {idx + 1}: First element type -> {type(group[0])}"
+        )
+        print(
+            f"[DEBUG] Group {idx + 1} Raw Data: {group[:5]}"
+        )  # Print first 5 elements
+
+        # ✅ Convert tuples to dictionaries
+        if isinstance(group[0], tuple):
+            print(
+                f"[WARNING] Group {idx + 1} contains tuples instead of dictionaries. Converting..."
+            )
+            group = [
+                {"m/z": point[0], "CCS": point[1]} for point in group
+            ]  # Assuming (m/z, CCS) format
+
+        # ✅ Extract homologous series point information
+        mz_values = [point["m/z"] for point in group]
+        ccs_values = [point["CCS"] for point in group]
 
         # Perform linear regression for trendline
         slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
         r_squared = r_value**2
-
-        if r_squared < 0.90:  # Skip weakly correlated groups
-            print(f"[INFO] Skipping Group {idx + 1} due to low R²: {r_squared:.4f}")
-            continue
 
         reg_line_x = sorted(mz_values)
         reg_line_y = [slope * mz + intercept for mz in reg_line_x]
@@ -71,7 +98,9 @@ def add_homologous_series_trendlines(fig, refined_groups):
         series_color = HOMOLOGOUS_SERIES_COLORS[idx % len(HOMOLOGOUS_SERIES_COLORS)]
         legend_group_name = f"homologous_series_{idx + 1}"
 
-        print(f"[DEBUG] Homologous Series {idx + 1} Regression: R²={r_squared:.4f}")
+        print(f"\n[DEBUG] Homologous Series {idx + 1} Regression: R²={r_squared:.4f}")
+        print(f"[DEBUG] m/z Values: {mz_values}")
+        print(f"[DEBUG] CCS Values: {ccs_values}")
 
         # 🔹 Add trendline
         fig.add_trace(
@@ -88,7 +117,7 @@ def add_homologous_series_trendlines(fig, refined_groups):
             )
         )
 
-        # 🔹 Overlay points associated with this homologous series
+        # 🔹 Overlay main homologous series points
         fig.add_trace(
             go.Scatter(
                 x=mz_values,
@@ -98,10 +127,61 @@ def add_homologous_series_trendlines(fig, refined_groups):
                 name=f"HS Points {idx + 1}",
                 legendgroup=legend_group_name,
                 showlegend=True,
-                hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<extra></extra>",
                 visible="legendonly",
             )
         )
+
+        # 🔹 Collect and overlay branched isomers associated with this homologous series
+        branched_isomer_points = [
+            (point["m/z"], point["CCS"])
+            for group in branched_isomers
+            for point in group
+            if is_point_in_series(point["m/z"], point["CCS"], mz_values, ccs_values)
+        ]
+        print(
+            f"[DEBUG] Branched Isomer Points for HS {idx + 1}: {branched_isomer_points}"
+        )
+
+        if branched_isomer_points:
+            fig.add_trace(
+                go.Scatter(
+                    x=[p[0] for p in branched_isomer_points],
+                    y=[p[1] for p in branched_isomer_points],
+                    mode="markers",
+                    marker=dict(size=8, color="pink"),
+                    name=f"Branched Isomers {idx + 1}",
+                    legendgroup=legend_group_name,  # 🔹 Same group as homologous series
+                    showlegend=True,
+                    hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<br>Classification: Branched Isomer<extra></extra>",
+                    visible="legendonly",
+                )
+            )
+
+        # 🔹 Collect and overlay post-source decay points associated with this homologous series
+        post_source_decay_points = [
+            (point["m/z"], point["CCS"])
+            for group in post_source_decay
+            for point in group
+            if is_point_in_series(point["m/z"], point["CCS"], mz_values, ccs_values)
+        ]
+        print(
+            f"[DEBUG] Post Source Decay Points for HS {idx + 1}: {post_source_decay_points}"
+        )
+
+        if post_source_decay_points:
+            fig.add_trace(
+                go.Scatter(
+                    x=[p[0] for p in post_source_decay_points],
+                    y=[p[1] for p in post_source_decay_points],
+                    mode="markers",
+                    marker=dict(size=8, color="red"),
+                    name=f"Post Source Decay {idx + 1}",
+                    legendgroup=legend_group_name,  # 🔹 Same group as homologous series
+                    showlegend=True,
+                    hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<br>Classification: Post Source Decay<extra></extra>",
+                    visible="legendonly",
+                )
+            )
 
 
 def add_legend_entries(fig):
@@ -145,20 +225,6 @@ def add_legend_entries(fig):
             )
         )
 
-    # ✅ Add a single legend entry for the homologous series (dashed white line)
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy line for legend only
-            y=[None],
-            mode="lines",
-            line=dict(color="white", dash="dash"),
-            name="Homologous Series",
-            legendgroup="homologous_series",
-            showlegend=True,
-            visible=True,
-        )
-    )
-
 
 def make_plotly_graph(
     adjusted_df, refined_groups, branched_isomers, post_source_decay, mass_only_groups
@@ -173,7 +239,9 @@ def make_plotly_graph(
     }
 
     # **Step 2: Plot Homologous Series Trendlines & Points Separately**
-    add_homologous_series_trendlines(fig, refined_groups)
+    add_homologous_series_trendlines(
+        fig, refined_groups, branched_isomers, post_source_decay, adjusted_df
+    )
 
     # **Step 3: Filter Adjusted Data to Remove Homologous Series Points**
     filtered_df = adjusted_df[
