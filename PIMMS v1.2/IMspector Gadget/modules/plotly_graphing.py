@@ -27,39 +27,81 @@ def apply_plotly_font_styling(fig, font_family="NormativePro"):
     )
 
 
+HOMOLOGOUS_SERIES_COLORS = [
+    "cyan",
+    "magenta",
+    "lime",
+    "gold",
+    "deepskyblue",
+    "orchid",
+    "chartreuse",
+]
+
+
 def add_homologous_series_trendlines(fig, refined_groups):
-    """Adds homologous series trendlines to the Plotly figure."""
-    homologous_series_plotted = False
+    """
+    Adds homologous series trendlines and uniquely classifies their corresponding points.
+    """
+    if not refined_groups or all(len(group) < 3 for group in refined_groups):
+        print(
+            "[WARNING] No valid homologous series found. Skipping trendline plotting."
+        )
+        return
 
-    if refined_groups and any(len(group) >= 3 for group in refined_groups):
-        for idx, group in enumerate(refined_groups):
-            if len(group) < 3:
-                continue
+    for idx, group in enumerate(refined_groups):
+        if len(group) < 3:
+            continue  # Skip small groups
 
-            mz_values = [point[0] for point in group]
-            ccs_values = [point[1] for point in group]
-            slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
-            r_squared = r_value**2
+        # Extract m/z and CCS values
+        mz_values = [point[0] for point in group]  # Assuming (m/z, CCS) format
+        ccs_values = [point[1] for point in group]
 
-            reg_line_x = sorted(mz_values)
-            reg_line_y = [slope * mz + intercept for mz in reg_line_x]
+        # Perform linear regression for trendline
+        slope, intercept, r_value, _, _ = linregress(mz_values, ccs_values)
+        r_squared = r_value**2
 
-            print(f"[DEBUG] Homologous Series {idx + 1} Regression: R²={r_squared:.4f}")
+        if r_squared < 0.90:  # Skip weakly correlated groups
+            print(f"[INFO] Skipping Group {idx + 1} due to low R²: {r_squared:.4f}")
+            continue
 
-            fig.add_trace(
-                go.Scatter(
-                    x=reg_line_x,
-                    y=reg_line_y,
-                    mode="lines",
-                    name="Homologous Series" if not homologous_series_plotted else None,
-                    line=dict(color="white", dash="dash"),
-                    legendgroup="homologous_series",
-                    hoverinfo="skip",
-                    visible=True,
-                    showlegend=False,
-                )
+        reg_line_x = sorted(mz_values)
+        reg_line_y = [slope * mz + intercept for mz in reg_line_x]
+
+        # **Assign unique color for each homologous series**
+        series_color = HOMOLOGOUS_SERIES_COLORS[idx % len(HOMOLOGOUS_SERIES_COLORS)]
+        legend_group_name = f"homologous_series_{idx + 1}"
+
+        print(f"[DEBUG] Homologous Series {idx + 1} Regression: R²={r_squared:.4f}")
+
+        # 🔹 Add trendline
+        fig.add_trace(
+            go.Scatter(
+                x=reg_line_x,
+                y=reg_line_y,
+                mode="lines",
+                name=f"Homologous Series {idx + 1}",
+                line=dict(color=series_color, dash="dash"),
+                legendgroup=legend_group_name,
+                hoverinfo="skip",
+                visible="legendonly",  # Hidden until toggled
+                showlegend=True,
             )
-            homologous_series_plotted = True
+        )
+
+        # 🔹 Overlay points associated with this homologous series
+        fig.add_trace(
+            go.Scatter(
+                x=mz_values,
+                y=ccs_values,
+                mode="markers",
+                marker=dict(size=8, color=series_color),
+                name=f"HS Points {idx + 1}",
+                legendgroup=legend_group_name,
+                showlegend=True,
+                hovertemplate="m/z: %{x:.4f}<br>CCS: %{y:.2f}<extra></extra>",
+                visible="legendonly",
+            )
+        )
 
 
 def add_legend_entries(fig):
