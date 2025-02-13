@@ -163,46 +163,33 @@ def add_legend_entries(fig):
 def make_plotly_graph(
     adjusted_df, refined_groups, branched_isomers, post_source_decay, mass_only_groups
 ):
-    sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
     fig = go.Figure()
     add_legend_entries(fig)
     adjusted_df.columns = adjusted_df.columns.str.strip()
+
+    # **Step 1: Collect all homologous series points (to exclude from other groups)**
+    homologous_series_points = {
+        (point[0], point[1]) for group in refined_groups for point in group
+    }
+
+    # **Step 2: Plot Homologous Series Trendlines & Points Separately**
     add_homologous_series_trendlines(fig, refined_groups)
 
-    # ** Ensure `branched_isomers`, `post_source_decay`, and `mass_only_groups` are lists of dictionaries **
-    if not isinstance(branched_isomers, list):
-        branched_isomers = []
-    if not isinstance(post_source_decay, list):
-        post_source_decay = []
-    if not isinstance(mass_only_groups, list):
-        mass_only_groups = []
-
-    # ** Ensure each element in the lists is a list of dicts **
-    branched_isomers = [
-        group if isinstance(group, list) else [] for group in branched_isomers
-    ]
-    post_source_decay = [
-        group if isinstance(group, list) else [] for group in post_source_decay
-    ]
-    mass_only_groups = [
-        group if isinstance(group, list) else [] for group in mass_only_groups
+    # **Step 3: Filter Adjusted Data to Remove Homologous Series Points**
+    filtered_df = adjusted_df[
+        ~adjusted_df.apply(
+            lambda row: (row["m/z"], row["CCS"]) in homologous_series_points, axis=1
+        )
     ]
 
-    # ** Remove post-source decay & branched isomer points from general data **
-    flagged_mz_values = {
-        point["m/z"]
-        for group in (branched_isomers + post_source_decay)
-        for point in group
-        if isinstance(point, dict)
-    }
-    clean_df = adjusted_df[~adjusted_df["m/z"].isin(flagged_mz_values)]
+    # **Step 4: Separate Remaining DataFrames (Without Homologous Series Points)**
+    tentative_df = filtered_df[filtered_df["Classification Type"] == "tentative"]
+    unmatched_df = filtered_df[filtered_df["Classification Type"] == "unmatched"]
+    likely_df = filtered_df[filtered_df["Classification Type"] == "likely"]
 
-    # ** Separate DataFrames for Different Groups **
-    tentative_df = clean_df[clean_df["Classification Type"] == "tentative"]
-    unmatched_df = clean_df[clean_df["Classification Type"] == "unmatched"]
-    likely_df = clean_df[clean_df["Classification Type"] == "likely"]
+    sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
 
-    # ** Plot Data Points for Different Groups **
+    # **Step 5: Plot Data Points for Different Groups**
     for df, color, legend_group, legend_name in [
         (likely_df, "blue", "likely_identified", "Likely Identified"),
         (tentative_df, "orange", "tentative_matched", "Tentative - Library Match"),
@@ -232,19 +219,15 @@ def make_plotly_graph(
                     name=legend_name,
                     legendgroup=legend_group,
                     showlegend=False,
-                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT:.2f}<br>"
+                    hovertemplate=f"Match: {match_name}<br>m/z: {mz:.4f}<br>CCS: {ccs:.2f}<br>RT: {RT}<br>"
                     f"Classification: {classification}<br>Samples:<br>{sample_text}<extra></extra>",
                     visible=True,
                 )
             )
 
-    # **🔹 Plot Branched Isomers**
+    # **Step 6: Plot Branched Isomers**
     for group in branched_isomers:
-        if not isinstance(group, list):
-            continue
         for point in group:
-            if not isinstance(point, dict):
-                continue
             fig.add_trace(
                 go.Scatter(
                     x=[point["m/z"]],
@@ -260,13 +243,9 @@ def make_plotly_graph(
                 )
             )
 
-    # **🔹 Plot Post Source Decay**
+    # **Step 7: Plot Post Source Decay**
     for group in post_source_decay:
-        if not isinstance(group, list):
-            continue
         for point in group:
-            if not isinstance(point, dict):
-                continue
             fig.add_trace(
                 go.Scatter(
                     x=[point["m/z"]],
@@ -282,55 +261,27 @@ def make_plotly_graph(
                 )
             )
 
-    # ✅ Ensure mass_only_groups is a dictionary
-    if not isinstance(mass_only_groups, dict):
-        mass_only_groups = {}
-
-    print("\n[DEBUG] Mass-Only Groups Read in for Plotting:")
-    for group_name, group in mass_only_groups.items():  # ✅ Iterate over dictionary
-        print(f"  - {group_name}: {len(group)} points")
+    # **Step 8: Plot Mass-Only Points**
+    for group_name, group in mass_only_groups.items():
         for point in group:
-            if isinstance(
-                point, dict
-            ):  # ✅ Ensure point is a dictionary before accessing keys
-                print(
-                    f"    m/z: {point['m/z']:.4f}, CCS: {point['CCS']:.2f}, Classification: Mass-Only"
+            fig.add_trace(
+                go.Scatter(
+                    x=[point["m/z"]],
+                    y=[point["CCS"]],
+                    mode="markers",
+                    marker=dict(size=8, color="green"),
+                    name="Mass-Only",
+                    legendgroup="mass_only_group",
+                    showlegend=False,
+                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
+                    f"Classification: Mass-Only<extra></extra>",
+                    visible=True,
                 )
+            )
 
-    # **🔹 Extract m/z and CCS for mass-only points**
-    mass_only_points = []
-    for group in mass_only_groups.values():  # ✅ Iterate over values of the dictionary
-        for point in group:
-            if isinstance(point, dict):  # ✅ Ensure each point is a dictionary
-                mass_only_points.append((point["m/z"], point["CCS"]))
-
-    # ✅ Debugging: Check extracted mass-only points
-    print("\n[DEBUG] Extracted Mass-Only Points:")
-    for mz, ccs in mass_only_points:
-        print(f"  m/z: {mz:.4f}, CCS: {ccs:.2f}")
-
-    # ** Plot Mass-Only Points (Always Visible in Green) **
-    for group in mass_only_groups:
-        for point in group:
-            if isinstance(point, dict):
-                fig.add_trace(
-                    go.Scatter(
-                        x=[point["m/z"]],
-                        y=[point["CCS"]],
-                        mode="markers",
-                        marker=dict(size=8, color="green"),
-                        name="Mass-Only",
-                        legendgroup="mass_only_group",
-                        showlegend=False,
-                        hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
-                        f"Classification: Mass-Only<extra></extra>",
-                        visible=True,
-                    )
-                )
-
-    # ** Update layout **
+    # **Final Layout Update**
     fig.update_layout(
-        title=dict(text="CCS vs m/z Trend Analysis"),
+        title="CCS vs m/z Trend Analysis",
         xaxis=dict(title="m/z"),
         yaxis=dict(title="CCS"),
         template="plotly_dark",
