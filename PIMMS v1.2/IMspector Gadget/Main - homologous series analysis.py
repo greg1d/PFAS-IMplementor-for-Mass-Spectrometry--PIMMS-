@@ -2,10 +2,11 @@ import os
 import sys
 import threading
 import webbrowser
-import plotly.io as pio
+
 import dash
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 from dash import Input, Output
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))

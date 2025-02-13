@@ -6,24 +6,25 @@ from scipy.stats import linregress
 
 FONT_CONFIG = dict(
     family="NormativePro, Arial, sans-serif",  # Use Arial as a fallback
-    size=18,  # Default font size
-    color="white",  # Ensure visibility on dark backgrounds
 )
 
 
-def apply_plotly_font_styling(fig, font_family="NormativePro"):
-    """
-    Applies uniform font styling to all text elements in the Plotly figure.
-
-    :param fig: The Plotly figure object to be styled.
-    :param font_family: The font family to apply.
-    """
+def apply_plotly_font_styling(fig, font_family="Normative Bold"):
+    print("[DEBUG] Applying Plotly Font Styling")  # ✅ Debugging print
     fig.update_layout(
-        title=dict(font=dict(family=font_family, size=18)),
-        xaxis=dict(title=dict(font=dict(family=font_family, size=16))),
-        yaxis=dict(title=dict(font=dict(family=font_family, size=16))),
-        legend=dict(font=dict(family=font_family, size=14)),
-        hoverlabel=dict(font=dict(family=font_family, size=12)),
+        title=dict(
+            font=dict(family=font_family, size=22, color="red")
+        ),  # ✅ Change to red for debugging
+        xaxis=dict(
+            title=dict(font=dict(family=font_family, size=18, color="red")),
+            tickfont=dict(family=font_family, size=14, color="red"),  # ✅ Tick labels
+        ),
+        yaxis=dict(
+            title=dict(font=dict(family=font_family, size=18, color="red")),
+            tickfont=dict(family=font_family, size=14, color="red"),  # ✅ Tick labels
+        ),
+        legend=dict(font=dict(family=font_family, size=14, color="red")),
+        hoverlabel=dict(font=dict(family=font_family, size=12, color="red")),
     )
 
 
