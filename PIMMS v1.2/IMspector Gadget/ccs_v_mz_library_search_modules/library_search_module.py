@@ -9,12 +9,12 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     mz_repeating_unit_analysis,
 )
 
-# ✅ Ensure "IMspector Gadget" is in Python's module search path
-
-
 # Define file paths
 FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
 LIBRARY_PATH = "PIMMS v1.2/import folder/Library test file.csv"
+
+# ✅ Extract the filename without extension for "Match Source"
+LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
 # ✅ Define all available repeating units
 REPEATING_UNITS = {
@@ -26,7 +26,7 @@ REPEATING_UNITS = {
 }
 
 # ✅ Select a subset of repeating units for analysis
-SELECTED_UNITS = ["CF2"]  # Only screen against these
+SELECTED_UNITS = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 
@@ -36,7 +36,6 @@ def stack_library_with_adjusted():
     if not os.path.exists(FILE_PATH):
         print(f"[ERROR] Data file not found: {FILE_PATH}")
         return None
-    LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
     if not os.path.exists(LIBRARY_PATH):
         print(f"[ERROR] Library file not found: {LIBRARY_PATH}")
@@ -67,6 +66,7 @@ def stack_library_with_adjusted():
     # ✅ Ensure column order matches
     library_df = library_df[adjusted_df.columns]
 
+    # ✅ Assign "Match Source" column
     if "Match Source" in adjusted_df.columns:
         library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
     else:
@@ -79,7 +79,7 @@ def stack_library_with_adjusted():
 
 
 def main():
-    """Stacks the DataFrame and runs repeating unit analysis on selected units."""
+    """Stacks the DataFrame, updates Match Source, runs repeating unit analysis, and performs CCS_v_mz_analysis."""
     stacked_df = stack_library_with_adjusted()
 
     if stacked_df is None:
@@ -100,6 +100,8 @@ def main():
         print("[WARNING] No homologous series detected. Exiting.")
         return
 
+    print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
+
     # ✅ Run CCS_v_mz_analysis for each GroupID
     for group_id, group_df in mass_groups.groupby("GroupID"):
         print(f"\n[DEBUG] Analyzing Group {group_id}...")
@@ -108,15 +110,21 @@ def main():
             CCS_v_mz_analysis(group_df)
         )
 
-        # ✅ Print IM_group if found
+        # ✅ Print full metadata for IM_group
         if IM_group:
-            print(f"\n[INFO] Significant IM_group detected for Group {group_id}:")
+            print(
+                f"\n[INFO] Significant IM_group detected for Group {group_id} (Full Metadata):"
+            )
             for mz, ccs in IM_group:
-                print(f"  m/z: {mz:.5f}, CCS: {ccs:.5f}")
-
-    # ✅ Print results preview
-    print("\n[INFO] Repeating Unit Analysis - Preview:")
-    print(IM_group)  # Print first 10 rows
+                metadata = group_df.loc[
+                    (group_df["m/z"] == mz) & (group_df["CCS"] == ccs)
+                ].to_dict(orient="records")
+                if metadata:
+                    print(metadata[0])  # Print metadata as dictionary format
+                else:
+                    print(
+                        f"[WARNING] Metadata not found for m/z: {mz:.5f}, CCS: {ccs:.5f}"
+                    )
 
 
 if __name__ == "__main__":
