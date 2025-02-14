@@ -3,17 +3,21 @@ import sys
 import threading
 import webbrowser
 
+# Add the correct module path
+script_dir = os.path.dirname(__file__)  # Get the directory of the current script
+sys.path.append(os.path.dirname(__file__))  # Add the script's directory
+
 import dash
 from analysis import run_analysis
 from app_layout import get_layout
 from callbacks import register_callbacks
-from config import BASE_DIR
 from data_processing import load_adjusted_data
 from graphing import generate_plot
 
+print("[DEBUG] Module imports successful!")
+
+
 # ✅ Ensure module paths are correctly added
-MODULE_PATH = os.path.join(BASE_DIR, "IMspector Gadget", "ccs_v_mz_modules")
-sys.path.append(MODULE_PATH)
 
 # ✅ Initialize Dash App
 app = dash.Dash(__name__)
