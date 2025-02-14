@@ -33,6 +33,7 @@ def stack_library_with_adjusted():
     if not os.path.exists(FILE_PATH):
         print(f"[ERROR] Data file not found: {FILE_PATH}")
         return None
+    LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
     if not os.path.exists(LIBRARY_PATH):
         print(f"[ERROR] Library file not found: {LIBRARY_PATH}")
@@ -62,6 +63,11 @@ def stack_library_with_adjusted():
 
     # ✅ Ensure column order matches
     library_df = library_df[adjusted_df.columns]
+
+    if "Match Source" in adjusted_df.columns:
+        library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
+    else:
+        print("[WARNING] 'Match Source' column not found in adjusted_df.")
 
     # ✅ Stack the two DataFrames (Concatenation of Rows)
     stacked_df = pd.concat([adjusted_df, library_df], ignore_index=True)
