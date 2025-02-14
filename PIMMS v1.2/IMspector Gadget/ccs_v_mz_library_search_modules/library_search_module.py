@@ -1,10 +1,30 @@
 import os
+import sys
 
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(base_dir)
 import pandas as pd
+from ccs_v_mz_modules.CCS_mz_trend_analysis import mz_repeating_unit_analysis
+
+# ✅ Ensure "IMspector Gadget" is in Python's module search path
+
 
 # Define file paths
 FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
 LIBRARY_PATH = "PIMMS v1.2/import folder/Library test file.csv"
+
+# ✅ Define all available repeating units
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "HF": 20.0062278,
+}
+
+# ✅ Select a subset of repeating units for analysis
+SELECTED_UNITS = ["CF2"]  # Only screen against these
+selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 
 def stack_library_with_adjusted():
@@ -12,11 +32,11 @@ def stack_library_with_adjusted():
 
     if not os.path.exists(FILE_PATH):
         print(f"[ERROR] Data file not found: {FILE_PATH}")
-        return
+        return None
 
     if not os.path.exists(LIBRARY_PATH):
         print(f"[ERROR] Library file not found: {LIBRARY_PATH}")
-        return
+        return None
 
     # Read both DataFrames
     adjusted_df = pd.read_csv(FILE_PATH)
@@ -46,10 +66,35 @@ def stack_library_with_adjusted():
     # ✅ Stack the two DataFrames (Concatenation of Rows)
     stacked_df = pd.concat([adjusted_df, library_df], ignore_index=True)
 
-    # ✅ Save the stacked DataFrame to a CSV file
-
     return stacked_df
 
 
-if __name__ == "__main__":
+def main():
+    """Stacks the DataFrame and runs repeating unit analysis on selected units."""
     stacked_df = stack_library_with_adjusted()
+
+    if stacked_df is None:
+        print("[ERROR] Could not generate stacked DataFrame. Exiting.")
+        return
+
+    print(f"[INFO] Stacked DataFrame created with {len(stacked_df)} rows.")
+
+    # ✅ Perform repeating unit analysis with selected repeating units
+    print(
+        f"[INFO] Running mz_repeating_unit_analysis using: {list(selected_repeating_units.keys())}"
+    )
+    mass_groups = mz_repeating_unit_analysis(
+        stacked_df, repeating_units=list(selected_repeating_units.keys())
+    )
+
+    if mass_groups.empty:
+        print("[WARNING] No homologous series detected. Exiting.")
+        return
+
+    # ✅ Print results preview
+    print("\n[INFO] Repeating Unit Analysis - Preview:")
+    print(mass_groups.head(10).to_string(index=False))  # Print first 10 rows
+
+
+if __name__ == "__main__":
+    main()
