@@ -3,6 +3,8 @@ from data_processing import load_adjusted_data
 
 adjusted_df = load_adjusted_data()
 
+d_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+
 
 def get_layout():
     """Returns the Dash app layout."""
@@ -13,7 +15,7 @@ def get_layout():
             dcc.Graph(id="plotly_graph"),
             dcc.Dropdown(
                 id="remove_columns",
-                options=[{"label": col, "value": col} for col in adjusted_df.columns],
+                options=[{"label": col, "value": col} for col in d_columns],
                 multi=True,
                 placeholder="Select columns to remove",
             ),
