@@ -4,7 +4,10 @@ import sys
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
 import pandas as pd
-from ccs_v_mz_modules.CCS_mz_trend_analysis import mz_repeating_unit_analysis
+from ccs_v_mz_modules.CCS_mz_trend_analysis import (
+    CCS_v_mz_analysis,
+    mz_repeating_unit_analysis,
+)
 
 # ✅ Ensure "IMspector Gadget" is in Python's module search path
 
@@ -97,9 +100,23 @@ def main():
         print("[WARNING] No homologous series detected. Exiting.")
         return
 
+    # ✅ Run CCS_v_mz_analysis for each GroupID
+    for group_id, group_df in mass_groups.groupby("GroupID"):
+        print(f"\n[DEBUG] Analyzing Group {group_id}...")
+
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(group_df)
+        )
+
+        # ✅ Print IM_group if found
+        if IM_group:
+            print(f"\n[INFO] Significant IM_group detected for Group {group_id}:")
+            for mz, ccs in IM_group:
+                print(f"  m/z: {mz:.5f}, CCS: {ccs:.5f}")
+
     # ✅ Print results preview
     print("\n[INFO] Repeating Unit Analysis - Preview:")
-    print(mass_groups.head(10).to_string(index=False))  # Print first 10 rows
+    print(IM_group)  # Print first 10 rows
 
 
 if __name__ == "__main__":
