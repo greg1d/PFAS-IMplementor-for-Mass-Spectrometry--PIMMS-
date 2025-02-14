@@ -133,7 +133,7 @@ def add_homologous_series_trendlines(
                 legendgroup=legend_group_name,
                 hoverinfo="skip",
                 visible="legendonly",  # Hidden until toggled
-                showlegend=True,
+                showlegend=False,
             )
         )
 
@@ -144,7 +144,7 @@ def add_homologous_series_trendlines(
                 y=ccs_values,
                 mode="markers",
                 marker=dict(size=8, color=series_color),
-                name=f"HS Points {idx + 1}",
+                name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
                 showlegend=True,
                 visible="legendonly",
