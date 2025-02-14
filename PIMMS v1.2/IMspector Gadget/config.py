@@ -1,0 +1,33 @@
+import os
+
+# ✅ Get and print correct base directory
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ✅ Stop BASE_DIR at "PIMMS v1.2"
+while not os.path.basename(CURRENT_DIR).startswith("PIMMS v1.2"):
+    CURRENT_DIR = os.path.dirname(CURRENT_DIR)
+
+BASE_DIR = CURRENT_DIR  # Set BASE_DIR to "PIMMS v1.2"
+
+# ✅ Print for debugging
+print(f"[DEBUG] BASE_DIR is set to: {BASE_DIR}")
+
+# ✅ File paths
+DATA_FILE = os.path.join(BASE_DIR, "Data_output", "PIMMS Processed Data set.csv")
+STANDARDS_FILE = os.path.join(BASE_DIR, ".temp", "Standards_report.csv")
+
+# ✅ Print paths for debugging
+print(f"[DEBUG] DATA_FILE path: {DATA_FILE}")
+print(f"[DEBUG] STANDARDS_FILE path: {STANDARDS_FILE}")
+
+# ✅ Define Available Repeating Units (this is what was missing)
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "HF": 20.0062278,
+}
+
+# ✅ Print for debugging
+print(f"[DEBUG] REPEATING_UNITS: {REPEATING_UNITS}")
