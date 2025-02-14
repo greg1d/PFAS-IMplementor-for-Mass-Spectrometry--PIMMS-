@@ -74,7 +74,7 @@ def add_homologous_series_trendlines(
             classification = (
                 row["Classification Type"].values[0] if not row.empty else "Unknown"
             )
-            rt = row["RT"].values[0] if not row.empty else "N/A"
+            RT = row["RT"].values[0] if not row.empty else "N/A"
 
             # ✅ Extract the correct CCS value **for this individual point**
             ccs = row["CCS"].values[0] if not row.empty else "N/A"
@@ -98,8 +98,8 @@ def add_homologous_series_trendlines(
             hover_text = (
                 f"Match: {match_name}<br>"
                 f"m/z: {mz:.4f}<br>"
-                f"CCS: {ccs}<br>"
-                f"RT: {rt}<br>"
+                f"CCS: {ccs:.2f}<br>"
+                f"RT: {RT:.2f}<br>"
                 f"Classification: {classification}<br>"
                 f"Repeating Unit: {repeating_unit}<br>"
                 f"Samples:<br>{sample_text}<extra></extra>"
