@@ -11,14 +11,13 @@ def get_layout():
     return html.Div(
         [
             html.H1("PIMMS Data Analysis Dashboard"),
-            # Graph Panel
-            dcc.Graph(id="plotly_graph"),
             dcc.Dropdown(
                 id="remove_columns",
                 options=[{"label": col, "value": col} for col in d_columns],
                 multi=True,
-                placeholder="Select columns to remove",
+                placeholder="Select Samples to Hide from Report...",
             ),
+            dcc.Graph(id="plotly_graph"),
             html.Hr(),
             # Standards Report Panel
             html.H2("Standards Report"),
