@@ -11,7 +11,7 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 
 # Define file paths
 FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
-LIBRARY_PATH = "PIMMS v1.2/import folder/Library test file.csv"
+LIBRARY_PATH = "PIMMS v1.2/import folder/Library test file 1.csv"
 
 # ✅ Extract the filename without extension for "Match Source"
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
@@ -28,6 +28,43 @@ REPEATING_UNITS = {
 # ✅ Select a subset of repeating units for analysis
 SELECTED_UNITS = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
+
+
+def external_mz_library_matching(IM_group, library_match_source):
+    """
+    Filters IM_group to retain only groups where at least 2 rows come from the external library file.
+
+    Parameters:
+    - IM_group (pd.DataFrame): Data containing identified homologous series.
+    - library_match_source (str): The dynamically extracted standards library filename.
+
+    Returns:
+    - pd.DataFrame: Filtered IM_group containing only valid groups.
+    """
+    if IM_group.empty:
+        print("[WARNING] IM_group is empty. No filtering applied.")
+        return IM_group
+
+    valid_groups = []
+
+    # ✅ Group by GroupID
+    for group_id, group_df in IM_group.groupby("GroupID"):
+        # ✅ Count how many rows come from the specified external file
+        source_count = (group_df["Match Source"] == library_match_source).sum()
+
+        # ✅ Keep groups that have at least 2 rows from the external file
+        if source_count >= 2:
+            valid_groups.append(group_df)
+
+    # ✅ Combine all valid groups into a new DataFrame
+    if valid_groups:
+        filtered_IM_group = pd.concat(valid_groups, ignore_index=True)
+        print(f"[INFO] {len(filtered_IM_group)} rows retained after filtering.")
+    else:
+        filtered_IM_group = pd.DataFrame()
+        print("[WARNING] No groups met the criteria of at least 2 library matches.")
+
+    return filtered_IM_group
 
 
 def stack_library_with_adjusted():
@@ -88,6 +125,10 @@ def main():
 
     print(f"[INFO] Stacked DataFrame created with {len(stacked_df)} rows.")
 
+    # ✅ Extract dynamically the standards library filename (no extension)
+    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
+    print(f"[INFO] Using standards library: {library_match_source}")
+
     # ✅ Perform repeating unit analysis with selected repeating units
     print(
         f"[INFO] Running mz_repeating_unit_analysis using: {list(selected_repeating_units.keys())}"
@@ -106,25 +147,31 @@ def main():
     for group_id, group_df in mass_groups.groupby("GroupID"):
         print(f"\n[DEBUG] Analyzing Group {group_id}...")
 
+        # **Run analysis**
         IM_group, post_source_decay, branched_isomer, mass_only_group = (
             CCS_v_mz_analysis(group_df)
         )
 
-        # ✅ Print full metadata for IM_group
+        # ✅ Convert IM_group tuples back to DataFrame with metadata
         if IM_group:
-            print(
-                f"\n[INFO] Significant IM_group detected for Group {group_id} (Full Metadata):"
+            IM_group_df = group_df[
+                group_df[["m/z", "CCS"]].apply(tuple, axis=1).isin(IM_group)
+            ]
+            print(f"\n[INFO] Significant IM_group detected for Group {group_id}:")
+
+            # ✅ Print full metadata
+            print(IM_group_df.to_string(index=False))
+
+            # ✅ Apply `external_mz_library_matching` with the dynamically retrieved standards library name
+            filtered_IM_group = external_mz_library_matching(
+                IM_group_df, library_match_source
             )
-            for mz, ccs in IM_group:
-                metadata = group_df.loc[
-                    (group_df["m/z"] == mz) & (group_df["CCS"] == ccs)
-                ].to_dict(orient="records")
-                if metadata:
-                    print(metadata[0])  # Print metadata as dictionary format
-                else:
-                    print(
-                        f"[WARNING] Metadata not found for m/z: {mz:.5f}, CCS: {ccs:.5f}"
-                    )
+
+            if not filtered_IM_group.empty:
+                print(
+                    f"\n[INFO] Valid IM_group found for Group {group_id} (Filtered Metadata):"
+                )
+                print(filtered_IM_group.to_string(index=False))
 
 
 if __name__ == "__main__":
