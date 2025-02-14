@@ -372,11 +372,29 @@ def make_plotly_graph(
             )
 
     # **Final Layout Update**
-    # **Final Layout Update**
     fig.update_layout(
-        title="CCS vs m/z Trend Analysis",
-        xaxis=dict(title=r"<b><i>m/z</i></b>"),  # ✅ Bold and italicized using HTML
-        yaxis=dict(title="CCS (&#8491;<sup>2</sup>)"),  # &#8491; is the HTML code for Å
+        title=dict(
+            text="CCS vs m/z Trend Analysis",
+            font=dict(family="NormativePro", size=20, color="white", weight="bold"),
+            x=0.1,  # Centering the title
+            y=0.95,
+            xanchor="center",
+            yanchor="top",
+        ),
+        xaxis=dict(
+            title=r"<b><i>m/z</i></b>",  # ✅ Bold and italicized using HTML
+            title_font=dict(family="NormativePro", size=16, color="white"),
+            tickfont=dict(
+                family="NormativePro", size=14, color="white", weight="bold"
+            ),  # ✅ Tick labels
+        ),
+        yaxis=dict(
+            title="CCS (&#8491;<sup>2</sup>)",
+            title_font=dict(family="NormativePro", size=16, color="white"),
+            tickfont=dict(
+                family="NormativePro", size=14, color="white", weight="bold"
+            ),  # ✅ Tick labels
+        ),
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
