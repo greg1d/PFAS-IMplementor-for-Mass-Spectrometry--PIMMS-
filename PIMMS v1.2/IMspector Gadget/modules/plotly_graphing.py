@@ -15,7 +15,7 @@ HOMOLOGOUS_SERIES_COLORS = [
 
 
 def add_homologous_series_trendlines(
-    fig, refined_groups, branched_isomers, post_source_decay, adjusted_df
+    fig, refined_groups, branched_isomers, post_source_decay, adjusted_df, mass_groups
 ):
     """
     Adds homologous series trendlines and uniquely classifies their corresponding points,
@@ -30,6 +30,13 @@ def add_homologous_series_trendlines(
 
     print(f"\n[INFO] Total Refined Homologous Series: {len(refined_groups)}")
     print(f"[INFO] Total Post Source Decay Groups: {len(post_source_decay)}")
+
+    if "Repeating Unit" not in adjusted_df.columns:
+        print("[DEBUG] Merging mass_groups to include Repeating Unit in adjusted_df...")
+        adjusted_df = adjusted_df.merge(
+            mass_groups[["m/z", "Repeating Unit"]], on="m/z", how="left"
+        )
+        print("merged df", adjusted_df.head())
 
     # ✅ Function to match homologous series points with branched/post-source points
     def is_point_in_series(mz, series_mz_values, mz_tol=0.1):
@@ -71,7 +78,8 @@ def add_homologous_series_trendlines(
 
             # ✅ Extract the correct CCS value **for this individual point**
             ccs = row["CCS"].values[0] if not row.empty else "N/A"
-
+            print("[DEBUG] Columns in adjusted_df:", adjusted_df.columns.tolist())
+            repeating_unit = row["Repeating Unit"].values[0] if not row.empty else "N/A"
             # ✅ Extract sample-related information
             sample_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
             sample_info = []
@@ -93,6 +101,7 @@ def add_homologous_series_trendlines(
                 f"CCS: {ccs}<br>"
                 f"RT: {rt}<br>"
                 f"Classification: {classification}<br>"
+                f"Repeating Unit: {repeating_unit}<br>"
                 f"Samples:<br>{sample_text}<extra></extra>"
             )
 
@@ -188,7 +197,12 @@ def add_legend_entries(fig):
 
 
 def make_plotly_graph(
-    adjusted_df, refined_groups, branched_isomers, post_source_decay, mass_only_groups
+    adjusted_df,
+    refined_groups,
+    branched_isomers,
+    post_source_decay,
+    mass_only_groups,
+    mass_groups,
 ):
     fig = go.Figure()
     add_legend_entries(fig)
@@ -201,7 +215,12 @@ def make_plotly_graph(
 
     # **Step 2: Plot Homologous Series Trendlines & Points Separately**
     add_homologous_series_trendlines(
-        fig, refined_groups, branched_isomers, post_source_decay, adjusted_df
+        fig,
+        refined_groups,
+        branched_isomers,
+        post_source_decay,
+        adjusted_df,
+        mass_groups,
     )
 
     # **Step 3: Filter Adjusted Data to Remove Homologous Series Points**
@@ -463,7 +482,8 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
         refined_groups,  # ✅ Now included!
         branched_isomer_groups,
         post_source_decay_groups,
-        mass_only_groups,  # ✅ Ensure mass-only groups are passed properly
+        mass_only_groups,
+        mass_groups,  # ✅ Ensure mass-only groups are passed properly
     )
 
     print("[INFO] Graph update successful.")
@@ -532,7 +552,8 @@ def main():
         refined_groups,
         branched_isomer_groups,
         post_source_decay_groups,
-        mass_only_groups,  # ✅ Now correctly formatted as a dictionary
+        mass_only_groups,
+        mass_groups,  # ✅ Now correctly formatted as a dictionary
     )
 
     # **Step 5: Display the Plotly plot**

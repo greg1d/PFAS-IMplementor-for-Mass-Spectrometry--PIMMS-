@@ -100,6 +100,7 @@ def main():
         branched_isomer_groups,
         post_source_decay_groups,
         mass_only_groups,
+        mass_groups,
     )
 
     # **Step 5: Display the Plotly plot**
