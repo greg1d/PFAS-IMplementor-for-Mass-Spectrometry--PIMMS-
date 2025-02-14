@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import Input, Output
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from dash_formatting import get_dash_layout
 from plotly_graphing import make_plotly_graph, update_graph
