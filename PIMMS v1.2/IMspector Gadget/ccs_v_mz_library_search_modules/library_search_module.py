@@ -57,98 +57,93 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
 
     legend_shown = {}
 
-    # ✅ Group by GroupID to draw trendlines
-    for group_id, group_df in filtered_IM_group.groupby("GroupID"):
-        # ✅ Extract x (m/z) and y (CCS) for linear fit
-        x_vals = group_df["m/z"].values
-        y_vals = group_df["CCS"].values
-
-        # ✅ Perform linear regression for trendline
-        slope, intercept, r_value, p_value, _ = stats.linregress(x_vals, y_vals)
-
-        # ✅ Compute trendline points
-        x_fit = np.linspace(min(x_vals), max(x_vals), 100)
-        y_fit = slope * x_fit + intercept
-
-        # ✅ Add trendline to the plot
-        fig.add_trace(
-            go.Scatter(
-                x=x_fit,
-                y=y_fit,
-                mode="lines",
-                line=dict(color="yellow", width=2, dash="dot"),
-                name=f"Group {group_id} Trendline",
-                legendgroup=f"group_{group_id}",  # ✅ Group points and trendline
-                showlegend=True,
-            )
-        )
-
     # ✅ Debug print to check Classification Types
     print("\n[DEBUG] Unique 'Classification Type' values in filtered_IM_group:")
     print(filtered_IM_group["Classification Type"].unique())
 
-    # ✅ Plot filtered_IM_group with color coding
-    if not filtered_IM_group.empty:
-        for _, row in filtered_IM_group.iterrows():
-            mz, ccs = row["m/z"], row["CCS"]
+    # ✅ Group by GroupID to draw trendlines and points
+    for idx, (group_id, group_df) in enumerate(filtered_IM_group.groupby("GroupID")):
+        # ✅ Extract x (m/z) and y (CCS) for linear fit
+        mz_values = group_df["m/z"].values
+        ccs_values = group_df["CCS"].values
 
-            # ✅ Extract metadata for hover text directly from filtered_IM_group
+        # ✅ Perform linear regression for trendline
+        slope, intercept, r_value, p_value, _ = stats.linregress(mz_values, ccs_values)
+
+        # ✅ Compute trendline points
+        reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
+        reg_line_y = slope * reg_line_x + intercept
+
+        # ✅ Assign a unique legend group for each series
+        legend_group_name = f"group_{group_id}"
+        series_color = "yellow"  # Customize color if needed
+
+        # 🔹 Add trendline
+        fig.add_trace(
+            go.Scatter(
+                x=reg_line_x,
+                y=reg_line_y,
+                mode="lines",
+                name=f"Homologous Series {idx + 1}",
+                line=dict(color=series_color, dash="dash"),
+                legendgroup=legend_group_name,
+                hoverinfo="skip",
+                visible="legendonly",  # Hidden until toggled
+                showlegend=False,
+            )
+        )
+
+        # ✅ Prepare hover metadata for each point
+        hover_texts = []
+        for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
             classification = row.get("Classification Type", "Unknown")
             RT = row.get("RT", "N/A")
-            ccs_value = row.get("CCS", "N/A")
-
-            # ✅ Use "Repeating Unit" from `filtered_IM_group`, not adjusted_df
             repeating_unit = row.get("Repeating Unit", "N/A")
 
             # ✅ Extract sample-related information
             sample_info = []
             for col in sample_columns:
-                val = row.get(col.strip(), "N/A")
-                val = pd.to_numeric(val, errors="coerce")  # Convert to numeric
-
-                if pd.notna(val) and val > 0:
-                    sample_info.append(f"{col.strip()}: {val:.2f}")
+                col = col.strip()
+                if col in row.index:
+                    val = pd.to_numeric(row[col], errors="coerce")
+                    if pd.notna(val) and val > 0:
+                        sample_info.append(f"{col}: {val:.2f}")
 
             sample_text = "<br>".join(sample_info) if sample_info else "None"
 
-            # ✅ Ensure correct color mapping
-            legend_data = LEGEND_ITEMS.get(
-                classification, {"color": "gray", "legendgroup": "unmatched"}
+            # ✅ Construct hover text
+            hover_texts.append(
+                f"Match: {match_name}<br>"
+                f"m/z: {row['m/z']:.4f}<br>"
+                f"CCS: {row['CCS']:.2f}<br>"
+                f"RT: {RT}<br>"
+                f"Classification: {classification}<br>"
+                f"Repeating Unit: {repeating_unit}<br>"
+                f"Samples:<br>{sample_text}"
             )
-            show_legend = classification not in legend_shown
-            legend_shown[classification] = True  # Mark this classification as shown
 
-            print(
-                f"[DEBUG] Point: m/z={mz}, CCS={ccs}, Classification={classification}, Color={legend_data['color']}"
+        # 🔹 Overlay main homologous series points with metadata
+        fig.add_trace(
+            go.Scatter(
+                x=mz_values,
+                y=ccs_values,
+                mode="markers",
+                marker=dict(size=8, color=series_color),
+                name=f"Homologous Series {idx + 1}",
+                legendgroup=legend_group_name,
+                showlegend=True,
+                visible="legendonly",
+                text=hover_texts,  # ✅ Full metadata in hover
+                hovertemplate="%{text}<extra></extra>",  # ✅ Injects metadata dynamically
             )
-
-            fig.add_trace(
-                go.Scatter(
-                    x=[mz],
-                    y=[ccs],
-                    mode="markers",
-                    marker=dict(size=10, color=legend_data["color"], symbol="circle"),
-                    name=classification,
-                    legendgroup=legend_data["legendgroup"],
-                    showlegend=show_legend,
-                    hovertemplate=(
-                        f"Match: {match_name}<br>"
-                        f"m/z: {mz:.4f}<br>"
-                        f"CCS: {ccs_value:.2f}<br>"
-                        f"RT: {RT}<br>"
-                        f"Classification: {classification}<br>"
-                        f"Repeating Unit: {repeating_unit}<br>"
-                        f"Samples:<br>{sample_text}<extra></extra>"
-                    ),
-                )
-            )
+        )
 
     # ✅ Format Plotly Layout
     fig.update_layout(
         title="CCS vs m/z Trend Analysis",
         xaxis=dict(title="<b><i>m/z</i></b>"),
-        yaxis=dict(title="CCS (Å²)"),
+        yaxis=dict(title="<b>CCS (Å²)<b>"),
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
