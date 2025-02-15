@@ -32,9 +32,21 @@ SELECTED_UNITS = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 
+# ✅ Define legend color mapping
+LEGEND_ITEMS = {
+    "likely": {"color": "blue", "legendgroup": "likely_identified"},
+    "Tentative - Library Match": {
+        "color": "orange",
+        "legendgroup": "tentative_matched",
+    },
+    "Unmatched": {"color": "purple", "legendgroup": "tentative_no_match"},
+    "N/A": {"color": "white", "legendgroup": "NA"},  # ✅ Make N/A white
+}
+
+
 def make_plotly_graph(adjusted_df, IM_group):
     """
-    Plots CCS vs. m/z using Plotly.
+    Plots CCS vs. m/z using Plotly with color-coded points based on match classification.
 
     Parameters:
     - adjusted_df (pd.DataFrame): The dataset containing all measured data.
@@ -60,16 +72,23 @@ def make_plotly_graph(adjusted_df, IM_group):
         )
     )
 
-    # ✅ Plot IM_group (Significant Homologous Series)
+    # ✅ Plot IM_group (Significant Homologous Series) with color coding
     if not IM_group.empty:
         for _, row in IM_group.iterrows():
+            classification = row.get("Classification Type", "Unmatched").strip()
+
+            legend_data = LEGEND_ITEMS.get(
+                classification, {"color": "gray", "legendgroup": "unmatched"}
+            )
+
             fig.add_trace(
                 go.Scatter(
                     x=[row["m/z"]],
                     y=[row["CCS"]],
                     mode="markers",
-                    marker=dict(size=10, color="red", symbol="circle"),
-                    name="IM Group",
+                    marker=dict(size=10, color=legend_data["color"], symbol="circle"),
+                    name=classification,
+                    legendgroup=legend_data["legendgroup"],
                     hovertemplate=f"Match: {row['Match']}<br>m/z: {row['m/z']:.4f}<br>CCS: {row['CCS']:.2f}<br>RT: {row.get('RT', 'N/A')}<extra></extra>",
                 )
             )
@@ -233,6 +252,7 @@ def main():
 
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
+                print(filtered_IM_group.head(10).to_string(index=False))
 
     # ✅ Merge all valid IM groups into one DataFrame
     final_IM_group = (
@@ -241,6 +261,8 @@ def main():
         else pd.DataFrame()
     )
 
+    print("\n[DEBUG] Unique values in 'Classification Type':")
+    print(final_IM_group["Classification Type"].unique())
     # ✅ Generate and Show Plot
     fig = make_plotly_graph(stacked_df, final_IM_group)
     pio.show(fig)  # Display interactive plot
