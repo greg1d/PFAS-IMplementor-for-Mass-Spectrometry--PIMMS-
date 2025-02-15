@@ -53,17 +53,6 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
     # ✅ Extract sample intensity column names
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
 
-    # ✅ Plot all data points as gray background
-    fig.add_trace(
-        go.Scatter(
-            x=adjusted_df["m/z"],
-            y=adjusted_df["CCS"],
-            mode="markers",
-            marker=dict(size=6, color="gray", opacity=0.5),
-            name="All Data",
-            hoverinfo="none",
-        )
-    )
     legend_shown = {}
 
     # ✅ Debug print to check Classification Types
