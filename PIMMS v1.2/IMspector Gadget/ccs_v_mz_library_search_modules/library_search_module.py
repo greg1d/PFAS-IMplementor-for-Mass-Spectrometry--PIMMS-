@@ -1,7 +1,9 @@
 import os
 import sys
 
+import numpy as np
 import plotly.graph_objects as go
+from scipy import stats
 
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
@@ -54,6 +56,32 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
 
     legend_shown = {}
+
+    # ✅ Group by GroupID to draw trendlines
+    for group_id, group_df in filtered_IM_group.groupby("GroupID"):
+        # ✅ Extract x (m/z) and y (CCS) for linear fit
+        x_vals = group_df["m/z"].values
+        y_vals = group_df["CCS"].values
+
+        # ✅ Perform linear regression for trendline
+        slope, intercept, r_value, p_value, _ = stats.linregress(x_vals, y_vals)
+
+        # ✅ Compute trendline points
+        x_fit = np.linspace(min(x_vals), max(x_vals), 100)
+        y_fit = slope * x_fit + intercept
+
+        # ✅ Add trendline to the plot
+        fig.add_trace(
+            go.Scatter(
+                x=x_fit,
+                y=y_fit,
+                mode="lines",
+                line=dict(color="yellow", width=2, dash="dot"),
+                name=f"Group {group_id} Trendline",
+                legendgroup=f"group_{group_id}",  # ✅ Group points and trendline
+                showlegend=True,
+            )
+        )
 
     # ✅ Debug print to check Classification Types
     print("\n[DEBUG] Unique 'Classification Type' values in filtered_IM_group:")
