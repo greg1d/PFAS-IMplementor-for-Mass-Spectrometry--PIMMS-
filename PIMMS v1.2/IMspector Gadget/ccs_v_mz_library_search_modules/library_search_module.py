@@ -1,6 +1,8 @@
 import os
 import sys
 
+import plotly.graph_objects as go
+
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
 import pandas as pd
@@ -28,6 +30,75 @@ REPEATING_UNITS = {
 # ✅ Select a subset of repeating units for analysis
 SELECTED_UNITS = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
+
+
+def make_plotly_graph(adjusted_df, IM_group):
+    """
+    Plots CCS vs. m/z using Plotly.
+
+    Parameters:
+    - adjusted_df (pd.DataFrame): The dataset containing all measured data.
+    - IM_group (pd.DataFrame): The identified homologous series from CCS_v_mz_analysis.
+
+    Returns:
+    - fig (plotly.graph_objects.Figure): The generated Plotly figure.
+    """
+    fig = go.Figure()
+
+    # ✅ Strip whitespace from column names (Ensures no mismatches)
+    adjusted_df.columns = adjusted_df.columns.str.strip()
+
+    # ✅ Plot all data points from `adjusted_df` (Background Points)
+    fig.add_trace(
+        go.Scatter(
+            x=adjusted_df["m/z"],
+            y=adjusted_df["CCS"],
+            mode="markers",
+            marker=dict(size=6, color="gray", opacity=0.5),
+            name="All Data",
+            hoverinfo="none",
+        )
+    )
+
+    # ✅ Plot IM_group (Significant Homologous Series)
+    if not IM_group.empty:
+        for _, row in IM_group.iterrows():
+            fig.add_trace(
+                go.Scatter(
+                    x=[row["m/z"]],
+                    y=[row["CCS"]],
+                    mode="markers",
+                    marker=dict(size=10, color="red", symbol="circle"),
+                    name="IM Group",
+                    hovertemplate=f"Match: {row['Match']}<br>m/z: {row['m/z']:.4f}<br>CCS: {row['CCS']:.2f}<br>RT: {row.get('RT', 'N/A')}<extra></extra>",
+                )
+            )
+
+    # ✅ Format Plotly Layout
+    fig.update_layout(
+        title=dict(
+            text="CCS vs m/z Trend Analysis",
+            font=dict(family="Arial", size=20, color="white"),
+            x=0.5,  # Centering the title
+            y=0.95,
+            xanchor="center",
+            yanchor="top",
+        ),
+        xaxis=dict(
+            title="<b><i>m/z</i></b>",
+            title_font=dict(family="Arial", size=16, color="white"),
+            tickfont=dict(family="Arial", size=14, color="white"),
+        ),
+        yaxis=dict(
+            title="CCS (Å²)",
+            title_font=dict(family="Arial", size=16, color="white"),
+            tickfont=dict(family="Arial", size=14, color="white"),
+        ),
+        template="plotly_dark",
+        legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
+    )
+
+    return fig
 
 
 def external_mz_library_matching(IM_group, library_match_source):
@@ -115,8 +186,11 @@ def stack_library_with_adjusted():
     return stacked_df
 
 
+import plotly.io as pio
+
+
 def main():
-    """Stacks the DataFrame, updates Match Source, runs repeating unit analysis, and performs CCS_v_mz_analysis."""
+    """Stacks data, runs analysis, and plots CCS vs. m/z."""
     stacked_df = stack_library_with_adjusted()
 
     if stacked_df is None:
@@ -125,14 +199,11 @@ def main():
 
     print(f"[INFO] Stacked DataFrame created with {len(stacked_df)} rows.")
 
-    # ✅ Extract dynamically the standards library filename (no extension)
+    # ✅ Extract standards library name
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
     print(f"[INFO] Using standards library: {library_match_source}")
 
-    # ✅ Perform repeating unit analysis with selected repeating units
-    print(
-        f"[INFO] Running mz_repeating_unit_analysis using: {list(selected_repeating_units.keys())}"
-    )
+    # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(
         stacked_df, repeating_units=list(selected_repeating_units.keys())
     )
@@ -143,35 +214,36 @@ def main():
 
     print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
 
-    # ✅ Run CCS_v_mz_analysis for each GroupID
+    # ✅ Run CCS_v_mz_analysis and store IM groups
+    filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
         print(f"\n[DEBUG] Analyzing Group {group_id}...")
 
-        # **Run analysis**
-        IM_group, post_source_decay, branched_isomer, mass_only_group = (
-            CCS_v_mz_analysis(group_df)
-        )
+        IM_group, _, _, _ = CCS_v_mz_analysis(group_df)
 
-        # ✅ Convert IM_group tuples back to DataFrame with metadata
         if IM_group:
             IM_group_df = group_df[
                 group_df[["m/z", "CCS"]].apply(tuple, axis=1).isin(IM_group)
             ]
-            print(f"\n[INFO] Significant IM_group detected for Group {group_id}:")
 
-            # ✅ Print full metadata
-            print(IM_group_df.to_string(index=False))
-
-            # ✅ Apply `external_mz_library_matching` with the dynamically retrieved standards library name
+            # ✅ Filter IM groups using external standards check
             filtered_IM_group = external_mz_library_matching(
                 IM_group_df, library_match_source
             )
 
             if not filtered_IM_group.empty:
-                print(
-                    f"\n[INFO] Valid IM_group found for Group {group_id} (Filtered Metadata):"
-                )
-                print(filtered_IM_group.to_string(index=False))
+                filtered_IM_groups.append(filtered_IM_group)
+
+    # ✅ Merge all valid IM groups into one DataFrame
+    final_IM_group = (
+        pd.concat(filtered_IM_groups, ignore_index=True)
+        if filtered_IM_groups
+        else pd.DataFrame()
+    )
+
+    # ✅ Generate and Show Plot
+    fig = make_plotly_graph(stacked_df, final_IM_group)
+    pio.show(fig)  # Display interactive plot
 
 
 if __name__ == "__main__":
