@@ -139,11 +139,26 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
             )
         )
 
-    # ✅ Format Plotly Layout
+        # ✅ Format Plotly Layout
     fig.update_layout(
-        title="CCS vs m/z Trend Analysis",
-        xaxis=dict(title="<b><i>m/z</i></b>"),
-        yaxis=dict(title="<b>CCS (Å²)<b>"),
+        title=dict(
+            text="CCS vs <i>m/z</i> Trend Analysis",
+            font=dict(size=20, color="white", weight="bold"),
+            x=0.1,  # Centering the title
+            y=0.95,
+            xanchor="left",
+            yanchor="top",
+        ),
+        xaxis=dict(
+            title=r"<b><i>m/z</i></b>",  # ✅ Bold and italicized using HTML
+            title_font=dict(size=16, color="white"),
+            tickfont=dict(size=14, color="white", weight="bold"),  # ✅ Tick labels
+        ),
+        yaxis=dict(
+            title="<b>CCS (&#8491;<sup>2</sup>)</b>",
+            title_font=dict(size=16, color="white"),
+            tickfont=dict(size=14, color="white", weight="bold"),  # ✅ Tick labels
+        ),
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
