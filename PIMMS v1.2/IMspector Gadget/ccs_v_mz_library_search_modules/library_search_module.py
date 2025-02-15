@@ -44,23 +44,16 @@ LEGEND_ITEMS = {
 }
 
 
-def make_plotly_graph(adjusted_df, IM_group):
-    """
-    Plots CCS vs. m/z using Plotly with color-coded points based on match classification.
-
-    Parameters:
-    - adjusted_df (pd.DataFrame): The dataset containing all measured data.
-    - IM_group (pd.DataFrame): The identified homologous series from CCS_v_mz_analysis.
-
-    Returns:
-    - fig (plotly.graph_objects.Figure): The generated Plotly figure.
-    """
+def make_plotly_graph(adjusted_df, filtered_IM_group):
     fig = go.Figure()
 
-    # ✅ Strip whitespace from column names (Ensures no mismatches)
+    # ✅ Strip whitespace from column names
     adjusted_df.columns = adjusted_df.columns.str.strip()
 
-    # ✅ Plot all data points from `adjusted_df` (Background Points)
+    # ✅ Extract sample intensity column names
+    sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
+
+    # ✅ Plot all data points as gray background
     fig.add_trace(
         go.Scatter(
             x=adjusted_df["m/z"],
@@ -71,48 +64,74 @@ def make_plotly_graph(adjusted_df, IM_group):
             hoverinfo="none",
         )
     )
+    legend_shown = {}
 
-    # ✅ Plot IM_group (Significant Homologous Series) with color coding
-    if not IM_group.empty:
-        for _, row in IM_group.iterrows():
-            classification = row.get("Classification Type", "Unmatched").strip()
+    # ✅ Debug print to check Classification Types
+    print("\n[DEBUG] Unique 'Classification Type' values in filtered_IM_group:")
+    print(filtered_IM_group["Classification Type"].unique())
 
+    # ✅ Plot filtered_IM_group with color coding
+    if not filtered_IM_group.empty:
+        for _, row in filtered_IM_group.iterrows():
+            mz, ccs = row["m/z"], row["CCS"]
+
+            # ✅ Extract metadata for hover text directly from filtered_IM_group
+            match_name = row.get("Match", "No Match")
+            classification = row.get("Classification Type", "Unknown")
+            RT = row.get("RT", "N/A")
+            ccs_value = row.get("CCS", "N/A")
+
+            # ✅ Use "Repeating Unit" from `filtered_IM_group`, not adjusted_df
+            repeating_unit = row.get("Repeating Unit", "N/A")
+
+            # ✅ Extract sample-related information
+            sample_info = []
+            for col in sample_columns:
+                val = row.get(col.strip(), "N/A")
+                val = pd.to_numeric(val, errors="coerce")  # Convert to numeric
+
+                if pd.notna(val) and val > 0:
+                    sample_info.append(f"{col.strip()}: {val:.2f}")
+
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
+
+            # ✅ Ensure correct color mapping
             legend_data = LEGEND_ITEMS.get(
                 classification, {"color": "gray", "legendgroup": "unmatched"}
+            )
+            show_legend = classification not in legend_shown
+            legend_shown[classification] = True  # Mark this classification as shown
+
+            print(
+                f"[DEBUG] Point: m/z={mz}, CCS={ccs}, Classification={classification}, Color={legend_data['color']}"
             )
 
             fig.add_trace(
                 go.Scatter(
-                    x=[row["m/z"]],
-                    y=[row["CCS"]],
+                    x=[mz],
+                    y=[ccs],
                     mode="markers",
                     marker=dict(size=10, color=legend_data["color"], symbol="circle"),
                     name=classification,
                     legendgroup=legend_data["legendgroup"],
-                    hovertemplate=f"Match: {row['Match']}<br>m/z: {row['m/z']:.4f}<br>CCS: {row['CCS']:.2f}<br>RT: {row.get('RT', 'N/A')}<extra></extra>",
+                    showlegend=show_legend,
+                    hovertemplate=(
+                        f"Match: {match_name}<br>"
+                        f"m/z: {mz:.4f}<br>"
+                        f"CCS: {ccs_value:.2f}<br>"
+                        f"RT: {RT}<br>"
+                        f"Classification: {classification}<br>"
+                        f"Repeating Unit: {repeating_unit}<br>"
+                        f"Samples:<br>{sample_text}<extra></extra>"
+                    ),
                 )
             )
 
     # ✅ Format Plotly Layout
     fig.update_layout(
-        title=dict(
-            text="CCS vs m/z Trend Analysis",
-            font=dict(family="Arial", size=20, color="white"),
-            x=0.5,  # Centering the title
-            y=0.95,
-            xanchor="center",
-            yanchor="top",
-        ),
-        xaxis=dict(
-            title="<b><i>m/z</i></b>",
-            title_font=dict(family="Arial", size=16, color="white"),
-            tickfont=dict(family="Arial", size=14, color="white"),
-        ),
-        yaxis=dict(
-            title="CCS (Å²)",
-            title_font=dict(family="Arial", size=16, color="white"),
-            tickfont=dict(family="Arial", size=14, color="white"),
-        ),
+        title="CCS vs m/z Trend Analysis",
+        xaxis=dict(title="<b><i>m/z</i></b>"),
+        yaxis=dict(title="CCS (Å²)"),
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
