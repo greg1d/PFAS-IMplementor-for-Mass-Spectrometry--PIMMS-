@@ -138,14 +138,23 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             symbols.append(marker_symbol)
 
             # ✅ Extract sample-related information (Only for sample features)
+
+            # ✅ Extract sample information (Only for dataset points)
             sample_info = []
             if not is_library_match:  # ❌ Skip sample info for library matches
-                for col in sample_columns:
-                    col = col.strip()
-                    if col in row.index:
-                        val = pd.to_numeric(row[col], errors="coerce")
-                        if pd.notna(val) and val > 0:
-                            sample_info.append(f"{col}: {val:.2f}")
+                sample_columns = [
+                    col for col in adjusted_df.columns if ".d.DeMP" in col
+                ]
+                sample_info = [
+                    f"{col.strip()}: {row.get(col.strip(), float('nan')):.2f}"
+                    for col in sample_columns
+                    if col.strip()
+                    in row.index  # ✅ Ensures the column exists before accessing
+                    and pd.notna(row.get(col.strip(), float("nan")))
+                    and row.get(col.strip(), float("nan")) > 0
+                ]
+                print(f"[DEBUG] Available columns in row: {list(row.index)}")
+                print(f"[DEBUG] Sample columns being accessed: {sample_columns}")
 
             sample_text = "<br>".join(sample_info) if sample_info else "None"
 
