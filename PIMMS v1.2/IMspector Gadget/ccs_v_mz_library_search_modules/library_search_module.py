@@ -130,33 +130,41 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             classification = row.get("Classification Type", "Unknown")
             RT = row.get("RT", "N/A")
             repeating_unit = row.get("Repeating Unit", "N/A")
-
-            marker_symbol = (
-                "x" if row.get("Match Source", "") == library_match_source else "circle"
-            )
+            match_source = row.get("Match Source", "Unknown Source")
+            if classification == "N/A":
+                classification = match_source  # ✅ Use Library Match instead
+            is_library_match = match_source == library_match_source
+            marker_symbol = "x" if is_library_match else "circle"
             symbols.append(marker_symbol)
 
-            # ✅ Extract sample-related information
+            # ✅ Extract sample-related information (Only for sample features)
             sample_info = []
-            for col in sample_columns:
-                col = col.strip()
-                if col in row.index:
-                    val = pd.to_numeric(row[col], errors="coerce")
-                    if pd.notna(val) and val > 0:
-                        sample_info.append(f"{col}: {val:.2f}")
+            if not is_library_match:  # ❌ Skip sample info for library matches
+                for col in sample_columns:
+                    col = col.strip()
+                    if col in row.index:
+                        val = pd.to_numeric(row[col], errors="coerce")
+                        if pd.notna(val) and val > 0:
+                            sample_info.append(f"{col}: {val:.2f}")
 
             sample_text = "<br>".join(sample_info) if sample_info else "None"
 
-            # ✅ Construct hover text
-            hover_texts.append(
+            # ✅ Construct hover text, excluding "Samples" for library matches
+            hover_text = (
                 f"Match: {match_name}<br>"
                 f"m/z: {row['m/z']:.4f}<br>"
                 f"CCS: {row['CCS']:.2f}<br>"
                 f"RT: {RT}<br>"
                 f"Classification: {classification}<br>"
                 f"Repeating Unit: {repeating_unit}<br>"
-                f"Samples:<br>{sample_text}"
             )
+
+            if not is_library_match:
+                hover_text += (
+                    f"Samples:<br>{sample_text}"  # ✅ Only add for dataset points
+                )
+
+            hover_texts.append(hover_text)
 
         # 🔹 Overlay main homologous series points with metadata
         fig.add_trace(
@@ -164,7 +172,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 x=mz_values,
                 y=ccs_values,
                 mode="markers",
-                marker=dict(size=8, color=series_color, symbol=symbols),
+                marker=dict(size=10, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
                 showlegend=True,
