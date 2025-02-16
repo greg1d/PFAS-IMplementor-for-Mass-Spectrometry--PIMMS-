@@ -136,27 +136,30 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             is_library_match = match_source == library_match_source
             marker_symbol = "x" if is_library_match else "circle"
             symbols.append(marker_symbol)
+            mz_value = row["m/z"]  # Extract m/z of current row
 
-            # ✅ Extract sample-related information (Only for sample features)
+            matched_row = adjusted_df.loc[adjusted_df["m/z"] == mz_value]
 
-            # ✅ Extract sample information (Only for dataset points)
-            sample_info = []
-            if not is_library_match:  # ❌ Skip sample info for library matches
-                sample_columns = [
-                    col for col in adjusted_df.columns if ".d.DeMP" in col
-                ]
-                sample_info = [
-                    f"{col.strip()}: {row.get(col.strip(), float('nan')):.2f}"
-                    for col in sample_columns
-                    if col.strip()
-                    in row.index  # ✅ Ensures the column exists before accessing
-                    and pd.notna(row.get(col.strip(), float("nan")))
-                    and row.get(col.strip(), float("nan")) > 0
-                ]
-                print(f"[DEBUG] Available columns in row: {list(row.index)}")
-                print(f"[DEBUG] Sample columns being accessed: {sample_columns}")
+            # ✅ Check if a matching row exists
+            if not matched_row.empty:
+                sample_info = []
+                for col in sample_columns:  # Iterate over all sample intensity columns
+                    col = col.strip()  # Remove whitespace from column name
 
-            sample_text = "<br>".join(sample_info) if sample_info else "None"
+                    # ✅ Extract intensity value for this sample column
+                    if col in matched_row:
+                        val = matched_row[col].values[0]  # Get the intensity
+
+                        # ✅ Report value only if it's a valid number and not NaN
+                        if pd.notna(val):
+                            sample_info.append(f"{col}: {val}")
+
+                # ✅ Format the sample information
+                sample_text = "<br>".join(sample_info) if sample_info else "None"
+            else:
+                sample_text = "None"
+
+            print(f"[DEBUG] Sample intensities for m/z {mz_value}: {sample_text}")
 
             # ✅ Construct hover text, excluding "Samples" for library matches
             hover_text = (
