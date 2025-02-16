@@ -374,11 +374,11 @@ def make_plotly_graph(
     # **Final Layout Update**
     fig.update_layout(
         title=dict(
-            text="CCS vs m/z Trend Analysis",
+            text="CCS vs <i>m/z</i> Trend Analysis",
             font=dict(family="NormativePro", size=20, color="white", weight="bold"),
             x=0.1,  # Centering the title
             y=0.95,
-            xanchor="center",
+            xanchor="left",
             yanchor="top",
         ),
         xaxis=dict(

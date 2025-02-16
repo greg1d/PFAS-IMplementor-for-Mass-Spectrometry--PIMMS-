@@ -46,7 +46,7 @@ LEGEND_ITEMS = {
 }
 
 
-def make_plotly_graph(adjusted_df, filtered_IM_group):
+def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
     fig = go.Figure()
 
     # ✅ Strip whitespace from column names
@@ -55,7 +55,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
     # ✅ Extract sample intensity column names
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
 
-    legend_shown = {}
+    symbols = []  # ✅ Store marker symbols
 
     # ✅ Debug print to check Classification Types
     print("\n[DEBUG] Unique 'Classification Type' values in filtered_IM_group:")
@@ -101,6 +101,11 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
             RT = row.get("RT", "N/A")
             repeating_unit = row.get("Repeating Unit", "N/A")
 
+            marker_symbol = (
+                "x" if row.get("Match Source", "") == library_match_source else "circle"
+            )
+            symbols.append(marker_symbol)
+
             # ✅ Extract sample-related information
             sample_info = []
             for col in sample_columns:
@@ -129,7 +134,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group):
                 x=mz_values,
                 y=ccs_values,
                 mode="markers",
-                marker=dict(size=8, color=series_color),
+                marker=dict(size=8, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
                 showlegend=True,
@@ -310,7 +315,7 @@ def main():
     print("\n[DEBUG] Unique values in 'Classification Type':")
     print(final_IM_group["Classification Type"].unique())
     # ✅ Generate and Show Plot
-    fig = make_plotly_graph(stacked_df, final_IM_group)
+    fig = make_plotly_graph(stacked_df, final_IM_group, library_match_source)
     pio.show(fig)  # Display interactive plot
 
 
