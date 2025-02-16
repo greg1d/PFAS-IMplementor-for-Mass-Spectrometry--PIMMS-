@@ -49,6 +49,36 @@ LEGEND_ITEMS = {
 def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
     fig = go.Figure()
 
+    # ✅ Dummy trace for "External Library Match" (X)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=10, color="white", symbol="x"),
+            name="External Library Match",
+            legendgroup="library_match",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
+    # ✅ Dummy trace for "Sample Feature" (O)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=10, color="white", symbol="circle"),
+            name="Sample Feature",
+            legendgroup="sample_feature",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
     # ✅ Strip whitespace from column names
     adjusted_df.columns = adjusted_df.columns.str.strip()
 
