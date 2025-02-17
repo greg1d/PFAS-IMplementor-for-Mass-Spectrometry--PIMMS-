@@ -123,6 +123,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
 
         # ✅ Prepare hover metadata for each point
         hover_texts = []
+        symbols = []
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
             classification = row.get("Classification Type", "Unknown")
@@ -131,12 +132,23 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             match_source = row.get("Match Source", "Unknown Source")
             if classification == 0:
                 classification = match_source  # ✅ Use Library Match instead
-            is_library_match = match_source == library_match_source
-            marker_symbol = "x" if is_library_match else "circle"
+            marker_symbol = "x" if classification == "External Library" else "circle"
             symbols.append(marker_symbol)
-            mz_value = row["m/z"]  # Extract m/z of current row
 
+            mz_value = row[
+                "m/z"
+            ]  # Extract m/z of current row            group_df.to_csv("group_df.csv", index=False)
             matched_row = adjusted_df.loc[adjusted_df["m/z"] == mz_value]
+            print(
+                "Adjusted DataFrame Columns:", adjusted_df.columns
+            )  # Ensure correct column names
+            print(
+                "Unique Classification Types in adjusted_df:",
+                adjusted_df["Classification Type"].unique(),
+            )
+            print(
+                f"Row Classification: {classification} -> Assigned Marker: {marker_symbol}"
+            )
 
             # ✅ Check if a matching row exists
             if not matched_row.empty:
@@ -172,13 +184,16 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 f"Classification: {classification}<br>"
                 f"Repeating Unit: {repeating_unit}<br>"
             )
-
-            if not is_library_match:
-                hover_text += (
-                    f"Samples:<br>{sample_text}"  # ✅ Only add for dataset points
-                )
+            if classification != "External Library":
+                hover_text += f"Samples:<br>{sample_text}"
 
             hover_texts.append(hover_text)
+
+        for i in range(len(mz_values)):
+            classification_type = group_df.iloc[i]["Classification Type"]
+            print(
+                f"Plot Data Index {i}: m/z={mz_values[i]}, CCS={ccs_values[i]}, classification={classification_type}, Symbol={symbols[i]}"
+            )
 
         # 🔹 Overlay main homologous series points with metadata
         fig.add_trace(
@@ -195,6 +210,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 hovertemplate="%{text}<extra></extra>",  # ✅ Injects metadata dynamically
             )
         )
+        print(f"Final Symbols Assigned: {symbols[:20]}")  # Check first 20 values
 
         # ✅ Format Plotly Layout
     fig.update_layout(
