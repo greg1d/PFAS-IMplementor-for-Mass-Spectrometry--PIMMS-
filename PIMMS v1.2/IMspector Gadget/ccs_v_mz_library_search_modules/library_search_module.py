@@ -1,6 +1,7 @@
 import os
 import sys
 
+import cmocean
 import numpy as np
 import plotly.graph_objects as go
 from scipy import stats
@@ -44,6 +45,8 @@ LEGEND_ITEMS = {
     "Unmatched": {"color": "purple", "legendgroup": "tentative_no_match"},
     "N/A": {"color": "white", "legendgroup": "NA"},  # ✅ Make N/A white
 }
+NUM_SERIES = 10  # Adjust based on the number of homologous series
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
 def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
@@ -100,9 +103,8 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
         reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
         reg_line_y = slope * reg_line_x + intercept
 
-        # ✅ Assign a unique legend group for each series
+        series_color = f"rgb({HOMOLOGOUS_SERIES_COLORS[idx % NUM_SERIES][0] * 255}, {HOMOLOGOUS_SERIES_COLORS[idx % NUM_SERIES][1] * 255}, {HOMOLOGOUS_SERIES_COLORS[idx % NUM_SERIES][2] * 255})"
         legend_group_name = f"group_{group_id}"
-        series_color = "yellow"  # Customize color if needed
 
         # 🔹 Add trendline
         fig.add_trace(
