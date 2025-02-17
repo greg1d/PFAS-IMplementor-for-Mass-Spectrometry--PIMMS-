@@ -1,5 +1,0 @@
-Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),148 B2 16632.d.DeMP,149 B2 16631.d.DeMP,220 B3 16562.d.DeMP,221 B3 16563.d.DeMP,291 B4 16634.d.DeMP,295 B4 16707.d.DeMP
-PFBS (M-H),PFAS Standards,likely,5935,0.95,17.712,120,199.9936128,-6.88,0.14,,597.999,0,617.999,1235.999,650.999,0.0
-PFPeS (M-H),PFAS Standards,likely,3773,1.474,18.939,130,249.9904192,-6.88,0.03,,750.999,0,2023.999,1795.999,1182.999,1048.999
-perfluorododecanesulfonate ,Library test file 1,N/A,N/A,12.83,N/A,100,100.0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A
-perfluorodecanesulfonate ,Library test file 1,N/A,N/A,11.76,N/A,110,149.9968064,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A

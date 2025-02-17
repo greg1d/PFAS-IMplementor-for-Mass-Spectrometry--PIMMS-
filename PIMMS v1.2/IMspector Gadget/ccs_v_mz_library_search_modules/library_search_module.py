@@ -268,6 +268,10 @@ def stack_library_with_adjusted():
     # Read both DataFrames
     adjusted_df = pd.read_csv(FILE_PATH)
     library_df = pd.read_csv(LIBRARY_PATH)
+    columns_to_drop = ["CAS", "PrecursorCharge", "PrecursorFormula", "MoleculeGroup"]
+    library_df = library_df.drop(
+        columns=[col for col in columns_to_drop if col in library_df.columns]
+    )
 
     # ✅ Define column mappings to match adjusted_df
     column_mapping = {
@@ -291,7 +295,8 @@ def stack_library_with_adjusted():
             columns=["PrecursorAdduct"]
         )  # Remove original column
     library_df = library_df.dropna(axis=1, how="any")
-    library_df.insert(0, "ID", range(1, len(library_df) + 1))
+
+    library_df.insert(0, "ID", range(100000, 100000 + len(library_df)))
     if "Match Source" in adjusted_df.columns:
         library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
     if "Classification Type" in adjusted_df.columns:
@@ -301,25 +306,16 @@ def stack_library_with_adjusted():
     remaining_columns = [col for col in library_df.columns if col not in column_order]
     library_df = library_df[column_order + remaining_columns]
 
-    print("library df\n", library_df.head())
-    print("adjusted df\n", adjusted_df.head())
-    missing_columns = [
-        col for col in adjusted_df.columns if col not in library_df.columns
-    ]
-    for col in missing_columns:
-        library_df[col] = 0  # Fill missing columns with a placeholder
-
-    # ✅ Ensure column order matches
-    library_df = library_df[adjusted_df.columns]
-
-    # ✅ Assign "Match Source" column
-    if "Match Source" in adjusted_df.columns:
-        library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
-    else:
-        pass
     # ✅ Stack the two DataFrames (Concatenation of Rows)
     stacked_df = pd.concat([adjusted_df, library_df], ignore_index=True)
+    stacked_df = stacked_df.fillna(0)
+    columns_to_drop = ["Mass Error (ppm)", "CCS Error (%)", "RT Error (%)"]
 
+    stacked_df = stacked_df.drop(
+        columns=[col for col in columns_to_drop if col in stacked_df.columns]
+    )
+    print("stacked df\n", stacked_df.head())
+    stacked_df.to_csv("stacked_df.csv", index=False)
     return stacked_df
 
 
