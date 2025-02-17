@@ -1,0 +1,5 @@
+GroupID,m/z,RT,ID,CCS,Classification Type,Match Source,Match,Repeating Unit
+2,200.0,0.95,5935,200,likely,PFAS Standards,PFOA,CF2
+2,249.9968064,1.474,3773,210,likely,PFAS Standards,PFOS,CF2
+2,299.9936128,12.83,100002,230,External Library,Library test file 1,perfluorododecanesulfonate  (M-H),CF2
+2,349.9904192,11.76,100003,240,External Library,Library test file 1,perfluorodecanesulfonate  (M-H),CF2

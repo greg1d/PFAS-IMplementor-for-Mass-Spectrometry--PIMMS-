@@ -95,7 +95,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
         # ✅ Extract x (m/z) and y (CCS) for linear fit
         mz_values = group_df["m/z"].values
         ccs_values = group_df["CCS"].values
-
+        group_df.to_csv("group_df.csv", index=False)
         # ✅ Perform linear regression for trendline
         slope, intercept, r_value, p_value, _ = stats.linregress(mz_values, ccs_values)
 
@@ -126,7 +126,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
             classification = row.get("Classification Type", "Unknown")
-            RT = row.get("RT", "N/A")
+            RT = row["RT"]  # Direct access if the column exists
             repeating_unit = row.get("Repeating Unit", "N/A")
             match_source = row.get("Match Source", "Unknown Source")
             if classification == 0:
@@ -315,7 +315,6 @@ def stack_library_with_adjusted():
     stacked_df = stacked_df.drop(
         columns=[col for col in columns_to_drop if col in stacked_df.columns]
     )
-    print("stacked df\n", stacked_df.head())
     stacked_df.to_csv("stacked_df.csv", index=False)
     return stacked_df
 
