@@ -280,6 +280,9 @@ def stack_library_with_adjusted():
     # ✅ Rename columns in library_df to match adjusted_df
     library_df = library_df.rename(columns=column_mapping)
 
+    if "PrecursorName" in library_df.columns:
+        library_df = library_df.drop(columns=["PrecursorName"])
+
     if "PrecursorAdduct" in library_df.columns:
         library_df["Match"] = (
             library_df["Match"] + " (" + library_df["PrecursorAdduct"] + ")"
