@@ -55,7 +55,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             x=[None],  # Dummy point (does not appear in the plot)
             y=[None],
             mode="markers",
-            marker=dict(size=10, color="white", symbol="x"),
+            marker=dict(size=15, color="white", symbol="x"),
             name="External Library Match",
             legendgroup="library_match",
             showlegend=True,  # ✅ Always visible
@@ -70,7 +70,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             x=[None],  # Dummy point (does not appear in the plot)
             y=[None],
             mode="markers",
-            marker=dict(size=10, color="white", symbol="circle"),
+            marker=dict(size=15, color="white", symbol="circle"),
             name="Sample Feature",
             legendgroup="sample_feature",
             showlegend=True,  # ✅ Always visible
@@ -86,10 +86,6 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
     sample_columns = [col.strip() for col in adjusted_df.columns if ".d" in col]
 
     symbols = []  # ✅ Store marker symbols
-
-    # ✅ Debug print to check Classification Types
-    print("\n[DEBUG] Unique 'Classification Type' values in filtered_IM_group:")
-    print(filtered_IM_group["Classification Type"].unique())
 
     # ✅ Group by GroupID to draw trendlines and points
     for idx, (group_id, group_df) in enumerate(filtered_IM_group.groupby("GroupID")):
@@ -131,7 +127,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             RT = row.get("RT", "N/A")
             repeating_unit = row.get("Repeating Unit", "N/A")
             match_source = row.get("Match Source", "Unknown Source")
-            if classification == "N/A":
+            if classification == 0:
                 classification = match_source  # ✅ Use Library Match instead
             is_library_match = match_source == library_match_source
             marker_symbol = "x" if is_library_match else "circle"
@@ -140,6 +136,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
 
             matched_row = adjusted_df.loc[adjusted_df["m/z"] == mz_value]
 
+            # ✅ Check if a matching row exists
             # ✅ Check if a matching row exists
             if not matched_row.empty:
                 sample_info = []
@@ -150,16 +147,20 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                     if col in matched_row:
                         val = matched_row[col].values[0]  # Get the intensity
 
-                        # ✅ Report value only if it's a valid number and not NaN
-                        if pd.notna(val):
-                            sample_info.append(f"{col}: {val}")
+                        try:
+                            # ✅ Convert to float (handle cases where it's stored as a string)
+                            val = float(val)
+
+                            # ✅ Check if the value is a valid number, not NaN, and above the threshold
+                            if pd.notna(val) and val >= 0.001:
+                                sample_info.append(f"{col}: {val}")
+                        except ValueError:
+                            pass
 
                 # ✅ Format the sample information
                 sample_text = "<br>".join(sample_info) if sample_info else "None"
             else:
                 sample_text = "None"
-
-            print(f"[DEBUG] Sample intensities for m/z {mz_value}: {sample_text}")
 
             # ✅ Construct hover text, excluding "Samples" for library matches
             hover_text = (
@@ -184,7 +185,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 x=mz_values,
                 y=ccs_values,
                 mode="markers",
-                marker=dict(size=10, color=series_color, symbol=symbols),
+                marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
                 showlegend=True,
@@ -233,7 +234,6 @@ def external_mz_library_matching(IM_group, library_match_source):
     - pd.DataFrame: Filtered IM_group containing only valid groups.
     """
     if IM_group.empty:
-        print("[WARNING] IM_group is empty. No filtering applied.")
         return IM_group
 
     valid_groups = []
@@ -250,10 +250,8 @@ def external_mz_library_matching(IM_group, library_match_source):
     # ✅ Combine all valid groups into a new DataFrame
     if valid_groups:
         filtered_IM_group = pd.concat(valid_groups, ignore_index=True)
-        print(f"[INFO] {len(filtered_IM_group)} rows retained after filtering.")
     else:
         filtered_IM_group = pd.DataFrame()
-        print("[WARNING] No groups met the criteria of at least 2 library matches.")
 
     return filtered_IM_group
 
@@ -262,11 +260,9 @@ def stack_library_with_adjusted():
     """Loads, standardizes, and combines rows from adjusted_df and library_df into a single DataFrame."""
 
     if not os.path.exists(FILE_PATH):
-        print(f"[ERROR] Data file not found: {FILE_PATH}")
         return None
 
     if not os.path.exists(LIBRARY_PATH):
-        print(f"[ERROR] Library file not found: {LIBRARY_PATH}")
         return None
 
     # Read both DataFrames
@@ -284,12 +280,21 @@ def stack_library_with_adjusted():
     # ✅ Rename columns in library_df to match adjusted_df
     library_df = library_df.rename(columns=column_mapping)
 
-    # ✅ Add missing columns in `library_df` and fill with "N/A"
+    if "PrecursorAdduct" in library_df.columns:
+        library_df["Match"] = (
+            library_df["Match"] + " (" + library_df["PrecursorAdduct"] + ")"
+        )
+        library_df = library_df.drop(
+            columns=["PrecursorAdduct"]
+        )  # Remove original column
+
+    print("library df\n", library_df.head())
+
     missing_columns = [
         col for col in adjusted_df.columns if col not in library_df.columns
     ]
     for col in missing_columns:
-        library_df[col] = "N/A"  # Fill missing columns with a placeholder
+        library_df[col] = 0  # Fill missing columns with a placeholder
 
     # ✅ Ensure column order matches
     library_df = library_df[adjusted_df.columns]
@@ -298,8 +303,7 @@ def stack_library_with_adjusted():
     if "Match Source" in adjusted_df.columns:
         library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
     else:
-        print("[WARNING] 'Match Source' column not found in adjusted_df.")
-
+        pass
     # ✅ Stack the two DataFrames (Concatenation of Rows)
     stacked_df = pd.concat([adjusted_df, library_df], ignore_index=True)
 
@@ -314,14 +318,10 @@ def main():
     stacked_df = stack_library_with_adjusted()
 
     if stacked_df is None:
-        print("[ERROR] Could not generate stacked DataFrame. Exiting.")
         return
-
-    print(f"[INFO] Stacked DataFrame created with {len(stacked_df)} rows.")
 
     # ✅ Extract standards library name
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
-    print(f"[INFO] Using standards library: {library_match_source}")
 
     # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(
@@ -329,16 +329,11 @@ def main():
     )
 
     if mass_groups.empty:
-        print("[WARNING] No homologous series detected. Exiting.")
         return
-
-    print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
 
     # ✅ Run CCS_v_mz_analysis and store IM groups
     filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
-        print(f"\n[DEBUG] Analyzing Group {group_id}...")
-
         IM_group, _, _, _ = CCS_v_mz_analysis(group_df)
 
         if IM_group:
@@ -353,7 +348,6 @@ def main():
 
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
-                print(filtered_IM_group.head(10).to_string(index=False))
 
     # ✅ Merge all valid IM groups into one DataFrame
     final_IM_group = (
@@ -362,8 +356,6 @@ def main():
         else pd.DataFrame()
     )
 
-    print("\n[DEBUG] Unique values in 'Classification Type':")
-    print(final_IM_group["Classification Type"].unique())
     # ✅ Generate and Show Plot
     fig = make_plotly_graph(stacked_df, final_IM_group, library_match_source)
     pio.show(fig)  # Display interactive plot
