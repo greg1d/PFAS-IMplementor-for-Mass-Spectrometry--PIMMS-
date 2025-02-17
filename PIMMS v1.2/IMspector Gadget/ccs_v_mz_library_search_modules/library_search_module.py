@@ -137,7 +137,6 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             matched_row = adjusted_df.loc[adjusted_df["m/z"] == mz_value]
 
             # ✅ Check if a matching row exists
-            # ✅ Check if a matching row exists
             if not matched_row.empty:
                 sample_info = []
                 for col in sample_columns:  # Iterate over all sample intensity columns
