@@ -290,9 +290,19 @@ def stack_library_with_adjusted():
         library_df = library_df.drop(
             columns=["PrecursorAdduct"]
         )  # Remove original column
+    library_df = library_df.dropna(axis=1, how="any")
+    library_df.insert(0, "ID", range(1, len(library_df) + 1))
+    if "Match Source" in adjusted_df.columns:
+        library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
+    if "Classification Type" in adjusted_df.columns:
+        library_df["Classification Type"] = "External Library"  # Use extracted filename
+
+    column_order = ["Match", "Match Source", "Classification Type", "ID", "RT", "CCS"]
+    remaining_columns = [col for col in library_df.columns if col not in column_order]
+    library_df = library_df[column_order + remaining_columns]
 
     print("library df\n", library_df.head())
-
+    print("adjusted df\n", adjusted_df.head())
     missing_columns = [
         col for col in adjusted_df.columns if col not in library_df.columns
     ]
