@@ -204,14 +204,33 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
             go.Scatter(
                 x=mz_values,
                 y=ccs_values,
-                mode="markers",
+                mode="markers+text",  # ✅ Show both points and text labels
                 marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
                 showlegend=False,
                 visible="legendonly",
-                text=hover_texts,  # ✅ Full metadata in hover
-                hovertemplate="%{text}<extra></extra>",  # ✅ Injects metadata dynamically
+                text=[
+                    row.get("Match", "No Match") for _, row in group_df.iterrows()
+                ],  # ✅ Match Names
+                textposition="middle left",  # ✅ Position labels at the top-right of each point
+                textfont=dict(
+                    family="NormativePro",  # ✅ Use NormativePro font
+                    size=12,  # ✅ Font size 12
+                    color="white",  # ✅ White text
+                    weight="bold",  # ✅ Bold font
+                ),
+                hovertext=[
+                    f"Match: {row.get('Match', 'No Match')}<br>"
+                    f"m/z: {row['m/z']:.4f}<br>"
+                    f"CCS: {row['CCS']:.2f}<br>"
+                    f"RT: {row['RT']}<br>"
+                    f"Classification: {row.get('Classification Type', 'Unknown')}<br>"
+                    f"Repeating Unit: {row.get('Repeating Unit', 'N/A')}"
+                    for _, row in group_df.iterrows()
+                ],
+                hoverinfo="text",  # ✅ Ensures hover text is shown
+                hovertemplate="%{hovertext}<extra></extra>",  # ✅ Preserves hover template
             )
         )
 
