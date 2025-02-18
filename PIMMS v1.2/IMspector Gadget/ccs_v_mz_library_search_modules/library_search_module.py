@@ -49,7 +49,7 @@ NUM_SERIES = 10  # Adjust based on the number of homologous series
 HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
-def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
+def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
     fig = go.Figure()
 
     # ✅ Dummy trace for "External Library Match" (X)
@@ -59,7 +59,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             y=[None],
             mode="markers",
             marker=dict(size=15, color="white", symbol="x"),
-            name="External Library Match",
+            name="<b>External Library Match</b>",
             legendgroup="library_match",
             showlegend=True,  # ✅ Always visible
             hoverinfo="skip",
@@ -74,7 +74,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             y=[None],
             mode="markers",
             marker=dict(size=15, color="white", symbol="circle"),
-            name="Sample Feature",
+            name="<b>Sample Feature</b>",
             legendgroup="sample_feature",
             showlegend=True,  # ✅ Always visible
             hoverinfo="skip",
@@ -204,13 +204,31 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
-                showlegend=True,
+                showlegend=False,
                 visible="legendonly",
                 text=hover_texts,  # ✅ Full metadata in hover
                 hovertemplate="%{text}<extra></extra>",  # ✅ Injects metadata dynamically
             )
         )
-        print(f"Final Symbols Assigned: {symbols[:20]}")  # Check first 20 values
+
+        # 🔹 Add a separate text-only legend entry (NO MARKER)
+        fig.add_trace(
+            go.Scatter(
+                x=[None],  # Dummy point (does not appear in the plot)
+                y=[None],
+                mode="lines",  # ✅ Ensures no marker appears
+                text=[f"<b>Homologous Series {idx + 1}</b>"],  # ✅ Bold text
+                line=dict(
+                    color=series_color, dash="dash", width=2
+                ),  # ✅ Dashed line with the correct color
+                textfont=dict(
+                    size=14, color=series_color
+                ),  # ✅ Match homologous series color
+                name=f"<b>Homologous Series {idx + 1}</b>",  # ✅ Ensure text appears in legend
+                legendgroup=legend_group_name,
+                showlegend=True,  # ✅ Show this in the legend
+            )
+        )
 
         # ✅ Format Plotly Layout
     fig.update_layout(
@@ -382,7 +400,7 @@ def main():
     )
 
     # ✅ Generate and Show Plot
-    fig = make_plotly_graph(stacked_df, final_IM_group, library_match_source)
+    fig = library_search_plotly(stacked_df, final_IM_group, library_match_source)
     pio.show(fig)  # Display interactive plot
 
 
