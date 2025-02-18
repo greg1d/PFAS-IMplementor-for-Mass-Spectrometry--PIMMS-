@@ -263,7 +263,10 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
 
 def external_mz_library_matching(IM_group, library_match_source):
     """
-    Filters IM_group to retain only groups where at least 2 rows come from the external library file.
+    Filters IM_group to retain only groups where:
+    - At least 2 rows come from the external library file.
+    - No more than 2 consecutive external library matches before a sample appears.
+    - Each homologous series contains at least one sample result.
 
     Parameters:
     - IM_group (pd.DataFrame): Data containing identified homologous series.
@@ -279,12 +282,35 @@ def external_mz_library_matching(IM_group, library_match_source):
 
     # ✅ Group by GroupID
     for group_id, group_df in IM_group.groupby("GroupID"):
-        # ✅ Count how many rows come from the specified external file
+        # ✅ Count how many rows come from the external file
         source_count = (group_df["Match Source"] == library_match_source).sum()
 
-        # ✅ Keep groups that have at least 2 rows from the external file
-        if source_count >= 2:
-            valid_groups.append(group_df)
+        # ✅ Count the number of non-library samples
+        sample_count = len(group_df) - source_count
+
+        # ✅ Ensure there is at least one sample in the group
+        if source_count >= 2 and sample_count >= 1:
+            # ✅ Track consecutive standards
+            consecutive_standards = 0
+            valid_rows = []
+            has_sample = False  # ✅ Track if at least one sample exists
+
+            for _, row in group_df.iterrows():
+                is_standard = row["Match Source"] == library_match_source
+
+                if is_standard:
+                    consecutive_standards += 1
+                else:
+                    consecutive_standards = 0  # Reset counter if we find a sample
+                    has_sample = True  # ✅ Found at least one sample
+
+                # ✅ Allow max 2 consecutive standards before a sample
+                if consecutive_standards <= 2:
+                    valid_rows.append(row)
+
+            # ✅ If at least one sample is present, keep this homologous series
+            if has_sample:
+                valid_groups.append(pd.DataFrame(valid_rows))
 
     # ✅ Combine all valid groups into a new DataFrame
     if valid_groups:
