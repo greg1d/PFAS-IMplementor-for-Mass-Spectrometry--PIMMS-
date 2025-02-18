@@ -1,6 +1,8 @@
-from dash import Input, Output
-import sys
 import os
+import sys
+
+import dash
+from dash import Input, Output
 
 # ✅ Ensure Python Can Find `config.py`
 sys.path.append(
@@ -14,12 +16,12 @@ sys.path.append(
 sys.path.append(
     os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..")
-    )  # Move up to IMspector Gadget to locate config.py
+    )  # Move up to locate config.py
 )
 
 # ✅ Import from `config.py`
 try:
-    from config import REPEATING_UNITS  # ✅ Import repeating_units
+    from config import REPEATING_UNITS
 
     print(f"[DEBUG] Successfully imported repeating_units: {REPEATING_UNITS}")
 except ModuleNotFoundError:
@@ -27,63 +29,46 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 from data_processing import load_standards_report
-from graphing import (
-    generate_plot,
-    generate_library_search_plot,
-)  # ✅ Import new graph functions
+from graphing import plot_figure_1, plot_figure_2
 
 
-def register_callbacks(
-    app,
-    adjusted_df,
-    filtered_IM_group,
-    library_match_source,
-    refined_groups,
-    branched_isomer_groups,
-    post_source_decay_groups,
-    mass_only_groups,
-    mass_groups,
-):
+def register_callbacks(app, adjusted_df):
     """Registers Dash callbacks for dynamic graph updates and table refresh."""
 
     @app.callback(
-        [
-            Output("plotly_graph", "figure"),
-            Output("library_search_graph", "figure"),
-        ],  # ✅ Added output for second plot
+        [Output("plotly_graph", "figure"), Output("library_search_graph", "figure")],
         [Input("remove_columns", "value")],
     )
     def update_graph_callback(remove_columns):
         print(
             f"[DEBUG] update_graph_callback triggered with remove_columns={remove_columns}"
         )
-        print(f"[DEBUG] Using repeating units: {REPEATING_UNITS}")
 
-        # ✅ If repeating_units is empty, show a warning
-        if not REPEATING_UNITS:
-            print("[WARNING] No repeating units specified in callback!")
+        # ✅ Ensure adjusted_df is being filtered correctly
+        if remove_columns:
+            print(f"[DEBUG] Dropping columns: {remove_columns}")
+            filtered_df = adjusted_df.drop(columns=remove_columns, errors="ignore")
+        else:
+            filtered_df = adjusted_df.copy()
 
-        # ✅ Filter adjusted_df based on selected columns
-        filtered_df = (
-            adjusted_df.drop(columns=remove_columns, errors="ignore")
-            if remove_columns
-            else adjusted_df
-        )
+        print(f"[DEBUG] Filtered DataFrame shape: {filtered_df.shape}")
 
-        # ✅ Generate updated plots
-        fig1 = generate_plot(
-            filtered_df,
-            refined_groups,
-            branched_isomer_groups,
-            post_source_decay_groups,
-            mass_only_groups,
-            mass_groups,
-        )
-        fig2 = generate_library_search_plot(
-            filtered_df, filtered_IM_group, library_match_source
-        )
+        try:
+            # ✅ Generate updated plots
+            fig1 = plot_figure_1(filtered_df)
+            fig2 = plot_figure_2(filtered_df)
 
-        return fig1, fig2  # ✅ Now returning both figures
+            # ✅ Check if plots are generated correctly
+            if fig1 and fig2:
+                print("[DEBUG] Successfully generated plots")
+            else:
+                print("[ERROR] One or both figures were not generated correctly!")
+
+            return fig1, fig2
+
+        except Exception as e:
+            print(f"[ERROR] Exception in update_graph_callback: {e}", flush=True)
+            return dash.no_update, dash.no_update
 
     @app.callback(
         [Output("standards-table", "columns"), Output("standards-table", "data")],

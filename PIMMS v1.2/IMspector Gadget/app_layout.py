@@ -1,40 +1,20 @@
-from dash import dash_table, dcc, html
-from data_processing import load_adjusted_data
-
-adjusted_df = load_adjusted_data()
-
-d_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+from dash import dcc, html
 
 
 def get_layout():
-    """Returns the Dash app layout."""
     return html.Div(
         [
             html.H1("PIMMS Data Analysis Dashboard"),
-            # Sample Selection Dropdown
+            # Dropdown for column removal
             dcc.Dropdown(
                 id="remove_columns",
-                options=[{"label": col, "value": col} for col in d_columns],
+                options=[],  # Dynamically populated in the app
                 multi=True,
-                placeholder="Select Samples to Hide from Report...",
+                placeholder="Select columns to remove...",
             ),
-            # Main Plot (CCS vs. m/z)
             html.H2("CCS vs. m/z Trend Analysis"),
-            dcc.Graph(id="plotly_graph"),
-            # New Section for Library Search Plot
+            dcc.Graph(id="plotly_graph"),  # ✅ Ensure this exists!
             html.H2("Library Search Results"),
-            dcc.Graph(id="library_search_graph"),  # ✅ Added for fig2
-            html.Hr(),
-            # Standards Report Panel
-            html.H2("Standards Report"),
-            html.Button(
-                "Refresh Standards Report", id="refresh-standards-btn", n_clicks=0
-            ),
-            dash_table.DataTable(
-                id="standards-table",
-                columns=[],
-                data=[],
-                style_table={"overflowX": "auto"},
-            ),
+            dcc.Graph(id="library_search_graph"),  # ✅ Ensure this exists!
         ]
     )

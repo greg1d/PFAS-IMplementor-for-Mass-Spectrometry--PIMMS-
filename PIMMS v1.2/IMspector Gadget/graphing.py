@@ -12,18 +12,27 @@ MODULE_PATH_2 = os.path.join(BASE_DIR, "ccs_v_mz_library_search_modules")
 sys.path.append(MODULE_PATH_1)  # Add `ccs_v_mz_modules` to sys.path
 sys.path.append(MODULE_PATH_2)  # Add `ccs_v_mz_library_search_modules` to sys.path
 
-from analysis import run_analysis  # ✅ Import `run_analysis()`
+from analysis import run_analysis, run_library_search_analysis
+from library_search_module import library_search_plotly
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
 
 
-def plot_figure_1(file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"):
+def plot_figure_1(
+    adjusted_df=None, file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+):
     """
     Processes data, runs analysis, and generates a Plotly figure.
+
+    Args:
+        adjusted_df (pd.DataFrame, optional): If provided, uses this dataframe instead of reading from file.
+        file_path (str): Path to CSV file (only used if adjusted_df is not provided).
 
     Returns:
         plotly.graph_objects.Figure: The generated plot.
     """
-    adjusted_df = pd.read_csv(file_path)
+    if adjusted_df is None:
+        adjusted_df = pd.read_csv(file_path)  # ✅ Only read if no DataFrame is provided
+
     print("\n[INFO] Running `run_analysis()`...")
 
     # ✅ Run full analysis using imported function
@@ -42,38 +51,67 @@ def plot_figure_1(file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv
 
     print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
-    # **Debugging Step**: Ensure that there is data in refined_groups for plotting
-    non_empty_refined_groups = [
-        group
-        for group in refined_groups
-        if isinstance(group, pd.DataFrame) and not group.empty
-    ]
-
-    if not non_empty_refined_groups:
-        print("\n[WARNING] All refined_groups are empty! Trendlines may not appear.")
-    else:
-        print("\n[INFO] Some homologous series groups contain data.")
-
-    # **Combine results into one simplified plot input**
-    plot_data = {
-        "adjusted_df": adjusted_df,
-        "refined_groups": refined_groups,
-        "branched_isomers": branched_isomers,
-        "post_source_decay": post_source_decay,
-        "mass_only_groups": mass_only_groups,
-        "mass_groups": mass_groups,
-    }
-
-    # **Step: Generate Plotly plot**
+    # ✅ Generate Plotly plot
     print("\n[INFO] Generating Plotly plot...")
-    fig = make_plotly_graph(**plot_data)  # Pass all plot data in a single call
+    fig1 = make_plotly_graph(
+        adjusted_df,
+        refined_groups,
+        branched_isomers,
+        post_source_decay,
+        mass_only_groups,
+        mass_groups,
+    )
 
-    return fig
+    return fig1
+
+
+def plot_figure_2(
+    adjusted_df=None, file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+):
+    """
+    Runs library search analysis and generates a Plotly figure.
+
+    Returns:
+        plotly.graph_objects.Figure: The generated plot.
+    """
+
+    if adjusted_df is None:
+        adjusted_df = pd.read_csv(file_path)  # ✅ Only read if no DataFrame is provided
+
+    # ✅ Run library search analysis
+    filtered_IM_group, stacked_df = run_library_search_analysis()
+
+    if stacked_df is None or stacked_df.empty:
+        print("\n[WARNING] No stacked dataset available. Exiting.")
+        return None
+
+    if filtered_IM_group is None or filtered_IM_group.empty:
+        print("\n[WARNING] No homologous series identified. Exiting.")
+        return None
+
+    print(
+        f"[DEBUG] Identified {filtered_IM_group['GroupID'].nunique()} homologous series."
+    )
+
+    # ✅ Extract the library match source from the path
+    library_match_source = os.path.splitext(
+        os.path.basename("PIMMS v1.2/import folder/Library test file 1.csv")
+    )[0]
+
+    # ✅ Generate Plotly plot
+    print("\n[INFO] Generating Library Search Plotly plot...")
+    fig2 = library_search_plotly(stacked_df, filtered_IM_group, library_match_source)
+
+    return fig2
 
 
 # ✅ Main function to call `plot_figure_1()`
 if __name__ == "__main__":
-    fig = plot_figure_1()
-    if fig:
+    fig1 = plot_figure_1()
+    if fig1:
         print("[INFO] Plot generation complete. Displaying plot...")
-        pio.show(fig)
+        pio.show(fig1)
+    fig2 = plot_figure_2()
+    if fig2:
+        print("[INFO] Plot generation complete. Displaying plot...")
+        pio.show(fig2)
