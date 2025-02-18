@@ -2,6 +2,7 @@ from dash import Input, Output
 import sys
 import os
 
+# ✅ Ensure Python Can Find `config.py`
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
 )
@@ -10,21 +11,26 @@ sys.path.append(
         os.path.join(os.path.dirname(__file__), "ccs_v_mz_library_search_modules")
     )
 )
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..")
+    )  # Move up to IMspector Gadget to locate config.py
+)
+
+# ✅ Import from `config.py`
+try:
+    from config import REPEATING_UNITS  # ✅ Import repeating_units
+
+    print(f"[DEBUG] Successfully imported repeating_units: {REPEATING_UNITS}")
+except ModuleNotFoundError:
+    print("[ERROR] Could not import `repeating_units` from config.py!")
+    sys.exit(1)
 
 from data_processing import load_standards_report
 from graphing import (
     generate_plot,
     generate_library_search_plot,
 )  # ✅ Import new graph functions
-
-# ✅ Global repeating_units (Needs to be updated externally)
-repeating_units = {
-    "CF2": 49.9968064,
-    "OCF2": 65.9917214,
-    "CF2CF2O": 115.988527,
-    "CH2CF2": 64.012456,
-    "HF": 20.0062278,
-}
 
 
 def register_callbacks(
@@ -48,14 +54,13 @@ def register_callbacks(
         [Input("remove_columns", "value")],
     )
     def update_graph_callback(remove_columns):
-        global repeating_units  # ✅ Ensure the callback gets the updated value
         print(
             f"[DEBUG] update_graph_callback triggered with remove_columns={remove_columns}"
         )
-        print(f"[DEBUG] Using repeating units: {repeating_units}")
+        print(f"[DEBUG] Using repeating units: {REPEATING_UNITS}")
 
         # ✅ If repeating_units is empty, show a warning
-        if not repeating_units:
+        if not REPEATING_UNITS:
             print("[WARNING] No repeating units specified in callback!")
 
         # ✅ Filter adjusted_df based on selected columns

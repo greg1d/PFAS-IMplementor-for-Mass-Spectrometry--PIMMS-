@@ -1,32 +1,34 @@
+import sys
+import os
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
 
-# Define repeating units
-REPEATING_UNITS = {
-    "CF2": 49.9968064,
-    "OCF2": 65.9917214,
-    "CF2CF2O": 115.988527,
-    "CH2CF2": 64.012456,
-    "HF": 20.0062278,
-}
+# ✅ Define the correct base directory
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # This is ccs_v_mz_modules
+IMPECTOR_GADGET_DIR = os.path.abspath(
+    os.path.join(BASE_DIR, "..")
+)  # Move up to IMspector Gadget
+
+# ✅ Ensure Python finds `config.py`
+if IMPECTOR_GADGET_DIR not in sys.path:
+    sys.path.append(IMPECTOR_GADGET_DIR)  # Add IMspector Gadget to sys.path
+from config import selected_repeating_units  # ✅ Import selected repeating units
+
+print("[DEBUG] selected_repeating_units:", selected_repeating_units)
 
 
-def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[]):
-    """Identifies homologous series trends by sequentially checking different repeating units.
+def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10):
+    """
+    Identifies homologous series trends by checking different repeating units.
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
     """
+    print(f"[DEBUG] selected_repeating_units: {selected_repeating_units}")
 
     iteration_count = 0  # Track loop iterations
     group_counter = 0  # Track unique Group ID
 
-    # Convert user-provided repeating units into masses
-    selected_units = {
-        unit: REPEATING_UNITS[unit]
-        for unit in repeating_units
-        if unit in REPEATING_UNITS
-    }
-    print(f"[DEBUG] Selected repeating units: {selected_units}")
+    selected_units = selected_repeating_units
     # **Sort data by m/z for efficient searching**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
 
@@ -275,11 +277,8 @@ def main():
     """Run the analysis pipeline and return results."""
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
-    repeating_units = ["CF2"]
 
-    mass_groups = mz_repeating_unit_analysis(
-        adjusted_df, repeating_units=repeating_units
-    )
+    mass_groups = mz_repeating_unit_analysis(adjusted_df)
     if mass_groups.empty:
         return None  # Exit if no groups found
 

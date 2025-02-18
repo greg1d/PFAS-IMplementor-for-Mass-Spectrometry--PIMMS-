@@ -3,6 +3,15 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from scipy.stats import linregress
+import os
+import sys
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # This is ccs_v_mz_modules
+IMPECTOR_GADGET_DIR = os.path.abspath(
+    os.path.join(BASE_DIR, "..")
+)  # Move up to IMspector Gadget
+print(f"[DEBUG] IMPECTOR_GADGET_DIR is set to: {IMPECTOR_GADGET_DIR}")
+sys.path.append(IMPECTOR_GADGET_DIR)
 
 HOMOLOGOUS_SERIES_COLORS = [
     "cyan",
@@ -37,10 +46,6 @@ def add_homologous_series_trendlines(
             mass_groups[["m/z", "Repeating Unit"]], on="m/z", how="left"
         )
         print("merged df", adjusted_df.head())
-
-    # ✅ Function to match homologous series points with branched/post-source points
-    def is_point_in_series(mz, series_mz_values, mz_tol=0.1):
-        return any(abs(mz - series_mz) < mz_tol for series_mz in series_mz_values)
 
     for idx, group in enumerate(refined_groups):
         if len(group) < 3:
@@ -455,10 +460,8 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
     print(
         f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {repeating_units}"
     )
-    mass_groups = mz_repeating_unit_analysis(
-        filtered_df, repeating_units=repeating_units
-    )
-
+    mass_groups = mz_repeating_unit_analysis(filtered_df)
+    print("repeating units", repeating_units)
     # ✅ Process each group through CCS_v_mz_analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}
@@ -510,18 +513,14 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
 
 def main():
     """Runs full analysis pipeline and generates an interactive Plotly plot."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
-
-    repeating_units = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
     print("\n[INFO] Starting mz_repeating_unit_analysis...")
 
     # **Step 1: Identify homologous series**
-    mass_groups = mz_repeating_unit_analysis(
-        adjusted_df, repeating_units=repeating_units
-    )
-
+    mass_groups = mz_repeating_unit_analysis(adjusted_df)
+    print("mass groups", mass_groups.head())
     if mass_groups.empty:
         print("\n[WARNING] No homologous series groups identified. Exiting.")
         return

@@ -12,7 +12,7 @@ from ccs_v_mz_library_search_modules.library_search_module import (
     stack_library_with_adjusted,
     external_mz_library_matching,
 )
-from config import LIBRARY_PATH, REPEATING_UNITS
+from config import LIBRARY_PATH
 from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
@@ -24,7 +24,7 @@ def run_analysis(adjusted_df):
     print("[INFO] Starting mz_repeating_unit_analysis...")
 
     # Identify homologous series
-    mass_groups = mz_repeating_unit_analysis(adjusted_df, REPEATING_UNITS)
+    mass_groups = mz_repeating_unit_analysis(adjusted_df)
 
     if mass_groups.empty:
         print("[WARNING] No homologous series identified.")
@@ -34,15 +34,19 @@ def run_analysis(adjusted_df):
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}
 
+    print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
     for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
-        refined_data, post_decay, branched_isomer, mass_only_group = CCS_v_mz_analysis(
-            group_df
+        print(f"[DEBUG] Analyzing Group {idx + 1} (GroupID: {group_id})")
+
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(group_df)
         )
 
-        if refined_data:
-            refined_groups.append(refined_data)
+        # Append results for plotting
+        refined_groups.append(IM_group)
+        print(refined_groups)
         branched_isomer_groups.append(branched_isomer)
-        post_source_decay_groups.append(post_decay)
+        post_source_decay_groups.append(post_source_decay)
 
         if mass_only_group:
             mass_only_groups[f"Group {idx + 1}"] = mass_only_group
@@ -86,9 +90,7 @@ def run_library_search_analysis():
 
     # ✅ Step 2: Identify homologous series using repeating unit analysis
     print("[INFO] Running mz_repeating_unit_analysis...")
-    mass_groups = mz_repeating_unit_analysis(
-        stacked_df, repeating_units=list(REPEATING_UNITS.keys())
-    )
+    mass_groups = mz_repeating_unit_analysis(stacked_df)
 
     if mass_groups.empty:
         print("[WARNING] No homologous series identified.")
