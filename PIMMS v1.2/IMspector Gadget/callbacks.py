@@ -1,9 +1,6 @@
 import os
 import sys
 
-import dash
-from dash import Input, Output
-
 # ✅ Ensure Python Can Find `config.py`
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
@@ -28,18 +25,33 @@ except ModuleNotFoundError:
     print("[ERROR] Could not import `repeating_units` from config.py!")
     sys.exit(1)
 
+import dash  # ✅ Import the full dash module
+from dash import Input, Output, State
 from data_processing import load_standards_report
 from graphing import plot_figure_1, plot_figure_2
 
 
 def register_callbacks(app, adjusted_df):
-    """Registers Dash callbacks for dynamic graph updates and table refresh."""
+    """Registers Dash callbacks for dynamic updates of plots and dropdown options."""
 
+    # ✅ Callback to update column removal dropdown options dynamically
+    @app.callback(
+        Output("remove_columns", "options"),
+        Input("plotly_graph", "figure"),  # Trigger on graph update
+        State("remove_columns", "value"),  # Preserve selected values
+    )
+    def update_dropdown_options(_, selected_values):
+        """Updates the column removal dropdown options dynamically."""
+        options = [{"label": col, "value": col} for col in adjusted_df.columns]
+        return options
+
+    # ✅ Callback to update plots when columns are removed
     @app.callback(
         [Output("plotly_graph", "figure"), Output("library_search_graph", "figure")],
-        [Input("remove_columns", "value")],
+        Input("remove_columns", "value"),
     )
     def update_graph_callback(remove_columns):
+        """Dynamically updates plots when selected columns are removed."""
         print(
             f"[DEBUG] update_graph_callback triggered with remove_columns={remove_columns}"
         )
@@ -68,13 +80,15 @@ def register_callbacks(app, adjusted_df):
 
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}", flush=True)
-            return dash.no_update, dash.no_update
+            return dash.no_update, dash.no_update  # ✅ Use dash.no_update
 
+    # ✅ Callback to refresh standards report
     @app.callback(
         [Output("standards-table", "columns"), Output("standards-table", "data")],
         [Input("refresh-standards-btn", "n_clicks")],
     )
     def refresh_standards_report(n_clicks):
+        """Refreshes the standards report when the refresh button is clicked."""
         print(f"[DEBUG] refresh_standards_report triggered with n_clicks={n_clicks}")
 
         if n_clicks is None:
