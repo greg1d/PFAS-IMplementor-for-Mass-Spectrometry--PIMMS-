@@ -211,12 +211,13 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
                 showlegend=False,
                 visible="legendonly",
                 text=[
-                    row.get("Match", "No Match") for _, row in group_df.iterrows()
-                ],  # ✅ Match Names
+                    f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
+                    for _, row in group_df.iterrows()
+                ],  # ✅ Match Name + Classification on separate lines
                 textposition="middle left",  # ✅ Position labels at the top-right of each point
                 textfont=dict(
                     family="NormativePro",  # ✅ Use NormativePro font
-                    size=12,  # ✅ Font size 12
+                    size=16,  # ✅ Font size 12
                     color="white",  # ✅ White text
                     weight="bold",  # ✅ Bold font
                 ),
