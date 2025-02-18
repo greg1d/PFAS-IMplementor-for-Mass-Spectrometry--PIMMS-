@@ -62,6 +62,16 @@ def plot_figure_1(
         mass_groups,
     )
 
+    for trace in fig1.data:
+        if hasattr(trace, "hovertext") and trace.hovertext is not None:
+            mask = [hover_text != "None" for hover_text in trace.hovertext]
+            trace.x = [x for x, keep in zip(trace.x, mask) if keep]
+            trace.y = [y for y, keep in zip(trace.y, mask) if keep]
+            trace.text = (
+                [t for t, keep in zip(trace.text, mask) if keep] if trace.text else None
+            )
+            trace.hovertext = [ht for ht, keep in zip(trace.hovertext, mask) if keep]
+
     return fig1
 
 

@@ -12,8 +12,8 @@ sys.path.append(
 )
 sys.path.append(
     os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..")
-    )  # Move up to locate config.py
+        os.path.join(os.path.dirname(__file__), "..")  # Move up to locate config.py
+    )
 )
 
 # ✅ Import from `config.py`
@@ -25,79 +25,107 @@ except ModuleNotFoundError:
     print("[ERROR] Could not import `repeating_units` from config.py!")
     sys.exit(1)
 
-import dash  # ✅ Import the full dash module
-from dash import Input, Output, State
+from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
+from dash import Input, Output, State, no_update
 from data_processing import load_standards_report
-from graphing import plot_figure_1, plot_figure_2
+from graphing import make_plotly_graph, plot_figure_1, plot_figure_2
 
 
 def register_callbacks(app, adjusted_df):
     """Registers Dash callbacks for dynamic updates of plots and dropdown options."""
 
-    # ✅ Callback to update column removal dropdown options dynamically
     @app.callback(
         Output("remove_columns", "options"),
-        Input("plotly_graph", "figure"),  # Trigger on graph update
-        State("remove_columns", "value"),  # Preserve selected values
+        Input("plotly_graph", "figure"),
+        State("remove_columns", "value"),
     )
     def update_dropdown_options(_, selected_values):
-        """Updates the column removal dropdown options dynamically."""
-        options = [{"label": col, "value": col} for col in adjusted_df.columns]
-        return options
+        return [{"label": col, "value": col} for col in adjusted_df.columns]
 
-    # ✅ Callback to update plots when columns are removed
     @app.callback(
         [Output("plotly_graph", "figure"), Output("library_search_graph", "figure")],
         Input("remove_columns", "value"),
     )
     def update_graph_callback(remove_columns):
-        """Dynamically updates plots when selected columns are removed."""
         print(
             f"[DEBUG] update_graph_callback triggered with remove_columns={remove_columns}"
         )
 
-        # ✅ Ensure adjusted_df is being filtered correctly
-        if remove_columns:
-            print(f"[DEBUG] Dropping columns: {remove_columns}")
-            filtered_df = adjusted_df.drop(columns=remove_columns, errors="ignore")
-        else:
-            filtered_df = adjusted_df.copy()
-
+        filtered_df = (
+            adjusted_df.drop(columns=remove_columns, errors="ignore")
+            if remove_columns
+            else adjusted_df.copy()
+        )
         print(f"[DEBUG] Filtered DataFrame shape: {filtered_df.shape}")
 
         try:
-            # ✅ Generate updated plots
             fig1 = plot_figure_1(filtered_df)
             fig2 = plot_figure_2(filtered_df)
-
-            # ✅ Check if plots are generated correctly
-            if fig1 and fig2:
-                print("[DEBUG] Successfully generated plots")
-            else:
-                print("[ERROR] One or both figures were not generated correctly!")
-
             return fig1, fig2
-
         except Exception as e:
-            print(f"[ERROR] Exception in update_graph_callback: {e}", flush=True)
-            return dash.no_update, dash.no_update  # ✅ Use dash.no_update
+            print(f"[ERROR] Exception in update_graph_callback: {e}")
+            return no_update, no_update
 
-    # ✅ Callback to refresh standards report
     @app.callback(
         [Output("standards-table", "columns"), Output("standards-table", "data")],
         [Input("refresh-standards-btn", "n_clicks")],
     )
     def refresh_standards_report(n_clicks):
-        """Refreshes the standards report when the refresh button is clicked."""
-        print(f"[DEBUG] refresh_standards_report triggered with n_clicks={n_clicks}")
-
         if n_clicks is None:
-            print("[DEBUG] No clicks detected. Returning empty table.")
             return [], []
-
         df = load_standards_report()
-        print(
-            f"[DEBUG] Loaded standards report with {len(df)} rows and {len(df.columns)} columns."
-        )
-
         return [{"name": i, "id": i} for i in df.columns], df.to_dict("records")
+
+
+def update_graph(remove_columns, adjusted_df, repeating_units=REPEATING_UNITS):
+    print("[INFO] Graph update triggered.")
+
+    remove_columns = remove_columns or []
+    filtered_df = adjusted_df.drop(
+        columns=[col for col in remove_columns if col in adjusted_df.columns],
+        errors="ignore",
+    )
+
+    d_columns = [col for col in filtered_df.columns if ".d" in col]
+    if d_columns:
+        filtered_df = filtered_df[~(filtered_df[d_columns] == 0).all(axis=1)]
+
+    sample_columns = [col for col in filtered_df.columns if ".d" in col]
+    filtered_df["Sample_Info"] = filtered_df.apply(
+        lambda row: "<br>".join(
+            [f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0]
+        )
+        if any(row[col] > 0 for col in sample_columns)
+        else "None",
+        axis=1,
+    )
+    filtered_df = filtered_df[filtered_df["Sample_Info"] != "None"]
+
+    mass_groups = mz_repeating_unit_analysis(filtered_df)
+    (
+        refined_groups,
+        branched_isomer_groups,
+        post_source_decay_groups,
+        mass_only_groups,
+    ) = [], [], [], {}
+
+    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
+        IM_group, post_source_decay, branched_isomer, mass_only_group = (
+            CCS_v_mz_analysis(group_df)
+        )
+        refined_groups.append(IM_group)
+        branched_isomer_groups.append(branched_isomer)
+        post_source_decay_groups.append(post_source_decay)
+        if isinstance(mass_only_group, list) and mass_only_group:
+            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
+
+    fig = make_plotly_graph(
+        filtered_df,
+        refined_groups,
+        branched_isomer_groups,
+        post_source_decay_groups,
+        mass_only_groups,
+        mass_groups,
+    )
+
+    return fig

@@ -1,10 +1,11 @@
+import os
+import sys
+
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from scipy.stats import linregress
-import os
-import sys
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # This is ccs_v_mz_modules
 IMPECTOR_GADGET_DIR = os.path.abspath(
@@ -446,9 +447,11 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
         ]
         return "<br>".join(sample_info) if sample_info else "None"
 
-    # **Filter out rows where the sample text is "None"**
-    before_sample_removal = len(filtered_df)
+    # **Compute sample information**
     filtered_df["Sample_Info"] = filtered_df.apply(get_sample_info, axis=1)
+
+    # ✅ **Remove rows where Sample_Info is "None"**
+    before_sample_removal = len(filtered_df)
     filtered_df = filtered_df[filtered_df["Sample_Info"] != "None"]
     after_sample_removal = len(filtered_df)
 
@@ -461,7 +464,7 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
         f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {repeating_units}"
     )
     mass_groups = mz_repeating_unit_analysis(filtered_df)
-    print("repeating units", repeating_units)
+
     # ✅ Process each group through CCS_v_mz_analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}
