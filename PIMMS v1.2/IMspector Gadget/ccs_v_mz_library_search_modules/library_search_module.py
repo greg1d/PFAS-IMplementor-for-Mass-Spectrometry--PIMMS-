@@ -15,8 +15,10 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 )
 
 # Define file paths
-FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
-LIBRARY_PATH = "PIMMS v1.2/import folder/Library test file 1.csv"
+FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+LIBRARY_PATH = (
+    "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+)
 
 # ✅ Extract the filename without extension for "Match Source"
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
@@ -166,7 +168,9 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
 
                             # ✅ Check if the value is a valid number, not NaN, and above the threshold
                             if pd.notna(val) and val >= 0.001:
-                                sample_info.append(f"{col}: {val}")
+                                sample_info.append(
+                                    f"{col}: {float(f'{val:.2f}')}"
+                                )  # ✅ Format to 2 SF
                         except ValueError:
                             pass
 
@@ -313,7 +317,7 @@ def stack_library_with_adjusted():
         "PrecursorMz": "m/z",
         "PrecursorCCS": "CCS",
         "PrecursorRT": "RT",
-        "Name": "Match",
+        "PrecursorName": "Match",
     }
 
     # ✅ Rename columns in library_df to match adjusted_df
