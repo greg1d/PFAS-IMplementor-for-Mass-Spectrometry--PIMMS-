@@ -11,13 +11,19 @@ def get_layout():
     return html.Div(
         [
             html.H1("PIMMS Data Analysis Dashboard"),
+            # Sample Selection Dropdown
             dcc.Dropdown(
                 id="remove_columns",
                 options=[{"label": col, "value": col} for col in d_columns],
                 multi=True,
                 placeholder="Select Samples to Hide from Report...",
             ),
+            # Main Plot (CCS vs. m/z)
+            html.H2("CCS vs. m/z Trend Analysis"),
             dcc.Graph(id="plotly_graph"),
+            # New Section for Library Search Plot
+            html.H2("Library Search Results"),
+            dcc.Graph(id="library_search_graph"),  # ✅ Added for fig2
             html.Hr(),
             # Standards Report Panel
             html.H2("Standards Report"),

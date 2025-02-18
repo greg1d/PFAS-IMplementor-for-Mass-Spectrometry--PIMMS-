@@ -5,10 +5,17 @@ import os
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
 )
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "ccs_v_mz_library_search_modules")
+    )
+)
 
-
-from plotly_graphing import update_graph  # ✅ Ensure update_graph is correctly imported
 from data_processing import load_standards_report
+from graphing import (
+    generate_plot,
+    generate_library_search_plot,
+)  # ✅ Import new graph functions
 
 # ✅ Global repeating_units (Needs to be updated externally)
 repeating_units = {
@@ -20,10 +27,26 @@ repeating_units = {
 }
 
 
-def register_callbacks(app, adjusted_df):
-    """Registers Dash callbacks."""
+def register_callbacks(
+    app,
+    adjusted_df,
+    filtered_IM_group,
+    library_match_source,
+    refined_groups,
+    branched_isomer_groups,
+    post_source_decay_groups,
+    mass_only_groups,
+    mass_groups,
+):
+    """Registers Dash callbacks for dynamic graph updates and table refresh."""
 
-    @app.callback(Output("plotly_graph", "figure"), [Input("remove_columns", "value")])
+    @app.callback(
+        [
+            Output("plotly_graph", "figure"),
+            Output("library_search_graph", "figure"),
+        ],  # ✅ Added output for second plot
+        [Input("remove_columns", "value")],
+    )
     def update_graph_callback(remove_columns):
         global repeating_units  # ✅ Ensure the callback gets the updated value
         print(
@@ -35,7 +58,27 @@ def register_callbacks(app, adjusted_df):
         if not repeating_units:
             print("[WARNING] No repeating units specified in callback!")
 
-        return update_graph(remove_columns, adjusted_df, repeating_units)
+        # ✅ Filter adjusted_df based on selected columns
+        filtered_df = (
+            adjusted_df.drop(columns=remove_columns, errors="ignore")
+            if remove_columns
+            else adjusted_df
+        )
+
+        # ✅ Generate updated plots
+        fig1 = generate_plot(
+            filtered_df,
+            refined_groups,
+            branched_isomer_groups,
+            post_source_decay_groups,
+            mass_only_groups,
+            mass_groups,
+        )
+        fig2 = generate_library_search_plot(
+            filtered_df, filtered_IM_group, library_match_source
+        )
+
+        return fig1, fig2  # ✅ Now returning both figures
 
     @app.callback(
         [Output("standards-table", "columns"), Output("standards-table", "data")],

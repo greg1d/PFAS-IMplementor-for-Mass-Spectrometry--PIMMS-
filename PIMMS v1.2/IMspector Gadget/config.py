@@ -19,7 +19,7 @@ FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
 LIBRARY_PATH = (
     "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
 )
-
+library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 # ✅ Print paths for debugging
 print(f"[DEBUG] DATA_FILE path: {DATA_FILE}")
 print(f"[DEBUG] STANDARDS_FILE path: {STANDARDS_FILE}")
