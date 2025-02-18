@@ -127,30 +127,3 @@ def run_library_search_analysis():
     )
 
     return final_IM_group, stacked_df
-
-
-def main():
-    """Runs the library search analysis and saves debug results."""
-
-    print("[DEBUG] Starting main function...")
-    filtered_IM_group, stacked_df = run_library_search_analysis()
-
-    if stacked_df is not None:
-        print(f"[DEBUG] Final stacked dataset shape: {stacked_df.shape}")
-        stacked_df.to_csv("debug_stacked_df.csv", index=False)
-        print("[INFO] Stacked dataset saved as 'debug_stacked_df.csv'")
-
-    if filtered_IM_group is not None and not filtered_IM_group.empty:
-        print(
-            f"[DEBUG] Final filtered homologous series shape: {filtered_IM_group.shape}"
-        )
-        filtered_IM_group.to_csv("debug_filtered_IM_group.csv", index=False)
-        print(
-            "[INFO] Filtered homologous series saved as 'debug_filtered_IM_group.csv'"
-        )
-    else:
-        print("[WARNING] No valid homologous series found.")
-
-
-if __name__ == "__main__":
-    main()

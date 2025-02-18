@@ -8,7 +8,7 @@ script_dir = os.path.dirname(__file__)  # Get the directory of the current scrip
 sys.path.append(os.path.dirname(__file__))  # Add the script's directory
 
 import dash
-from analysis import run_analysis
+from analysis import run_analysis, run_library_search_analysis
 from app_layout import get_layout
 from callbacks import register_callbacks
 from data_processing import load_adjusted_data
@@ -24,8 +24,11 @@ app = dash.Dash(__name__)
 
 # ✅ Load Data
 adjusted_df = load_adjusted_data()
+# ✅ Run Library Search Analysis Before Dash Starts
+print("[INFO] Running library search analysis...")
+filtered_IM_group, stacked_df = run_library_search_analysis()
 
-# ✅ Set Layout
+
 app.layout = get_layout()
 
 # ✅ Register Callbacks
