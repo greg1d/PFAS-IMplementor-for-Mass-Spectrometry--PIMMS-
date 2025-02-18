@@ -15,6 +15,10 @@ print(f"[DEBUG] BASE_DIR is set to: {BASE_DIR}")
 # ✅ File paths
 DATA_FILE = os.path.join(BASE_DIR, "Data_output", "PIMMS Processed Data set.csv")
 STANDARDS_FILE = os.path.join(BASE_DIR, ".temp", "Standards_report.csv")
+FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+LIBRARY_PATH = (
+    "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+)
 
 # ✅ Print paths for debugging
 print(f"[DEBUG] DATA_FILE path: {DATA_FILE}")
@@ -28,6 +32,7 @@ REPEATING_UNITS = {
     "CH2CF2": 64.012456,
     "HF": 20.0062278,
 }
+SELECTED_UNITS = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
 
 # ✅ Print for debugging
 print(f"[DEBUG] REPEATING_UNITS: {REPEATING_UNITS}")

@@ -1,8 +1,22 @@
+import sys
+import os
+import pandas as pd
+
+# Ensure Python can find the module
+sys.path.append(
+    "F:/PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-/PIMMS v1.2/IMspector Gadget"
+)
+
+# Import modules
+from ccs_v_mz_library_search_modules.library_search_module import (
+    stack_library_with_adjusted,
+    external_mz_library_matching,
+)
+from config import LIBRARY_PATH, REPEATING_UNITS
 from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
 )
-from config import REPEATING_UNITS
 
 
 def run_analysis(adjusted_df):
@@ -40,3 +54,103 @@ def run_analysis(adjusted_df):
         mass_only_groups,
         mass_groups,
     )
+
+
+def run_library_search_analysis():
+    """
+    Runs the full pipeline for library search analysis:
+    1. Stacks adjusted_df and library_df.
+    2. Performs homologous series identification.
+    3. Runs CCS vs. m/z analysis.
+    4. Filters homologous series using external library matching criteria.
+
+    Returns:
+        - filtered_IM_group (pd.DataFrame): The final set of valid homologous series.
+        - stacked_df (pd.DataFrame): The combined dataset of adjusted and library features.
+    """
+
+    print("[INFO] Running library search analysis...")
+
+    # ✅ Step 1: Stack adjusted and library data
+    stacked_df = stack_library_with_adjusted()
+    if stacked_df is None or stacked_df.empty:
+        print("[WARNING] Stacked dataset is empty. Exiting analysis.")
+        return None, None
+
+    print(
+        f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
+    )
+
+    # ✅ Extract library name for matching
+    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
+
+    # ✅ Step 2: Identify homologous series using repeating unit analysis
+    print("[INFO] Running mz_repeating_unit_analysis...")
+    mass_groups = mz_repeating_unit_analysis(
+        stacked_df, repeating_units=list(REPEATING_UNITS.keys())
+    )
+
+    if mass_groups.empty:
+        print("[WARNING] No homologous series identified.")
+        return None, stacked_df
+
+    print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
+
+    # ✅ Step 3: Run CCS vs. m/z analysis for each group
+    filtered_IM_groups = []
+    for group_id, group_df in mass_groups.groupby("GroupID"):
+        print(f"[INFO] Processing GroupID {group_id}...")
+        IM_group, _, _, _ = CCS_v_mz_analysis(group_df)
+
+        if IM_group:
+            IM_group_df = group_df[
+                group_df[["m/z", "CCS"]].apply(tuple, axis=1).isin(IM_group)
+            ]
+
+            # ✅ Step 4: Filter homologous series using external library matching
+            filtered_IM_group = external_mz_library_matching(
+                IM_group_df, library_match_source
+            )
+
+            if not filtered_IM_group.empty:
+                filtered_IM_groups.append(filtered_IM_group)
+
+    # ✅ Merge all valid IM groups into one DataFrame
+    final_IM_group = (
+        pd.concat(filtered_IM_groups, ignore_index=True)
+        if filtered_IM_groups
+        else pd.DataFrame()
+    )
+
+    print(
+        f"[INFO] Library search analysis completed. {len(final_IM_group)} valid homologous series found."
+    )
+
+    return final_IM_group, stacked_df
+
+
+def main():
+    """Runs the library search analysis and saves debug results."""
+
+    print("[DEBUG] Starting main function...")
+    filtered_IM_group, stacked_df = run_library_search_analysis()
+
+    if stacked_df is not None:
+        print(f"[DEBUG] Final stacked dataset shape: {stacked_df.shape}")
+        stacked_df.to_csv("debug_stacked_df.csv", index=False)
+        print("[INFO] Stacked dataset saved as 'debug_stacked_df.csv'")
+
+    if filtered_IM_group is not None and not filtered_IM_group.empty:
+        print(
+            f"[DEBUG] Final filtered homologous series shape: {filtered_IM_group.shape}"
+        )
+        filtered_IM_group.to_csv("debug_filtered_IM_group.csv", index=False)
+        print(
+            "[INFO] Filtered homologous series saved as 'debug_filtered_IM_group.csv'"
+        )
+    else:
+        print("[WARNING] No valid homologous series found.")
+
+
+if __name__ == "__main__":
+    main()
