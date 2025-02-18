@@ -2,7 +2,7 @@ from dash import Input, Output
 import sys
 import os
 
-# ✅ Ensure Python Can Find `config.py`
+# ✅ Ensure Python Can Find the Module
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
 )
@@ -12,25 +12,23 @@ sys.path.append(
     )
 )
 sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..")
-    )  # Move up to IMspector Gadget to locate config.py
-)
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+)  # Move up to locate `config.py`
 
-# ✅ Import from `config.py`
+# ✅ Import necessary functions
 try:
-    from config import REPEATING_UNITS  # ✅ Import repeating_units
+    from config import REPEATING_UNITS  # ✅ Import repeating_units globally
 
     print(f"[DEBUG] Successfully imported repeating_units: {REPEATING_UNITS}")
 except ModuleNotFoundError:
-    print("[ERROR] Could not import `repeating_units` from config.py!")
+    print("[ERROR] Could not import `REPEATING_UNITS` from config.py!")
     sys.exit(1)
 
 from data_processing import load_standards_report
 from graphing import (
-    generate_plot,
+    plotly_ccs_v_mz_sample_plot,  # ✅ Import the correct graphing function
     generate_library_search_plot,
-)  # ✅ Import new graph functions
+)
 
 
 def register_callbacks(
@@ -38,19 +36,16 @@ def register_callbacks(
     adjusted_df,
     filtered_IM_group,
     library_match_source,
-    refined_groups,
-    branched_isomer_groups,
-    post_source_decay_groups,
-    mass_only_groups,
-    mass_groups,
 ):
     """Registers Dash callbacks for dynamic graph updates and table refresh."""
 
     @app.callback(
         [
-            Output("plotly_graph", "figure"),
+            Output(
+                "plotly_graph", "figure"
+            ),  # ✅ This updates the main CCS vs. m/z plot
             Output("library_search_graph", "figure"),
-        ],  # ✅ Added output for second plot
+        ],
         [Input("remove_columns", "value")],
     )
     def update_graph_callback(remove_columns):
@@ -63,27 +58,20 @@ def register_callbacks(
         if not REPEATING_UNITS:
             print("[WARNING] No repeating units specified in callback!")
 
-        # ✅ Filter adjusted_df based on selected columns
+        # ✅ Filter `adjusted_df` based on selected columns
         filtered_df = (
             adjusted_df.drop(columns=remove_columns, errors="ignore")
             if remove_columns
             else adjusted_df
         )
 
-        # ✅ Generate updated plots
-        fig1 = generate_plot(
-            filtered_df,
-            refined_groups,
-            branched_isomer_groups,
-            post_source_decay_groups,
-            mass_only_groups,
-            mass_groups,
-        )
+        # ✅ Generate updated plots dynamically
+        fig = plotly_ccs_v_mz_sample_plot(filtered_df)  # ✅ Use correct function
         fig2 = generate_library_search_plot(
             filtered_df, filtered_IM_group, library_match_source
         )
 
-        return fig1, fig2  # ✅ Now returning both figures
+        return fig, fig2  # ✅ Now returning both figures dynamically
 
     @app.callback(
         [Output("standards-table", "columns"), Output("standards-table", "data")],

@@ -1,7 +1,7 @@
 import os
 import sys
-import pandas as pd
 import plotly.io as pio
+from data_processing import load_adjusted_data  # ✅ Ensure correct data loading
 
 # ✅ Ensure Python Can Find the Module
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script's directory
@@ -15,14 +15,20 @@ from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modul
 from analysis import run_analysis  # ✅ Import `run_analysis()` instead of redefining
 
 
-def main():
-    """Runs full analysis pipeline and generates an interactive Plotly plot."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
-    adjusted_df = pd.read_csv(file_path)
+def plotly_ccs_v_mz_sample_plot(adjusted_df):
+    """
+    Runs CCS vs. m/z analysis and generates a Plotly plot.
 
-    print("\n[INFO] Running `run_analysis()`...")
+    Args:
+        adjusted_df (pd.DataFrame): The processed data set to analyze.
 
-    # ✅ Run full analysis using imported function
+    Returns:
+        fig (plotly.graph_objects.Figure): The generated Plotly figure.
+    """
+
+    print("\n[INFO] Running `run_analysis()` for CCS vs. m/z trend analysis...")
+
+    # ✅ Step 1: Run Analysis
     (
         refined_groups,
         branched_isomer_groups,
@@ -31,44 +37,14 @@ def main():
         mass_groups,
     ) = run_analysis(adjusted_df)
 
-    # ✅ Check if valid homologous series were identified
+    # ✅ Step 2: Check if valid homologous series were identified
     if mass_groups.empty:
         print("\n[WARNING] No homologous series groups identified. Exiting.")
-        return
+        return None  # Return None if no valid series exist
 
     print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
-    # ✅ Debugging: Check contents of `refined_groups`
-    print("\n[DEBUG] Checking refined_groups structure:")
-    for idx, group in enumerate(refined_groups):
-        print(f"  - Group {idx + 1}: {len(group)} points") if isinstance(
-            group, pd.DataFrame
-        ) else print(f"  - Group {idx + 1}: Invalid type {type(group)}")
-
-    # ✅ Check if the homologous series trendlines exist
-    if all(isinstance(group, pd.DataFrame) and group.empty for group in refined_groups):
-        print("\n[WARNING] All refined_groups are empty! Trendlines may not appear.")
-    else:
-        print("\n[INFO] Some homologous series groups contain data.")
-
-    # **Step 3: Print Debugging Before Plotting**
-    print("\n[INFO] Final Data Sent to Plot:")
-    print(
-        f"  - IM Groups: {sum(len(group) for group in refined_groups if isinstance(group, pd.DataFrame))} points"
-    )
-    print(
-        f"  - Branched Isomers: {sum(len(group) for group in branched_isomer_groups if isinstance(group, pd.DataFrame))} points"
-    )
-    print(
-        f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups if isinstance(group, pd.DataFrame))} points"
-    )
-    print(
-        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values() if isinstance(group, pd.DataFrame))} points"
-    )
-
-    # **Step 4: Generate Plotly plot**
-    print("\n[INFO] Generating Plotly plot...")
-
+    # ✅ Step 3: Generate Plotly graph
     fig = make_plotly_graph(
         adjusted_df,
         refined_groups,
@@ -77,6 +53,16 @@ def main():
         mass_only_groups,
         mass_groups,  # ✅ Now correctly formatted as a dictionary
     )
+
+    print("[INFO] CCS v m/z plot generation complete.")
+
+    return fig
+
+
+def main():
+    adjusted_df = load_adjusted_data()
+
+    fig = plotly_ccs_v_mz_sample_plot(adjusted_df)
 
     # **Step 5: Display the Plotly plot**
     print("[INFO] Plot generation complete. Displaying plot...")

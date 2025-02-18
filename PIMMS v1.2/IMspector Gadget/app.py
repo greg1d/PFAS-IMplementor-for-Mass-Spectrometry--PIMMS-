@@ -8,11 +8,11 @@ script_dir = os.path.dirname(__file__)  # Get the directory of the current scrip
 sys.path.append(script_dir)  # Ensure the script's directory is in the path
 
 import dash
-from analysis import run_analysis, run_library_search_analysis
+from analysis import run_library_search_analysis
 from app_layout import get_layout
-from callbacks import register_callbacks
 from data_processing import load_adjusted_data
 from config import LIBRARY_PATH  # ✅ Import LIBRARY_PATH
+from graphing import plotly_ccs_v_mz_sample_plot
 
 print("[DEBUG] Module imports successful!")
 
@@ -32,33 +32,14 @@ if filtered_IM_group is None or filtered_IM_group.empty:
 # ✅ Extract `library_match_source` from `LIBRARY_PATH` dynamically
 library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]  # ✅ Fix
 
-# ✅ Run CCS vs. m/z trend analysis
-(
-    refined_groups,
-    branched_isomer_groups,
-    post_source_decay_groups,
-    mass_only_groups,
-    mass_groups,
-) = run_analysis(adjusted_df)
+# ✅ Generate initial figures **BEFORE** starting the Dash app
+fig1 = plotly_ccs_v_mz_sample_plot(adjusted_df)
 
 # ✅ Initialize Dash App
 app = dash.Dash(__name__)
 
-# ✅ Set Layout
-app.layout = get_layout()
-
-# ✅ Register Callbacks with All Required Arguments
-register_callbacks(
-    app,
-    adjusted_df,
-    filtered_IM_group,
-    library_match_source,
-    refined_groups,
-    branched_isomer_groups,
-    post_source_decay_groups,
-    mass_only_groups,
-    mass_groups,
-)
+# ✅ Set Layout with Default Figures
+app.layout = get_layout(fig1)
 
 
 # ✅ Open Browser Automatically
