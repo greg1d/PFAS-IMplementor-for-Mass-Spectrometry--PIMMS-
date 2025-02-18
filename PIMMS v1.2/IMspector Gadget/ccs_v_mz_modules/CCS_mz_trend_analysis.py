@@ -17,10 +17,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
     """
 
-    print(
-        f"\n[DEBUG] Running mz_repeating_unit_analysis on DataFrame with shape: {adjusted_df.shape}"
-    )
-
     iteration_count = 0  # Track loop iterations
     group_counter = 0  # Track unique Group ID
 
@@ -52,6 +48,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                 {
                     "GroupID": group_counter,  # Assign Group ID
                     "m/z": mz_value,
+                    "RT": adjusted_df.at[i, "RT"],
                     "ID": adjusted_df.at[i, "ID"],
                     "CCS": adjusted_df.at[i, "CCS"],
                     "Classification Type": adjusted_df.at[i, "Classification Type"],
@@ -85,6 +82,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                                 "GroupID": group_counter,  # Keep same Group ID
                                 "m/z": next_mz_value,
                                 "ID": adjusted_df.at[j, "ID"],
+                                "RT": adjusted_df.at[j, "RT"],
                                 "CCS": adjusted_df.at[j, "CCS"],
                                 "Classification Type": adjusted_df.at[
                                     j, "Classification Type"
@@ -100,7 +98,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
             # **Only process groups that have at least 3 points BEFORE expansion**
             if len(current_group) <= 3:
                 continue  # Skip storing this group
-
             # **Ensure min-max m/z difference is at least 10**
             min_mz = min(entry["m/z"] for entry in current_group)
             max_mz = max(entry["m/z"] for entry in current_group)
@@ -125,6 +122,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10, repeating_units=[
                 "GroupID",
                 "m/z",
                 "ID",
+                "RT",
                 "CCS",
                 "Classification Type",
                 "Match Source",
@@ -275,7 +273,7 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
 def main():
     """Run the analysis pipeline and return results."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
     repeating_units = ["CF2"]
 

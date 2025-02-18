@@ -1,6 +1,7 @@
 import os
 import sys
 
+import cmocean
 import numpy as np
 import plotly.graph_objects as go
 from scipy import stats
@@ -14,8 +15,10 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 )
 
 # Define file paths
-FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
-LIBRARY_PATH = "PIMMS v1.2/import folder/Library test file 1.csv"
+FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+LIBRARY_PATH = (
+    "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+)
 
 # ✅ Extract the filename without extension for "Match Source"
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
@@ -44,9 +47,11 @@ LEGEND_ITEMS = {
     "Unmatched": {"color": "purple", "legendgroup": "tentative_no_match"},
     "N/A": {"color": "white", "legendgroup": "NA"},  # ✅ Make N/A white
 }
+NUM_SERIES = 10  # Adjust based on the number of homologous series
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
-def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
+def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
     fig = go.Figure()
 
     # ✅ Dummy trace for "External Library Match" (X)
@@ -56,7 +61,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             y=[None],
             mode="markers",
             marker=dict(size=15, color="white", symbol="x"),
-            name="External Library Match",
+            name="<b>External Library Match</b>",
             legendgroup="library_match",
             showlegend=True,  # ✅ Always visible
             hoverinfo="skip",
@@ -71,7 +76,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
             y=[None],
             mode="markers",
             marker=dict(size=15, color="white", symbol="circle"),
-            name="Sample Feature",
+            name="<b>Sample Feature</b>",
             legendgroup="sample_feature",
             showlegend=True,  # ✅ Always visible
             hoverinfo="skip",
@@ -92,7 +97,7 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
         # ✅ Extract x (m/z) and y (CCS) for linear fit
         mz_values = group_df["m/z"].values
         ccs_values = group_df["CCS"].values
-
+        group_df.to_csv("group_df.csv", index=False)
         # ✅ Perform linear regression for trendline
         slope, intercept, r_value, p_value, _ = stats.linregress(mz_values, ccs_values)
 
@@ -100,9 +105,8 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
         reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
         reg_line_y = slope * reg_line_x + intercept
 
-        # ✅ Assign a unique legend group for each series
+        series_color = f"rgb({HOMOLOGOUS_SERIES_COLORS[idx % NUM_SERIES][0] * 255}, {HOMOLOGOUS_SERIES_COLORS[idx % NUM_SERIES][1] * 255}, {HOMOLOGOUS_SERIES_COLORS[idx % NUM_SERIES][2] * 255})"
         legend_group_name = f"group_{group_id}"
-        series_color = "yellow"  # Customize color if needed
 
         # 🔹 Add trendline
         fig.add_trace(
@@ -121,22 +125,33 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
 
         # ✅ Prepare hover metadata for each point
         hover_texts = []
+        symbols = []
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
             classification = row.get("Classification Type", "Unknown")
-            RT = row.get("RT", "N/A")
+            RT = row["RT"]  # Direct access if the column exists
             repeating_unit = row.get("Repeating Unit", "N/A")
             match_source = row.get("Match Source", "Unknown Source")
             if classification == 0:
                 classification = match_source  # ✅ Use Library Match instead
-            is_library_match = match_source == library_match_source
-            marker_symbol = "x" if is_library_match else "circle"
+            marker_symbol = "x" if classification == "External Library" else "circle"
             symbols.append(marker_symbol)
-            mz_value = row["m/z"]  # Extract m/z of current row
 
+            mz_value = row[
+                "m/z"
+            ]  # Extract m/z of current row            group_df.to_csv("group_df.csv", index=False)
             matched_row = adjusted_df.loc[adjusted_df["m/z"] == mz_value]
+            print(
+                "Adjusted DataFrame Columns:", adjusted_df.columns
+            )  # Ensure correct column names
+            print(
+                "Unique Classification Types in adjusted_df:",
+                adjusted_df["Classification Type"].unique(),
+            )
+            print(
+                f"Row Classification: {classification} -> Assigned Marker: {marker_symbol}"
+            )
 
-            # ✅ Check if a matching row exists
             # ✅ Check if a matching row exists
             if not matched_row.empty:
                 sample_info = []
@@ -153,7 +168,9 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
 
                             # ✅ Check if the value is a valid number, not NaN, and above the threshold
                             if pd.notna(val) and val >= 0.001:
-                                sample_info.append(f"{col}: {val}")
+                                sample_info.append(
+                                    f"{col}: {float(f'{val:.2f}')}"
+                                )  # ✅ Format to 2 SF
                         except ValueError:
                             pass
 
@@ -171,13 +188,16 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 f"Classification: {classification}<br>"
                 f"Repeating Unit: {repeating_unit}<br>"
             )
-
-            if not is_library_match:
-                hover_text += (
-                    f"Samples:<br>{sample_text}"  # ✅ Only add for dataset points
-                )
+            if classification != "External Library":
+                hover_text += f"Samples:<br>{sample_text}"
 
             hover_texts.append(hover_text)
+
+        for i in range(len(mz_values)):
+            classification_type = group_df.iloc[i]["Classification Type"]
+            print(
+                f"Plot Data Index {i}: m/z={mz_values[i]}, CCS={ccs_values[i]}, classification={classification_type}, Symbol={symbols[i]}"
+            )
 
         # 🔹 Overlay main homologous series points with metadata
         fig.add_trace(
@@ -188,10 +208,29 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
                 marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
-                showlegend=True,
+                showlegend=False,
                 visible="legendonly",
                 text=hover_texts,  # ✅ Full metadata in hover
                 hovertemplate="%{text}<extra></extra>",  # ✅ Injects metadata dynamically
+            )
+        )
+
+        # 🔹 Add a separate text-only legend entry (NO MARKER)
+        fig.add_trace(
+            go.Scatter(
+                x=[None],  # Dummy point (does not appear in the plot)
+                y=[None],
+                mode="lines",  # ✅ Ensures no marker appears
+                text=[f"<b>Homologous Series {idx + 1}</b>"],  # ✅ Bold text
+                line=dict(
+                    color=series_color, dash="dash", width=2
+                ),  # ✅ Dashed line with the correct color
+                textfont=dict(
+                    size=14, color=series_color
+                ),  # ✅ Match homologous series color
+                name=f"<b>Homologous Series {idx + 1}</b>",  # ✅ Ensure text appears in legend
+                legendgroup=legend_group_name,
+                showlegend=True,  # ✅ Show this in the legend
             )
         )
 
@@ -224,7 +263,10 @@ def make_plotly_graph(adjusted_df, filtered_IM_group, library_match_source):
 
 def external_mz_library_matching(IM_group, library_match_source):
     """
-    Filters IM_group to retain only groups where at least 2 rows come from the external library file.
+    Filters IM_group to retain only groups where:
+    - At least 2 rows come from the external library file.
+    - No more than 2 consecutive external library matches before a sample appears.
+    - Each homologous series contains at least one sample result.
 
     Parameters:
     - IM_group (pd.DataFrame): Data containing identified homologous series.
@@ -240,12 +282,35 @@ def external_mz_library_matching(IM_group, library_match_source):
 
     # ✅ Group by GroupID
     for group_id, group_df in IM_group.groupby("GroupID"):
-        # ✅ Count how many rows come from the specified external file
+        # ✅ Count how many rows come from the external file
         source_count = (group_df["Match Source"] == library_match_source).sum()
 
-        # ✅ Keep groups that have at least 2 rows from the external file
-        if source_count >= 2:
-            valid_groups.append(group_df)
+        # ✅ Count the number of non-library samples
+        sample_count = len(group_df) - source_count
+
+        # ✅ Ensure there is at least one sample in the group
+        if source_count >= 2 and sample_count >= 1:
+            # ✅ Track consecutive standards
+            consecutive_standards = 0
+            valid_rows = []
+            has_sample = False  # ✅ Track if at least one sample exists
+
+            for _, row in group_df.iterrows():
+                is_standard = row["Match Source"] == library_match_source
+
+                if is_standard:
+                    consecutive_standards += 1
+                else:
+                    consecutive_standards = 0  # Reset counter if we find a sample
+                    has_sample = True  # ✅ Found at least one sample
+
+                # ✅ Allow max 2 consecutive standards before a sample
+                if consecutive_standards <= 2:
+                    valid_rows.append(row)
+
+            # ✅ If at least one sample is present, keep this homologous series
+            if has_sample:
+                valid_groups.append(pd.DataFrame(valid_rows))
 
     # ✅ Combine all valid groups into a new DataFrame
     if valid_groups:
@@ -278,7 +343,7 @@ def stack_library_with_adjusted():
         "PrecursorMz": "m/z",
         "PrecursorCCS": "CCS",
         "PrecursorRT": "RT",
-        "Name": "Match",
+        "PrecursorName": "Match",
     }
 
     # ✅ Rename columns in library_df to match adjusted_df
@@ -314,7 +379,6 @@ def stack_library_with_adjusted():
     stacked_df = stacked_df.drop(
         columns=[col for col in columns_to_drop if col in stacked_df.columns]
     )
-    print("stacked df\n", stacked_df.head())
     stacked_df.to_csv("stacked_df.csv", index=False)
     return stacked_df
 
@@ -366,7 +430,7 @@ def main():
     )
 
     # ✅ Generate and Show Plot
-    fig = make_plotly_graph(stacked_df, final_IM_group, library_match_source)
+    fig = library_search_plotly(stacked_df, final_IM_group, library_match_source)
     pio.show(fig)  # Display interactive plot
 
 
