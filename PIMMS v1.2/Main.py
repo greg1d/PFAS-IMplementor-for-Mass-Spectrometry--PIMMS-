@@ -89,7 +89,7 @@ def main():
         f"  Average Non-Zero Rows: {group_avg}\n"
         f"  Std Dev of Non-Zero Rows: {group_std}"
     )
-
+    print(experimental_df)
     # Step 1: Generate Standards Report (No removal of features yet)
     print("[INFO] Generating Standards Report without removing matched features...")
     try:
@@ -114,6 +114,10 @@ def main():
         # Perform blank subtraction
         adjusted_df, control_mean, control_std = perform_blank_subtraction(
             method, control_df, experimental_df
+        )
+        # Save the adjusted dataframe after blank subtraction to a CSV file
+        adjusted_df.to_csv(
+            "PIMMS v1.2/Data_output/adjusted_after_blank_subtraction.csv", index=False
         )
 
         # Count non-zero rows after blank subtraction

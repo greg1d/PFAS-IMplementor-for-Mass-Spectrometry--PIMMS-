@@ -8,7 +8,7 @@
 
 /* ✅ Ensure the entire webpage uses black background & white text */
 body {
-    font-family: 'NormativePro', sans-serif !important;
+    font-family: 'NormativePro' !important;
     background-color: #000000 !important;
     color: #FFFFFF !important;
     margin: 0 !important;
@@ -17,8 +17,18 @@ body {
 }
 
 /* ✅ Apply the font to all text elements */
-h1, h2, h3, h4, h5, h6, p, label, span, div, button {
-    font-family: 'NormativePro', sans-serif !important;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+label,
+span,
+div,
+button {
+    font-family: 'NormativePro' !important;
 }
 
 /* ✅ Dash app container */
@@ -52,6 +62,14 @@ button {
     padding: 8px 12px !important;
     font-size: 16px !important;
     cursor: pointer !important;
+}
+
+.dash-graph .xtitle,
+.dash-graph .ytitle,
+.dash-graph .ticktext,
+.dash-graph .legendtext {
+    font-family: 'NormativePro' !important;
+    font-weight: bold !important;
 }
 
 /* ✅ Hover effects for buttons */
