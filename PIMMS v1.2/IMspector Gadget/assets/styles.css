@@ -48,13 +48,11 @@ button {
 
 /* ✅ Create a separate class for half-width graphs */
 .dash-graph.half-width {
-    width: 50% !important;
-    max-width: 50% !important;
-    display: inline-block;
-    /* Ensures graphs stay side by side */
-    vertical-align: top;
-    /* Align graphs properly */
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
 }
+
 
 /* ✅ Apply font and color styling to graph elements */
 .dash-graph * {
@@ -134,18 +132,18 @@ button {
 /* ✅ Graph container for side-by-side layout */
 .graph-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
     width: 100%;
-    gap: 20px;
+    gap: 0px;
     margin-top: 20px;
 }
 
 /* ✅ Individual graph wrapper */
 .graph-wrapper {
     flex: 1;
-    width: 50%;
-    max-width: 50%;
+    width: 45%;
+    max-width: 48%;
 }
 
 /* ✅ Style buttons */
