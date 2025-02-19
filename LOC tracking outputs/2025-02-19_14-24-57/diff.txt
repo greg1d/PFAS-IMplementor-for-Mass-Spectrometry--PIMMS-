@@ -1,0 +1,43 @@
+Date : 2025-02-19 14:24:57
+Directory : c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 9 files,  -364 codes, 13 comments, 12 blanks, all -339 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| CSS      |          1 |         62 |         10 |         12 |         84 |
+| Python   |          7 |        -45 |          3 |          0 |        -42 |
+| CSV      |          1 |       -381 |          0 |          0 |       -381 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                               | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                                  |          9 |       -364 |         13 |         12 |       -339 |
+| . (Files)                                                                                                                                          |          1 |       -381 |          0 |          0 |       -381 |
+| PIMMS v1.2                                                                                                                                         |          8 |         17 |         13 |         12 |         42 |
+| PIMMS v1.2\IMspector Gadget                                                                                                                        |          7 |         42 |         14 |         16 |         72 |
+| PIMMS v1.2\IMspector Gadget (Files)                                                                                                                |          4 |         41 |          6 |          4 |         51 |
+| PIMMS v1.2\IMspector Gadget\assets                                                                                                                 |          1 |         62 |         10 |         12 |         84 |
+| PIMMS v1.2\IMspector Gadget\ccs_v_mz_library_search_modules                                                                                        |          1 |        -41 |         -2 |          0 |        -43 |
+| PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules                                                                                                       |          1 |        -20 |          0 |          0 |        -20 |
+| PIMMS v1.2\modules                                                                                                                                 |          1 |        -25 |         -1 |         -4 |        -30 |
++----------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                           | language | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\analysis.py                                              | Python   |         12 |          4 |          7 |         23 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\app_layout.py                                            | Python   |         36 |          3 |          0 |         39 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\assets\styles.css                                        | CSS      |         62 |         10 |         12 |         84 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_library_search_modules\library_search_module.py | Python   |        -41 |         -2 |          0 |        -43 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules\plotly_graphing.py                      | Python   |        -20 |          0 |          0 |        -20 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\config.py                                                | Python   |         -3 |          0 |          1 |         -2 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\graphing.py                                              | Python   |         -4 |         -1 |         -4 |         -9 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\plotly_graphing.py                                                | Python   |        -25 |         -1 |         -4 |        -30 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\stacked_df.csv                                                                       | CSV      |       -381 |          0 |          0 |       -381 |
+| Total                                                                                                                                              |          |       -364 |         13 |         12 |       -339 |
++----------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
