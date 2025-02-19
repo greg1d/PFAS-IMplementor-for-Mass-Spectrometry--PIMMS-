@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -144,8 +145,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     Post source decay: Residuals > 102% of predicted CCS.
     """
 
-    print("\n[DEBUG] Starting CCS_v_mz_analysis function...")
-
     if mass_groups.empty:
         print("[ERROR] Received empty group list. Exiting function.")
         return [], [], [], []
@@ -157,21 +156,13 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
     # If there are fewer than 3 points, return as mass_only_group
     if len(mz_values) < 3:
-        print(
-            "[WARNING] Not enough points to fit a regression model. Returning as mass_only_group."
-        )
-        print("\n[INFO] Mass-Only Group Contents:")
         for mz, ccs in data_points:
-            print(f"  m/z: {mz:.5f}, CCS: {ccs:.5f}")
+            pass
         return [], [], [], data_points
 
     # Perform initial linear regression
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
     r_squared = r_value**2
-
-    print(
-        f"[DEBUG] Initial regression results: slope={slope:.5f}, r_squared={r_squared:.5f}, p_value={p_value:.5f}"
-    )
 
     # Store classified points
     post_source_decay = []
@@ -201,17 +192,10 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
     # Print all classified points with residuals
     for point in post_source_decay + branched_isomer:
-        print(
-            f"[FLAGGED] m/z: {point['m/z']:.5f}, CCS: {point['CCS']:.5f}, "
-            f"Classification: {point['Classification']}, Residual: {point['Residual']:.2f}%"
-        )
+        pass
 
     # If fewer than 3 points remain after filtering, add ALL flagged points to mass-only group
     if len(refined_data_points) < 3:
-        print(
-            "[WARNING] Not enough valid points remain after filtering. Returning as mass_only_group."
-        )
-
         # Combine flagged points + remaining valid points
         mass_only_groups = (
             post_source_decay
@@ -224,9 +208,7 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         print("\n[DEBUG] Mass-Only Group Identified:")
         if mass_only_groups:
             for point in mass_only_groups:
-                print(
-                    f"  m/z: {point['m/z']:.5f}, CCS: {point['CCS']:.5f}, Classification: {point['Classification']}"
-                )
+                pass
         else:
             print("[ERROR] Mass-Only Group is empty after processing!")
         return [], post_source_decay, branched_isomer, mass_only_groups
@@ -235,23 +217,10 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     mz_values = np.array([p[0] for p in refined_data_points])
     ccs_values = np.array([p[1] for p in refined_data_points])
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
-    r_squared = r_value**2
-
-    print(
-        f"[DEBUG] Refined regression results: slope={slope:.5f}, r_squared={r_squared:.5f}, p_value={p_value:.5f}"
-    )
 
     # Final classification: if statistically significant, return as IM_group
     if p_value <= significance_cutoff and slope > 0:
-        print(
-            f"[INFO] Significant positive correlation achieved with {len(refined_data_points)} points. Returning as IM_group."
-        )
         return refined_data_points, post_source_decay, branched_isomer, []
-
-    # Otherwise, return everything as mass_only_group
-    print(
-        "[WARNING] No statistically significant trend found. Returning as mass_only_group."
-    )
 
     # Combine flagged points + remaining valid points
     mass_only_groups = (
@@ -266,9 +235,7 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     # Print the full mass-only group
     print("\n[INFO] Mass-Only Group Contents:")
     for point in mass_only_groups:
-        print(
-            f"  m/z: {point['m/z']:.5f}, CCS: {point['CCS']:.5f}, Classification: {point['Classification']}"
-        )
+        pass
 
     return [], post_source_decay, branched_isomer, mass_only_groups
 

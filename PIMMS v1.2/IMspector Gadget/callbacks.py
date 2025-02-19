@@ -103,7 +103,7 @@ def register_callbacks(app, adjusted_df):
             # ✅ Load the selected library file for analysis
             print(f"[INFO] Running library search with: {library_path}")
             library_df = pd.read_csv(library_path)
-
+            print("library df", library_df)
             # ✅ Run updated analysis
             fig2 = plot_figure_2(library_df)
             print("[INFO] Library search graph updated.")

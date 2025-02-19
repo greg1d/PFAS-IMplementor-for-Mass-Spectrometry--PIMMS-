@@ -18,7 +18,7 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 
 # ✅ Ensure `config.py` is properly located
 try:
-    from config import FILE_PATH, LIBRARY_PATH
+    from config import FILE_PATH
 except ModuleNotFoundError:
     print("[ERROR] Could not import `FILE_PATH` or `LIBRARY_PATH` from config.py!")
     sys.exit(1)
@@ -342,6 +342,9 @@ def stack_library_with_adjusted():
     # Read both DataFrames
     adjusted_df = pd.read_csv(FILE_PATH)
     library_df = pd.read_csv(LIBRARY_PATH)
+    print(
+        "Library Path inside the stack librayr with adjusted definition", LIBRARY_PATH
+    )
     columns_to_drop = ["CAS", "PrecursorCharge", "PrecursorFormula", "MoleculeGroup"]
     library_df = library_df.drop(
         columns=[col for col in columns_to_drop if col in library_df.columns]
