@@ -41,9 +41,19 @@ button {
 .dash-graph {
     border: none !important;
     background-color: #000000 !important;
-    /* Match the global background */
     color: #FFFFFF !important;
-    /* Ensure text is white */
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* ✅ Create a separate class for half-width graphs */
+.dash-graph.half-width {
+    width: 50% !important;
+    max-width: 50% !important;
+    display: inline-block;
+    /* Ensures graphs stay side by side */
+    vertical-align: top;
+    /* Align graphs properly */
 }
 
 /* ✅ Apply font and color styling to graph elements */
@@ -113,6 +123,30 @@ button {
     padding: 20px;
 }
 
+
+
+/* ✅ Ensure dashboard container follows layout */
+.dashboard-container {
+    background-color: #000000 !important;
+    padding: 20px;
+}
+
+/* ✅ Graph container for side-by-side layout */
+.graph-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* ✅ Individual graph wrapper */
+.graph-wrapper {
+    flex: 1;
+    width: 50%;
+    max-width: 50%;
+}
 
 /* ✅ Style buttons */
 button {
