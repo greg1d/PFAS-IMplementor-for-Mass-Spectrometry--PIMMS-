@@ -1,7 +1,7 @@
 import os
 import sys
 
-import plotly.graph_objects as go  # Import Plotly to create blank figures
+import pandas as pd
 
 # ✅ Ensure Python Can Find `config.py`
 sys.path.append(
@@ -59,17 +59,19 @@ def register_callbacks(app, adjusted_df):
             fig1 = update_graph(remove_columns, adjusted_df)
             fig2 = plot_figure_2(adjusted_df)  # Keep fig2 logic as before
             return fig1, fig2
+
         except KeyError as e:
             if str(e) == "'Classification Type'":
-                print("[ERROR] 'Classification Type' missing. Returning blank graph.")
-
-                # ✅ Return a blank graph instead of crashing
-                blank_fig = go.Figure()
-                blank_fig.update_layout(
-                    title="No Data Available", template="plotly_white"
+                print(
+                    "[ERROR] 'Classification Type' missing. Returning empty DataFrame."
                 )
 
-                return blank_fig, blank_fig  # Return blank graphs for both outputs
+                # ✅ Create an empty DataFrame with the same structure
+                empty_df = pd.DataFrame(
+                    columns=adjusted_df.columns
+                )  # Ensure structure remains
+
+                return update_graph(remove_columns, empty_df), plot_figure_2(empty_df)
 
             print(f"[ERROR] Exception in update_graph_callback: {e}")
             return no_update, no_update  # Default fallback if another error occurs

@@ -235,6 +235,11 @@ def make_plotly_graph(
             lambda row: (row["m/z"], row["CCS"]) in homologous_series_points, axis=1
         )
     ]
+    if "Classification Type" not in filtered_df.columns:
+        print("[WARNING] 'Classification Type' missing! Adding empty column.")
+        filtered_df["Classification Type"] = pd.Series(
+            dtype="str"
+        )  # Ensure column exists
 
     # **Step 4: Separate Remaining DataFrames (Without Homologous Series Points)**
     tentative_df = filtered_df[filtered_df["Classification Type"] == "tentative"]
@@ -458,6 +463,13 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
     print(
         f"[INFO] Removed {before_sample_removal - after_sample_removal} rows with 'None' sample info."
     )
+
+    # ✅ Ensure `'Classification Type'` always exists in `filtered_df`
+    if "Classification Type" not in filtered_df.columns:
+        print(
+            "[WARNING] 'Classification Type' missing! Adding it back as an empty column."
+        )
+        filtered_df["Classification Type"] = pd.Series(dtype="str")
 
     # ✅ Ensure repeating units are passed correctly
     print(
