@@ -38,11 +38,7 @@ def add_homologous_series_trendlines(
         )
         return
 
-    print(f"\n[INFO] Total Refined Homologous Series: {len(refined_groups)}")
-    print(f"[INFO] Total Post Source Decay Groups: {len(post_source_decay)}")
-
     if "Repeating Unit" not in adjusted_df.columns:
-        print("[DEBUG] Merging mass_groups to include Repeating Unit in adjusted_df...")
         adjusted_df = adjusted_df.merge(
             mass_groups[["m/z", "Repeating Unit"]], on="m/z", how="left"
         )
@@ -51,13 +47,6 @@ def add_homologous_series_trendlines(
     for idx, group in enumerate(refined_groups):
         if len(group) < 3:
             continue  # Skip small groups
-
-        print(
-            f"\n[DEBUG] Checking Group {idx + 1}: First element type -> {type(group[0])}"
-        )
-        print(
-            f"[DEBUG] Group {idx + 1} Raw Data: {group[:5]}"
-        )  # Print first 5 elements
 
         # ✅ Convert tuples to dictionaries
         if isinstance(group[0], tuple):
@@ -84,7 +73,6 @@ def add_homologous_series_trendlines(
 
             # ✅ Extract the correct CCS value **for this individual point**
             ccs = row["CCS"].values[0] if not row.empty else "N/A"
-            print("[DEBUG] Columns in adjusted_df:", adjusted_df.columns.tolist())
             repeating_unit = row["Repeating Unit"].values[0] if not row.empty else "N/A"
             # ✅ Extract sample-related information
             sample_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
