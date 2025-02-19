@@ -3,19 +3,49 @@ import sys
 
 import cmocean
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 from scipy import stats
 
+# ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
-import pandas as pd
+
 from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
 )
-from config import FILE_PATH, LIBRARY_PATH  # ✅ Import paths from config.py
 
-# ✅ Extract the filename without extension for "Match Source"
+# ✅ Ensure `config.py` is properly located
+try:
+    from config import FILE_PATH, LIBRARY_PATH
+except ModuleNotFoundError:
+    print("[ERROR] Could not import `FILE_PATH` or `LIBRARY_PATH` from config.py!")
+    sys.exit(1)
+
+# ✅ Ensure uploaded library is used if available
+UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def get_library_path():
+    """Checks if an uploaded library file exists, otherwise returns the default LIBRARY_PATH."""
+    uploaded_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(".csv")]
+
+    if uploaded_files:
+        latest_library = max(
+            [os.path.join(UPLOAD_FOLDER, f) for f in uploaded_files],
+            key=os.path.getctime,
+        )
+        print(f"[INFO] Using uploaded library: {latest_library}")
+        return latest_library  # ✅ Use the latest uploaded file
+    else:
+        print(f"[INFO] No uploaded library found. Using default: {LIBRARY_PATH}")
+        return LIBRARY_PATH  # ✅ Fallback to default
+
+
+# ✅ Use the selected library path
+LIBRARY_PATH = get_library_path()
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
 # ✅ Define all available repeating units

@@ -24,11 +24,14 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
 
 # ✅ Import from `config.py`
 try:
-    from config import REPEATING_UNITS
+    from config import LIBRARY_PATH, REPEATING_UNITS
 
     print(f"[DEBUG] Successfully imported repeating_units: {REPEATING_UNITS}")
+    print(f"[DEBUG] Default LIBRARY_PATH: {LIBRARY_PATH}")
 except ModuleNotFoundError:
-    print("[ERROR] Could not import `repeating_units` from config.py!")
+    print(
+        "[ERROR] Could not import `repeating_units` or `LIBRARY_PATH` from config.py!"
+    )
     sys.exit(1)
 
 from ccs_v_mz_modules.plotly_graphing import update_graph
@@ -39,6 +42,7 @@ from graphing import plot_figure_2
 def register_callbacks(app, adjusted_df):
     """Registers Dash callbacks for dropdown updates and graph reloading."""
 
+    # ✅ Dropdown update
     @app.callback(
         Output("remove_columns", "options"),
         Input("plotly_graph", "figure"),
@@ -47,6 +51,7 @@ def register_callbacks(app, adjusted_df):
     def update_dropdown_options(_, selected_values):
         return [{"label": col, "value": col} for col in adjusted_df.columns]
 
+    # ✅ Combined callback for graph updates (handles column removal + library upload)
     @app.callback(
         [
             Output("plotly_graph", "figure"),
@@ -61,11 +66,14 @@ def register_callbacks(app, adjusted_df):
         ],
     )
     def update_graph_callback(remove_columns, upload_contents, upload_filename):
-        """Handles column removal AND library upload to retrigger graph updates."""
+        """Handles column removal AND library upload, updating graphs accordingly."""
         triggered_id = ctx.triggered_id
         print(f"[DEBUG] update_graph_callback triggered by: {triggered_id}")
 
         try:
+            # ✅ Default: Use the original `LIBRARY_PATH`
+            library_path = LIBRARY_PATH
+
             # ✅ Case 1: A new file was uploaded
             if triggered_id == "upload-library" and upload_contents:
                 print(f"[INFO] Processing uploaded library file: {upload_filename}")
@@ -78,22 +86,20 @@ def register_callbacks(app, adjusted_df):
                     f.write(base64.b64decode(content_string))
                 print(f"[INFO] File saved to: {filepath}")
 
-                # ✅ Load the new library and rerun analysis
-                new_library_df = pd.read_csv(filepath)
-                print("[DEBUG] Successfully loaded new library file!")
+                # ✅ Update `library_path` to use the uploaded file
+                library_path = filepath
+                print(f"[DEBUG] Using uploaded library: {library_path}")
 
-                fig2 = plot_figure_2(new_library_df)
-                print("[INFO] Library search graph updated after file upload.")
+            # ✅ Load the selected library file for analysis
+            print(f"[INFO] Running library search with: {library_path}")
+            library_df = pd.read_csv(library_path)
 
-                # ✅ Use the existing `adjusted_df` for the main plot (fig1)
-                fig1 = update_graph(remove_columns, adjusted_df)
+            # ✅ Run updated analysis
+            fig2 = plot_figure_2(library_df)
+            print("[INFO] Library search graph updated.")
 
-                return fig1, fig2
-
-            # ✅ Case 2: Only columns were removed
-            print(f"[INFO] Removing selected columns: {remove_columns}")
+            # ✅ Use the existing `adjusted_df` for the main plot (fig1)
             fig1 = update_graph(remove_columns, adjusted_df)
-            fig2 = plot_figure_2(adjusted_df)  # Re-run with the existing dataset
 
             return fig1, fig2
 
