@@ -1,0 +1,37 @@
+Date : 2025-01-25 08:17:46
+Directory : c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 8 files,  708 codes, 40 comments, 102 blanks, all 850 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |          7 |        433 |         40 |        101 |        574 |
+| CSV      |          1 |        275 |          0 |          1 |        276 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                           | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                              |          8 |        708 |         40 |        102 |        850 |
+| . (Files)                                                                                                      |          1 |        275 |          0 |          1 |        276 |
+| PIMMS v1.2                                                                                                     |          7 |        433 |         40 |        101 |        574 |
+| PIMMS v1.2 (Files)                                                                                             |          3 |         66 |         10 |         18 |         94 |
+| PIMMS v1.2\modules                                                                                             |          4 |        367 |         30 |         83 |        480 |
++----------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                       | language | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main - homologous series analysis.py  | Python   |         53 |         11 |         17 |         81 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main.py                               | Python   |         47 |          6 |         14 |         67 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\CCS_mz_trend_analysis.py      | Python   |         70 |         -2 |          3 |         71 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\blank_subtraction.py          | Python   |        121 |         14 |         33 |        168 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\blank_subtraction_workflow.py | Python   |         64 |          1 |         17 |         82 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\gui_module.py                 | Python   |        112 |         17 |         30 |        159 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\post_fluoromatch_processing_main.py   | Python   |        -34 |         -7 |        -13 |        -54 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\temp_combined_data.csv                           | CSV      |        275 |          0 |          1 |        276 |
+| Total                                                                                                          |          |        708 |         40 |        102 |        850 |
++----------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
