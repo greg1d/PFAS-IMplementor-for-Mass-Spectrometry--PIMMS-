@@ -1,6 +1,8 @@
 import os
 import sys
 
+import plotly.graph_objects as go  # Import Plotly to create blank figures
+
 # ✅ Ensure Python Can Find `config.py`
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
@@ -55,11 +57,22 @@ def register_callbacks(app, adjusted_df):
 
         try:
             fig1 = update_graph(remove_columns, adjusted_df)
-            fig2 = plot_figure_2(adjusted_df)  # Ensure fig2 is handled appropriately
+            fig2 = plot_figure_2(adjusted_df)  # Keep fig2 logic as before
             return fig1, fig2
-        except Exception as e:
+        except KeyError as e:
+            if str(e) == "'Classification Type'":
+                print("[ERROR] 'Classification Type' missing. Returning blank graph.")
+
+                # ✅ Return a blank graph instead of crashing
+                blank_fig = go.Figure()
+                blank_fig.update_layout(
+                    title="No Data Available", template="plotly_white"
+                )
+
+                return blank_fig, blank_fig  # Return blank graphs for both outputs
+
             print(f"[ERROR] Exception in update_graph_callback: {e}")
-            return no_update, no_update
+            return no_update, no_update  # Default fallback if another error occurs
 
     @app.callback(
         [Output("standards-table", "columns"), Output("standards-table", "data")],
