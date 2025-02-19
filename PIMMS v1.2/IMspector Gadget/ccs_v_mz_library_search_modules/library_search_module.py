@@ -162,7 +162,6 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
                             )
 
             sample_text = "<br>".join(sample_info) if sample_info else "None"
-            print(f"[DEBUG] Generated Sample Info: {sample_text}")
 
             # ✅ Construct hover text
             hover_text = (
