@@ -2,6 +2,7 @@ import os
 import sys
 
 import pandas as pd
+import plotly.graph_objects as go
 import plotly.io as pio
 
 # ✅ Ensure Python Can Find the Module
@@ -18,7 +19,8 @@ from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modul
 
 
 def plot_figure_1(
-    adjusted_df=None, file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    adjusted_df=None,
+    file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv",
 ):
     """
     Processes data, runs analysis, and generates a Plotly figure.
@@ -44,13 +46,6 @@ def plot_figure_1(
         mass_groups,
     ) = run_analysis(adjusted_df)
 
-    # ✅ Check if valid homologous series were identified
-    if mass_groups.empty:
-        print("\n[WARNING] No homologous series groups identified. Exiting.")
-        return None
-
-    print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
-
     # ✅ Generate Plotly plot
     print("\n[INFO] Generating Plotly plot...")
     fig1 = make_plotly_graph(
@@ -66,7 +61,8 @@ def plot_figure_1(
 
 
 def plot_figure_2(
-    adjusted_df=None, file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    adjusted_df=None,
+    file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv",
 ):
     """
     Runs library search analysis and generates a Plotly figure.
@@ -86,8 +82,15 @@ def plot_figure_2(
         return None
 
     if filtered_IM_group is None or filtered_IM_group.empty:
-        print("\n[WARNING] No homologous series identified. Exiting.")
-        return None
+        print("\n[WARNING] No homologous series identified. Returning blank graph.")
+        fig2 = go.Figure()
+        fig2.update_layout(
+            title="CCS vs. m/z (No Valid Homologous Series Found)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+            template="plotly_dark",
+        )
+        return fig2  # ✅ Return a blank graph instead of exiting
 
     print(
         f"[DEBUG] Identified {filtered_IM_group['GroupID'].nunique()} homologous series."
@@ -111,7 +114,3 @@ if __name__ == "__main__":
     if fig1:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig1)
-    fig2 = plot_figure_2()
-    if fig2:
-        print("[INFO] Plot generation complete. Displaying plot...")
-        pio.show(fig2)

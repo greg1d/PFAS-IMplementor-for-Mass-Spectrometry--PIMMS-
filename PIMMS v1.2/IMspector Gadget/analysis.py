@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 import pandas as pd
 
 # Ensure Python can find the module
@@ -9,14 +10,14 @@ sys.path.append(
 
 # Import modules
 from ccs_v_mz_library_search_modules.library_search_module import (
-    stack_library_with_adjusted,
     external_mz_library_matching,
+    stack_library_with_adjusted,
 )
-from config import LIBRARY_PATH
 from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
 )
+from config import LIBRARY_PATH
 
 
 def run_analysis(adjusted_df):
@@ -26,16 +27,39 @@ def run_analysis(adjusted_df):
     # Identify homologous series
     mass_groups = mz_repeating_unit_analysis(adjusted_df)
 
-    if mass_groups.empty:
-        print("[WARNING] No homologous series identified.")
-        return [], [], [], {}, mass_groups
+    if mass_groups is None or mass_groups.empty:
+        print(
+            "[WARNING] No homologous series identified. Continuing with blank analysis."
+        )
+
+        # ✅ Return a DataFrame with at least the required column
+        mass_groups = pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+
+        return [], [], [], {}, mass_groups  # ✅ Ensure valid return structure
+
+    # ✅ Ensure "GroupID" exists before further processing
+    if "GroupID" not in mass_groups.columns:
+        print(
+            "[ERROR] Missing 'GroupID' column in mass_groups. Creating an empty column."
+        )
+        mass_groups["GroupID"] = pd.Series(dtype="str")  # ✅ Add an empty column
+
+    # ✅ Debugging before proceeding
+    print(f"[DEBUG] mass_groups structure: {mass_groups.dtypes}")
+    print(f"[DEBUG] mass_groups.head():\n{mass_groups.head()}")
+
+    # ✅ Now it's safe to access "GroupID"
+    print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
     # Perform CCS vs. m/z analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}
 
     print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
-    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
+
+    for idx, (group_id, group_df) in enumerate(
+        mass_groups.groupby("GroupID", dropna=True)
+    ):
         print(f"[DEBUG] Analyzing Group {idx + 1} (GroupID: {group_id})")
 
         IM_group, post_source_decay, branched_isomer, mass_only_group = (
@@ -44,7 +68,6 @@ def run_analysis(adjusted_df):
 
         # Append results for plotting
         refined_groups.append(IM_group)
-        print(refined_groups)
         branched_isomer_groups.append(branched_isomer)
         post_source_decay_groups.append(post_source_decay)
 

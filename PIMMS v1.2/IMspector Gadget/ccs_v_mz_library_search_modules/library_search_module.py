@@ -13,12 +13,7 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
 )
-
-# Define file paths
-FILE_PATH = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
-LIBRARY_PATH = (
-    "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-)
+from config import FILE_PATH, LIBRARY_PATH  # ✅ Import paths from config.py
 
 # ✅ Extract the filename without extension for "Match Source"
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
@@ -52,6 +47,17 @@ HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
 def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
+    if filtered_IM_group.empty:
+        print("[INFO] No homologous series found. Returning blank graph.")
+        fig = go.Figure()
+        fig.update_layout(
+            title="CCS vs. m/z (No Homologous Series Found)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+            template="plotly_dark",
+        )
+        return fig
+
     fig = go.Figure()
 
     # ✅ Dummy trace for "External Library Match" (X)
