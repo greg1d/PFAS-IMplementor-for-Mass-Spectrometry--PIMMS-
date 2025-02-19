@@ -12,15 +12,14 @@ MODULE_PATH_2 = os.path.join(BASE_DIR, "ccs_v_mz_library_search_modules")
 
 sys.path.append(MODULE_PATH_1)  # Add `ccs_v_mz_modules` to sys.path
 sys.path.append(MODULE_PATH_2)  # Add `ccs_v_mz_library_search_modules` to sys.path
-
 from analysis import run_analysis, run_library_search_analysis
+from config import FILE_PATH  # ✅ Import FILE_PATH from config
 from library_search_module import library_search_plotly
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
 
 
 def plot_figure_1(
     adjusted_df=None,
-    file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv",
 ):
     """
     Processes data, runs analysis, and generates a Plotly figure.
@@ -33,7 +32,7 @@ def plot_figure_1(
         plotly.graph_objects.Figure: The generated plot.
     """
     if adjusted_df is None:
-        adjusted_df = pd.read_csv(file_path)  # ✅ Only read if no DataFrame is provided
+        adjusted_df = pd.read_csv(FILE_PATH)  # ✅ Always read from FILE_PATH
 
     print("\n[INFO] Running `run_analysis()`...")
 
@@ -62,7 +61,6 @@ def plot_figure_1(
 
 def plot_figure_2(
     adjusted_df=None,
-    file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv",
 ):
     """
     Runs library search analysis and generates a Plotly figure.
@@ -72,7 +70,7 @@ def plot_figure_2(
     """
 
     if adjusted_df is None:
-        adjusted_df = pd.read_csv(file_path)  # ✅ Only read if no DataFrame is provided
+        adjusted_df = pd.read_csv(FILE_PATH)  # ✅ Always read from FILE_PATH
 
     # ✅ Run library search analysis
     filtered_IM_group, stacked_df = run_library_search_analysis()
@@ -114,3 +112,7 @@ if __name__ == "__main__":
     if fig1:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig1)
+    fig2 = plot_figure_2()
+    if fig2:
+        print("[INFO] Plot generation complete. Displaying plot...")
+        pio.show(fig2)
