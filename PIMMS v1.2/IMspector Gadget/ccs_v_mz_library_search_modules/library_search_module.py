@@ -47,7 +47,7 @@ def get_library_path():
 # ✅ Use the selected library path
 LIBRARY_PATH = get_library_path()
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
-
+print("library path", LIBRARY_PATH)
 # ✅ Define all available repeating units
 REPEATING_UNITS = {
     "CF2": 49.9968064,

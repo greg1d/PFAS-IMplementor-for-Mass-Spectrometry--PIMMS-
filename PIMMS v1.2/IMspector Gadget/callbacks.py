@@ -78,7 +78,17 @@ def register_callbacks(app, adjusted_df):
             if triggered_id == "upload-library" and upload_contents:
                 print(f"[INFO] Processing uploaded library file: {upload_filename}")
 
-                # ✅ Save uploaded file
+                # ✅ Step 1: Wipe the folder before saving a new file
+                print(f"[INFO] Clearing previous library files in {UPLOAD_FOLDER}...")
+                for file in os.listdir(UPLOAD_FOLDER):
+                    file_path = os.path.join(UPLOAD_FOLDER, file)
+                    try:
+                        os.remove(file_path)
+                        print(f"[INFO] Deleted: {file_path}")
+                    except Exception as e:
+                        print(f"[WARNING] Failed to delete {file_path}: {e}")
+
+                # ✅ Step 2: Save the new uploaded file
                 filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
                 _, content_string = upload_contents.split(",")
 

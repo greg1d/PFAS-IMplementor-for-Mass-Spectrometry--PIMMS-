@@ -44,4 +44,4 @@ if __name__ == "__main__":
     threading.Timer(1, open_browser).start()
 
     # ✅ Run Dash Server
-    app.run_server(debug=True)  # 🔹 Enable debug mode to catch callback issues
+    app.run_server(debug=False)  # 🔹 Enable debug mode to catch callback issues
