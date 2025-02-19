@@ -6,28 +6,6 @@ from CCS_mz_trend_analysis import (
 )
 from scipy.stats import linregress
 
-FONT_CONFIG = dict(
-    family="NormativePro, Arial, sans-serif",  # Use Arial as a fallback
-    size=18,  # Default font size
-    color="white",  # Ensure visibility on dark backgrounds
-)
-
-
-def apply_plotly_font_styling(fig, font_family="NormativePro"):
-    """
-    Applies uniform font styling to all text elements in the Plotly figure.
-
-    :param fig: The Plotly figure object to be styled.
-    :param font_family: The font family to apply.
-    """
-    fig.update_layout(
-        title=dict(font=dict(family=font_family, size=18)),
-        xaxis=dict(title=dict(font=dict(family=font_family, size=16))),
-        yaxis=dict(title=dict(font=dict(family=font_family, size=16))),
-        legend=dict(font=dict(family=font_family, size=14)),
-        hoverlabel=dict(font=dict(family=font_family, size=12)),
-    )
-
 
 def add_legend_entries(fig):
     """
@@ -300,14 +278,6 @@ def make_plotly_graph(adjusted_df, refined_group, branched_isomers):
                 )
         except (ValueError, IndexError, TypeError) as e:
             print(f"[ERROR] Invalid branched isomer point format: {group} - {e}")
-    # ** Update layout: Ensure Post-Source Decay Toggle Works Independently **
-    fig.update_layout(
-        title=dict(text="CCS vs m/z Trend Analysis"),
-        xaxis=dict(title="m/z"),
-        yaxis=dict(title="CCS"),
-        template="plotly_dark",
-        legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
-    )
 
     return fig
 
