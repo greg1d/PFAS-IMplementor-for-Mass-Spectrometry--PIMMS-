@@ -18,20 +18,18 @@ print("[DEBUG] Module imports successful!")
 # ✅ Load Data
 adjusted_df = load_adjusted_data()
 
-
 print("[INFO] Generating initial plots before starting Dash...")
-fig1 = plot_figure_1()
-fig2 = plot_figure_2()
+fig1 = plot_figure_1(adjusted_df)
+fig2 = plot_figure_2(adjusted_df)
+
 # ✅ Initialize Dash App
 app = dash.Dash(__name__)
 
-# ✅ Set Layout with Default Figures
-app.layout = get_layout()  # ✅ Correct!
-
-register_callbacks(app, adjusted_df)
+# ✅ Register Callbacks FIRST before setting layout
+register_callbacks(app, adjusted_df)  # 🔹 Move this BEFORE layout
 
 # ✅ Set Layout
-app.layout = get_layout()
+app.layout = get_layout()  # ✅ Ensures upload button is included
 
 
 # ✅ Open Browser Automatically
@@ -46,4 +44,4 @@ if __name__ == "__main__":
     threading.Timer(1, open_browser).start()
 
     # ✅ Run Dash Server
-    app.run_server(debug=False)
+    app.run_server(debug=True)  # 🔹 Enable debug mode to catch callback issues

@@ -1,3 +1,4 @@
+import base64
 import os
 import sys
 
@@ -17,6 +18,7 @@ sys.path.append(
         os.path.join(os.path.dirname(__file__), "..")  # Move up to locate config.py
     )
 )
+
 UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
 
@@ -29,13 +31,13 @@ except ModuleNotFoundError:
     print("[ERROR] Could not import `repeating_units` from config.py!")
     sys.exit(1)
 
-from dash import Input, Output, State, no_update
-from data_processing import load_standards_report
+from ccs_v_mz_modules.plotly_graphing import update_graph
+from dash import Input, Output, State, ctx, no_update
 from graphing import plot_figure_2
 
 
 def register_callbacks(app, adjusted_df):
-    """Registers Dash callbacks for dynamic updates of plots and dropdown options."""
+    """Registers Dash callbacks for dropdown updates and graph reloading."""
 
     @app.callback(
         Output("remove_columns", "options"),
@@ -45,44 +47,56 @@ def register_callbacks(app, adjusted_df):
     def update_dropdown_options(_, selected_values):
         return [{"label": col, "value": col} for col in adjusted_df.columns]
 
-    from ccs_v_mz_modules.plotly_graphing import update_graph
-
     @app.callback(
-        [Output("plotly_graph", "figure"), Output("library_search_graph", "figure")],
-        Input("remove_columns", "value"),
+        [
+            Output("plotly_graph", "figure"),
+            Output("library_search_graph", "figure"),
+        ],
+        [
+            Input("remove_columns", "value"),
+            Input("upload-library", "contents"),
+        ],
+        [
+            State("upload-library", "filename"),
+        ],
     )
-    def update_graph_callback(remove_columns):
-        print(
-            f"[DEBUG] update_graph_callback triggered with remove_columns={remove_columns}"
-        )
+    def update_graph_callback(remove_columns, upload_contents, upload_filename):
+        """Handles column removal AND library upload to retrigger graph updates."""
+        triggered_id = ctx.triggered_id
+        print(f"[DEBUG] update_graph_callback triggered by: {triggered_id}")
 
         try:
+            # ✅ Case 1: A new file was uploaded
+            if triggered_id == "upload-library" and upload_contents:
+                print(f"[INFO] Processing uploaded library file: {upload_filename}")
+
+                # ✅ Save uploaded file
+                filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
+                _, content_string = upload_contents.split(",")
+
+                with open(filepath, "wb") as f:
+                    f.write(base64.b64decode(content_string))
+                print(f"[INFO] File saved to: {filepath}")
+
+                # ✅ Load the new library and rerun analysis
+                new_library_df = pd.read_csv(filepath)
+                print("[DEBUG] Successfully loaded new library file!")
+
+                fig2 = plot_figure_2(new_library_df)
+                print("[INFO] Library search graph updated after file upload.")
+
+                # ✅ Use the existing `adjusted_df` for the main plot (fig1)
+                fig1 = update_graph(remove_columns, adjusted_df)
+
+                return fig1, fig2
+
+            # ✅ Case 2: Only columns were removed
+            print(f"[INFO] Removing selected columns: {remove_columns}")
             fig1 = update_graph(remove_columns, adjusted_df)
-            fig2 = plot_figure_2(adjusted_df)  # Keep fig2 logic as before
+            fig2 = plot_figure_2(adjusted_df)  # Re-run with the existing dataset
+
             return fig1, fig2
 
-        except KeyError as e:
-            if str(e) == "'Classification Type'":
-                print(
-                    "[ERROR] 'Classification Type' missing. Returning empty DataFrame."
-                )
-
-                # ✅ Create an empty DataFrame with the same structure
-                empty_df = pd.DataFrame(
-                    columns=adjusted_df.columns
-                )  # Ensure structure remains
-
-                return update_graph(remove_columns, empty_df), plot_figure_2(empty_df)
-
+        except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
-            return no_update, no_update  # Default fallback if another error occurs
-
-    @app.callback(
-        [Output("standards-table", "columns"), Output("standards-table", "data")],
-        [Input("refresh-standards-btn", "n_clicks")],
-    )
-    def refresh_standards_report(n_clicks):
-        if n_clicks is None:
-            return [], []
-        df = load_standards_report()
-        return [{"name": i, "id": i} for i in df.columns], df.to_dict("records")
+            return no_update, no_update  # Prevent breaking the UI
