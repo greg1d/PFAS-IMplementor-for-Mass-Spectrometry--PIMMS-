@@ -1,4 +1,10 @@
-from dash import dcc, html
+from dash import Dash, dcc, html
+
+# ✅ Initialize Dash app
+app = Dash(__name__)
+
+# ✅ Global variable to store uploaded library data
+uploaded_library = None
 
 
 def get_layout():
@@ -15,7 +21,7 @@ def get_layout():
                         options=[],  # Dynamically populated in the app
                         multi=True,
                         placeholder="Select columns to remove...",
-                        className="dropdown",  # ✅ Add CSS class for styling
+                        className="dropdown",  # ✅ Apply CSS class
                     ),
                 ],
                 className="dropdown-container",  # ✅ Wrap dropdown in a div for styling
@@ -26,10 +32,29 @@ def get_layout():
             # ✅ Section: Side-by-Side Graphs
             html.Div(
                 [
+                    # ✅ Library Search Section (WITH UPLOAD BUTTON)
                     html.Div(
                         [
                             html.H2(
                                 "Library Search Results", className="section-title"
+                            ),
+                            # ✅ Upload Button for Library File
+                            html.Div(
+                                [
+                                    dcc.Upload(
+                                        id="upload-library",
+                                        children=html.Button(
+                                            "Upload Library", className="upload-button"
+                                        ),
+                                        multiple=False,  # ✅ Only allow one file at a time
+                                        className="upload-container",
+                                    ),
+                                    # ✅ Upload status message
+                                    html.Div(
+                                        id="upload-status", className="upload-status"
+                                    ),
+                                ],
+                                className="upload-wrapper",  # ✅ Style container for positioning
                             ),
                             dcc.Graph(
                                 id="library_search_graph",
@@ -38,6 +63,7 @@ def get_layout():
                         ],
                         className="graph-wrapper",
                     ),
+                    # ✅ Additional Graph Placeholder
                     html.Div(
                         [
                             html.H2(
@@ -57,3 +83,6 @@ def get_layout():
         ],
         className="dashboard-container",  # ✅ Apply overall container class
     )
+
+
+app.layout = get_layout()

@@ -17,6 +17,8 @@ sys.path.append(
         os.path.join(os.path.dirname(__file__), "..")  # Move up to locate config.py
     )
 )
+UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
 
 # ✅ Import from `config.py`
 try:
@@ -27,10 +29,9 @@ except ModuleNotFoundError:
     print("[ERROR] Could not import `repeating_units` from config.py!")
     sys.exit(1)
 
-from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from dash import Input, Output, State, no_update
 from data_processing import load_standards_report
-from graphing import make_plotly_graph, plot_figure_2
+from graphing import plot_figure_2
 
 
 def register_callbacks(app, adjusted_df):
@@ -85,57 +86,3 @@ def register_callbacks(app, adjusted_df):
             return [], []
         df = load_standards_report()
         return [{"name": i, "id": i} for i in df.columns], df.to_dict("records")
-
-
-def update_graph(remove_columns, adjusted_df, repeating_units=REPEATING_UNITS):
-    print("[INFO] Graph update triggered.")
-
-    remove_columns = remove_columns or []
-    filtered_df = adjusted_df.drop(
-        columns=[col for col in remove_columns if col in adjusted_df.columns],
-        errors="ignore",
-    )
-
-    d_columns = [col for col in filtered_df.columns if ".d" in col]
-    if d_columns:
-        filtered_df = filtered_df[~(filtered_df[d_columns] == 0).all(axis=1)]
-
-    sample_columns = [col for col in filtered_df.columns if ".d" in col]
-    filtered_df["Sample_Info"] = filtered_df.apply(
-        lambda row: "<br>".join(
-            [f"{col}: {row[col]:.2f}" for col in sample_columns if row[col] > 0]
-        )
-        if any(row[col] > 0 for col in sample_columns)
-        else "None",
-        axis=1,
-    )
-    filtered_df = filtered_df[filtered_df["Sample_Info"] != "None"]
-
-    mass_groups = mz_repeating_unit_analysis(filtered_df)
-    (
-        refined_groups,
-        branched_isomer_groups,
-        post_source_decay_groups,
-        mass_only_groups,
-    ) = [], [], [], {}
-
-    for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
-        IM_group, post_source_decay, branched_isomer, mass_only_group = (
-            CCS_v_mz_analysis(group_df)
-        )
-        refined_groups.append(IM_group)
-        branched_isomer_groups.append(branched_isomer)
-        post_source_decay_groups.append(post_source_decay)
-        if isinstance(mass_only_group, list) and mass_only_group:
-            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
-
-    fig = make_plotly_graph(
-        filtered_df,
-        refined_groups,
-        branched_isomer_groups,
-        post_source_decay_groups,
-        mass_only_groups,
-        mass_groups,
-    )
-
-    return fig
