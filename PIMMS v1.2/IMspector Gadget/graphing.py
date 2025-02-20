@@ -13,20 +13,38 @@ MODULE_PATH_2 = os.path.join(BASE_DIR, "ccs_v_mz_library_search_modules")
 sys.path.append(MODULE_PATH_1)  # Add `ccs_v_mz_modules` to sys.path
 sys.path.append(MODULE_PATH_2)  # Add `ccs_v_mz_library_search_modules` to sys.path
 from analysis import run_analysis, run_library_search_analysis
-from config import FILE_PATH  # Import constants
+from config import FILE_PATH
 from library_search_module import library_search_plotly, stack_library_with_adjusted
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
 
+UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 
-def plot_figure_1(
-    adjusted_df=None,
-):
+
+# ✅ Function to get the latest uploaded library file
+def get_latest_library_file():
+    """Retrieve the most recent CSV file from the import folder."""
+    try:
+        files = [
+            os.path.join(UPLOAD_FOLDER, f)
+            for f in os.listdir(UPLOAD_FOLDER)
+            if f.endswith(".csv")
+        ]
+        if not files:
+            print("[WARNING] No library file found in import folder!")
+            return None
+
+        latest_file = max(files, key=os.path.getctime)  # Get the most recent file
+        print(f"[INFO] Using latest library file: {latest_file}")
+        return latest_file
+
+    except Exception as e:
+        print(f"[ERROR] Exception while fetching library file: {e}")
+        return None
+
+
+def plot_figure_1(adjusted_df=None):
     """
     Processes data, runs analysis, and generates a Plotly figure.
-
-    Args:
-        adjusted_df (pd.DataFrame, optional): If provided, uses this dataframe instead of reading from file.
-        file_path (str): Path to CSV file (only used if adjusted_df is not provided).
 
     Returns:
         plotly.graph_objects.Figure: The generated plot.
@@ -59,20 +77,24 @@ def plot_figure_1(
     return fig1
 
 
-def plot_figure_2(LIBRARY_PATH=None):
+def plot_figure_2():
     """
     Runs library search analysis and generates a Plotly figure.
-
-    Args:
-        library_path (str, optional): Path to the uploaded library file.
 
     Returns:
         plotly.graph_objects.Figure: The generated plot.
     """
 
-    # ✅ Step 1: Run stacking process with updated library
-    stacked_df = stack_library_with_adjusted()
+    # ✅ Step 1: Fetch the latest library file
+    latest_library_file = get_latest_library_file()
+    if latest_library_file is None:
+        print("[WARNING] No library file available. Returning blank figure.")
+        return go.Figure()
 
+    print(f"[INFO] Running library search with: {latest_library_file}")
+
+    # ✅ Step 2: Run stacking process with updated library
+    stacked_df = stack_library_with_adjusted()
     if stacked_df is None or stacked_df.empty:
         print(
             "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
@@ -86,9 +108,13 @@ def plot_figure_2(LIBRARY_PATH=None):
         )
         return fig2  # ✅ Return an empty figure instead of breaking the app
 
-    # ✅ Step 2: Run analysis
-    filtered_IM_group, stacked_df = run_library_search_analysis()
+    print(
+        f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
+    )
+    print("[INFO] Running mz_repeating_unit_analysis...")
 
+    # ✅ Step 3: Run analysis
+    filtered_IM_group, stacked_df = run_library_search_analysis()
     if filtered_IM_group is None or filtered_IM_group.empty:
         print("\n[WARNING] No homologous series identified. Returning blank graph.")
         fig2 = go.Figure()
@@ -105,7 +131,7 @@ def plot_figure_2(LIBRARY_PATH=None):
     )
 
     # ✅ Extract library match source dynamically
-    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
+    library_match_source = os.path.splitext(os.path.basename(latest_library_file))[0]
 
     # ✅ Generate and return Plotly plot
     print("\n[INFO] Generating Library Search Plotly plot...")

@@ -338,32 +338,32 @@ import os
 
 from config import FILE_PATH, UPLOAD_FOLDER  # Ensure paths are correctly imported
 
+UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
+
 
 def get_latest_library_file():
-    """
-    Retrieves the most recently uploaded library file from `PIMMS v1.2/imported_libraries`.
-
-    Returns:
-        str: Path to the latest library file, or None if no file exists.
-    """
+    """Retrieve the latest uploaded library file from the import folder."""
     try:
-        files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(".csv")]
+        files = [
+            os.path.join(UPLOAD_FOLDER, f)
+            for f in os.listdir(UPLOAD_FOLDER)
+            if f.endswith(".csv")
+        ]
         if not files:
-            print("[WARNING] No library files found in the imported_libraries folder.")
+            print("[WARNING] No library file found in import folder!")
             return None
 
-        # ✅ Sort files by modification time (latest first)
-        files.sort(
-            key=lambda f: os.path.getmtime(os.path.join(UPLOAD_FOLDER, f)), reverse=True
-        )
-        latest_file = os.path.join(UPLOAD_FOLDER, files[0])
-
-        print(f"[INFO] Using latest uploaded library: {latest_file}")
+        latest_file = max(files, key=os.path.getctime)  # Get the most recent file
+        print(f"[INFO] Using latest library file: {latest_file}")
         return latest_file
 
     except Exception as e:
-        print(f"[ERROR] Failed to retrieve library file: {e}")
+        print(f"[ERROR] Exception while getting latest library file: {e}")
         return None
+
+
+# ✅ Ensure `LIBRARY_PATH` is dynamically set before calling `plot_figure_2`
+LIBRARY_PATH = get_latest_library_file()
 
 
 def stack_library_with_adjusted():
