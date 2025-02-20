@@ -6,13 +6,47 @@ app = Dash(__name__)
 # ✅ Global variable to store uploaded library data
 uploaded_library = None
 
+# ✅ Define Available Repeating Units
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "HF": 20.0062278,
+    "TEST": 1000,
+}
+
 
 def get_layout():
     return html.Div(
         [
             # ✅ Page Title
             html.H1("PIMMS Data Analysis Dashboard", className="dashboard-title"),
-            # ✅ Dropdown for Column Removal
+            # ✅ **Dropdown for Selecting Repeating Units**
+            html.Div(
+                [
+                    html.Label(
+                        "Select repeating units to screen against:",
+                        className="dropdown-label",
+                    ),
+                    dcc.Dropdown(
+                        id="repeating-units-dropdown",
+                        options=[
+                            {"label": unit, "value": unit}
+                            for unit in REPEATING_UNITS.keys()
+                        ],
+                        value=["CF2"],  # Default Selection
+                        multi=True,
+                        placeholder="Select repeating units...",
+                        className="dropdown",
+                    ),
+                ],
+                className="dropdown-container",
+            ),
+            # ✅ Section: CCS vs. m/z Trend Analysis
+            html.H2("CCS vs. m/z Trend Analysis", className="section-title"),
+            dcc.Graph(id="plotly_graph", className="dash-graph"),
+            # ✅ Dropdown for Column Removal (Now placed below CCS vs. m/z Trend Analysis)
             html.Div(
                 [
                     html.Label("Select columns to remove:", className="dropdown-label"),
@@ -21,14 +55,11 @@ def get_layout():
                         options=[],  # Dynamically populated in the app
                         multi=True,
                         placeholder="Select columns to remove...",
-                        className="dropdown",  # ✅ Apply CSS class
+                        className="dropdown",
                     ),
                 ],
-                className="dropdown-container",  # ✅ Wrap dropdown in a div for styling
+                className="dropdown-container",
             ),
-            # ✅ Section: CCS vs. m/z Trend Analysis
-            html.H2("CCS vs. m/z Trend Analysis", className="section-title"),
-            dcc.Graph(id="plotly_graph", className="dash-graph"),
             # ✅ Section: Side-by-Side Graphs
             html.Div(
                 [
@@ -38,7 +69,6 @@ def get_layout():
                             html.H2(
                                 "Library Search Results", className="section-title"
                             ),
-                            # ✅ Upload Button for Library File
                             html.Div(
                                 [
                                     dcc.Upload(
@@ -46,15 +76,14 @@ def get_layout():
                                         children=html.Button(
                                             "Upload Library", className="upload-button"
                                         ),
-                                        multiple=False,  # ✅ Only allow one file at a time
+                                        multiple=False,
                                         className="upload-container",
                                     ),
-                                    # ✅ Upload status message
                                     html.Div(
                                         id="upload-status", className="upload-status"
                                     ),
                                 ],
-                                className="upload-wrapper",  # ✅ Style container for positioning
+                                className="upload-wrapper",
                             ),
                             dcc.Graph(
                                 id="library_search_graph",
@@ -78,10 +107,10 @@ def get_layout():
                         className="graph-wrapper",
                     ),
                 ],
-                className="graph-container",  # ✅ Ensure graphs are side by side
+                className="graph-container",
             ),
         ],
-        className="dashboard-container",  # ✅ Apply overall container class
+        className="dashboard-container",
     )
 
 
