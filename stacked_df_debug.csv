@@ -1,0 +1,9 @@
+Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP, 220 B3 16562.d.DeMP, 221 B3 16563.d.DeMP, 291 B4 16634.d.DeMP, 295 B4 16707.d.DeMP,Name
+PFBS (M-H),PFAS Standards,likely,5935,0.95,17.712,120,199.9936128,597.999,0.0,617.999,1235.999,650.999,0.0,0
+PFPeS (M-H),PFAS Standards,likely,3773,1.474,18.939,130,249.9904192,750.999,0.0,2023.999,1795.999,1182.999,1048.999,0
+PFOA,PFAS Standards,likely,5935,0.95,17.712,200,200.0,597.999,0.0,617.999,1235.999,650.999,0.0,0
+PFOS,PFAS Standards,likely,3773,1.474,18.939,210,249.9968064,750.999,0.0,2023.999,1795.999,1182.999,1048.999,0
+TEST A (M-H),Library test file 1.csv,External Library,100000,12.83,0.0,100,100.0,0.0,0.0,0.0,0.0,0.0,0.0,perfluorododecanesulfonate 
+TEST B (M-H),Library test file 1.csv,External Library,100001,11.76,0.0,110,149.9968064,0.0,0.0,0.0,0.0,0.0,0.0,perfluorodecanesulfonate 
+C (M-H),Library test file 1.csv,External Library,100002,12.83,0.0,230,299.9936128,0.0,0.0,0.0,0.0,0.0,0.0,perfluorododecanesulfonate 
+D (M-H),Library test file 1.csv,External Library,100003,11.76,0.0,240,349.9904192,0.0,0.0,0.0,0.0,0.0,0.0,perfluorodecanesulfonate 

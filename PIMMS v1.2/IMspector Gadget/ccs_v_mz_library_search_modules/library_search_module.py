@@ -288,15 +288,19 @@ def external_mz_library_matching(IM_group, library_match_source):
         return IM_group
 
     valid_groups = []
-
+    print("IM_group", IM_group)
     # ✅ Group by GroupID
     for group_id, group_df in IM_group.groupby("GroupID"):
-        # ✅ Count how many rows come from the external file
-        source_count = (group_df["Match Source"] == library_match_source).sum()
+        # ✅ Identify external library matches based on classification
+        group_df["Is_External_Library"] = ~group_df["Classification Type"].isin(
+            ["unmatched", "likely", "tentative"]
+        )
+        source_count = group_df["Is_External_Library"].sum()
 
         # ✅ Count the number of non-library samples
         sample_count = len(group_df) - source_count
-
+        print("source_count", source_count)
+        print("sample_count", sample_count)
         # ✅ Ensure there is at least one sample in the group
         if source_count >= 2 and sample_count >= 1:
             # ✅ Track consecutive standards
@@ -326,59 +330,112 @@ def external_mz_library_matching(IM_group, library_match_source):
         filtered_IM_group = pd.concat(valid_groups, ignore_index=True)
     else:
         filtered_IM_group = pd.DataFrame()
-
+    print("filtered IM Group from within the library search module", filtered_IM_group)
     return filtered_IM_group
 
 
+import os
+
+from config import FILE_PATH, UPLOAD_FOLDER  # Ensure paths are correctly imported
+
+
+def get_latest_library_file():
+    """
+    Retrieves the most recently uploaded library file from `PIMMS v1.2/imported_libraries`.
+
+    Returns:
+        str: Path to the latest library file, or None if no file exists.
+    """
+    try:
+        files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(".csv")]
+        if not files:
+            print("[WARNING] No library files found in the imported_libraries folder.")
+            return None
+
+        # ✅ Sort files by modification time (latest first)
+        files.sort(
+            key=lambda f: os.path.getmtime(os.path.join(UPLOAD_FOLDER, f)), reverse=True
+        )
+        latest_file = os.path.join(UPLOAD_FOLDER, files[0])
+
+        print(f"[INFO] Using latest uploaded library: {latest_file}")
+        return latest_file
+
+    except Exception as e:
+        print(f"[ERROR] Failed to retrieve library file: {e}")
+        return None
+
+
 def stack_library_with_adjusted():
-    """Loads, standardizes, and combines rows from adjusted_df and library_df into a single DataFrame."""
+    """
+    Loads, standardizes, and combines rows from adjusted_df and the latest uploaded library_df.
 
+    Returns:
+        pd.DataFrame: The combined dataset, or None if there is an issue.
+    """
+
+    # ✅ Ensure adjusted data exists
     if not os.path.exists(FILE_PATH):
+        print("[ERROR] Adjusted dataset not found. Exiting stacking process.")
         return None
 
-    if not os.path.exists(LIBRARY_PATH):
-        return None
+    # ✅ Get the latest uploaded library file
+    library_path = get_latest_library_file()
+    if library_path is None:
+        print("[WARNING] No uploaded library found. Returning only adjusted dataset.")
+        return pd.read_csv(FILE_PATH)  # ✅ Return only the adjusted dataset
 
-    # Read both DataFrames
+    # ✅ Read both DataFrames
+    print(f"[INFO] Reading adjusted dataset from: {FILE_PATH}")
     adjusted_df = pd.read_csv(FILE_PATH)
-    library_df = pd.read_csv(LIBRARY_PATH)
-    print(
-        "Library Path inside the stack librayr with adjusted definition", LIBRARY_PATH
-    )
-    columns_to_drop = ["CAS", "PrecursorCharge", "PrecursorFormula", "MoleculeGroup"]
-    library_df = library_df.drop(
-        columns=[col for col in columns_to_drop if col in library_df.columns]
-    )
 
-    # ✅ Define column mappings to match adjusted_df
+    print(f"[INFO] Reading library dataset from: {library_path}")
+    library_df = pd.read_csv(library_path)
+
+    # ✅ Debugging: Print first few rows of both DataFrames
+    print("[DEBUG] Adjusted DataFrame Sample:")
+    print(adjusted_df.head())
+    print("[DEBUG] Library DataFrame Sample:")
+    print(library_df.head())
+
+    # ✅ Standardize column names in the library dataset
     column_mapping = {
         "PrecursorMz": "m/z",
         "PrecursorCCS": "CCS",
         "PrecursorRT": "RT",
         "PrecursorName": "Match",
     }
-
-    # ✅ Rename columns in library_df to match adjusted_df
     library_df = library_df.rename(columns=column_mapping)
 
+    # ✅ Drop unnecessary columns if they exist
+    columns_to_drop = ["CAS", "PrecursorCharge", "PrecursorFormula", "MoleculeGroup"]
+    library_df = library_df.drop(
+        columns=[col for col in columns_to_drop if col in library_df.columns],
+        errors="ignore",
+    )
+
+    # ✅ Handle missing "PrecursorName" and "PrecursorAdduct"
     if "PrecursorName" in library_df.columns:
         library_df = library_df.drop(columns=["PrecursorName"])
-
     if "PrecursorAdduct" in library_df.columns:
         library_df["Match"] = (
             library_df["Match"] + " (" + library_df["PrecursorAdduct"] + ")"
         )
-        library_df = library_df.drop(
-            columns=["PrecursorAdduct"]
-        )  # Remove original column
+        library_df = library_df.drop(columns=["PrecursorAdduct"])
+
+    # ✅ Fill missing values
     library_df = library_df.dropna(axis=1, how="any")
 
+    # ✅ Insert unique ID for library entries
     library_df.insert(0, "ID", range(100000, 100000 + len(library_df)))
-    if "Match Source" in adjusted_df.columns:
-        library_df["Match Source"] = LIBRARY_MATCH_SOURCE  # Use extracted filename
-    if "Classification Type" in adjusted_df.columns:
-        library_df["Classification Type"] = "External Library"  # Use extracted filename
 
+    # ✅ Ensure necessary metadata columns are present
+    if "Match Source" not in library_df.columns:
+        library_df["Match Source"] = os.path.basename(library_path)  # ✅ Use filename
+    if "Classification Type" not in library_df.columns:
+        library_df["Classification Type"] = "External Library"
+
+    # ✅ Arrange columns in a specific order
     column_order = ["Match", "Match Source", "Classification Type", "ID", "RT", "CCS"]
     remaining_columns = [col for col in library_df.columns if col not in column_order]
     library_df = library_df[column_order + remaining_columns]
@@ -386,12 +443,18 @@ def stack_library_with_adjusted():
     # ✅ Stack the two DataFrames (Concatenation of Rows)
     stacked_df = pd.concat([adjusted_df, library_df], ignore_index=True)
     stacked_df = stacked_df.fillna(0)
-    columns_to_drop = ["Mass Error (ppm)", "CCS Error (%)", "RT Error (%)"]
 
+    # ✅ Drop additional error-related columns if they exist
+    extra_columns_to_drop = ["Mass Error (ppm)", "CCS Error (%)", "RT Error (%)"]
     stacked_df = stacked_df.drop(
-        columns=[col for col in columns_to_drop if col in stacked_df.columns]
+        columns=[col for col in extra_columns_to_drop if col in stacked_df.columns],
+        errors="ignore",
     )
-    stacked_df.to_csv("stacked_df.csv", index=False)
+
+    # ✅ Save for debugging
+    stacked_df.to_csv("stacked_df_debug.csv", index=False)
+    print(f"[INFO] Stacked dataset created with {len(stacked_df)} rows.")
+
     return stacked_df
 
 

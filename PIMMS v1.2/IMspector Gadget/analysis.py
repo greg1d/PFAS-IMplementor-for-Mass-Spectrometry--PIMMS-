@@ -100,6 +100,7 @@ def run_library_search_analysis():
 
     # ✅ Step 1: Stack adjusted and library data
     stacked_df = stack_library_with_adjusted()
+    print("stacked_df", stacked_df)
     if stacked_df is None or stacked_df.empty:
         print("[WARNING] Stacked dataset is empty. Exiting analysis.")
         return None, None
@@ -126,7 +127,6 @@ def run_library_search_analysis():
     for group_id, group_df in mass_groups.groupby("GroupID"):
         print(f"[INFO] Processing GroupID {group_id}...")
         IM_group, _, _, _ = CCS_v_mz_analysis(group_df)
-
         if IM_group:
             IM_group_df = group_df[
                 group_df[["m/z", "CCS"]].apply(tuple, axis=1).isin(IM_group)
@@ -136,7 +136,7 @@ def run_library_search_analysis():
             filtered_IM_group = external_mz_library_matching(
                 IM_group_df, library_match_source
             )
-
+            print("filtered IM group", filtered_IM_group)
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
 

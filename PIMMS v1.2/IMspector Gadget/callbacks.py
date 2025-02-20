@@ -2,7 +2,7 @@ import base64
 import os
 import sys
 
-import pandas as pd
+from plotly import graph_objs as go
 
 # ✅ Ensure Python Can Find `config.py`
 sys.path.append(
@@ -34,6 +34,9 @@ except ModuleNotFoundError:
     )
     sys.exit(1)
 
+from ccs_v_mz_library_search_modules.library_search_module import (
+    stack_library_with_adjusted,
+)
 from ccs_v_mz_modules.plotly_graphing import update_graph
 from dash import Input, Output, State, ctx, no_update
 from graphing import plot_figure_2
@@ -71,8 +74,8 @@ def register_callbacks(app, adjusted_df):
         print(f"[DEBUG] update_graph_callback triggered by: {triggered_id}")
 
         try:
-            # ✅ Default: Use the original `LIBRARY_PATH`
-            library_path = LIBRARY_PATH
+            # ✅ Default to existing `adjusted_df`
+            fig1 = update_graph(remove_columns, adjusted_df)
 
             # ✅ Case 1: A new file was uploaded
             if triggered_id == "upload-library" and upload_contents:
@@ -93,23 +96,28 @@ def register_callbacks(app, adjusted_df):
                 _, content_string = upload_contents.split(",")
 
                 with open(filepath, "wb") as f:
-                    f.write(base64.b64decode(content_string))
+                    decoded_data = base64.b64decode(content_string)
+                    f.write(decoded_data)
                 print(f"[INFO] File saved to: {filepath}")
 
-                # ✅ Update `library_path` to use the uploaded file
-                library_path = filepath
-                print(f"[DEBUG] Using uploaded library: {library_path}")
+                # ✅ Step 3: Run updated analysis
+                print(f"[INFO] Running library search with updated file: {filepath}")
 
-            # ✅ Load the selected library file for analysis
-            print(f"[INFO] Running library search with: {library_path}")
-            library_df = pd.read_csv(library_path)
-            print("library df", library_df)
-            # ✅ Run updated analysis
-            fig2 = plot_figure_2(library_df)
-            print("[INFO] Library search graph updated.")
+                stacked_df = stack_library_with_adjusted()
+                if stacked_df is None or stacked_df.empty:
+                    print(
+                        "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+                    )
+                    empty_fig = go.Figure()
+                    empty_fig.update_layout(
+                        title="No Data Available", template="plotly_dark"
+                    )
+                    return fig1, empty_fig  # ✅ Ensure fig1 is always defined
 
-            # ✅ Use the existing `adjusted_df` for the main plot (fig1)
-            fig1 = update_graph(remove_columns, adjusted_df)
+                fig2 = plot_figure_2(stacked_df)
+                print("[INFO] Library search graph updated.")
+            else:
+                fig2 = plot_figure_2()  # Default behavior when no file is uploaded
 
             return fig1, fig2
 

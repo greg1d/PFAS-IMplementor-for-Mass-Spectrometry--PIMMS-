@@ -13,8 +13,8 @@ MODULE_PATH_2 = os.path.join(BASE_DIR, "ccs_v_mz_library_search_modules")
 sys.path.append(MODULE_PATH_1)  # Add `ccs_v_mz_modules` to sys.path
 sys.path.append(MODULE_PATH_2)  # Add `ccs_v_mz_library_search_modules` to sys.path
 from analysis import run_analysis, run_library_search_analysis
-from config import FILE_PATH  # ✅ Import FILE_PATH from config
-from library_search_module import library_search_plotly
+from config import FILE_PATH  # Import constants
+from library_search_module import library_search_plotly, stack_library_with_adjusted
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
 
 
@@ -59,25 +59,35 @@ def plot_figure_1(
     return fig1
 
 
-def plot_figure_2(
-    adjusted_df=None,
-):
+def plot_figure_2(LIBRARY_PATH=None):
     """
     Runs library search analysis and generates a Plotly figure.
+
+    Args:
+        library_path (str, optional): Path to the uploaded library file.
 
     Returns:
         plotly.graph_objects.Figure: The generated plot.
     """
 
-    if adjusted_df is None:
-        adjusted_df = pd.read_csv(FILE_PATH)  # ✅ Always read from FILE_PATH
-
-    # ✅ Run library search analysis
-    filtered_IM_group, stacked_df = run_library_search_analysis()
+    # ✅ Step 1: Run stacking process with updated library
+    stacked_df = stack_library_with_adjusted()
 
     if stacked_df is None or stacked_df.empty:
-        print("\n[WARNING] No stacked dataset available. Exiting.")
-        return None
+        print(
+            "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+        )
+        fig2 = go.Figure()
+        fig2.update_layout(
+            title="CCS vs. m/z (No Data Available)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+            template="plotly_dark",
+        )
+        return fig2  # ✅ Return an empty figure instead of breaking the app
+
+    # ✅ Step 2: Run analysis
+    filtered_IM_group, stacked_df = run_library_search_analysis()
 
     if filtered_IM_group is None or filtered_IM_group.empty:
         print("\n[WARNING] No homologous series identified. Returning blank graph.")
@@ -94,24 +104,23 @@ def plot_figure_2(
         f"[DEBUG] Identified {filtered_IM_group['GroupID'].nunique()} homologous series."
     )
 
-    # ✅ Extract the library match source from the path
-    library_match_source = os.path.splitext(
-        os.path.basename("PIMMS v1.2/import folder/Library test file 1.csv")
-    )[0]
+    # ✅ Extract library match source dynamically
+    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
-    # ✅ Generate Plotly plot
+    # ✅ Generate and return Plotly plot
     print("\n[INFO] Generating Library Search Plotly plot...")
     fig2 = library_search_plotly(stacked_df, filtered_IM_group, library_match_source)
 
     return fig2
 
 
-# ✅ Main function to call `plot_figure_1()`
+# ✅ Main execution for testing
 if __name__ == "__main__":
     fig1 = plot_figure_1()
     if fig1:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig1)
+
     fig2 = plot_figure_2()
     if fig2:
         print("[INFO] Plot generation complete. Displaying plot...")
