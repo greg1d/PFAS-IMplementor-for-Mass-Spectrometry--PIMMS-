@@ -114,10 +114,8 @@ def register_callbacks(app, adjusted_df):
                     )
                     return fig1, empty_fig  # ✅ Ensure fig1 is always defined
 
-                fig2 = plot_figure_2(stacked_df)
+                fig2 = plot_figure_2()
                 print("[INFO] Library search graph updated.")
-            else:
-                fig2 = plot_figure_2()  # Default behavior when no file is uploaded
 
             return fig1, fig2
 
