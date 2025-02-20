@@ -60,7 +60,10 @@ def register_callbacks(app, adjusted_df):
         State("remove_columns", "value"),
     )
     def update_dropdown_options(_, selected_values):
-        return [{"label": col, "value": col} for col in adjusted_df.columns]
+        # ✅ Filter columns to only include those with ".d" in their names
+        d_columns = [col for col in adjusted_df.columns if ".d" in col]
+
+        return [{"label": col, "value": col} for col in d_columns]
 
     @app.callback(
         [
