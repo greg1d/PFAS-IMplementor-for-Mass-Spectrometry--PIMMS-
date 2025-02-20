@@ -68,9 +68,7 @@ def register_callbacks(app, adjusted_df):
             Output("library_search_graph", "figure"),
         ],
         [
-            Input(
-                "repeating-units-dropdown", "value"
-            ),  # ✅ Added to function signature
+            Input("repeating-units-dropdown", "value"),
             Input("remove_columns", "value"),
             Input("upload-library", "contents"),
         ],
@@ -81,7 +79,7 @@ def register_callbacks(app, adjusted_df):
     def update_graph_callback(
         selected_units, remove_columns, upload_contents, upload_filename
     ):
-        """Handles column removal, repeating units selection, AND library upload."""
+        """Handles column removal, repeating units selection, AND library updates."""
         triggered_id = ctx.triggered_id
         print(f"[DEBUG] update_graph_callback triggered by: {triggered_id}")
 
@@ -97,65 +95,64 @@ def register_callbacks(app, adjusted_df):
                 for key in selected_units
                 if key in REPEATING_UNITS
             }
-
             print(
                 f"[INFO] Updated selected repeating units: {selected_repeating_units}"
             )
 
-            # ✅ Always update fig1 with the correct repeating units
+            # ✅ Always update fig1
             fig1 = update_graph(remove_columns, adjusted_df, selected_repeating_units)
 
-            # ✅ If no file is uploaded, return fig1 and keep fig2 the same
-            if triggered_id != "upload-library" or not upload_contents:
-                print("[INFO] No new library uploaded. Returning default fig2.")
-                return fig1, no_update  # ✅ fig1 updates, fig2 stays the same
-
-            print(f"[INFO] Processing uploaded library file: {upload_filename}")
-
-            # ✅ Step 1: Wipe previous library files
-            for file in os.listdir(UPLOAD_FOLDER):
-                file_path = os.path.join(UPLOAD_FOLDER, file)
-                try:
-                    os.remove(file_path)
-                    print(f"[INFO] Deleted: {file_path}")
-                except Exception as e:
-                    print(f"[WARNING] Failed to delete {file_path}: {e}")
-
-            # ✅ Step 2: Save the new uploaded file
-            filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
-            _, content_string = upload_contents.split(",")
-            with open(filepath, "wb") as f:
-                decoded_data = base64.b64decode(content_string)
-                f.write(decoded_data)
-            print(f"[INFO] File saved to: {filepath}")
-
-            # ✅ Step 3: Run updated analysis
-            stacked_df = stack_library_with_adjusted()
-            if stacked_df is None or stacked_df.empty:
-                print(
-                    "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
-                )
-                empty_fig = go.Figure()
-                empty_fig.update_layout(
-                    title="CCS vs. m/z",
-                    template="plotly_dark",
-                    annotations=[
-                        dict(
-                            text="No data available after library update",
-                            x=0.5,
-                            y=0.5,
-                            xref="paper",
-                            yref="paper",
-                            showarrow=False,
-                            font=dict(size=20, color="white"),
-                        )
-                    ],
-                )
-                return fig1, empty_fig  # ✅ fig1 updates, fig2 blank
-
-            # ✅ Step 4: Generate updated library search figure
+            # ✅ Always update fig2 (regardless of file upload)
             fig2 = plot_figure_2(selected_repeating_units)
-            print("[INFO] Library search graph updated.")
+
+            # ✅ Only process a new library if uploaded
+            if triggered_id == "upload-library" and upload_contents:
+                print(f"[INFO] Processing uploaded library file: {upload_filename}")
+
+                # ✅ Step 1: Wipe previous library files
+                for file in os.listdir(UPLOAD_FOLDER):
+                    file_path = os.path.join(UPLOAD_FOLDER, file)
+                    try:
+                        os.remove(file_path)
+                        print(f"[INFO] Deleted: {file_path}")
+                    except Exception as e:
+                        print(f"[WARNING] Failed to delete {file_path}: {e}")
+
+                # ✅ Step 2: Save the new uploaded file
+                filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
+                _, content_string = upload_contents.split(",")
+                with open(filepath, "wb") as f:
+                    decoded_data = base64.b64decode(content_string)
+                    f.write(decoded_data)
+                print(f"[INFO] File saved to: {filepath}")
+
+                # ✅ Step 3: Run updated analysis with the new library
+                stacked_df = stack_library_with_adjusted()
+                if stacked_df is None or stacked_df.empty:
+                    print(
+                        "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+                    )
+                    empty_fig = go.Figure()
+                    empty_fig.update_layout(
+                        title="CCS vs. m/z",
+                        template="plotly_dark",
+                        annotations=[
+                            dict(
+                                text="No data available after library update",
+                                x=0.5,
+                                y=0.5,
+                                xref="paper",
+                                yref="paper",
+                                showarrow=False,
+                                font=dict(size=20, color="white"),
+                            )
+                        ],
+                    )
+                    return fig1, empty_fig  # ✅ fig1 updates, fig2 blank
+
+                # ✅ Step 4: Update fig2 after processing the new library
+                fig2 = plot_figure_2(selected_repeating_units)
+                print("[INFO] Library search graph updated.")
 
             return fig1, fig2
 
