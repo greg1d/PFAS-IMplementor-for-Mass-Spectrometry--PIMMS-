@@ -77,10 +77,29 @@ def register_callbacks(app, adjusted_df):
             # ✅ Always update fig1 using the existing `adjusted_df`
             fig1 = update_graph(remove_columns, adjusted_df)
 
-            # ✅ If no file is uploaded, return fig1 and do NOT update fig2
+            # ✅ If no file is uploaded, return fig1 and set fig2 to a default template
             if triggered_id != "upload-library" or not upload_contents:
-                print("[INFO] No new library uploaded. Returning only fig1.")
-                return fig1, no_update  # ✅ fig1 updates, fig2 remains unchanged
+                print("[INFO] No new library uploaded. Returning default fig2.")
+
+                # ✅ Create default fig2 with a message
+                fig2 = go.Figure()
+                fig2.update_layout(
+                    template="plotly_dark",
+                    xaxis=dict(title=r"<b><i>m/z</i></b>"),
+                    yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+                    annotations=[
+                        dict(
+                            text="Upload a CCS library to visualize trends",
+                            x=0.5,
+                            y=0.5,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=20, color="white"),
+                        )
+                    ],
+                )
+                return fig1, fig2  # ✅ fig1 updates, fig2 shows message
 
             print(f"[INFO] Processing uploaded library file: {upload_filename}")
 
@@ -111,9 +130,23 @@ def register_callbacks(app, adjusted_df):
                 print(
                     "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
                 )
+
+                # ✅ Return dark template with error message
                 empty_fig = go.Figure()
                 empty_fig.update_layout(
-                    title="No Data Available", template="plotly_dark"
+                    title="CCS vs. m/z",
+                    template="plotly_dark",
+                    annotations=[
+                        dict(
+                            text="No data available after library update",
+                            x=0.5,
+                            y=0.5,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=20, color="white"),
+                        )
+                    ],
                 )
                 return fig1, empty_fig  # ✅ fig1 always updates
 
