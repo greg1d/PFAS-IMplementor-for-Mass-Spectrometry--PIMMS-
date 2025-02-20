@@ -42,26 +42,33 @@ def get_latest_library_file():
         return None
 
 
-def plot_figure_1(adjusted_df=None):
+def plot_figure_1(adjusted_df=None, selected_repeating_units=None):
     """
     Processes data, runs analysis, and generates a Plotly figure.
+
+    Args:
+        adjusted_df (pd.DataFrame, optional): Dataframe containing processed data.
+        selected_repeating_units (dict, optional): User-selected repeating units.
 
     Returns:
         plotly.graph_objects.Figure: The generated plot.
     """
     if adjusted_df is None:
         adjusted_df = pd.read_csv(FILE_PATH)  # ✅ Always read from FILE_PATH
+    if not selected_repeating_units:
+        print("[WARNING] No repeating units selected. Returning blank figure.")
+        return go.Figure()
+    print("\n[INFO] Running `run_analysis()` with selected repeating units...")
+    print(f"[DEBUG] Selected repeating units: {selected_repeating_units}")
 
-    print("\n[INFO] Running `run_analysis()`...")
-
-    # ✅ Run full analysis using imported function
+    # ✅ Run full analysis using selected repeating units
     (
         refined_groups,
         branched_isomers,
         post_source_decay,
         mass_only_groups,
         mass_groups,
-    ) = run_analysis(adjusted_df)
+    ) = run_analysis(adjusted_df, selected_repeating_units)
 
     # ✅ Generate Plotly plot
     print("\n[INFO] Generating Plotly plot...")
@@ -77,9 +84,12 @@ def plot_figure_1(adjusted_df=None):
     return fig1
 
 
-def plot_figure_2():
+def plot_figure_2(selected_repeating_units=None):
     """
     Runs library search analysis and generates a Plotly figure.
+
+    Args:
+        selected_repeating_units (dict, optional): User-selected repeating units.
 
     Returns:
         plotly.graph_objects.Figure: The generated plot.
@@ -113,8 +123,11 @@ def plot_figure_2():
     )
     print("[INFO] Running mz_repeating_unit_analysis...")
 
-    # ✅ Step 3: Run analysis
-    filtered_IM_group, stacked_df = run_library_search_analysis()
+    # ✅ Step 3: Run analysis with selected repeating units
+    filtered_IM_group, stacked_df = run_library_search_analysis(
+        selected_repeating_units
+    )
+
     if filtered_IM_group is None or filtered_IM_group.empty:
         print("\n[WARNING] No homologous series identified. Returning blank graph.")
         fig2 = go.Figure()
@@ -142,12 +155,12 @@ def plot_figure_2():
 
 # ✅ Main execution for testing
 if __name__ == "__main__":
-    fig1 = plot_figure_1()
+    fig1 = plot_figure_1(selected_repeating_units={})  # Start with no selected units
     if fig1:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig1)
 
-    fig2 = plot_figure_2()
+    fig2 = plot_figure_2(selected_repeating_units={})  # Start with no selected units
     if fig2:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig2)

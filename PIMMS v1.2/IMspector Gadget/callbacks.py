@@ -20,11 +20,6 @@ sys.path.append(
     )
 )
 
-# ✅ Global variable to store selected units
-SELECTED_UNITS = ["CF2"]
-selected_repeating_units = {
-    key: REPEATING_UNITS[key] for key in REPEATING_UNITS if key in SELECTED_UNITS
-}
 
 UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
@@ -176,22 +171,28 @@ def register_callbacks(app, adjusted_df):
         """
         Updates both figures when the user selects repeating units.
         """
-        global SELECTED_UNITS, selected_repeating_units
+        # ✅ If no selection, return blank graphs
+        # ✅ If no selection, return blank graphs
+        if not selected_units or selected_units == [""]:
+            print("[WARNING] No repeating units selected. Returning blank graphs.")
+            return go.Figure(), go.Figure()
 
-        # ✅ Update selected repeating units
-        SELECTED_UNITS = selected_units
+        # ✅ Convert selected_units into a dictionary
         selected_repeating_units = {
             key: REPEATING_UNITS[key]
-            for key in REPEATING_UNITS
-            if key in SELECTED_UNITS
+            for key in selected_units
+            if key in REPEATING_UNITS
         }
 
-        # ✅ Print debugging info to terminal
+        # ✅ Debugging information
         print(f"[DEBUG] User selected repeating units: {selected_units}")
         print(f"[INFO] Updated selected repeating units: {selected_repeating_units}")
 
         # ✅ Regenerate Figures
-        fig1 = plot_figure_1()
-        fig2 = plot_figure_2()
+        fig1 = plot_figure_1(adjusted_df, selected_repeating_units)
+        fig2 = plot_figure_2(selected_repeating_units)
+        # ✅ Explicit Debugging Output
+        print("[DEBUG] Returning fig1:", fig1)
+        print("[DEBUG] Returning fig2:", fig2)
 
         return fig1, fig2

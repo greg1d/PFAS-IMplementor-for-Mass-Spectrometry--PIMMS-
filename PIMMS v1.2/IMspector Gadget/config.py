@@ -31,9 +31,3 @@ REPEATING_UNITS = {
     "CH2CF2": 64.012456,
     "HF": 20.0062278,
 }
-SELECTED_UNITS = ["CF2"]
-selected_repeating_units = {
-    key: REPEATING_UNITS[key] for key in REPEATING_UNITS if key in SELECTED_UNITS
-}
-# ✅ Print for debugging
-print(f"[DEBUG] REPEATING_UNITS: {selected_repeating_units}")

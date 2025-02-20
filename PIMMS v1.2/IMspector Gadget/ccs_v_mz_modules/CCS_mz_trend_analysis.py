@@ -14,29 +14,45 @@ IMPECTOR_GADGET_DIR = os.path.abspath(
 # ✅ Ensure Python finds `config.py`
 if IMPECTOR_GADGET_DIR not in sys.path:
     sys.path.append(IMPECTOR_GADGET_DIR)  # Add IMspector Gadget to sys.path
-from config import selected_repeating_units  # ✅ Import selected repeating units
-
-print("[DEBUG] selected_repeating_units:", selected_repeating_units)
 
 
-def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10):
+def mz_repeating_unit_analysis(
+    adjusted_df, selected_repeating_units, mass_error_ppm=10
+):
     """
     Identifies homologous series trends by checking different repeating units.
     Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
+
+    Args:
+        adjusted_df (pd.DataFrame): Input dataset with m/z values.
+        selected_repeating_units (dict): Dictionary of user-selected repeating units.
+        mass_error_ppm (int): PPM error tolerance for matching.
+
+    Returns:
+        pd.DataFrame: DataFrame containing identified homologous series.
     """
-    print(f"[DEBUG] selected_repeating_units: {selected_repeating_units}")
+    print(f"[DEBUG] User-selected repeating units: {selected_repeating_units}")
+
+    if not isinstance(selected_repeating_units, dict):
+        print(
+            "[ERROR] selected_repeating_units must be a dictionary! Returning blank DataFrame."
+        )
+        return pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+
+    if not selected_repeating_units:
+        print("[WARNING] No repeating units selected. Returning blank DataFrame.")
+        return pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
 
     iteration_count = 0  # Track loop iterations
     group_counter = 0  # Track unique Group ID
 
-    selected_units = selected_repeating_units
     # **Sort data by m/z for efficient searching**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
 
     unique_group_ids = set()
     mass_groups = []
 
-    for unit_name, M in selected_units.items():
+    for unit_name, M in selected_repeating_units.items():
         processed_indices = set()
 
         for i in range(len(adjusted_df)):
@@ -101,6 +117,7 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10):
             # **Only process groups that have at least 3 points BEFORE expansion**
             if len(current_group) <= 3:
                 continue  # Skip storing this group
+
             # **Ensure min-max m/z difference is at least 10**
             min_mz = min(entry["m/z"] for entry in current_group)
             max_mz = max(entry["m/z"] for entry in current_group)
@@ -113,8 +130,6 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10):
                 unique_group_ids.add(group_ids)
                 group_df = pd.DataFrame(current_group)
                 mass_groups.append(group_df)
-
-                # **Debugging: Print Group Composition**
 
     # **Combine all groups into a single DataFrame**
     if mass_groups:
@@ -133,6 +148,10 @@ def mz_repeating_unit_analysis(adjusted_df, mass_error_ppm=10):
                 "Repeating Unit",
             ]
         )
+
+    print(
+        f"[INFO] mz_repeating_unit_analysis completed. Found {len(mass_groups)} entries."
+    )
     return mass_groups
 
 

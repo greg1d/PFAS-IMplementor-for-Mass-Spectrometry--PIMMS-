@@ -443,7 +443,13 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
     print(
         f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {repeating_units}"
     )
-    mass_groups = mz_repeating_unit_analysis(filtered_df)
+
+    # ✅ FIX: Ensure `repeating_units` is passed!
+    try:
+        mass_groups = mz_repeating_unit_analysis(filtered_df, repeating_units)
+    except Exception as e:
+        print(f"[ERROR] Exception in update_graph: {e}")
+        return go.Figure()  # ✅ Return blank figure if error occurs
 
     # ✅ Process each group through CCS_v_mz_analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
@@ -454,16 +460,19 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
             f"[DEBUG] Updating Graph - Analyzing Group {idx + 1} (GroupID: {group_id})"
         )
 
-        IM_group, post_source_decay, branched_isomer, mass_only_group = (
-            CCS_v_mz_analysis(group_df)
-        )
+        try:
+            IM_group, post_source_decay, branched_isomer, mass_only_group = (
+                CCS_v_mz_analysis(group_df)
+            )
 
-        refined_groups.append(IM_group)
-        branched_isomer_groups.append(branched_isomer)
-        post_source_decay_groups.append(post_source_decay)
+            refined_groups.append(IM_group)
+            branched_isomer_groups.append(branched_isomer)
+            post_source_decay_groups.append(post_source_decay)
 
-        if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
-            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
+            if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
+                mass_only_groups[f"Group {idx + 1}"] = mass_only_group
+        except Exception as e:
+            print(f"[ERROR] Error processing Group {group_id}: {e}")
 
     # ✅ Debugging before sending to plotting function
     print("\n[INFO] Final Data Sent to Plot:")

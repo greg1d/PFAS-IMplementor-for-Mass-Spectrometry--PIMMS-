@@ -28,7 +28,7 @@ def get_layout():
                             {"label": unit, "value": unit}
                             for unit in REPEATING_UNITS.keys()
                         ],
-                        value=["CF2"],  # ✅ Default selection
+                        value=None,  # ✅ Default selection
                         multi=True,
                         placeholder="Select repeating units...",
                         className="dropdown",

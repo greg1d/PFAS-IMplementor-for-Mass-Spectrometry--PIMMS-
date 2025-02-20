@@ -20,38 +20,29 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 from config import LIBRARY_PATH
 
 
-def run_analysis(adjusted_df):
+def run_analysis(adjusted_df, selected_repeating_units):
     """Runs CCS vs. m/z trend analysis pipeline."""
+
     print("[INFO] Starting mz_repeating_unit_analysis...")
 
-    # Identify homologous series
-    mass_groups = mz_repeating_unit_analysis(adjusted_df)
+    # ✅ Ensure selected_repeating_units is always a dictionary
+    if not selected_repeating_units:
+        print("[WARNING] No repeating units selected. Returning blank data.")
+        return [], [], [], {}, pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+
+    # ✅ Run analysis only if there are selected repeating units
+    print(
+        f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {selected_repeating_units}"
+    )
+    mass_groups = mz_repeating_unit_analysis(adjusted_df, selected_repeating_units)
 
     if mass_groups is None or mass_groups.empty:
-        print(
-            "[WARNING] No homologous series identified. Continuing with blank analysis."
-        )
+        print("[WARNING] No homologous series identified.")
+        return [], [], [], {}, pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
 
-        # ✅ Return a DataFrame with at least the required column
-        mass_groups = pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
-
-        return [], [], [], {}, mass_groups  # ✅ Ensure valid return structure
-
-    # ✅ Ensure "GroupID" exists before further processing
-    if "GroupID" not in mass_groups.columns:
-        print(
-            "[ERROR] Missing 'GroupID' column in mass_groups. Creating an empty column."
-        )
-        mass_groups["GroupID"] = pd.Series(dtype="str")  # ✅ Add an empty column
-
-    # ✅ Debugging before proceeding
-    print(f"[DEBUG] mass_groups structure: {mass_groups.dtypes}")
-    print(f"[DEBUG] mass_groups.head():\n{mass_groups.head()}")
-
-    # ✅ Now it's safe to access "GroupID"
     print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
-    # Perform CCS vs. m/z analysis
+    # ✅ Process CCS vs. m/z analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}
 
@@ -66,7 +57,7 @@ def run_analysis(adjusted_df):
             CCS_v_mz_analysis(group_df)
         )
 
-        # Append results for plotting
+        # ✅ Append results
         refined_groups.append(IM_group)
         branched_isomer_groups.append(branched_isomer)
         post_source_decay_groups.append(post_source_decay)
@@ -83,24 +74,15 @@ def run_analysis(adjusted_df):
     )
 
 
-def run_library_search_analysis():
+def run_library_search_analysis(selected_repeating_units):
     """
-    Runs the full pipeline for library search analysis:
-    1. Stacks adjusted_df and library_df.
-    2. Performs homologous series identification.
-    3. Runs CCS vs. m/z analysis.
-    4. Filters homologous series using external library matching criteria.
-
-    Returns:
-        - filtered_IM_group (pd.DataFrame): The final set of valid homologous series.
-        - stacked_df (pd.DataFrame): The combined dataset of adjusted and library features.
+    Runs full pipeline for library search analysis.
     """
 
     print("[INFO] Running library search analysis...")
 
     # ✅ Step 1: Stack adjusted and library data
     stacked_df = stack_library_with_adjusted()
-    print("stacked_df", stacked_df)
     if stacked_df is None or stacked_df.empty:
         print("[WARNING] Stacked dataset is empty. Exiting analysis.")
         return None, None
@@ -109,12 +91,12 @@ def run_library_search_analysis():
         f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
     )
 
-    # ✅ Extract library name for matching
+    # ✅ Extract library name
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
-    # ✅ Step 2: Identify homologous series using repeating unit analysis
+    # ✅ Step 2: Identify homologous series using user-selected repeating units
     print("[INFO] Running mz_repeating_unit_analysis...")
-    mass_groups = mz_repeating_unit_analysis(stacked_df)
+    mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
 
     if mass_groups.empty:
         print("[WARNING] No homologous series identified.")
@@ -122,7 +104,7 @@ def run_library_search_analysis():
 
     print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
-    # ✅ Step 3: Run CCS vs. m/z analysis for each group
+    # ✅ Step 3: Run CCS vs. m/z analysis
     filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
         print(f"[INFO] Processing GroupID {group_id}...")
@@ -136,11 +118,10 @@ def run_library_search_analysis():
             filtered_IM_group = external_mz_library_matching(
                 IM_group_df, library_match_source
             )
-            print("filtered IM group", filtered_IM_group)
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
 
-    # ✅ Merge all valid IM groups into one DataFrame
+    # ✅ Merge valid IM groups into one DataFrame
     final_IM_group = (
         pd.concat(filtered_IM_groups, ignore_index=True)
         if filtered_IM_groups
