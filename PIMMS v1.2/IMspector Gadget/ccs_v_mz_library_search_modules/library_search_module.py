@@ -469,7 +469,7 @@ def main():
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
     # ✅ Perform Repeating Unit Analysis
-    mass_groups = mz_repeating_unit_analysis(stacked_df)
+    mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
 
     if mass_groups.empty:
         return

@@ -172,16 +172,24 @@ def register_callbacks(app, adjusted_df):
         Updates both figures when the user selects repeating units.
         """
         # ✅ If no selection, return blank graphs
-        # ✅ If no selection, return blank graphs
         if not selected_units or selected_units == [""]:
             print("[WARNING] No repeating units selected. Returning blank graphs.")
             return go.Figure(), go.Figure()
 
-        # ✅ Convert selected_units into a dictionary
+        # ✅ Convert selected_units into a dictionary (using pre-defined values)
+        valid_repeating_units = {
+            "CF2": 49.9968064,
+            "OCF2": 65.9917214,
+            "CF2CF2O": 115.988527,
+            "CH2CF2": 64.012456,
+            "HF": 20.0062278,
+        }
+
+        # ✅ Filter for only selected repeating units
         selected_repeating_units = {
-            key: REPEATING_UNITS[key]
+            key: valid_repeating_units[key]
             for key in selected_units
-            if key in REPEATING_UNITS
+            if key in valid_repeating_units
         }
 
         # ✅ Debugging information
@@ -191,8 +199,5 @@ def register_callbacks(app, adjusted_df):
         # ✅ Regenerate Figures
         fig1 = plot_figure_1(adjusted_df, selected_repeating_units)
         fig2 = plot_figure_2(selected_repeating_units)
-        # ✅ Explicit Debugging Output
-        print("[DEBUG] Returning fig1:", fig1)
-        print("[DEBUG] Returning fig2:", fig2)
 
         return fig1, fig2
