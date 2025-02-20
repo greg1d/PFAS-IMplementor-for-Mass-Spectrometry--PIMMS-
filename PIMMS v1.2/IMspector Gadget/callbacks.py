@@ -46,7 +46,7 @@ from ccs_v_mz_library_search_modules.library_search_module import (
 )
 from ccs_v_mz_modules.plotly_graphing import update_graph
 from dash import Input, Output, State, ctx, no_update
-from graphing import plot_figure_2
+from graphing import plot_figure_1, plot_figure_2
 
 
 def register_callbacks(app, adjusted_df):
@@ -172,15 +172,13 @@ def register_callbacks(app, adjusted_df):
         Output("output-text", "children"),
         Input("repeating-units-dropdown", "value"),
     )
-    def update_repeating_units(selected_units):
+    def update_graphs(selected_units):
         """
-        Updates the selected repeating units dictionary based on user selection.
+        Updates both figures when the user selects repeating units.
         """
-        global SELECTED_UNITS, selected_repeating_units  # ✅ Modify global variables
+        global SELECTED_UNITS, selected_repeating_units
 
-        print(f"[DEBUG] User selected repeating units: {selected_units}")
-
-        # ✅ Update `SELECTED_UNITS` dynamically
+        # ✅ Update selected repeating units
         SELECTED_UNITS = selected_units
         selected_repeating_units = {
             key: REPEATING_UNITS[key]
@@ -188,6 +186,12 @@ def register_callbacks(app, adjusted_df):
             if key in SELECTED_UNITS
         }
 
+        # ✅ Print debugging info to terminal
+        print(f"[DEBUG] User selected repeating units: {selected_units}")
         print(f"[INFO] Updated selected repeating units: {selected_repeating_units}")
 
-        return f"Selected Repeating Units: {', '.join(SELECTED_UNITS)} (Values: {selected_repeating_units})"
+        # ✅ Regenerate Figures
+        fig1 = plot_figure_1()
+        fig2 = plot_figure_2()
+
+        return fig1, fig2
