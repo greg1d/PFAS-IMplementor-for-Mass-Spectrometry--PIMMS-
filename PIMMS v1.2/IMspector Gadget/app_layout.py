@@ -30,13 +30,13 @@ def get_layout():
                         className="dropdown-label",
                     ),
                     dcc.Dropdown(
-                        id="repeating-units-dropdown",
+                        id="repeating-units-dropdown",  # ✅ Ensure this ID is correct
                         options=[
                             {"label": unit, "value": unit}
                             for unit in REPEATING_UNITS.keys()
                         ],
-                        value=["CF2"],  # Default Selection
-                        multi=True,
+                        value=["CF2"],  # ✅ Default selection
+                        multi=True,  # ✅ Allows multiple selections
                         placeholder="Select repeating units...",
                         className="dropdown",
                     ),

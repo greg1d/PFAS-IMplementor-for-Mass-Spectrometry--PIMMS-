@@ -30,9 +30,8 @@ REPEATING_UNITS = {
     "CF2CF2O": 115.988527,
     "CH2CF2": 64.012456,
     "HF": 20.0062278,
-    "TEST": 1000,
 }
-SELECTED_UNITS = ["TEST"]
+SELECTED_UNITS = ["CF2"]
 selected_repeating_units = {
     key: REPEATING_UNITS[key] for key in REPEATING_UNITS if key in SELECTED_UNITS
 }
