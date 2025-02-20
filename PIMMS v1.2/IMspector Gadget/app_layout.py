@@ -1,7 +1,7 @@
-from dash import Dash, dcc, html
+from dash import Dash, Input, Output, dcc, html
 
 # ✅ Initialize Dash app
-app = Dash(__name__)
+app = Dash(__name__, suppress_callback_exceptions=True)
 
 # ✅ Global variable to store uploaded library data
 uploaded_library = None
@@ -22,7 +22,7 @@ def get_layout():
         [
             # ✅ Page Title
             html.H1("PIMMS Data Analysis Dashboard", className="dashboard-title"),
-            # ✅ **Dropdown for Selecting Repeating Units**
+            # ✅ Dropdown for Selecting Repeating Units
             html.Div(
                 [
                     html.Label(
@@ -30,19 +30,21 @@ def get_layout():
                         className="dropdown-label",
                     ),
                     dcc.Dropdown(
-                        id="repeating-units-dropdown",  # ✅ Ensure this ID is correct
+                        id="repeating-units-dropdown",
                         options=[
                             {"label": unit, "value": unit}
                             for unit in REPEATING_UNITS.keys()
                         ],
                         value=["CF2"],  # ✅ Default selection
-                        multi=True,  # ✅ Allows multiple selections
+                        multi=True,
                         placeholder="Select repeating units...",
                         className="dropdown",
                     ),
                 ],
                 className="dropdown-container",
             ),
+            # ✅ Debugging Output (Fix: Ensure this exists in the layout)
+            html.Div(id="output-text", children="Select a repeating unit above."),
             # ✅ Section: CCS vs. m/z Trend Analysis
             html.H2("CCS vs. m/z Trend Analysis", className="section-title"),
             dcc.Graph(id="plotly_graph", className="dash-graph"),
@@ -80,7 +82,8 @@ def get_layout():
                                         className="upload-container",
                                     ),
                                     html.Div(
-                                        id="upload-status", className="upload-status"
+                                        id="upload-status",
+                                        className="upload-status",
                                     ),
                                 ],
                                 className="upload-wrapper",
@@ -115,3 +118,20 @@ def get_layout():
 
 
 app.layout = get_layout()
+
+
+# ✅ Simple Debugging Callback
+@app.callback(
+    Output("output-text", "children"),
+    Input("repeating-units-dropdown", "value"),
+)
+def debug_dropdown(selected_units):
+    print(
+        f"[DEBUG] User selected repeating units: {selected_units}"
+    )  # ✅ Print to terminal
+    return f"Selected Repeating Units: {', '.join(selected_units)}"
+
+
+# ✅ Run the app
+if __name__ == "__main__":
+    app.run_server(debug=True)
