@@ -74,51 +74,55 @@ def register_callbacks(app, adjusted_df):
         print(f"[DEBUG] update_graph_callback triggered by: {triggered_id}")
 
         try:
-            # ✅ Default to existing `adjusted_df`
+            # ✅ Always update fig1 using the existing `adjusted_df`
             fig1 = update_graph(remove_columns, adjusted_df)
 
-            # ✅ Case 1: A new file was uploaded
-            if triggered_id == "upload-library" and upload_contents:
-                print(f"[INFO] Processing uploaded library file: {upload_filename}")
+            # ✅ If no file is uploaded, return fig1 and do NOT update fig2
+            if triggered_id != "upload-library" or not upload_contents:
+                print("[INFO] No new library uploaded. Returning only fig1.")
+                return fig1, no_update  # ✅ fig1 updates, fig2 remains unchanged
 
-                # ✅ Step 1: Wipe the folder before saving a new file
-                print(f"[INFO] Clearing previous library files in {UPLOAD_FOLDER}...")
-                for file in os.listdir(UPLOAD_FOLDER):
-                    file_path = os.path.join(UPLOAD_FOLDER, file)
-                    try:
-                        os.remove(file_path)
-                        print(f"[INFO] Deleted: {file_path}")
-                    except Exception as e:
-                        print(f"[WARNING] Failed to delete {file_path}: {e}")
+            print(f"[INFO] Processing uploaded library file: {upload_filename}")
 
-                # ✅ Step 2: Save the new uploaded file
-                filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
-                _, content_string = upload_contents.split(",")
+            # ✅ Step 1: Wipe the folder before saving a new file
+            print(f"[INFO] Clearing previous library files in {UPLOAD_FOLDER}...")
+            for file in os.listdir(UPLOAD_FOLDER):
+                file_path = os.path.join(UPLOAD_FOLDER, file)
+                try:
+                    os.remove(file_path)
+                    print(f"[INFO] Deleted: {file_path}")
+                except Exception as e:
+                    print(f"[WARNING] Failed to delete {file_path}: {e}")
 
-                with open(filepath, "wb") as f:
-                    decoded_data = base64.b64decode(content_string)
-                    f.write(decoded_data)
-                print(f"[INFO] File saved to: {filepath}")
+            # ✅ Step 2: Save the new uploaded file
+            filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
+            _, content_string = upload_contents.split(",")
 
-                # ✅ Step 3: Run updated analysis
-                print(f"[INFO] Running library search with updated file: {filepath}")
+            with open(filepath, "wb") as f:
+                decoded_data = base64.b64decode(content_string)
+                f.write(decoded_data)
+            print(f"[INFO] File saved to: {filepath}")
 
-                stacked_df = stack_library_with_adjusted()
-                if stacked_df is None or stacked_df.empty:
-                    print(
-                        "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
-                    )
-                    empty_fig = go.Figure()
-                    empty_fig.update_layout(
-                        title="No Data Available", template="plotly_dark"
-                    )
-                    return fig1, empty_fig  # ✅ Ensure fig1 is always defined
+            # ✅ Step 3: Run updated analysis
+            print(f"[INFO] Running library search with updated file: {filepath}")
 
-                fig2 = plot_figure_2()
-                print("[INFO] Library search graph updated.")
+            stacked_df = stack_library_with_adjusted()
+            if stacked_df is None or stacked_df.empty:
+                print(
+                    "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+                )
+                empty_fig = go.Figure()
+                empty_fig.update_layout(
+                    title="No Data Available", template="plotly_dark"
+                )
+                return fig1, empty_fig  # ✅ fig1 always updates
+
+            # ✅ Step 4: Generate updated figure 2
+            fig2 = plot_figure_2()
+            print("[INFO] Library search graph updated.")
 
             return fig1, fig2
 
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
-            return no_update, no_update  # Prevent breaking the UI
+            return fig1, no_update  # ✅ fig1 always updates, fig2 remains unchanged
