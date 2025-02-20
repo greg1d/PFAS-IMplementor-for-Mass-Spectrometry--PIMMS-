@@ -1,10 +1,4 @@
-from dash import Dash, Input, Output, dcc, html
-
-# ✅ Initialize Dash app
-app = Dash(__name__, suppress_callback_exceptions=True)
-
-# ✅ Global variable to store uploaded library data
-uploaded_library = None
+from dash import dcc, html
 
 # ✅ Define Available Repeating Units
 REPEATING_UNITS = {
@@ -13,7 +7,6 @@ REPEATING_UNITS = {
     "CF2CF2O": 115.988527,
     "CH2CF2": 64.012456,
     "HF": 20.0062278,
-    "TEST": 1000,
 }
 
 
@@ -43,12 +36,12 @@ def get_layout():
                 ],
                 className="dropdown-container",
             ),
-            # ✅ Debugging Output (Fix: Ensure this exists in the layout)
+            # ✅ Debugging Output
             html.Div(id="output-text", children="Select a repeating unit above."),
             # ✅ Section: CCS vs. m/z Trend Analysis
             html.H2("CCS vs. m/z Trend Analysis", className="section-title"),
             dcc.Graph(id="plotly_graph", className="dash-graph"),
-            # ✅ Dropdown for Column Removal (Now placed below CCS vs. m/z Trend Analysis)
+            # ✅ Dropdown for Column Removal
             html.Div(
                 [
                     html.Label("Select columns to remove:", className="dropdown-label"),
@@ -82,8 +75,7 @@ def get_layout():
                                         className="upload-container",
                                     ),
                                     html.Div(
-                                        id="upload-status",
-                                        className="upload-status",
+                                        id="upload-status", className="upload-status"
                                     ),
                                 ],
                                 className="upload-wrapper",
@@ -103,8 +95,7 @@ def get_layout():
                                 className="section-title",
                             ),
                             dcc.Graph(
-                                id="additional_graph",
-                                className="dash-graph half-width",
+                                id="additional_graph", className="dash-graph half-width"
                             ),
                         ],
                         className="graph-wrapper",
@@ -115,23 +106,3 @@ def get_layout():
         ],
         className="dashboard-container",
     )
-
-
-app.layout = get_layout()
-
-
-# ✅ Simple Debugging Callback
-@app.callback(
-    Output("output-text", "children"),
-    Input("repeating-units-dropdown", "value"),
-)
-def debug_dropdown(selected_units):
-    print(
-        f"[DEBUG] User selected repeating units: {selected_units}"
-    )  # ✅ Print to terminal
-    return f"Selected Repeating Units: {', '.join(selected_units)}"
-
-
-# ✅ Run the app
-if __name__ == "__main__":
-    app.run_server(debug=True)

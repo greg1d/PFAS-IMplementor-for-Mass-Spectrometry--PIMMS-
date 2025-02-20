@@ -159,3 +159,14 @@ def register_callbacks(app, adjusted_df):
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
             return fig1, no_update  # ✅ fig1 always updates, fig2 remains unchanged
+
+    # ✅ Simple Debugging Callback
+    @app.callback(
+        Output("output-text", "children"),
+        Input("repeating-units-dropdown", "value"),
+    )
+    def debug_dropdown(selected_units):
+        print(
+            f"[DEBUG] User selected repeating units: {selected_units}"
+        )  # ✅ Print to terminal
+        return f"Selected Repeating Units: {', '.join(selected_units)}"
