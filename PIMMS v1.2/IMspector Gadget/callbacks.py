@@ -2,6 +2,7 @@ import base64
 import os
 import sys
 
+from app_layout import REPEATING_UNITS  # ✅ Import repeating units dictionary
 from plotly import graph_objs as go
 
 # ✅ Ensure Python Can Find `config.py`
@@ -18,6 +19,12 @@ sys.path.append(
         os.path.join(os.path.dirname(__file__), "..")  # Move up to locate config.py
     )
 )
+
+# ✅ Global variable to store selected units
+SELECTED_UNITS = ["CF2"]
+selected_repeating_units = {
+    key: REPEATING_UNITS[key] for key in REPEATING_UNITS if key in SELECTED_UNITS
+}
 
 UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
@@ -165,8 +172,22 @@ def register_callbacks(app, adjusted_df):
         Output("output-text", "children"),
         Input("repeating-units-dropdown", "value"),
     )
-    def debug_dropdown(selected_units):
-        print(
-            f"[DEBUG] User selected repeating units: {selected_units}"
-        )  # ✅ Print to terminal
-        return f"Selected Repeating Units: {', '.join(selected_units)}"
+    def update_repeating_units(selected_units):
+        """
+        Updates the selected repeating units dictionary based on user selection.
+        """
+        global SELECTED_UNITS, selected_repeating_units  # ✅ Modify global variables
+
+        print(f"[DEBUG] User selected repeating units: {selected_units}")
+
+        # ✅ Update `SELECTED_UNITS` dynamically
+        SELECTED_UNITS = selected_units
+        selected_repeating_units = {
+            key: REPEATING_UNITS[key]
+            for key in REPEATING_UNITS
+            if key in SELECTED_UNITS
+        }
+
+        print(f"[INFO] Updated selected repeating units: {selected_repeating_units}")
+
+        return f"Selected Repeating Units: {', '.join(SELECTED_UNITS)} (Values: {selected_repeating_units})"
