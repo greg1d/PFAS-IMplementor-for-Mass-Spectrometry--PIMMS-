@@ -2,7 +2,6 @@ import base64
 import os
 import sys
 
-from app_layout import REPEATING_UNITS  # ✅ Import repeating units dictionary
 from plotly import graph_objs as go
 
 # ✅ Ensure Python Can Find `config.py`
@@ -20,6 +19,13 @@ sys.path.append(
     )
 )
 
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "HF": 20.0062278,
+}
 
 UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
@@ -171,27 +177,17 @@ def register_callbacks(app, adjusted_df):
         """
         Updates both figures when the user selects repeating units.
         """
-        # ✅ If no selection, return blank graphs
+        # ✅ Ensure selected_units is a valid list
         if not selected_units or selected_units == [""]:
             print("[WARNING] No repeating units selected. Returning blank graphs.")
             return go.Figure(), go.Figure()
 
-        # ✅ Convert selected_units into a dictionary (using pre-defined values)
-        valid_repeating_units = {
-            "CF2": 49.9968064,
-            "OCF2": 65.9917214,
-            "CF2CF2O": 115.988527,
-            "CH2CF2": 64.012456,
-            "HF": 20.0062278,
-        }
-
-        # ✅ Filter for only selected repeating units
+        # ✅ Dynamically filter selected repeating units
         selected_repeating_units = {
-            key: valid_repeating_units[key]
+            key: REPEATING_UNITS[key]
             for key in selected_units
-            if key in valid_repeating_units
+            if key in REPEATING_UNITS
         }
-
         # ✅ Debugging information
         print(f"[DEBUG] User selected repeating units: {selected_units}")
         print(f"[INFO] Updated selected repeating units: {selected_repeating_units}")

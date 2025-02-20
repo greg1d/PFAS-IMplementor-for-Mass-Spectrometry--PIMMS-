@@ -58,7 +58,7 @@ REPEATING_UNITS = {
 }
 
 # ✅ Select a subset of repeating units for analysis
-SELECTED_UNITS = ["CF2", "OCF2", "CF2CF2O", "CH2CF2"]
+SELECTED_UNITS = ["CH2CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 

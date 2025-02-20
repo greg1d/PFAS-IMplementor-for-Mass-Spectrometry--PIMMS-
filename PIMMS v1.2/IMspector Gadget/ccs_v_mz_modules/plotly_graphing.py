@@ -381,10 +381,18 @@ def make_plotly_graph(
     return fig
 
 
-def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
+REPEATING_UNITS = {
+    "CF2": 49.9968064,
+    "OCF2": 65.9917214,
+    "CF2CF2O": 115.988527,
+    "CH2CF2": 64.012456,
+    "HF": 20.0062278,
+}
+
+
+def update_graph(remove_columns, adjusted_df, repeating_units=None):
     """Updates the graph dynamically when columns are removed."""
     print("[INFO] Graph update triggered.")
-    print(f"[DEBUG] Using repeating units in update_graph: {repeating_units}")
 
     # ✅ Default to empty list if None
     if remove_columns is None:
@@ -410,7 +418,7 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
             f"[INFO] Removed {before_removal - after_removal} rows where all '.d' columns were 0."
         )
 
-    # ✅ Identify rows where "Samples:" is "None" and remove them
+    # ✅ Extract sample information
     sample_columns = [col for col in filtered_df.columns if ".d" in col]
 
     def get_sample_info(row):
@@ -423,7 +431,7 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
     # **Compute sample information**
     filtered_df["Sample_Info"] = filtered_df.apply(get_sample_info, axis=1)
 
-    # ✅ **Remove rows where Sample_Info is "None"**
+    # ✅ Remove rows where Sample_Info is "None"
     before_sample_removal = len(filtered_df)
     filtered_df = filtered_df[filtered_df["Sample_Info"] != "None"]
     after_sample_removal = len(filtered_df)
@@ -439,14 +447,25 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
         )
         filtered_df["Classification Type"] = pd.Series(dtype="str")
 
-    # ✅ Ensure repeating units are passed correctly
+    # ✅ FIX: Ensure `repeating_units` is **dynamically set**
+    if repeating_units is None:
+        print("[WARNING] No repeating units provided. Using default empty dictionary.")
+        selected_repeating_units = {}
+    else:
+        # ✅ Convert list of selected repeating units into dictionary
+        selected_repeating_units = {
+            key: REPEATING_UNITS[key]
+            for key in repeating_units
+            if key in REPEATING_UNITS
+        }
+
     print(
-        f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {repeating_units}"
+        f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {selected_repeating_units}"
     )
 
-    # ✅ FIX: Ensure `repeating_units` is passed!
+    # ✅ Ensure dictionary is passed
     try:
-        mass_groups = mz_repeating_unit_analysis(filtered_df, repeating_units)
+        mass_groups = mz_repeating_unit_analysis(filtered_df, selected_repeating_units)
     except Exception as e:
         print(f"[ERROR] Exception in update_graph: {e}")
         return go.Figure()  # ✅ Return blank figure if error occurs
