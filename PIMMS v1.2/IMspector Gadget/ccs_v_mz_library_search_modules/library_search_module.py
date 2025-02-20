@@ -133,7 +133,6 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
         # ✅ Extract x (m/z) and y (CCS) for linear fit
         mz_values = group_df["m/z"].values
         ccs_values = group_df["CCS"].values
-        group_df.to_csv("group_df.csv", index=False)
         # ✅ Perform linear regression for trendline
         slope, intercept, r_value, p_value, _ = stats.linregress(mz_values, ccs_values)
 
@@ -452,9 +451,7 @@ def stack_library_with_adjusted():
     )
 
     # ✅ Save for debugging
-    stacked_df.to_csv("stacked_df_debug.csv", index=False)
     print(f"[INFO] Stacked dataset created with {len(stacked_df)} rows.")
-
     return stacked_df
 
 
