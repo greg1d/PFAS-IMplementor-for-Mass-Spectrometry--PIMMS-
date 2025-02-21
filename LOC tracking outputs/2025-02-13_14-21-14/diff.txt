@@ -1,0 +1,46 @@
+Date : 2025-02-13 14:21:14
+Directory : c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 13 files,  96 codes, 15 comments, 28 blanks, all 139 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |         11 |         96 |         15 |         28 |        139 |
+| CSS      |          2 |          0 |          0 |          0 |          0 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                                     | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                                        |         13 |         96 |         15 |         28 |        139 |
+| PIMMS v1.2                                                                                                                                               |         13 |         96 |         15 |         28 |        139 |
+| PIMMS v1.2 (Files)                                                                                                                                       |          2 |        -70 |         -7 |        -19 |        -96 |
+| PIMMS v1.2\IMspector Gadget                                                                                                                              |          6 |        996 |        105 |        223 |      1,324 |
+| PIMMS v1.2\IMspector Gadget (Files)                                                                                                                      |          1 |         87 |         15 |         32 |        134 |
+| PIMMS v1.2\IMspector Gadget\assets                                                                                                                       |          1 |         44 |          9 |          9 |         62 |
+| PIMMS v1.2\IMspector Gadget\modules                                                                                                                      |          4 |        865 |         81 |        182 |      1,128 |
+| PIMMS v1.2\assets                                                                                                                                        |          1 |        -44 |         -9 |         -9 |        -62 |
+| PIMMS v1.2\modules                                                                                                                                       |          4 |       -786 |        -74 |       -167 |     -1,027 |
++----------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                                 | language | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\Main - homologous series analysis.py   | Python   |         87 |         15 |         32 |        134 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\assets\styles.css                      | CSS      |         44 |          9 |          9 |         62 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\CCS_mz_trend_analysis.py       | Python   |        224 |         22 |         52 |        298 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\dash_formatting.py             | Python   |         26 |          0 |          3 |         29 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\plotly_graphing.py             | Python   |        454 |         43 |         91 |        588 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\testing plotly highlighting.py | Python   |        161 |         16 |         36 |        213 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main - homologous series analysis.py                    | Python   |        -44 |         -7 |        -16 |        -67 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\assets\styles.css                                       | CSS      |        -44 |         -9 |         -9 |        -62 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\dash_formatting.py                                      | Python   |        -26 |          0 |         -3 |        -29 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\CCS_mz_trend_analysis.py                        | Python   |       -220 |        -22 |        -53 |       -295 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\plotly_graphing.py                              | Python   |       -346 |        -28 |        -64 |       -438 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\testing plotly highlighting.py                  | Python   |       -161 |        -16 |        -36 |       -213 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\testing plotly.py                               | Python   |        -59 |         -8 |        -14 |        -81 |
+| Total                                                                                                                                                    |          |         96 |         15 |         28 |        139 |
++----------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

@@ -1,0 +1,48 @@
+Date : 2025-02-13 20:57:09
+Directory : c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 18 files,  105 codes, 11 comments, 26 blanks, all 142 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |         18 |        105 |         11 |         26 |        142 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                                              | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                                                 |         18 |        105 |         11 |         26 |        142 |
+| PIMMS v1.2                                                                                                                                                        |         18 |        105 |         11 |         26 |        142 |
+| PIMMS v1.2\IMspector Gadget                                                                                                                                       |         17 |        218 |         24 |         57 |        299 |
+| PIMMS v1.2\IMspector Gadget (Files)                                                                                                                               |          9 |        197 |         24 |         57 |        278 |
+| PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules                                                                                                                      |          4 |        848 |         78 |        180 |      1,106 |
+| PIMMS v1.2\IMspector Gadget\modules                                                                                                                               |          4 |       -827 |        -78 |       -180 |     -1,085 |
+| PIMMS v1.2\modules                                                                                                                                                |          1 |       -113 |        -13 |        -31 |       -157 |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                                          | language | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\IMspector Gadget Main.py                        | Python   |         88 |         15 |         33 |        136 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\Main - homologous series analysis.py            | Python   |        -87 |        -15 |        -33 |       -135 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\analysis.py                                     | Python   |         31 |          2 |         10 |         43 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\app.py                                          | Python   |         46 |         11 |         19 |         76 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\app_layout.py                                   | Python   |         28 |          2 |          4 |         34 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\callbacks.py                                    | Python   |         31 |          0 |          5 |         36 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules\CCS_mz_trend_analysis.py       | Python   |        224 |         22 |         52 |        298 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules\dash_formatting.py             | Python   |         26 |          0 |          3 |         29 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules\plotly_graphing.py             | Python   |        437 |         40 |         89 |        566 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_modules\testing plotly highlighting.py | Python   |        161 |         16 |         36 |        213 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\config.py                                       | Python   |         18 |          7 |          9 |         34 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\data_processing.py                              | Python   |         18 |          0 |          5 |         23 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\graphing.py                                     | Python   |         24 |          2 |          5 |         31 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\CCS_mz_trend_analysis.py                | Python   |       -224 |        -22 |        -52 |       -298 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\dash_formatting.py                      | Python   |        -26 |          0 |         -3 |        -29 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\plotly_graphing.py                      | Python   |       -416 |        -40 |        -89 |       -545 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\modules\testing plotly highlighting.py          | Python   |       -161 |        -16 |        -36 |       -213 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\Testing group refinement algorithm.py                    | Python   |       -113 |        -13 |        -31 |       -157 |
+| Total                                                                                                                                                             |          |        105 |         11 |         26 |        142 |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

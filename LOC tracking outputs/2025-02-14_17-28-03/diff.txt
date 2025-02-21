@@ -1,0 +1,35 @@
+Date : 2025-02-14 17:28:03
+Directory : c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 5 files,  76 codes, 14 comments, 32 blanks, all 122 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |          2 |         76 |         14 |         30 |        120 |
+| CSV      |          3 |          0 |          0 |          2 |          2 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                                                       | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                                                          |          5 |         76 |         14 |         32 |        122 |
+| PIMMS v1.2                                                                                                                                                                 |          5 |         76 |         14 |         32 |        122 |
+| PIMMS v1.2\Data_output                                                                                                                                                     |          1 |         -8 |          0 |          0 |         -8 |
+| PIMMS v1.2\IMspector Gadget                                                                                                                                                |          2 |         84 |         14 |         32 |        130 |
+| PIMMS v1.2\IMspector Gadget\ccs_v_mz_library_search_modules                                                                                                                |          2 |         84 |         14 |         32 |        130 |
+| PIMMS v1.2\import folder                                                                                                                                                   |          2 |          0 |          0 |          0 |          0 |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                                                   | language | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv                             | CSV      |         -8 |          0 |          0 |         -8 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_library_search_modules\library_search_module.py | Python   |         79 |         14 |         31 |        124 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\IMspector Gadget\ccs_v_mz_library_search_modules\merged_data.csv          | CSV      |          5 |          0 |          1 |          6 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Library test file.csv                                       | CSV      |          3 |          0 |          1 |          4 |
+| c:\Users\Baker Lab 5\Desktop\GPK\PIMMS\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\repeating_units.py                                          | Python   |         -3 |          0 |         -1 |         -4 |
+| Total                                                                                                                                                                      |          |         76 |         14 |         32 |        122 |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
