@@ -1,9 +1,4 @@
-from dash import dash_table, dcc, html
-from data_processing import load_adjusted_data
-
-adjusted_df = load_adjusted_data()
-
-d_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+from dash import dcc, html
 
 
 def get_layout(fig1=None):
@@ -36,5 +31,6 @@ def get_layout(fig1=None):
                 data=[],
                 style_table={"overflowX": "auto"},
             ),
-        ]
+        ],
+        className="dashboard-container",  # ✅ Apply overall container class
     )

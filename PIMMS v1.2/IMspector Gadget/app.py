@@ -13,6 +13,7 @@ from app_layout import get_layout
 from data_processing import load_adjusted_data
 from config import LIBRARY_PATH  # ✅ Import LIBRARY_PATH
 from graphing import plotly_ccs_v_mz_sample_plot
+from graphing import plot_figure_1, plot_figure_2
 
 print("[DEBUG] Module imports successful!")
 
@@ -35,11 +36,22 @@ library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]  # �
 # ✅ Generate initial figures **BEFORE** starting the Dash app
 fig1 = plotly_ccs_v_mz_sample_plot(adjusted_df)
 
+
+print("[INFO] Generating initial plots before starting Dash...")
+fig1 = plot_figure_1()
+fig2 = plot_figure_2()
 # ✅ Initialize Dash App
 app = dash.Dash(__name__)
 
 # ✅ Set Layout with Default Figures
+app.layout = get_layout()  # ✅ Correct!
+
+register_callbacks(app, adjusted_df)
+
+# ✅ Set Layout with Default Figures
 app.layout = get_layout(fig1)
+# ✅ Set Layout
+app.layout = get_layout()
 
 
 # ✅ Open Browser Automatically

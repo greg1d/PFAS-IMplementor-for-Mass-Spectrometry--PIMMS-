@@ -129,82 +129,62 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
             classification = row.get("Classification Type", "Unknown")
-            RT = row["RT"]  # Direct access if the column exists
+            RT = row.get("RT", "N/A")  # Safely access RT
             repeating_unit = row.get("Repeating Unit", "N/A")
             match_source = row.get("Match Source", "Unknown Source")
-            if classification == 0:
-                classification = match_source  # ✅ Use Library Match instead
+
+            # ✅ Assign marker symbol
             marker_symbol = "x" if classification == "External Library" else "circle"
             symbols.append(marker_symbol)
 
-            mz_value = row[
-                "m/z"
-            ]  # Extract m/z of current row            group_df.to_csv("group_df.csv", index=False)
+            # ✅ Extract m/z of the current row
+            mz_value = row["m/z"]
             matched_row = adjusted_df.loc[adjusted_df["m/z"] == mz_value]
-            print(
-                "Adjusted DataFrame Columns:", adjusted_df.columns
-            )  # Ensure correct column names
-            print(
-                "Unique Classification Types in adjusted_df:",
-                adjusted_df["Classification Type"].unique(),
-            )
-            print(
-                f"Row Classification: {classification} -> Assigned Marker: {marker_symbol}"
-            )
 
-            # ✅ Check if a matching row exists
+            # ✅ Extract sample intensity values
+            sample_info = []
             if not matched_row.empty:
-                sample_info = []
-                for col in sample_columns:  # Iterate over all sample intensity columns
-                    col = col.strip()  # Remove whitespace from column name
+                for col in sample_columns:
+                    col = col.strip()  # Remove whitespace
 
-                    # ✅ Extract intensity value for this sample column
                     if col in matched_row:
-                        val = matched_row[col].values[0]  # Get the intensity
+                        val = matched_row[col].values[0]  # Extract intensity
 
                         try:
-                            # ✅ Convert to float (handle cases where it's stored as a string)
-                            val = float(val)
-
-                            # ✅ Check if the value is a valid number, not NaN, and above the threshold
-                            if pd.notna(val) and val >= 0.001:
+                            val = float(val)  # Convert to float
+                            if pd.notna(val) and val >= 0.001:  # Check valid value
                                 sample_info.append(
-                                    f"{col}: {float(f'{val:.2f}')}"
-                                )  # ✅ Format to 2 SF
+                                    f"{col}: {val:.2f}"
+                                )  # Format to 2 SF
                         except ValueError:
-                            pass
+                            print(
+                                f"[WARNING] Could not convert value {val} in column {col} to float."
+                            )
 
-                # ✅ Format the sample information
-                sample_text = "<br>".join(sample_info) if sample_info else "None"
-            else:
-                sample_text = "None"
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
 
-            # ✅ Construct hover text, excluding "Samples" for library matches
+            # ✅ Construct hover text
             hover_text = (
                 f"Match: {match_name}<br>"
                 f"m/z: {row['m/z']:.4f}<br>"
                 f"CCS: {row['CCS']:.2f}<br>"
                 f"RT: {RT}<br>"
                 f"Classification: {classification}<br>"
-                f"Repeating Unit: {repeating_unit}<br>"
+                f"Repeating Unit: {repeating_unit}"
             )
+
+            # ✅ Only add samples if NOT External Library
             if classification != "External Library":
-                hover_text += f"Samples:<br>{sample_text}"
+                hover_text += f"<br>Samples:<br>{sample_text}"
 
             hover_texts.append(hover_text)
-
-        for i in range(len(mz_values)):
-            classification_type = group_df.iloc[i]["Classification Type"]
-            print(
-                f"Plot Data Index {i}: m/z={mz_values[i]}, CCS={ccs_values[i]}, classification={classification_type}, Symbol={symbols[i]}"
-            )
 
         # 🔹 Overlay main homologous series points with metadata
         fig.add_trace(
             go.Scatter(
                 x=mz_values,
                 y=ccs_values,
-                mode="markers+text",  # ✅ Show both points and text labels
+                mode="markers+text",
                 marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
@@ -213,25 +193,11 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
                 text=[
                     f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
                     for _, row in group_df.iterrows()
-                ],  # ✅ Match Name + Classification on separate lines
-                textposition="middle left",  # ✅ Position labels at the top-right of each point
-                textfont=dict(
-                    family="NormativePro",  # ✅ Use NormativePro font
-                    size=16,  # ✅ Font size 12
-                    color="white",  # ✅ White text
-                    weight="bold",  # ✅ Bold font
-                ),
-                hovertext=[
-                    f"Match: {row.get('Match', 'No Match')}<br>"
-                    f"m/z: {row['m/z']:.4f}<br>"
-                    f"CCS: {row['CCS']:.2f}<br>"
-                    f"RT: {row['RT']}<br>"
-                    f"Classification: {row.get('Classification Type', 'Unknown')}<br>"
-                    f"Repeating Unit: {row.get('Repeating Unit', 'N/A')}"
-                    for _, row in group_df.iterrows()
                 ],
-                hoverinfo="text",  # ✅ Ensures hover text is shown
-                hovertemplate="%{hovertext}<extra></extra>",  # ✅ Preserves hover template
+                textposition="middle left",
+                hovertext=hover_texts,
+                hoverinfo="text",
+                hovertemplate="%{hovertext}<extra></extra>",
             )
         )
 
@@ -256,26 +222,13 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
 
         # ✅ Format Plotly Layout
     fig.update_layout(
-        title=dict(
-            text="CCS vs <i>m/z</i> Trend Analysis",
-            font=dict(size=20, color="white", weight="bold"),
-            x=0.1,  # Centering the title
-            y=0.95,
-            xanchor="left",
-            yanchor="top",
-        ),
         xaxis=dict(
             title=r"<b><i>m/z</i></b>",  # ✅ Bold and italicized using HTML
-            title_font=dict(size=16, color="white"),
-            tickfont=dict(size=14, color="white", weight="bold"),  # ✅ Tick labels
         ),
         yaxis=dict(
             title="<b>CCS (&#8491;<sup>2</sup>)</b>",
-            title_font=dict(size=16, color="white"),
-            tickfont=dict(size=14, color="white", weight="bold"),  # ✅ Tick labels
         ),
         template="plotly_dark",
-        legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
 
     return fig
@@ -417,9 +370,7 @@ def main():
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
     # ✅ Perform Repeating Unit Analysis
-    mass_groups = mz_repeating_unit_analysis(
-        stacked_df, repeating_units=list(selected_repeating_units.keys())
-    )
+    mass_groups = mz_repeating_unit_analysis(stacked_df)
 
     if mass_groups.empty:
         return

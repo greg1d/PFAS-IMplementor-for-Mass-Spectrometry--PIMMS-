@@ -1,10 +1,11 @@
+import os
+import sys
+
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 from CCS_mz_trend_analysis import CCS_v_mz_analysis, mz_repeating_unit_analysis
 from scipy.stats import linregress
-import os
-import sys
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # This is ccs_v_mz_modules
 IMPECTOR_GADGET_DIR = os.path.abspath(
@@ -234,6 +235,11 @@ def make_plotly_graph(
             lambda row: (row["m/z"], row["CCS"]) in homologous_series_points, axis=1
         )
     ]
+    if "Classification Type" not in filtered_df.columns:
+        print("[WARNING] 'Classification Type' missing! Adding empty column.")
+        filtered_df["Classification Type"] = pd.Series(
+            dtype="str"
+        )  # Ensure column exists
 
     # **Step 4: Separate Remaining DataFrames (Without Homologous Series Points)**
     tentative_df = filtered_df[filtered_df["Classification Type"] == "tentative"]
@@ -378,28 +384,8 @@ def make_plotly_graph(
 
     # **Final Layout Update**
     fig.update_layout(
-        title=dict(
-            text="CCS vs <i>m/z</i> Trend Analysis",
-            font=dict(family="NormativePro", size=20, color="white", weight="bold"),
-            x=0.1,  # Centering the title
-            y=0.95,
-            xanchor="left",
-            yanchor="top",
-        ),
-        xaxis=dict(
-            title=r"<b><i>m/z</i></b>",  # ✅ Bold and italicized using HTML
-            title_font=dict(family="NormativePro", size=16, color="white"),
-            tickfont=dict(
-                family="NormativePro", size=14, color="white", weight="bold"
-            ),  # ✅ Tick labels
-        ),
-        yaxis=dict(
-            title="CCS (&#8491;<sup>2</sup>)",
-            title_font=dict(family="NormativePro", size=16, color="white"),
-            tickfont=dict(
-                family="NormativePro", size=14, color="white", weight="bold"
-            ),  # ✅ Tick labels
-        ),
+        xaxis=dict(title=r"<b><i>m/z</i></b>"),
+        yaxis=dict(title="CCS (&#8491;<sup>2</sup>)"),
         template="plotly_dark",
         legend=dict(itemclick="toggle", itemdoubleclick="toggleothers"),
     )
@@ -446,9 +432,11 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
         ]
         return "<br>".join(sample_info) if sample_info else "None"
 
-    # **Filter out rows where the sample text is "None"**
-    before_sample_removal = len(filtered_df)
+    # **Compute sample information**
     filtered_df["Sample_Info"] = filtered_df.apply(get_sample_info, axis=1)
+
+    # ✅ **Remove rows where Sample_Info is "None"**
+    before_sample_removal = len(filtered_df)
     filtered_df = filtered_df[filtered_df["Sample_Info"] != "None"]
     after_sample_removal = len(filtered_df)
 
@@ -456,12 +444,19 @@ def update_graph(remove_columns, adjusted_df, repeating_units=["CF2", "OCF2"]):
         f"[INFO] Removed {before_sample_removal - after_sample_removal} rows with 'None' sample info."
     )
 
+    # ✅ Ensure `'Classification Type'` always exists in `filtered_df`
+    if "Classification Type" not in filtered_df.columns:
+        print(
+            "[WARNING] 'Classification Type' missing! Adding it back as an empty column."
+        )
+        filtered_df["Classification Type"] = pd.Series(dtype="str")
+
     # ✅ Ensure repeating units are passed correctly
     print(
         f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {repeating_units}"
     )
     mass_groups = mz_repeating_unit_analysis(filtered_df)
-    print("repeating units", repeating_units)
+
     # ✅ Process each group through CCS_v_mz_analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}

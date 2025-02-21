@@ -1,7 +1,8 @@
 import os
 import sys
+
+import pandas as pd
 import plotly.io as pio
-from data_processing import load_adjusted_data  # ✅ Ensure correct data loading
 
 # ✅ Ensure Python Can Find the Module
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script's directory
@@ -11,28 +12,34 @@ MODULE_PATH_2 = os.path.join(BASE_DIR, "ccs_v_mz_library_search_modules")
 sys.path.append(MODULE_PATH_1)  # Add `ccs_v_mz_modules` to sys.path
 sys.path.append(MODULE_PATH_2)  # Add `ccs_v_mz_library_search_modules` to sys.path
 
+from analysis import run_analysis, run_library_search_analysis
+from library_search_module import library_search_plotly
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
-from analysis import run_analysis  # ✅ Import `run_analysis()` instead of redefining
 
 
-def plotly_ccs_v_mz_sample_plot(adjusted_df):
+def plot_figure_1(
+    adjusted_df=None, file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+):
     """
-    Runs CCS vs. m/z analysis and generates a Plotly plot.
+    Processes data, runs analysis, and generates a Plotly figure.
 
     Args:
-        adjusted_df (pd.DataFrame): The processed data set to analyze.
+        adjusted_df (pd.DataFrame, optional): If provided, uses this dataframe instead of reading from file.
+        file_path (str): Path to CSV file (only used if adjusted_df is not provided).
 
     Returns:
-        fig (plotly.graph_objects.Figure): The generated Plotly figure.
+        plotly.graph_objects.Figure: The generated plot.
     """
+    if adjusted_df is None:
+        adjusted_df = pd.read_csv(file_path)  # ✅ Only read if no DataFrame is provided
 
     print("\n[INFO] Running `run_analysis()` for CCS vs. m/z trend analysis...")
 
     # ✅ Step 1: Run Analysis
     (
         refined_groups,
-        branched_isomer_groups,
-        post_source_decay_groups,
+        branched_isomers,
+        post_source_decay,
         mass_only_groups,
         mass_groups,
     ) = run_analysis(adjusted_df)
@@ -40,34 +47,71 @@ def plotly_ccs_v_mz_sample_plot(adjusted_df):
     # ✅ Step 2: Check if valid homologous series were identified
     if mass_groups.empty:
         print("\n[WARNING] No homologous series groups identified. Exiting.")
-        return None  # Return None if no valid series exist
+        return None
 
     print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
-    # ✅ Step 3: Generate Plotly graph
-    fig = make_plotly_graph(
+    # ✅ Generate Plotly plot
+    print("\n[INFO] Generating Plotly plot...")
+    fig1 = make_plotly_graph(
         adjusted_df,
         refined_groups,
-        branched_isomer_groups,
-        post_source_decay_groups,
+        branched_isomers,
+        post_source_decay,
         mass_only_groups,
-        mass_groups,  # ✅ Now correctly formatted as a dictionary
+        mass_groups,
     )
 
-    print("[INFO] CCS v m/z plot generation complete.")
-
-    return fig
+    return fig1
 
 
-def main():
-    adjusted_df = load_adjusted_data()
+def plot_figure_2(
+    adjusted_df=None, file_path="PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+):
+    """
+    Runs library search analysis and generates a Plotly figure.
 
-    fig = plotly_ccs_v_mz_sample_plot(adjusted_df)
+    Returns:
+        plotly.graph_objects.Figure: The generated plot.
+    """
 
-    # **Step 5: Display the Plotly plot**
-    print("[INFO] Plot generation complete. Displaying plot...")
-    pio.show(fig)
+    if adjusted_df is None:
+        adjusted_df = pd.read_csv(file_path)  # ✅ Only read if no DataFrame is provided
+
+    # ✅ Run library search analysis
+    filtered_IM_group, stacked_df = run_library_search_analysis()
+
+    if stacked_df is None or stacked_df.empty:
+        print("\n[WARNING] No stacked dataset available. Exiting.")
+        return None
+
+    if filtered_IM_group is None or filtered_IM_group.empty:
+        print("\n[WARNING] No homologous series identified. Exiting.")
+        return None
+
+    print(
+        f"[DEBUG] Identified {filtered_IM_group['GroupID'].nunique()} homologous series."
+    )
+
+    # ✅ Extract the library match source from the path
+    library_match_source = os.path.splitext(
+        os.path.basename("PIMMS v1.2/import folder/Library test file 1.csv")
+    )[0]
+
+    # ✅ Generate Plotly plot
+    print("\n[INFO] Generating Library Search Plotly plot...")
+    fig2 = library_search_plotly(stacked_df, filtered_IM_group, library_match_source)
+
+    return fig2
 
 
+# ✅ Main function to call `plot_figure_1()`
 if __name__ == "__main__":
-    main()
+    fig1 = plot_figure_1()
+    if fig1:
+        print("[INFO] Plot generation complete. Displaying plot...")
+        pio.show(fig1)
+    fig2 = plot_figure_2()
+    if fig2:
+        print("[INFO] Plot generation complete. Displaying plot...")
+        pio.show(fig2)
