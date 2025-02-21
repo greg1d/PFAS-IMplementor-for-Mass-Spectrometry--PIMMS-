@@ -37,7 +37,6 @@ def get_library_path():
             [os.path.join(UPLOAD_FOLDER, f) for f in uploaded_files],
             key=os.path.getctime,
         )
-        print(f"[INFO] Using uploaded library: {latest_library}")
         return latest_library  # ✅ Use the latest uploaded file
     else:
         print(f"[INFO] No uploaded library found. Using default: {LIBRARY_PATH}")
@@ -47,7 +46,6 @@ def get_library_path():
 # ✅ Use the selected library path
 LIBRARY_PATH = get_library_path()
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
-print("library path", LIBRARY_PATH)
 # ✅ Define all available repeating units
 REPEATING_UNITS = {
     "CF2": 49.9968064,
@@ -353,7 +351,6 @@ def get_latest_library_file():
             return None
 
         latest_file = max(files, key=os.path.getctime)  # Get the most recent file
-        print(f"[INFO] Using latest library file: {latest_file}")
         return latest_file
 
     except Exception as e:
