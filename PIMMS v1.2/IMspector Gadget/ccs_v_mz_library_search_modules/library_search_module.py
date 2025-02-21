@@ -20,7 +20,7 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 try:
     from config import FILE_PATH
 except ModuleNotFoundError:
-    print("[ERROR] Could not import `FILE_PATH` or `LIBRARY_PATH` from config.py!")
+    print("[ERROR] Could not import `FILE_PATH` from config.py!")
     sys.exit(1)
 
 # ✅ Ensure uploaded library is used if available
