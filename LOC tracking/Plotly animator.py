@@ -1,6 +1,7 @@
-import os
-import plotly.graph_objects as go
 import base64
+import os
+
+import plotly.graph_objects as go
 
 
 def encode_image(image_path):
@@ -45,6 +46,8 @@ def animate_pngs(directory):
 
     # Update the layout with animation settings and hide axes
     fig.update_layout(
+        width=1000,  # Adjust width as needed
+        height=800,  # Adjust height as needed
         xaxis=dict(showgrid=False, zeroline=False, visible=False),
         yaxis=dict(showgrid=False, zeroline=False, visible=False),
         updatemenus=[
