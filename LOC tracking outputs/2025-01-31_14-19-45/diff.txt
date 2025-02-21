@@ -1,0 +1,39 @@
+Date : 2025-01-31 14:19:45
+Directory : f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 9 files,  50 codes, -10 comments, 18 blanks, all 58 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| CSV      |          2 |      2,575 |          0 |          1 |      2,576 |
+| Python   |          4 |        127 |        -10 |         30 |        147 |
+| Excel    |          3 |     -2,652 |          0 |        -13 |     -2,665 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                           | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                              |          9 |         50 |        -10 |         18 |         58 |
+| PIMMS v1.2                                                                                                                     |          9 |         50 |        -10 |         18 |         58 |
+| PIMMS v1.2 (Files)                                                                                                             |          1 |         24 |          2 |          3 |         29 |
+| PIMMS v1.2\import folder                                                                                                       |          5 |        -77 |          0 |        -12 |        -89 |
+| PIMMS v1.2\modules                                                                                                             |          3 |        103 |        -12 |         27 |        118 |
++--------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                       | language | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main.py                                                           | Python   |         24 |          2 |          3 |         29 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library.xlsx         | Excel    |       -251 |          0 |         -1 |       -252 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv | CSV      |        -12 |          0 |          0 |        -12 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Kauffman M_H Library.xlsx                           | Excel    |     -2,336 |          0 |        -11 |     -2,347 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only.csv      | CSV      |      2,587 |          0 |          1 |      2,588 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.xlsx                         | Excel    |        -65 |          0 |         -1 |        -66 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\CCS_mz_trend_analysis.py                                  | Python   |         17 |         -6 |          2 |         13 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\Standard_library_scoring.py                               | Python   |        203 |          3 |         58 |        264 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\library_scoring.py                                        | Python   |       -117 |         -9 |        -33 |       -159 |
+| Total                                                                                                                          |          |         50 |        -10 |         18 |         58 |
++--------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

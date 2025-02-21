@@ -1,0 +1,45 @@
+Date : 2025-02-12 09:01:26
+Directory : f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 13 files,  25744 codes, 33 comments, 53 blanks, all 25830 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| CSV      |          2 |     25,451 |          0 |          1 |     25,452 |
+| Python   |         10 |        249 |         24 |         43 |        316 |
+| CSS      |          1 |         44 |          9 |          9 |         62 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                          | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                             |         13 |     25,744 |         33 |         53 |     25,830 |
+| PIMMS v1.2                                                                                                    |         13 |     25,744 |         33 |         53 |     25,830 |
+| PIMMS v1.2 (Files)                                                                                            |          3 |         21 |         -3 |          1 |         19 |
+| PIMMS v1.2\Data_output                                                                                        |          2 |     25,451 |          0 |          1 |     25,452 |
+| PIMMS v1.2\OpenMS                                                                                             |          3 |        189 |         18 |         42 |        249 |
+| PIMMS v1.2\assets                                                                                             |          1 |         44 |          9 |          9 |         62 |
+| PIMMS v1.2\modules                                                                                            |          4 |         39 |          9 |          0 |         48 |
++---------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                      | language | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv    | CSV      |         -4 |          0 |          0 |         -4 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Data_output\adjusted_after_blank_subtraction.csv | CSV      |     25,455 |          0 |          1 |     25,456 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main - homologous series analysis.py             | Python   |         -9 |         -4 |         -1 |        -14 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main.py                                          | Python   |          4 |          1 |         -1 |          4 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\OpenMS\2D_spectrum_import.py                     | Python   |         47 |          9 |         15 |         71 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\OpenMS\Testing_OpenMS.py                         | Python   |         75 |          7 |         23 |        105 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\OpenMS\mzML file creator.py                      | Python   |         67 |          2 |          4 |         73 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\assets\styles.css                                | CSS      |         44 |          9 |          9 |         62 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\dash_formatting.py                               | Python   |         26 |          0 |          3 |         29 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\CCS_mz_trend_analysis.py                 | Python   |        -64 |         -9 |        -31 |       -104 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\ML_algorithm_density.py                  | Python   |        -20 |         -3 |         -8 |        -31 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\Testing_OpenMS.py                        | Python   |         75 |          7 |         23 |        105 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\plotly_graphing.py                       | Python   |         48 |         14 |         16 |         78 |
+| Total                                                                                                         |          |     25,744 |         33 |         53 |     25,830 |
++---------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

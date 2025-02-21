@@ -1,0 +1,37 @@
+Date : 2025-01-29 09:32:47
+Directory : f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 7 files,  1978 codes, 20 comments, 40 blanks, all 2038 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| CSV      |          2 |      1,804 |          0 |         -1 |      1,803 |
+| Python   |          5 |        174 |         20 |         41 |        235 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                 | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                    |          7 |      1,978 |         20 |         40 |      2,038 |
+| PIMMS v1.2                                                                                           |          7 |      1,978 |         20 |         40 |      2,038 |
+| PIMMS v1.2 (Files)                                                                                   |          2 |         48 |          0 |          2 |         50 |
+| PIMMS v1.2\Figures                                                                                   |          1 |         35 |          8 |          9 |         52 |
+| PIMMS v1.2\modules                                                                                   |          3 |         87 |         12 |         28 |        127 |
+| PIMMS v1.2\output                                                                                    |          1 |      1,808 |          0 |          1 |      1,809 |
++------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                             | language | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Dummy test blank subtracted data.csv    | CSV      |         -4 |          0 |         -2 |         -6 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Figures\sankey_filtering_performance.py | Python   |         35 |          8 |          9 |         52 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main.py                                 | Python   |         52 |          0 |          4 |         56 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\ML_algorithm_density.py         | Python   |         34 |          3 |         11 |         48 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\mass_defect_filter.py           | Python   |         19 |          3 |          7 |         29 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\smearing_filter.py              | Python   |         34 |          6 |         10 |         50 |
+| f:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\output\final_adjusted_dataset.csv       | CSV      |      1,808 |          0 |          1 |      1,809 |
+| Total                                                                                                |          |      1,978 |         20 |         40 |      2,038 |
++------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
