@@ -122,11 +122,111 @@ def rt_vs_mz_trend_analysis(split_mass_groups):
     return significant_RT_group, messy_RT_group
 
 
+import numpy as np
+
+
+def refine_messy_rt_groups(messy_RT_group):
+    """
+    Iteratively removes the point with the highest residual from each messy RT group until:
+    - A statistically significant (p < 0.05) group is found with at least 3 points.
+    - Or fewer than 3 points remain (group remains messy).
+
+    Args:
+        messy_RT_group (pd.DataFrame): Groups where p ≥ 0.05.
+
+    Returns:
+        pd.DataFrame: Updated `significant_RT_group` with improved trends.
+        pd.DataFrame: Updated `messy_RT_group` (remaining non-significant groups).
+    """
+
+    print("\n[INFO] Refining messy RT groups...")
+
+    # ✅ Group by 'GroupID'
+    unique_groups = messy_RT_group["GroupID"].unique()
+
+    significant_RT_groups = []  # ✅ Store newly significant groups
+    remaining_messy_groups = []  # ✅ Store groups still not significant
+
+    for group_id in unique_groups:
+        subset = messy_RT_group[messy_RT_group["GroupID"] == group_id].copy()
+
+        print(f"\n[DEBUG] Processing Group {group_id} (n={len(subset)})...")
+        print(subset.to_string(index=False))  # ✅ Print full group for clarity
+
+        while len(subset) >= 3:
+            # ✅ Extract x (m/z) and y (RT)
+            x = subset["m/z"].values
+            y = subset["RT"].values
+
+            # ✅ Perform linear regression
+            slope, intercept, r_value, p_value, _ = linregress(x, y)
+            r_squared = r_value**2
+
+            print(
+                f"[DEBUG] Group {group_id}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g}"
+            )
+
+            # ✅ Calculate residuals for each point
+            predicted_y = slope * x + intercept
+            residuals = y - predicted_y
+            abs_residuals = np.abs(residuals)
+
+            # ✅ Print residuals for each point
+            subset["Residual"] = residuals
+            print(f"\n[DEBUG] Residuals for Group {group_id}:")
+            print(subset.to_string(index=False))  # ✅ Print group with residuals
+
+            # ✅ If p < 0.05 and ≥ 3 points, store as significant
+            if p_value < 0.05:
+                significant_RT_groups.append(subset.drop(columns=["Residual"]))
+                print(
+                    f"[INFO] Group {group_id}: p={p_value:.4g}, added to significant_RT_group"
+                )
+                break  # ✅ Stop refining this group
+
+            # ✅ If still p ≥ 0.05, find max residual and remove it
+            max_residual_index = np.argmax(abs_residuals)
+            max_residual_point = subset.iloc[max_residual_index]
+
+            print(f"[WARNING] Removing outlier: {max_residual_point.to_dict()}")
+
+            # ✅ Remove the outlier
+            subset = subset.drop(subset.index[max_residual_index]).reset_index(
+                drop=True
+            )
+
+        # ✅ If <3 points left, keep in messy group
+        if len(subset) < 3:
+            remaining_messy_groups.append(subset.drop(columns=["Residual"]))
+            print(f"[INFO] Group {group_id}: p still ≥ 0.05, remains in messy_RT_group")
+
+    # ✅ Convert lists to DataFrames
+    significant_RT_group = (
+        pd.concat(significant_RT_groups, ignore_index=True)
+        if significant_RT_groups
+        else pd.DataFrame()
+    )
+    messy_RT_group = (
+        pd.concat(remaining_messy_groups, ignore_index=True)
+        if remaining_messy_groups
+        else pd.DataFrame()
+    )
+
+    print("\n[INFO] Refinement process complete.")
+    print(f"[INFO] Newly significant RT Groups: {len(significant_RT_group)} rows.")
+    print(f"[INFO] Remaining messy RT Groups: {len(messy_RT_group)} rows.")
+
+    return significant_RT_group, messy_RT_group
+
+
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
 sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
 # Print results
-print("\n[INFO] Significant RT Groups:")
-print(sig_groups)
+refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
 
-print("\n[INFO] Messy RT Groups:")
-print(messy_groups)
+# Print results
+print("\n[INFO] Newly Significant RT Groups:")
+print(refined_sig_groups)
+
+print("\n[INFO] Remaining Messy RT Groups:")
+print(remaining_messy_groups)
