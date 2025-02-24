@@ -253,6 +253,14 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     return m_z_RT_groups
 
 
+import numpy as np
+import cmocean
+
+# ✅ Define color scheme using cmocean
+NUM_SERIES = 10  # Adjust based on the number of homologous series
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
+
+
 def rt_vs_mz_plotly(m_z_RT_groups):
     """
     Generates an interactive Plotly graph for RT vs. m/z analysis with cmocean color mapping
@@ -310,18 +318,21 @@ def rt_vs_mz_plotly(m_z_RT_groups):
             reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
             reg_line_y = slope * reg_line_x + intercept
 
-            # 🔹 Add trendline
             fig.add_trace(
                 go.Scatter(
-                    x=reg_line_x,
-                    y=reg_line_y,
-                    mode="lines",
-                    name=f"RT Trend {group_id}",
-                    line=dict(color=series_color, dash="dash"),
+                    x=[None],  # Dummy point (does not appear in the plot)
+                    y=[None],
+                    mode="lines",  # ✅ Ensures no marker appears
+                    text=[f"<b>Homologous Series {idx + 1}</b>"],  # ✅ Bold text
+                    line=dict(
+                        color=series_color, dash="dash", width=2
+                    ),  # ✅ Dashed line with the correct color
+                    textfont=dict(
+                        size=14, color=series_color
+                    ),  # ✅ Match homologous series color
+                    name=f"<b>Homologous Series {idx + 1}</b>",  # ✅ Ensure text appears in legend
                     legendgroup=legend_group_name,
-                    hoverinfo="skip",
-                    visible="legendonly",  # ✅ Hidden until toggled
-                    showlegend=False,
+                    showlegend=True,  # ✅ Show this in the legend
                 )
             )
 
@@ -340,11 +351,41 @@ def rt_vs_mz_plotly(m_z_RT_groups):
                 marker=dict(size=12, color=series_color, symbol=symbols),
                 name=f"Group {group_id}",
                 legendgroup=legend_group_name,
-                showlegend=True,
+                showlegend=False,
                 hovertext=hover_texts,
                 hoverinfo="text",
             )
         )
+
+    # ✅ Dummy trace for "External Library Match" (X)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="x"),
+            name="<b>External Library Match</b>",
+            legendgroup="library_match",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
+    # ✅ Dummy trace for "Sample Feature" (O)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="circle"),
+            name="<b>Sample Feature</b>",
+            legendgroup="sample_feature",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
 
     # ✅ Update Plot Layout
     fig.update_layout(
