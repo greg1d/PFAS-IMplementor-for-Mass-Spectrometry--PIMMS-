@@ -34,7 +34,9 @@ SELECTED_UNITS = ["CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 stacked_df = stack_library_with_adjusted()
+print("stacked df", stacked_df)
 mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+print("mass groups", mass_groups)
 
 NUM_SERIES = 10
 HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
@@ -61,7 +63,6 @@ def split_mass_groups_by_groupid(mass_groups):
     for group_id, df in split_mass_groups.items():
         print(f"\n[DEBUG] Group {group_id} (n={len(df)}):")
         print(df.to_string(index=False))  # Print full DataFrame for clarity
-
     return split_mass_groups
 
 
@@ -142,7 +143,10 @@ def refine_messy_rt_groups(messy_RT_group):
         pd.DataFrame: Updated `messy_RT_group` (remaining non-significant groups).
     """
 
-    print("\n[INFO] Refining messy RT groups...")
+    # Check if there is no data or no "GroupID" column; if so, skip processing.
+    if messy_RT_group.empty or "GroupID" not in messy_RT_group.columns:
+        print("[INFO] No messy RT groups to refine. Skipping refinement.")
+        return pd.DataFrame(), pd.DataFrame()
 
     # ✅ Group by 'GroupID'
     unique_groups = messy_RT_group["GroupID"].unique()
@@ -253,8 +257,79 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     return m_z_RT_groups
 
 
-import numpy as np
-import cmocean
+def filter_m_z_RT_groups(m_z_RT_groups):
+    """
+    For each group (ordered by m/z) and for each non–External Library point:
+      - Count the number of consecutive External Library rows immediately before it.
+      - Count the number of consecutive External Library rows immediately after it.
+      - Determine which count is larger.
+      - Print the m/z value of the External Library row at the boundary of the larger block.
+
+    Args:
+        m_z_RT_groups (pd.DataFrame): DataFrame containing columns "GroupID", "m/z", and "Classification Type".
+    """
+    # Strip any extra whitespace from column names
+    m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
+
+    # Process each group separately
+    for group_id, group in m_z_RT_groups.groupby("GroupID"):
+        # Order the group by m/z
+        group_sorted = group.sort_values("m/z").reset_index(drop=True)
+
+        # Iterate over the group
+        for i, row in group_sorted.iterrows():
+            if row["Classification Type"] != "External Library":
+                # Count consecutive external points before this non-external point.
+                count_before = 0
+                j = i - 1
+                while (
+                    j >= 0
+                    and group_sorted.iloc[j]["Classification Type"]
+                    == "External Library"
+                ):
+                    count_before += 1
+                    j -= 1
+                # If there is at least one external point before, pick the one at the start of the contiguous block.
+                boundary_before = (
+                    group_sorted.iloc[i - count_before]["m/z"]
+                    if count_before > 0
+                    else None
+                )
+
+                # Count consecutive external points after this non-external point.
+                count_after = 0
+                j = i + 1
+                while (
+                    j < len(group_sorted)
+                    and group_sorted.iloc[j]["Classification Type"]
+                    == "External Library"
+                ):
+                    count_after += 1
+                    j += 1
+                # If there is at least one external point after, pick the one at the end of the contiguous block.
+                boundary_after = (
+                    group_sorted.iloc[i + count_after]["m/z"]
+                    if count_after > 0
+                    else None
+                )
+
+                # Pick the larger count and the corresponding boundary m/z value.
+                if count_before >= count_after and count_before > 0:
+                    larger_count = count_before
+                    boundary_value = boundary_before
+                elif count_after > 0:
+                    larger_count = count_after
+                    boundary_value = boundary_after
+                else:
+                    larger_count = 0
+                    boundary_value = None
+
+                print(
+                    f"Group {group_id}, non-external point at m/z {row['m/z']:.4f}: "
+                    f"max consecutive external count = {larger_count}, "
+                    f"boundary m/z value = {boundary_value}"
+                )
+
 
 # ✅ Define color scheme using cmocean
 NUM_SERIES = 10  # Adjust based on the number of homologous series
@@ -348,7 +423,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
                     x=reg_line_x,
                     y=reg_line_y,
                     mode="lines",
-                    name=f"RT Trend {idx + 1}",
+                    name=f"Homologous Series {idx + 1}",
                     line=dict(color=series_color, dash="dash"),
                     legendgroup=legend_group_name,
                     hoverinfo="skip",
@@ -392,7 +467,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
                 legendgroup=legend_group_name,
                 hoverinfo="text",
                 text=hover_texts,
-                visible=True,  # ✅ Points are always visible
+                visible="legendonly",  # Points are hidden by default
                 showlegend=False,  # ✅ Prevent duplicate legend entry
             )
         )
@@ -414,5 +489,5 @@ sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
 refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
 
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
-fig = rt_vs_mz_plotly(m_z_RT_groups)
-fig.show()
+
+filtered_m_z_RT_groups = filter_m_z_RT_groups(m_z_RT_groups)
