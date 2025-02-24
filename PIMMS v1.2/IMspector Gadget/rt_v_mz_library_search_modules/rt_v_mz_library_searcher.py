@@ -63,7 +63,7 @@ def split_mass_groups_by_groupid(mass_groups):
     # ✅ Debugging: Print each group separately
     for group_id, df in split_mass_groups.items():
         print(f"\n[DEBUG] Group {group_id} (n={len(df)}):")
-        print(df.to_string(index=False))  # Print full DataFrame for clarity
+        print(df.to_string(index=False))
     return split_mass_groups
 
 
@@ -254,7 +254,6 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     )
 
     print(f"[INFO] Final combined m/z_RT_groups contains {len(m_z_RT_groups)} rows.")
-
     return m_z_RT_groups
 
 
@@ -273,7 +272,6 @@ def limit_consecutive_external_points(m_z_RT_groups):
     """
     # Clean column names
     m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
-
     filtered_groups = []
 
     # Process each group separately
@@ -308,6 +306,49 @@ def limit_consecutive_external_points(m_z_RT_groups):
         return pd.concat(filtered_groups, ignore_index=True)
     else:
         return pd.DataFrame(columns=m_z_RT_groups.columns)
+
+
+def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
+    """
+    Adds sample intensity columns from the stacked DataFrame back into the filtered m/z–RT groups.
+
+    The function:
+      - Strips any extra whitespace from column names.
+      - Identifies columns in the stacked DataFrame whose header contains ".d" (sample intensity columns).
+      - Matches rows between the stacked DataFrame and filtered m/z–RT groups based on the "ID" column.
+      - Merges the sample intensity values from the stacked DataFrame into the filtered m/z–RT groups.
+
+    Args:
+        stacked_df (pd.DataFrame): DataFrame that includes sample intensity columns (headers containing ".d")
+                                   and an "ID" column.
+        filtered_m_z_RT_groups (pd.DataFrame): DataFrame of filtered m/z–RT groups with an "ID" column.
+
+    Returns:
+        pd.DataFrame: The filtered m/z–RT groups augmented with the sample intensity columns.
+    """
+
+    # Clean column names in both DataFrames
+    stacked_df.columns = stacked_df.columns.str.strip()
+    filtered_m_z_RT_groups.columns = filtered_m_z_RT_groups.columns.str.strip()
+
+    # Identify sample intensity columns from the stacked DataFrame (any column name containing ".d")
+    sample_intensity_cols = [col for col in stacked_df.columns if ".d" in col]
+
+    # Check if the "ID" column is present in both DataFrames
+    if "ID" not in stacked_df.columns or "ID" not in filtered_m_z_RT_groups.columns:
+        print(
+            "[WARNING] 'ID' column is missing in one of the DataFrames. Returning filtered_m_z_RT_groups unchanged."
+        )
+        return filtered_m_z_RT_groups
+
+    # Extract only the "ID" and sample intensity columns from the stacked DataFrame
+    intensity_df = stacked_df[["ID"] + sample_intensity_cols]
+
+    # Merge the intensity information into the filtered m/z–RT groups based on the "ID" column.
+    # Using a left join ensures that every row in filtered_m_z_RT_groups is kept.
+    merged_df = pd.merge(filtered_m_z_RT_groups, intensity_df, on="ID", how="left")
+    print("[INFO] Merged DataFrame columns:", merged_df.columns)
+    return merged_df
 
 
 # ✅ Define color scheme using cmocean
@@ -414,6 +455,8 @@ def rt_vs_mz_plotly(m_z_RT_groups):
         # ✅ Prepare hover metadata
         hover_texts = []
         symbols = []
+        print("df columns", group_df.columns)
+        sample_columns = [col for col in group_df.columns if ".d" in col]
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
             classification = row.get("Classification Type", "Unknown")
@@ -423,14 +466,35 @@ def rt_vs_mz_plotly(m_z_RT_groups):
             # ✅ Assign marker symbol
             marker_symbol = "x" if classification == "External Library" else "circle"
             symbols.append(marker_symbol)
+            sample_info = []
+            matched_row = row.to_frame().T
+            if not matched_row.empty:
+                for col in sample_columns:
+                    col_stripped = col.strip()
+                    if col_stripped in matched_row.columns:
+                        val = matched_row[col_stripped].values[0]
+                        try:
+                            val = float(val)
+                            if pd.notna(val) and val >= 0.001:
+                                sample_info.append(f"{col_stripped}: {val:.2f}")
+                        except ValueError:
+                            print(
+                                f"[WARNING] Could not convert value {val} in column {col_stripped} to float."
+                            )
+            sample_text = "<br>".join(sample_info) if sample_info else "None"
 
+            # --- Construct hover text ---
             hover_text = (
                 f"Match: {match_name}<br>"
                 f"m/z: {row['m/z']:.4f}<br>"
+                f"CCS: {row['CCS']:.2f}<br>"
                 f"RT: {RT}<br>"
                 f"Classification: {classification}<br>"
                 f"Repeating Unit: {repeating_unit}"
             )
+            # Only add sample details if the classification is not External Library
+            if classification != "External Library":
+                hover_text += f"<br>Samples:<br>{sample_text}"
 
             hover_texts.append(hover_text)
 
@@ -461,6 +525,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
     return fig
 
 
+print("mass group columns", mass_groups.columns)
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
 sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
 # Print results
@@ -469,5 +534,4 @@ refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
 filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
-fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
-fig.show()
+merged_df = add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups)
