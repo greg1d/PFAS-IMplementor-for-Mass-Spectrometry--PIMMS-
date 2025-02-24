@@ -1,10 +1,11 @@
 import os
 import sys
-from scipy.stats import linregress
-import pandas as pd
+
 import cmocean
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
+from scipy.stats import linregress
 
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -257,77 +258,71 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     return m_z_RT_groups
 
 
-def filter_m_z_RT_groups(m_z_RT_groups):
+def print_surrounding_external_for_likely(m_z_RT_groups):
     """
-    For each group (ordered by m/z) and for each non–External Library point:
-      - Count the number of consecutive External Library rows immediately before it.
-      - Count the number of consecutive External Library rows immediately after it.
-      - Determine which count is larger.
-      - Print the m/z value of the External Library row at the boundary of the larger block.
+    For each "likely" point in each group (ordered by m/z), this function:
+      - Counts the consecutive "External Library" rows immediately preceding it.
+      - Counts the consecutive "External Library" rows immediately following it.
+      - Determines which count is larger.
+      - Prints the m/z value of the external row at the boundary of that larger block.
+
+    If no external entries are adjacent, nothing is printed for that likely point.
 
     Args:
-        m_z_RT_groups (pd.DataFrame): DataFrame containing columns "GroupID", "m/z", and "Classification Type".
+        m_z_RT_groups (pd.DataFrame): DataFrame containing at least 'GroupID', 'm/z', and
+                                      'Classification Type' columns.
     """
-    # Strip any extra whitespace from column names
+    # Clean column names
     m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
 
     # Process each group separately
     for group_id, group in m_z_RT_groups.groupby("GroupID"):
-        # Order the group by m/z
+        # Order group by m/z
         group_sorted = group.sort_values("m/z").reset_index(drop=True)
 
-        # Iterate over the group
+        # Iterate over rows in the sorted group
         for i, row in group_sorted.iterrows():
-            if row["Classification Type"] != "External Library":
-                # Count consecutive external points before this non-external point.
+            if row["Classification Type"].lower() == "likely":
+                # Count consecutive External Library entries immediately before this row
                 count_before = 0
                 j = i - 1
                 while (
                     j >= 0
-                    and group_sorted.iloc[j]["Classification Type"]
-                    == "External Library"
+                    and group_sorted.loc[j, "Classification Type"].lower()
+                    == "external library"
                 ):
                     count_before += 1
                     j -= 1
-                # If there is at least one external point before, pick the one at the start of the contiguous block.
-                boundary_before = (
-                    group_sorted.iloc[i - count_before]["m/z"]
-                    if count_before > 0
-                    else None
-                )
 
-                # Count consecutive external points after this non-external point.
+                # Count consecutive External Library entries immediately after this row
                 count_after = 0
                 j = i + 1
                 while (
                     j < len(group_sorted)
-                    and group_sorted.iloc[j]["Classification Type"]
-                    == "External Library"
+                    and group_sorted.loc[j, "Classification Type"].lower()
+                    == "external library"
                 ):
                     count_after += 1
                     j += 1
-                # If there is at least one external point after, pick the one at the end of the contiguous block.
-                boundary_after = (
-                    group_sorted.iloc[i + count_after]["m/z"]
-                    if count_after > 0
-                    else None
-                )
 
-                # Pick the larger count and the corresponding boundary m/z value.
-                if count_before >= count_after and count_before > 0:
-                    larger_count = count_before
-                    boundary_value = boundary_before
-                elif count_after > 0:
-                    larger_count = count_after
-                    boundary_value = boundary_after
+                # If no adjacent external entries, skip printing for this row
+                if count_before == 0 and count_after == 0:
+                    continue
+
+                # Pick the larger count and find the corresponding boundary m/z value.
+                if count_before >= count_after:
+                    # The boundary is the earliest external row before the likely point.
+                    boundary_index = i - count_before
                 else:
-                    larger_count = 0
-                    boundary_value = None
+                    # The boundary is the last external row after the likely point.
+                    boundary_index = i + count_after
+
+                boundary_mz = group_sorted.loc[boundary_index, "m/z"]
 
                 print(
-                    f"Group {group_id}, non-external point at m/z {row['m/z']:.4f}: "
-                    f"max consecutive external count = {larger_count}, "
-                    f"boundary m/z value = {boundary_value}"
+                    f"Group {group_id}, likely point at m/z {row['m/z']:.6f}: "
+                    f"max consecutive external count = {max(count_before, count_after)}, "
+                    f"boundary m/z value = {boundary_mz:.6f}"
                 )
 
 
@@ -490,4 +485,4 @@ refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups
 
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
-filtered_m_z_RT_groups = filter_m_z_RT_groups(m_z_RT_groups)
+filtered_m_z_RT_groups = print_surrounding_external_for_likely(m_z_RT_groups)
