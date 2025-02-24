@@ -1,6 +1,7 @@
 import os
 import sys
 
+import matplotlib.pyplot as plt
 
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -11,6 +12,11 @@ from ccs_v_mz_library_search_modules.library_search_module import (
     stack_library_with_adjusted,
 )
 from ccs_v_mz_modules.CCS_mz_trend_analysis import mz_repeating_unit_analysis
+
+# ✅ Use dynamically selected library path
+LIBRARY_PATH = get_library_path()
+LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
+print("[INFO] Library path selected:", LIBRARY_PATH)
 
 REPEATING_UNITS = {
     "CF2": 49.9968064,
@@ -24,52 +30,42 @@ REPEATING_UNITS = {
 SELECTED_UNITS = ["CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
-# ✅ Use dynamically selected library path
-LIBRARY_PATH = get_library_path()
-LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
-print("[INFO] Library path selected:", LIBRARY_PATH)
-
 stacked_df = stack_library_with_adjusted()
-print(stacked_df)
 mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+print(mass_groups)
 
 
-def rt_v_mz_trend_analysis(mass_groups):
+def RT_vs_mz_analysis(mass_groups):
     """
-    Performs RT vs. m/z trend analysis by grouping data based on 'GroupID'.
+    Plots the RT (Retention Time) vs m/z for each unique GroupID in the mass_groups DataFrame.
 
-    Args:
-        mass_groups (pd.DataFrame): DataFrame containing homologous series data.
-
-    Returns:
-        dict: A dictionary with GroupID as keys and DataFrames with RT and m/z as values.
+    Parameters:
+    mass_groups (pd.DataFrame): DataFrame containing 'GroupID', 'RT', and 'm/z' columns.
     """
+    # Check if required columns exist
+    if not {"GroupID", "RT", "m/z"}.issubset(mass_groups.columns):
+        raise ValueError("DataFrame must contain 'GroupID', 'RT', and 'm/z' columns")
 
-    # ✅ Ensure DataFrame is valid
-    if mass_groups is None or mass_groups.empty:
-        print("[ERROR] `mass_groups` is empty or None. Exiting RT vs. m/z analysis.")
-        return {}
+    # Get unique GroupIDs
+    unique_groups = mass_groups["GroupID"].unique()
 
-    # ✅ Extract only relevant columns
-    grouped_rt_mz = {}
+    # Create plot
+    plt.figure(figsize=(10, 6))
 
-    print(
-        f"[INFO] Running RT vs. m/z analysis on {mass_groups['GroupID'].nunique()} groups."
-    )
+    # Plot each group separately
+    for group in unique_groups:
+        subset = mass_groups[mass_groups["GroupID"] == group]
+        plt.scatter(subset["m/z"], subset["RT"], label=f"Group {group}", alpha=0.7)
 
-    for group_id, group_df in mass_groups.groupby("GroupID"):
-        # ✅ Extract RT and m/z for the current GroupID
-        rt_mz_df = group_df[["RT", "m/z"]].copy()
+    # Customize plot
+    plt.xlabel("m/z")
+    plt.ylabel("RT (Retention Time)")
+    plt.title("RT vs m/z for each GroupID")
+    plt.legend()
+    plt.grid(True)
 
-        # ✅ Store in dictionary
-        grouped_rt_mz[group_id] = rt_mz_df
-
-        # ✅ Debugging Output
-        print(f"[DEBUG] Processed GroupID {group_id} with {len(rt_mz_df)} points.")
-        print(rt_mz_df.head(), "\n")
-
-    return grouped_rt_mz  # ✅ Return grouped data for further analysis
+    # Show plot
+    plt.show()
 
 
-rt_mz_results = rt_v_mz_trend_analysis(mass_groups)
-print(rt_mz_results)
+RT_vs_mz_analysis(mass_groups)
