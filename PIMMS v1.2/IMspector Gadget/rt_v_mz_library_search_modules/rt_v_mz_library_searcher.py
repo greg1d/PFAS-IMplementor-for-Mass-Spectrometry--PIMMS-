@@ -419,7 +419,6 @@ def rt_vs_mz_plotly(m_z_RT_groups):
             classification = row.get("Classification Type", "Unknown")
             RT = row.get("RT", "N/A")  # Safely access RT
             repeating_unit = row.get("Repeating Unit", "N/A")
-            match_source = row.get("Match Source", "Unknown Source")
 
             # ✅ Assign marker symbol
             marker_symbol = "x" if classification == "External Library" else "circle"
@@ -470,4 +469,5 @@ refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
 filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
-print("after consecutive filtering", filtered_m_z_RT_groups)
+fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
+fig.show()
