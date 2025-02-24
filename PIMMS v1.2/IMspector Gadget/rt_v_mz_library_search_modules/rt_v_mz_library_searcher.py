@@ -219,14 +219,41 @@ def refine_messy_rt_groups(messy_RT_group):
     return significant_RT_group, messy_RT_group
 
 
+def combine_significant_groups(significant_RT_group, refined_sig_groups):
+    """
+    Combines significant_RT_group with newly refined significant groups (refined_sig_groups).
+
+    Args:
+        significant_RT_group (pd.DataFrame): Previously identified significant RT groups.
+        refined_sig_groups (pd.DataFrame): Newly refined significant RT groups.
+
+    Returns:
+        pd.DataFrame: Final combined DataFrame `m_z_RT_groups`, containing all significant RT groups.
+    """
+
+    print("\n[INFO] Combining significant RT groups...")
+
+    # ✅ Check if refined_sig_groups has data
+    if refined_sig_groups.empty:
+        print(
+            "[WARNING] No refined significant groups found. Returning original significant_RT_group."
+        )
+        return significant_RT_group.copy()
+
+    # ✅ Combine both DataFrames
+    m_z_RT_groups = pd.concat(
+        [significant_RT_group, refined_sig_groups], ignore_index=True
+    )
+
+    print(f"[INFO] Final combined m/z_RT_groups contains {len(m_z_RT_groups)} rows.")
+
+    return m_z_RT_groups
+
+
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
 sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
 # Print results
 refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
 
-# Print results
-print("\n[INFO] Newly Significant RT Groups:")
-print(refined_sig_groups)
-
-print("\n[INFO] Remaining Messy RT Groups:")
-print(remaining_messy_groups)
+m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
+print(m_z_RT_groups)
