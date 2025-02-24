@@ -349,6 +349,17 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
     filtered_m_z_RT_groups = pd.merge(
         filtered_m_z_RT_groups, intensity_df, on="ID", how="left"
     )
+    if sample_intensity_cols:
+        non_external_mask = (
+            filtered_m_z_RT_groups["Classification Type"] != "External Library"
+        )
+        intensity_mask = (filtered_m_z_RT_groups[sample_intensity_cols] <= 0.001).all(
+            axis=1
+        )
+        # Remove rows that are non-external and have all intensities ≤ 0.001
+        final_mask = ~(non_external_mask & intensity_mask)
+        filtered_m_z_RT_groups = filtered_m_z_RT_groups.loc[final_mask]
+
     print("[INFO] Merged DataFrame columns:", filtered_m_z_RT_groups.columns)
     return filtered_m_z_RT_groups
 
