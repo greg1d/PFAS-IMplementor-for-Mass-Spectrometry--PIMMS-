@@ -258,72 +258,56 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     return m_z_RT_groups
 
 
-def print_surrounding_external_for_likely(m_z_RT_groups):
+def limit_consecutive_external_points(m_z_RT_groups):
     """
-    For each "likely" point in each group (ordered by m/z), this function:
-      - Counts the consecutive "External Library" rows immediately preceding it.
-      - Counts the consecutive "External Library" rows immediately following it.
-      - Determines which count is larger.
-      - Prints the m/z value of the external row at the boundary of that larger block.
+    Limits consecutive "External Library" points to a maximum of 3.
 
-    If no external entries are adjacent, nothing is printed for that likely point.
+    For each group (ordered by m/z), if there are more than 3 consecutive rows with
+    'Classification Type' equal to "External Library", only the first 3 will be retained.
 
     Args:
-        m_z_RT_groups (pd.DataFrame): DataFrame containing at least 'GroupID', 'm/z', and
-                                      'Classification Type' columns.
+        m_z_RT_groups (pd.DataFrame): DataFrame containing at least 'GroupID', 'm/z', and 'Classification Type' columns.
+
+    Returns:
+        pd.DataFrame: A DataFrame with consecutive "External Library" rows limited to 3.
     """
     # Clean column names
     m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
 
+    filtered_groups = []
+
     # Process each group separately
     for group_id, group in m_z_RT_groups.groupby("GroupID"):
-        # Order group by m/z
+        # Sort each group by m/z
         group_sorted = group.sort_values("m/z").reset_index(drop=True)
 
-        # Iterate over rows in the sorted group
-        for i, row in group_sorted.iterrows():
-            if row["Classification Type"].lower() == "likely":
-                # Count consecutive External Library entries immediately before this row
-                count_before = 0
-                j = i - 1
-                while (
-                    j >= 0
-                    and group_sorted.loc[j, "Classification Type"].lower()
-                    == "external library"
-                ):
-                    count_before += 1
-                    j -= 1
+        keep_rows = []
+        consecutive_external_count = 0
 
-                # Count consecutive External Library entries immediately after this row
-                count_after = 0
-                j = i + 1
-                while (
-                    j < len(group_sorted)
-                    and group_sorted.loc[j, "Classification Type"].lower()
-                    == "external library"
-                ):
-                    count_after += 1
-                    j += 1
+        for idx, row in group_sorted.iterrows():
+            # Check classification in a case-insensitive way
+            classification = row["Classification Type"].strip().lower()
 
-                # If no adjacent external entries, skip printing for this row
-                if count_before == 0 and count_after == 0:
-                    continue
-
-                # Pick the larger count and find the corresponding boundary m/z value.
-                if count_before >= count_after:
-                    # The boundary is the earliest external row before the likely point.
-                    boundary_index = i - count_before
+            if classification == "external library":
+                consecutive_external_count += 1
+                if consecutive_external_count <= 3:
+                    keep_rows.append(row)
                 else:
-                    # The boundary is the last external row after the likely point.
-                    boundary_index = i + count_after
+                    # Skip this row, since it's beyond the allowed 3 consecutive external points
+                    continue
+            else:
+                # Reset counter on a non-external row
+                consecutive_external_count = 0
+                keep_rows.append(row)
 
-                boundary_mz = group_sorted.loc[boundary_index, "m/z"]
+        if keep_rows:
+            filtered_groups.append(pd.DataFrame(keep_rows))
 
-                print(
-                    f"Group {group_id}, likely point at m/z {row['m/z']:.6f}: "
-                    f"max consecutive external count = {max(count_before, count_after)}, "
-                    f"boundary m/z value = {boundary_mz:.6f}"
-                )
+    # Combine all groups into one DataFrame
+    if filtered_groups:
+        return pd.concat(filtered_groups, ignore_index=True)
+    else:
+        return pd.DataFrame(columns=m_z_RT_groups.columns)
 
 
 # ✅ Define color scheme using cmocean
@@ -485,4 +469,5 @@ refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups
 
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
-filtered_m_z_RT_groups = print_surrounding_external_for_likely(m_z_RT_groups)
+filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
+print("after consecutive filtering", filtered_m_z_RT_groups)
