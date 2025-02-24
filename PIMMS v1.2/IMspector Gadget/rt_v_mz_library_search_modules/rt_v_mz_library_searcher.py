@@ -253,16 +253,25 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     return m_z_RT_groups
 
 
+import numpy as np
+import cmocean
+
+# ✅ Define color scheme using cmocean
+NUM_SERIES = 10  # Adjust based on the number of homologous series
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
+
+
 def rt_vs_mz_plotly(m_z_RT_groups):
     """
-    Generates an interactive Plotly graph for RT vs. m/z analysis with cmocean color mapping
-    and marker symbols based on classification type.
+    Generates an interactive Plotly graph for RT vs. m/z analysis with cmocean color mapping.
+    - **Trendline (Dashed Line) is hidden by default but toggleable in the legend.**
+    - **Points belonging to the trendline remain visible by default but grouped under the trendline.**
 
     Args:
         m_z_RT_groups (pd.DataFrame): DataFrame containing 'GroupID', 'RT', 'm/z', and 'Classification Type'.
 
     Returns:
-        plotly.graph_objects.Figure: A Plotly figure with trendlines and scatter points.
+        plotly.graph_objects.Figure: A Plotly figure with trendlines and corresponding points.
     """
 
     if m_z_RT_groups.empty:
@@ -278,36 +287,6 @@ def rt_vs_mz_plotly(m_z_RT_groups):
 
     fig = go.Figure()
 
-    # ✅ Dummy trace for "External Library Match" (X)
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy point (does not appear in the plot)
-            y=[None],
-            mode="markers",
-            marker=dict(size=15, color="white", symbol="x"),
-            name="<b>External Library Match</b>",
-            legendgroup="library_match",
-            showlegend=True,  # ✅ Always visible
-            hoverinfo="skip",
-            visible=True,  # ✅ Always visible, not toggled
-        )
-    )
-
-    # ✅ Dummy trace for "Sample Feature" (O)
-    fig.add_trace(
-        go.Scatter(
-            x=[None],  # Dummy point (does not appear in the plot)
-            y=[None],
-            mode="markers",
-            marker=dict(size=15, color="white", symbol="circle"),
-            name="<b>Sample Feature</b>",
-            legendgroup="sample_feature",
-            showlegend=True,  # ✅ Always visible
-            hoverinfo="skip",
-            visible=True,  # ✅ Always visible, not toggled
-        )
-    )
-
     # ✅ Strip whitespace from column names
     m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
 
@@ -315,7 +294,36 @@ def rt_vs_mz_plotly(m_z_RT_groups):
     unique_groups = m_z_RT_groups["GroupID"].unique()
     print(f"[INFO] Plotting {len(unique_groups)} unique GroupIDs.")
 
-    # ✅ Loop through each group
+    # ✅ **Step 1: Add White "X" and "O" First for Legend**
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="x"),
+            name="<b>External Library Match</b>",  # ✅ Ensure this appears first
+            legendgroup="library_match",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="circle"),
+            name="<b>Sample Feature</b>",  # ✅ Ensure this appears second
+            legendgroup="sample_feature",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
+    # ✅ **Step 2: Add Trendlines & Corresponding Points**
     for idx, (group_id, group_df) in enumerate(m_z_RT_groups.groupby("GroupID")):
         # ✅ Extract x (m/z) and y (RT) for regression
         mz_values = group_df["m/z"].values
@@ -326,12 +334,6 @@ def rt_vs_mz_plotly(m_z_RT_groups):
         series_color = f"rgb({HOMOLOGOUS_SERIES_COLORS[color_idx][0] * 255}, {HOMOLOGOUS_SERIES_COLORS[color_idx][1] * 255}, {HOMOLOGOUS_SERIES_COLORS[color_idx][2] * 255})"
         legend_group_name = f"group_{group_id}"
 
-        # ✅ Determine marker symbols based on classification type
-        symbols = [
-            "x" if row["Classification Type"] == "External Library" else "circle"
-            for _, row in group_df.iterrows()
-        ]
-
         # ✅ Perform linear regression for trendline
         if len(mz_values) > 2:  # Ensure at least 3 points for regression
             slope, intercept, r_value, p_value, _ = linregress(mz_values, rt_values)
@@ -340,39 +342,58 @@ def rt_vs_mz_plotly(m_z_RT_groups):
             reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
             reg_line_y = slope * reg_line_x + intercept
 
-            # 🔹 Add trendline
+            # 🔹 **Dashed Trendline (Hidden by Default, Toggled via Legend)**
             fig.add_trace(
                 go.Scatter(
                     x=reg_line_x,
                     y=reg_line_y,
                     mode="lines",
-                    name=f"RT Trend {group_id}",
+                    name=f"RT Trend {idx + 1}",
                     line=dict(color=series_color, dash="dash"),
                     legendgroup=legend_group_name,
                     hoverinfo="skip",
                     visible="legendonly",  # ✅ Hidden until toggled
-                    showlegend=False,
+                    showlegend=True,  # ✅ This entry appears in the legend
                 )
             )
 
         # ✅ Prepare hover metadata
-        hover_texts = [
-            f"Group: {group_id}<br>m/z: {row['m/z']:.4f}<br>RT: {row['RT']:.2f}<br>Classification: {row['Classification Type']}"
-            for _, row in group_df.iterrows()
-        ]
+        hover_texts = []
+        symbols = []
+        for _, row in group_df.iterrows():
+            match_name = row.get("Match", "No Match")
+            classification = row.get("Classification Type", "Unknown")
+            RT = row.get("RT", "N/A")  # Safely access RT
+            repeating_unit = row.get("Repeating Unit", "N/A")
+            match_source = row.get("Match Source", "Unknown Source")
 
-        # 🔹 Scatter plot points with hover text and custom markers
+            # ✅ Assign marker symbol
+            marker_symbol = "x" if classification == "External Library" else "circle"
+            symbols.append(marker_symbol)
+
+            hover_text = (
+                f"Match: {match_name}<br>"
+                f"m/z: {row['m/z']:.4f}<br>"
+                f"RT: {RT}<br>"
+                f"Classification: {classification}<br>"
+                f"Repeating Unit: {repeating_unit}"
+            )
+
+            hover_texts.append(hover_text)
+
+        # 🔹 **Scatter plot points with hover text and custom markers**
         fig.add_trace(
             go.Scatter(
                 x=mz_values,
                 y=rt_values,
                 mode="markers",
                 marker=dict(size=12, color=series_color, symbol=symbols),
-                name=f"Group {group_id}",
+                name=f"RT Group {idx + 1}",
                 legendgroup=legend_group_name,
-                showlegend=True,
-                hovertext=hover_texts,
                 hoverinfo="text",
+                text=hover_texts,
+                visible=True,  # ✅ Points are always visible
+                showlegend=False,  # ✅ Prevent duplicate legend entry
             )
         )
 
