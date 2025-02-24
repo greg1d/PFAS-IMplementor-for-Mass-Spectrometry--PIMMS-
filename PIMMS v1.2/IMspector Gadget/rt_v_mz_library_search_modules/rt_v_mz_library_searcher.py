@@ -278,6 +278,36 @@ def rt_vs_mz_plotly(m_z_RT_groups):
 
     fig = go.Figure()
 
+    # ✅ Dummy trace for "External Library Match" (X)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="x"),
+            name="<b>External Library Match</b>",
+            legendgroup="library_match",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
+    # ✅ Dummy trace for "Sample Feature" (O)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="circle"),
+            name="<b>Sample Feature</b>",
+            legendgroup="sample_feature",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
+
     # ✅ Strip whitespace from column names
     m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
 
