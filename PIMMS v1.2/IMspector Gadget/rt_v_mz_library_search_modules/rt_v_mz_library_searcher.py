@@ -1,7 +1,6 @@
 import os
 import sys
 
-import matplotlib.pyplot as plt
 
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -33,101 +32,31 @@ selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 stacked_df = stack_library_with_adjusted()
 mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
 
-import numpy as np
-from scipy.stats import linregress
 
-
-def RT_vs_mz_analysis(mass_groups):
+def split_mass_groups_by_groupid(mass_groups):
     """
-    Performs trend analysis on RT (Retention Time) vs m/z for each unique GroupID.
-    - Excludes groups where a statistically significant trend is found (p < 0.05).
-    - Fits a linear regression model for remaining groups.
-    - Plots the RT vs m/z scatter along with the regression trend line.
-    - Returns regression statistics for the included groups.
+    Splits the mass_groups DataFrame into separate DataFrames for each unique GroupID.
 
-    Parameters:
-    mass_groups (pd.DataFrame): DataFrame containing 'GroupID', 'RT', and 'm/z' columns.
+    Args:
+        mass_groups (pd.DataFrame): DataFrame containing 'GroupID' column.
 
     Returns:
-    dict: Regression statistics (slope, intercept, R², p-value) for each included GroupID.
+        dict: A dictionary where keys are GroupIDs and values are the corresponding DataFrames.
     """
 
-    print("[DEBUG] Running RT_vs_mz_analysis...")
+    if "GroupID" not in mass_groups.columns:
+        raise ValueError("[ERROR] DataFrame must contain 'GroupID' column.")
 
-    # ✅ Check if required columns exist
-    required_columns = {"GroupID", "RT", "m/z"}
-    if not required_columns.issubset(mass_groups.columns):
-        raise ValueError(f"[ERROR] DataFrame must contain {required_columns} columns.")
+    # ✅ Group by 'GroupID' and store each subset in a dictionary
+    split_mass_groups = {group: df for group, df in mass_groups.groupby("GroupID")}
 
-    # ✅ Get unique GroupIDs
-    unique_groups = mass_groups["GroupID"].unique()
-    print(f"[INFO] Identified {len(unique_groups)} unique GroupIDs for analysis.")
+    # ✅ Debugging: Print each group separately
+    for group_id, df in split_mass_groups.items():
+        print(f"\n[DEBUG] Group {group_id} (n={len(df)}):")
+        print(df.to_string(index=False))  # Print full DataFrame for clarity
 
-    # ✅ Store regression results
-    regression_results = {}
-
-    # ✅ Create plot
-    plt.figure(figsize=(10, 6))
-
-    # ✅ Perform trend analysis for each group
-    for group in unique_groups:
-        subset = mass_groups[mass_groups["GroupID"] == group]
-
-        # ✅ Extract x (m/z) and y (RT)
-        x = subset["m/z"].values
-        y = subset["RT"].values
-
-        if len(x) < 3:
-            print(
-                f"[WARNING] Group {group} has fewer than 3 points. Skipping trend analysis."
-            )
-            continue
-
-        # ✅ Perform linear regression
-        slope, intercept, r_value, p_value, _ = linregress(x, y)
-        r_squared = r_value**2  # Compute R²
-
-        # ✅ Filter out groups where p < 0.05
-        if p_value > 0.05:
-            print(
-                f"[EXCLUDED] Group {group}: p-value = {p_value:.4g} (statistically insignificant, excluded)."
-            )
-            continue  # Skip plotting & saving this group
-
-        # ✅ Store regression stats only for included groups
-        regression_results[group] = {
-            "slope": slope,
-            "intercept": intercept,
-            "r_squared": r_squared,
-            "p_value": p_value,
-        }
-
-        print(
-            f"[DEBUG] Group {group}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g} (included)."
-        )
-
-        # ✅ Scatter plot of actual data
-        plt.scatter(x, y, label=f"Group {group}", alpha=0.7)
-
-        # ✅ Plot regression line
-        x_range = np.linspace(min(x), max(x), 100)
-        y_fit = slope * x_range + intercept
-        plt.plot(x_range, y_fit, linestyle="--", linewidth=2)
-
-    # ✅ Customize plot
-    plt.xlabel("m/z")
-    plt.ylabel("RT (Retention Time)")
-    plt.title("RT vs m/z Trend Analysis (Filtered)")
-    plt.legend()
-    plt.grid(True)
-
-    # ✅ Show plot
-    plt.show()
-
-    print("[INFO] RT vs m/z analysis completed successfully.")
-    return regression_results  # ✅ Return regression stats for external use
+    return split_mass_groups
 
 
-# ✅ Example Usage:
-regression_results = RT_vs_mz_analysis(mass_groups)
-print(regression_results)
+split_mass_groups = split_mass_groups_by_groupid(mass_groups)
+print(split_mass_groups)
