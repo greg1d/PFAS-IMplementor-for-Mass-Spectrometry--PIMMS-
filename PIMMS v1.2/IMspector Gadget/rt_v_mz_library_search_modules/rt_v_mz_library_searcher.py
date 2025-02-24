@@ -40,15 +40,16 @@ from scipy.stats import linregress
 def RT_vs_mz_analysis(mass_groups):
     """
     Performs trend analysis on RT (Retention Time) vs m/z for each unique GroupID.
-    - Fits a linear regression model for each group.
+    - Excludes groups where a statistically significant trend is found (p < 0.05).
+    - Fits a linear regression model for remaining groups.
     - Plots the RT vs m/z scatter along with the regression trend line.
-    - Returns regression statistics for further analysis.
+    - Returns regression statistics for the included groups.
 
     Parameters:
     mass_groups (pd.DataFrame): DataFrame containing 'GroupID', 'RT', and 'm/z' columns.
 
     Returns:
-    dict: Regression statistics (slope, intercept, R², p-value) for each GroupID.
+    dict: Regression statistics (slope, intercept, R², p-value) for each included GroupID.
     """
 
     print("[DEBUG] Running RT_vs_mz_analysis...")
@@ -86,7 +87,14 @@ def RT_vs_mz_analysis(mass_groups):
         slope, intercept, r_value, p_value, _ = linregress(x, y)
         r_squared = r_value**2  # Compute R²
 
-        # ✅ Store regression stats
+        # ✅ Filter out groups where p < 0.05
+        if p_value > 0.05:
+            print(
+                f"[EXCLUDED] Group {group}: p-value = {p_value:.4g} (statistically insignificant, excluded)."
+            )
+            continue  # Skip plotting & saving this group
+
+        # ✅ Store regression stats only for included groups
         regression_results[group] = {
             "slope": slope,
             "intercept": intercept,
@@ -95,7 +103,7 @@ def RT_vs_mz_analysis(mass_groups):
         }
 
         print(
-            f"[DEBUG] Group {group}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g}"
+            f"[DEBUG] Group {group}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g} (included)."
         )
 
         # ✅ Scatter plot of actual data
@@ -109,7 +117,7 @@ def RT_vs_mz_analysis(mass_groups):
     # ✅ Customize plot
     plt.xlabel("m/z")
     plt.ylabel("RT (Retention Time)")
-    plt.title("RT vs m/z Trend Analysis")
+    plt.title("RT vs m/z Trend Analysis (Filtered)")
     plt.legend()
     plt.grid(True)
 
