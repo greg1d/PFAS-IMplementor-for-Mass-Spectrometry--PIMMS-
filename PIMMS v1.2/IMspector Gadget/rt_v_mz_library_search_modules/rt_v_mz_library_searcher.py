@@ -1,6 +1,7 @@
 import os
 import sys
-
+from scipy.stats import linregress
+import pandas as pd
 
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -58,5 +59,74 @@ def split_mass_groups_by_groupid(mass_groups):
     return split_mass_groups
 
 
+def rt_vs_mz_trend_analysis(split_mass_groups):
+    """
+    Performs trend analysis on RT (Retention Time) vs m/z for each unique GroupID.
+    - Categorizes groups into 'significant_RT_group' (p < 0.05) and 'messy_RT_group' (p ≥ 0.05).
+    - Returns these two DataFrames separately.
+
+    Args:
+        split_mass_groups (dict): Dictionary of DataFrames split by GroupID.
+
+    Returns:
+        significant_RT_group (pd.DataFrame): Groups with significant trends (p < 0.05).
+        messy_RT_group (pd.DataFrame): Groups with non-significant trends (p ≥ 0.05).
+    """
+
+    print("\n[INFO] Running RT vs m/z Trend Analysis...")
+
+    significant_RT_groups = []  # ✅ Store significant groups
+    messy_RT_groups = []  # ✅ Store messy groups
+
+    for group_id, df in split_mass_groups.items():
+        print(f"\n[DEBUG] Processing Group {group_id}...")
+
+        if df.shape[0] < 3:
+            print(f"[WARNING] Group {group_id} has fewer than 3 points. Skipping.")
+            continue
+
+        # ✅ Extract x (m/z) and y (RT)
+        x = df["m/z"].values
+        y = df["RT"].values
+
+        # ✅ Perform linear regression
+        slope, intercept, r_value, p_value, _ = linregress(x, y)
+        r_squared = r_value**2  # Compute R²
+
+        print(
+            f"[DEBUG] Group {group_id}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g}"
+        )
+
+        # ✅ Categorize groups based on p-value
+        if p_value < 0.05:
+            significant_RT_groups.append(df)  # Store significant group
+        else:
+            messy_RT_groups.append(df)  # Store messy group
+
+    # ✅ Convert lists to DataFrames
+    significant_RT_group = (
+        pd.concat(significant_RT_groups, ignore_index=True)
+        if significant_RT_groups
+        else pd.DataFrame()
+    )
+    messy_RT_group = (
+        pd.concat(messy_RT_groups, ignore_index=True)
+        if messy_RT_groups
+        else pd.DataFrame()
+    )
+
+    print("\n[INFO] RT vs m/z trend analysis completed.")
+    print(f"[INFO] Significant RT Groups: {len(significant_RT_group)} rows.")
+    print(f"[INFO] Messy RT Groups: {len(messy_RT_group)} rows.")
+
+    return significant_RT_group, messy_RT_group
+
+
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
-print(split_mass_groups)
+sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
+# Print results
+print("\n[INFO] Significant RT Groups:")
+print(sig_groups)
+
+print("\n[INFO] Messy RT Groups:")
+print(messy_groups)
