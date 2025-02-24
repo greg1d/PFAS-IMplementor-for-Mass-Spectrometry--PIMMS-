@@ -2,6 +2,9 @@ import os
 import sys
 from scipy.stats import linregress
 import pandas as pd
+import cmocean
+import numpy as np
+import plotly.graph_objects as go
 
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -32,6 +35,9 @@ selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 stacked_df = stack_library_with_adjusted()
 mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+
+NUM_SERIES = 10
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
 def split_mass_groups_by_groupid(mass_groups):
@@ -120,9 +126,6 @@ def rt_vs_mz_trend_analysis(split_mass_groups):
     print(f"[INFO] Messy RT Groups: {len(messy_RT_group)} rows.")
 
     return significant_RT_group, messy_RT_group
-
-
-import numpy as np
 
 
 def refine_messy_rt_groups(messy_RT_group):
@@ -250,10 +253,115 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
     return m_z_RT_groups
 
 
+def rt_vs_mz_plotly(m_z_RT_groups):
+    """
+    Generates an interactive Plotly graph for RT vs. m/z analysis with cmocean color mapping
+    and marker symbols based on classification type.
+
+    Args:
+        m_z_RT_groups (pd.DataFrame): DataFrame containing 'GroupID', 'RT', 'm/z', and 'Classification Type'.
+
+    Returns:
+        plotly.graph_objects.Figure: A Plotly figure with trendlines and scatter points.
+    """
+
+    if m_z_RT_groups.empty:
+        print("[INFO] No significant RT vs. m/z groups found. Returning blank graph.")
+        fig = go.Figure()
+        fig.update_layout(
+            title="RT vs. m/z (No Significant Groups Found)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>RT (Retention Time)</b>"),
+            template="plotly_dark",
+        )
+        return fig
+
+    fig = go.Figure()
+
+    # ✅ Strip whitespace from column names
+    m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
+
+    # ✅ Extract unique GroupIDs
+    unique_groups = m_z_RT_groups["GroupID"].unique()
+    print(f"[INFO] Plotting {len(unique_groups)} unique GroupIDs.")
+
+    # ✅ Loop through each group
+    for idx, (group_id, group_df) in enumerate(m_z_RT_groups.groupby("GroupID")):
+        # ✅ Extract x (m/z) and y (RT) for regression
+        mz_values = group_df["m/z"].values
+        rt_values = group_df["RT"].values
+
+        # ✅ Assign series color using cmocean colormap
+        color_idx = idx % NUM_SERIES
+        series_color = f"rgb({HOMOLOGOUS_SERIES_COLORS[color_idx][0] * 255}, {HOMOLOGOUS_SERIES_COLORS[color_idx][1] * 255}, {HOMOLOGOUS_SERIES_COLORS[color_idx][2] * 255})"
+        legend_group_name = f"group_{group_id}"
+
+        # ✅ Determine marker symbols based on classification type
+        symbols = [
+            "x" if row["Classification Type"] == "External Library" else "circle"
+            for _, row in group_df.iterrows()
+        ]
+
+        # ✅ Perform linear regression for trendline
+        if len(mz_values) > 2:  # Ensure at least 3 points for regression
+            slope, intercept, r_value, p_value, _ = linregress(mz_values, rt_values)
+
+            # ✅ Compute trendline points
+            reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
+            reg_line_y = slope * reg_line_x + intercept
+
+            # 🔹 Add trendline
+            fig.add_trace(
+                go.Scatter(
+                    x=reg_line_x,
+                    y=reg_line_y,
+                    mode="lines",
+                    name=f"RT Trend {group_id}",
+                    line=dict(color=series_color, dash="dash"),
+                    legendgroup=legend_group_name,
+                    hoverinfo="skip",
+                    visible="legendonly",  # ✅ Hidden until toggled
+                    showlegend=False,
+                )
+            )
+
+        # ✅ Prepare hover metadata
+        hover_texts = [
+            f"Group: {group_id}<br>m/z: {row['m/z']:.4f}<br>RT: {row['RT']:.2f}<br>Classification: {row['Classification Type']}"
+            for _, row in group_df.iterrows()
+        ]
+
+        # 🔹 Scatter plot points with hover text and custom markers
+        fig.add_trace(
+            go.Scatter(
+                x=mz_values,
+                y=rt_values,
+                mode="markers",
+                marker=dict(size=12, color=series_color, symbol=symbols),
+                name=f"Group {group_id}",
+                legendgroup=legend_group_name,
+                showlegend=True,
+                hovertext=hover_texts,
+                hoverinfo="text",
+            )
+        )
+
+    # ✅ Update Plot Layout
+    fig.update_layout(
+        title="RT vs. m/z Trend Analysis",
+        xaxis=dict(title=r"<b><i>m/z</i></b>"),
+        yaxis=dict(title="<b>RT (Retention Time)</b>"),
+        template="plotly_dark",
+    )
+
+    return fig
+
+
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
 sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
 # Print results
 refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
 
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
-print(m_z_RT_groups)
+fig = rt_vs_mz_plotly(m_z_RT_groups)
+fig.show()
