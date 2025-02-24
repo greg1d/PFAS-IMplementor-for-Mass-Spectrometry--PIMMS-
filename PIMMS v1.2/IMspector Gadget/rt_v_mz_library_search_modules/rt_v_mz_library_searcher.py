@@ -346,9 +346,11 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
 
     # Merge the intensity information into the filtered m/z–RT groups based on the "ID" column.
     # Using a left join ensures that every row in filtered_m_z_RT_groups is kept.
-    merged_df = pd.merge(filtered_m_z_RT_groups, intensity_df, on="ID", how="left")
-    print("[INFO] Merged DataFrame columns:", merged_df.columns)
-    return merged_df
+    filtered_m_z_RT_groups = pd.merge(
+        filtered_m_z_RT_groups, intensity_df, on="ID", how="left"
+    )
+    print("[INFO] Merged DataFrame columns:", filtered_m_z_RT_groups.columns)
+    return filtered_m_z_RT_groups
 
 
 # ✅ Define color scheme using cmocean
@@ -534,4 +536,9 @@ refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
 filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
-merged_df = add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups)
+filtered_m_z_RT_groups = add_back_in_sample_intensities(
+    stacked_df, filtered_m_z_RT_groups
+)
+filtered_m_z_RT_groups.to_csv("filtered_m_z_RT_groups.csv", index=False)
+fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
+fig.show()
