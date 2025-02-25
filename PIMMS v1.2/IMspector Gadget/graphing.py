@@ -165,17 +165,25 @@ def plot_figure_3(selected_repeating_units=None):
 
 # ✅ Main execution for testing
 if __name__ == "__main__":
-    fig1 = plot_figure_1(selected_repeating_units={})  # Start with no selected units
+    fig1 = plot_figure_1(
+        selected_repeating_units={"CF2": 49.9968064}
+    )  # Start with no selected units
+    # Start with no selected units
     if fig1:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig1)
 
-    fig2 = plot_figure_2(selected_repeating_units={})  # Start with no selected units
+    fig2 = plot_figure_2(
+        selected_repeating_units={"CF2": 49.9968064}
+    )  # Start with no selected units
+    # Start with no selected units
     if fig2:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig2)
 
-    fig3 = plot_figure_3(selected_repeating_units={})  # Start with no selected units
+    fig3 = plot_figure_3(
+        selected_repeating_units={"CF2": 49.9968064}
+    )  # Start with no selected units
     if fig3:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig3)

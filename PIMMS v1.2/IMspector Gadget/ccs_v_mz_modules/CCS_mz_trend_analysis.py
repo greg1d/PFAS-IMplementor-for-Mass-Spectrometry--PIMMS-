@@ -1,6 +1,5 @@
 import os
 import sys
-
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
@@ -19,119 +18,95 @@ if IMPECTOR_GADGET_DIR not in sys.path:
 def mz_repeating_unit_analysis(
     adjusted_df, selected_repeating_units, mass_error_ppm=10
 ):
-    """
-    Identifies homologous series trends by checking different repeating units.
-    Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
-
-    Args:
-        adjusted_df (pd.DataFrame): Input dataset with m/z values.
-        selected_repeating_units (dict): Dictionary of user-selected repeating units.
-        mass_error_ppm (int): PPM error tolerance for matching.
-
-    Returns:
-        pd.DataFrame: DataFrame containing identified homologous series.
-    """
-    print(f"[DEBUG] User-selected repeating units: {selected_repeating_units}")
-
-    if not isinstance(selected_repeating_units, dict):
-        print(
-            "[ERROR] selected_repeating_units must be a dictionary! Returning blank DataFrame."
-        )
-        return pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
-
-    if not selected_repeating_units:
-        print("[WARNING] No repeating units selected. Returning blank DataFrame.")
-        return pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
-
-    iteration_count = 0  # Track loop iterations
-    group_counter = 0  # Track unique Group ID
-
-    # **Sort data by m/z for efficient searching**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
-
-    unique_group_ids = set()
+    processed_indices = set()
+    group_counter = 0
     mass_groups = []
 
     for unit_name, M in selected_repeating_units.items():
-        processed_indices = set()
-
-        for i in range(len(adjusted_df)):
-            iteration_count += 1
-            if i in processed_indices:
+        for start_idx in range(len(adjusted_df)):
+            if start_idx in processed_indices:
                 continue
 
-            mz_value = adjusted_df.at[i, "m/z"]
-            group_counter += 1  # Assign new unique GroupID
+            current_idx = start_idx
+            current_mz = adjusted_df.at[current_idx, "m/z"]
+            group_counter += 1
 
             current_group = [
                 {
-                    "GroupID": group_counter,  # Assign Group ID
-                    "m/z": mz_value,
-                    "RT": adjusted_df.at[i, "RT"],
-                    "ID": adjusted_df.at[i, "ID"],
-                    "CCS": adjusted_df.at[i, "CCS"],
-                    "Classification Type": adjusted_df.at[i, "Classification Type"],
-                    "Match Source": adjusted_df.at[i, "Match Source"],
-                    "Match": adjusted_df.at[i, "Match"],
+                    "GroupID": group_counter,
+                    "m/z": current_mz,
+                    "RT": adjusted_df.at[current_idx, "RT"],
+                    "ID": adjusted_df.at[current_idx, "ID"],
+                    "CCS": adjusted_df.at[current_idx, "CCS"],
+                    "Classification Type": adjusted_df.at[
+                        current_idx, "Classification Type"
+                    ],
+                    "Match Source": adjusted_df.at[current_idx, "Match Source"],
+                    "Match": adjusted_df.at[current_idx, "Match"],
                     "Repeating Unit": unit_name,
                 }
             ]
-            processed_indices.add(i)
+            processed_indices.add(current_idx)
 
-            search_queue = [i]
+            while True:
+                found_next = False
+                for k in range(1, 4):  # Check k=1, then k=2, then k=3
+                    target_mz = current_mz + k * M
+                    ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
+                    lower_bound = target_mz - ppm_tolerance
+                    upper_bound = target_mz + ppm_tolerance
 
-            while search_queue:
-                current_idx = search_queue.pop(0)
-                current_mz = adjusted_df.at[current_idx, "m/z"]
+                    # Find candidates within the range
+                    candidate_df = adjusted_df[
+                        (~adjusted_df.index.isin(processed_indices))
+                        & (adjusted_df["m/z"] >= lower_bound)
+                        & (adjusted_df["m/z"] <= upper_bound)
+                    ]
 
-                for j in range(current_idx + 1, len(adjusted_df)):
-                    iteration_count += 1
-                    if j in processed_indices:
-                        continue
+                    if not candidate_df.empty:
+                        # Choose the candidate closest to the theoretical value
+                        candidate_idx = (candidate_df["m/z"] - target_mz).abs().idxmin()
+                        candidate_mz = adjusted_df.at[candidate_idx, "m/z"]
 
-                    next_mz_value = adjusted_df.at[j, "m/z"]
-                    mass_diff = abs(current_mz - next_mz_value)
-                    ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
-
-                    if any(
-                        abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
-                    ):
+                        # Append found candidate to current group
                         current_group.append(
                             {
-                                "GroupID": group_counter,  # Keep same Group ID
-                                "m/z": next_mz_value,
-                                "ID": adjusted_df.at[j, "ID"],
-                                "RT": adjusted_df.at[j, "RT"],
-                                "CCS": adjusted_df.at[j, "CCS"],
+                                "GroupID": group_counter,
+                                "m/z": candidate_mz,
+                                "RT": adjusted_df.at[candidate_idx, "RT"],
+                                "ID": adjusted_df.at[candidate_idx, "ID"],
+                                "CCS": adjusted_df.at[candidate_idx, "CCS"],
                                 "Classification Type": adjusted_df.at[
-                                    j, "Classification Type"
+                                    candidate_idx, "Classification Type"
                                 ],
-                                "Match Source": adjusted_df.at[j, "Match Source"],
-                                "Match": adjusted_df.at[j, "Match"],
+                                "Match Source": adjusted_df.at[
+                                    candidate_idx, "Match Source"
+                                ],
+                                "Match": adjusted_df.at[candidate_idx, "Match"],
                                 "Repeating Unit": unit_name,
                             }
                         )
-                        processed_indices.add(j)
-                        search_queue.append(j)
 
-            # **Only process groups that have at least 3 points BEFORE expansion**
-            if len(current_group) <= 3:
-                continue  # Skip storing this group
+                        processed_indices.add(candidate_idx)
 
-            # **Ensure min-max m/z difference is at least 10**
-            min_mz = min(entry["m/z"] for entry in current_group)
-            max_mz = max(entry["m/z"] for entry in current_group)
-            if max_mz - min_mz < 10:
-                continue  # Skip storing this group
+                        # Update current position and mz for next iteration
+                        current_idx = candidate_idx
+                        current_mz = candidate_mz
 
-            # **Ensure the group is unique and store it**
-            group_ids = frozenset(entry["ID"] for entry in current_group)
-            if group_ids not in unique_group_ids:
-                unique_group_ids.add(group_ids)
-                group_df = pd.DataFrame(current_group)
-                mass_groups.append(group_df)
+                        found_next = True
+                        break  # Exit k-loop immediately upon finding a match
 
-    # **Combine all groups into a single DataFrame**
+                if not found_next:
+                    break  # No further matches found, end this group
+
+            # Only save groups with at least 3 points and min-max mz difference ≥ 10
+            if len(current_group) >= 3:
+                mz_values = [entry["m/z"] for entry in current_group]
+                if max(mz_values) - min(mz_values) >= 10:
+                    mass_groups.append(pd.DataFrame(current_group))
+
+    # Combine groups into a final DataFrame
     if mass_groups:
         mass_groups = pd.concat(mass_groups, ignore_index=True)
     else:
@@ -139,8 +114,8 @@ def mz_repeating_unit_analysis(
             columns=[
                 "GroupID",
                 "m/z",
-                "ID",
                 "RT",
+                "ID",
                 "CCS",
                 "Classification Type",
                 "Match Source",
@@ -179,7 +154,7 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     # Perform initial linear regression
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
     r_squared = r_value**2
-
+    print("p value before refinement of the CCS v m/z analysis function: ", p_value)
     # Store classified points
     post_source_decay = []
     branched_isomer = []
@@ -233,7 +208,7 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     mz_values = np.array([p[0] for p in refined_data_points])
     ccs_values = np.array([p[1] for p in refined_data_points])
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
-
+    print("p value after refinement of the CCS v m/z analysis function: ", p_value)
     # Final classification: if statistically significant, return as IM_group
     if p_value <= significance_cutoff and slope > 0:
         return refined_data_points, post_source_decay, branched_isomer, []
@@ -258,10 +233,22 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
 def main():
     """Run the analysis pipeline and return results."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
+    REPEATING_UNITS = {
+        "CF2": 49.9968064,
+        "OCF2": 65.9917214,
+        "CF2CF2O": 115.988527,
+        "CH2CF2": 64.012456,
+        "HF": 20.0062278,
+    }
 
-    mass_groups = mz_repeating_unit_analysis(adjusted_df)
+    # ✅ Select a subset of repeating units for analysis
+    SELECTED_UNITS = ["CF2"]
+    selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
+    mass_groups = mz_repeating_unit_analysis(adjusted_df, selected_repeating_units)
+    print("mass groups", mass_groups.head())
+
     if mass_groups.empty:
         return None  # Exit if no groups found
 

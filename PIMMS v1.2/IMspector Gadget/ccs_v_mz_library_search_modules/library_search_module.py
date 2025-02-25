@@ -56,7 +56,7 @@ REPEATING_UNITS = {
 }
 
 # ✅ Select a subset of repeating units for analysis
-SELECTED_UNITS = ["CH2CF2"]
+SELECTED_UNITS = ["CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
 
@@ -451,7 +451,6 @@ import plotly.io as pio
 def main():
     """Stacks data, runs analysis, and plots CCS vs. m/z."""
     stacked_df = stack_library_with_adjusted()
-
     if stacked_df is None:
         return
 
@@ -460,7 +459,7 @@ def main():
 
     # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
-
+    print("mass_groups", mass_groups)
     if mass_groups.empty:
         return
 
@@ -481,7 +480,7 @@ def main():
 
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
-
+    print("filtered_IM_groups", filtered_IM_groups)
     # ✅ Merge all valid IM groups into one DataFrame
     final_IM_group = (
         pd.concat(filtered_IM_groups, ignore_index=True)

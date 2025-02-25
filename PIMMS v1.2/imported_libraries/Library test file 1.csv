@@ -1,7 +1,5 @@
 ,MoleculeGroup,PrecursorName,PrecursorFormula,PrecursorAdduct,PrecursorCCS,PrecursorRT,PrecursorMz,PrecursorCharge,CAS,Synonyms,Name,Notes
-,PFAS (-) PFSA,A,C10HF21O3S,M-H,240,14,299.9872256,-1,335-77-3,,,
-,PFAS (-) PFSA,B,C10HF21O3S,M-H,110,18,499.9744512,-1,335-77-3,,perfluorodecanesulfonate ,
-Perfluorosulfonic acids,PFAS (-) PFSA,C,C12HF25O3S,M-H,230,19,549.9712576,-1,79780-39-5,PFDoDS,perfluorododecanesulfonate ,
-,PFAS (-) PFSA,D,C10HF21O3S,M-H,240,20,599.968064,-1,335-77-3,,perfluorodecanesulfonate ,
-,PFAS (-) PFSA,E,C10HF21O3S,M-H,240,21,649.9648704,-1,335-77-3,,perfluorodecanesulfonate ,
-,PFAS (-) PFSA,F,C10HF21O3S,M-H,240,22,699.9616768,-1,335-77-3,,perfluorodecanesulfonate ,
+Perfluorosulfonic acids,PFAS (-) PFSA,TEST A,C12HF25O3S,M-H,101,10.01,100.0032,-1,79780-39-5,PFDoDS,perfluorododecanesulfonate ,
+,PFAS (-) PFSA,TEST B,C10HF21O3S,M-H,110,11.2,149.9969064,-1,335-77-3,,perfluorodecanesulfonate ,
+Perfluorosulfonic acids,PFAS (-) PFSA,C,C12HF25O3S,M-H,141.2,14.1,299.9938128,-1,79780-39-5,PFDoDS,perfluorododecanesulfonate ,
+,PFAS (-) PFSA,D,C10HF21O3S,M-H,150,14.87,349.9905192,-1,335-77-3,,perfluorodecanesulfonate ,
