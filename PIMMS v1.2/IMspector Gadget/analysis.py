@@ -17,6 +17,15 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
 )
+from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
+    split_mass_groups_by_groupid,
+    rt_vs_mz_trend_analysis,
+    refine_messy_rt_groups,
+    combine_significant_groups,
+    limit_consecutive_external_points,
+    add_back_in_sample_intensities,
+)
+
 from config import LIBRARY_PATH
 
 
@@ -133,3 +142,23 @@ def run_library_search_analysis(selected_repeating_units):
     )
 
     return final_IM_group, stacked_df
+
+
+def run_rt_mz_analysis(selected_repeating_units):
+    """
+    Compile analysis steps to generate the filtered_m_z_RT_groups DataFrame.
+    """
+    stacked_df = stack_library_with_adjusted()
+    mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+    split_mass_groups = split_mass_groups_by_groupid(mass_groups)
+    sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
+    refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
+
+    m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
+
+    filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
+    filtered_m_z_RT_groups = add_back_in_sample_intensities(
+        stacked_df, filtered_m_z_RT_groups
+    )
+    print(filtered_m_z_RT_groups)
+    return filtered_m_z_RT_groups
