@@ -453,7 +453,7 @@ def main():
     stacked_df = stack_library_with_adjusted()
     if stacked_df is None:
         return
-
+    stacked_df.to_csv("stacked_df.csv")
     # ✅ Extract standards library name
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 

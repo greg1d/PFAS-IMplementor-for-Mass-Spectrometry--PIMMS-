@@ -1,0 +1,10 @@
+,Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP
+4,TEST A (M-H),Library test file 1.csv,External Library,100000,9,0,90,100,0,0
+,,PFAS Standards,likely,5,10,0,100,149.9968065,0,0
+5,TEST B (M-H),Library test file 1.csv,External Library,100001,10,0,100,149.9968064,0,0
+0,1,PFAS Standards,likely,1,11,17.712,110,199.9936128,300,300
+1,2,PFAS Standards,likely,2,12,18.939,120,249.9904192,0,100
+6,C (M-H),Library test file 1.csv,External Library,100002,13,0,130,299.9872254,0,0
+7,D (M-H),Library test file 1.csv,External Library,100003,14,0,140,349.984032,0,0
+2,3,PFAS Standards,likely,3,15,18.939,150,399.9808384,200,200
+3,4,PFAS Standards,likely,4,16,18.939,160,449.98,100,100
