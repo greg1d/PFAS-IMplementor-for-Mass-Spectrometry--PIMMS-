@@ -229,7 +229,6 @@ def limit_consecutive_external_points(m_z_RT_groups):
         pd.DataFrame: A DataFrame with consecutive "External Library" rows limited to 3.
     """
     # Clean column names
-    m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
     filtered_groups = []
 
     # Process each group separately
