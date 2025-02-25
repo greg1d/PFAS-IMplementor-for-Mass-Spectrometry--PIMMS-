@@ -149,9 +149,6 @@ def mz_repeating_unit_analysis(
             ]
         )
 
-    print(
-        f"[INFO] mz_repeating_unit_analysis completed. Found {len(mass_groups)} entries."
-    )
     return mass_groups
 
 

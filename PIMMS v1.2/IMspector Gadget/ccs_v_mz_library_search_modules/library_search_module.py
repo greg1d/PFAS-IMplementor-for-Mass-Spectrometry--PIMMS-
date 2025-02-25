@@ -388,12 +388,6 @@ def stack_library_with_adjusted():
     print(f"[INFO] Reading library dataset from: {library_path}")
     library_df = pd.read_csv(library_path)
 
-    # ✅ Debugging: Print first few rows of both DataFrames
-    print("[DEBUG] Adjusted DataFrame Sample:")
-    print(adjusted_df.head())
-    print("[DEBUG] Library DataFrame Sample:")
-    print(library_df.head())
-
     # ✅ Standardize column names in the library dataset
     column_mapping = {
         "PrecursorMz": "m/z",
@@ -448,7 +442,6 @@ def stack_library_with_adjusted():
     )
 
     # ✅ Save for debugging
-    print(f"[INFO] Stacked dataset created with {len(stacked_df)} rows.")
     return stacked_df
 
 

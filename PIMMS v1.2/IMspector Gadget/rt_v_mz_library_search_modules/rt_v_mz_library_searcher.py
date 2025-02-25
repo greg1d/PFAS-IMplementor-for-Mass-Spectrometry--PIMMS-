@@ -20,7 +20,6 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import mz_repeating_unit_analysis
 # ✅ Use dynamically selected library path
 LIBRARY_PATH = get_library_path()
 LIBRARY_MATCH_SOURCE = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
-print("[INFO] Library path selected:", LIBRARY_PATH)
 
 REPEATING_UNITS = {
     "CF2": 49.9968064,
@@ -34,10 +33,6 @@ REPEATING_UNITS = {
 SELECTED_UNITS = ["CF2"]
 selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
 
-stacked_df = stack_library_with_adjusted()
-print("stacked df", stacked_df)
-mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
-print("mass groups", mass_groups)
 
 NUM_SERIES = 10
 HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
@@ -60,10 +55,6 @@ def split_mass_groups_by_groupid(mass_groups):
     # ✅ Group by 'GroupID' and store each subset in a dictionary
     split_mass_groups = {group: df for group, df in mass_groups.groupby("GroupID")}
 
-    # ✅ Debugging: Print each group separately
-    for group_id, df in split_mass_groups.items():
-        print(f"\n[DEBUG] Group {group_id} (n={len(df)}):")
-        print(df.to_string(index=False))
     return split_mass_groups
 
 
@@ -81,8 +72,6 @@ def rt_vs_mz_trend_analysis(split_mass_groups):
         messy_RT_group (pd.DataFrame): Groups with non-significant trends (p ≥ 0.05).
     """
 
-    print("\n[INFO] Running RT vs m/z Trend Analysis...")
-
     significant_RT_groups = []  # ✅ Store significant groups
     messy_RT_groups = []  # ✅ Store messy groups
 
@@ -99,11 +88,8 @@ def rt_vs_mz_trend_analysis(split_mass_groups):
 
         # ✅ Perform linear regression
         slope, intercept, r_value, p_value, _ = linregress(x, y)
-        r_squared = r_value**2  # Compute R²
 
-        print(
-            f"[DEBUG] Group {group_id}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g}"
-        )
+        print(f"[DEBUG] Group {group_id}:  p={p_value:.4g}")
 
         # ✅ Categorize groups based on p-value
         if p_value < 0.05:
@@ -122,10 +108,6 @@ def rt_vs_mz_trend_analysis(split_mass_groups):
         if messy_RT_groups
         else pd.DataFrame()
     )
-
-    print("\n[INFO] RT vs m/z trend analysis completed.")
-    print(f"[INFO] Significant RT Groups: {len(significant_RT_group)} rows.")
-    print(f"[INFO] Messy RT Groups: {len(messy_RT_group)} rows.")
 
     return significant_RT_group, messy_RT_group
 
@@ -158,21 +140,13 @@ def refine_messy_rt_groups(messy_RT_group):
     for group_id in unique_groups:
         subset = messy_RT_group[messy_RT_group["GroupID"] == group_id].copy()
 
-        print(f"\n[DEBUG] Processing Group {group_id} (n={len(subset)})...")
-        print(subset.to_string(index=False))  # ✅ Print full group for clarity
-
         while len(subset) >= 3:
             # ✅ Extract x (m/z) and y (RT)
             x = subset["m/z"].values
             y = subset["RT"].values
 
             # ✅ Perform linear regression
-            slope, intercept, r_value, p_value, _ = linregress(x, y)
-            r_squared = r_value**2
-
-            print(
-                f"[DEBUG] Group {group_id}: slope={slope:.4f}, R²={r_squared:.4f}, p={p_value:.4g}"
-            )
+            slope, intercept, p_value, _ = linregress(x, y)
 
             # ✅ Calculate residuals for each point
             predicted_y = slope * x + intercept
@@ -181,8 +155,6 @@ def refine_messy_rt_groups(messy_RT_group):
 
             # ✅ Print residuals for each point
             subset["Residual"] = residuals
-            print(f"\n[DEBUG] Residuals for Group {group_id}:")
-            print(subset.to_string(index=False))  # ✅ Print group with residuals
 
             # ✅ If p < 0.05 and ≥ 3 points, store as significant
             if p_value < 0.05:
@@ -194,9 +166,6 @@ def refine_messy_rt_groups(messy_RT_group):
 
             # ✅ If still p ≥ 0.05, find max residual and remove it
             max_residual_index = np.argmax(abs_residuals)
-            max_residual_point = subset.iloc[max_residual_index]
-
-            print(f"[WARNING] Removing outlier: {max_residual_point.to_dict()}")
 
             # ✅ Remove the outlier
             subset = subset.drop(subset.index[max_residual_index]).reset_index(
@@ -206,7 +175,6 @@ def refine_messy_rt_groups(messy_RT_group):
         # ✅ If <3 points left, keep in messy group
         if len(subset) < 3:
             remaining_messy_groups.append(subset.drop(columns=["Residual"]))
-            print(f"[INFO] Group {group_id}: p still ≥ 0.05, remains in messy_RT_group")
 
     # ✅ Convert lists to DataFrames
     significant_RT_group = (
@@ -219,10 +187,6 @@ def refine_messy_rt_groups(messy_RT_group):
         if remaining_messy_groups
         else pd.DataFrame()
     )
-
-    print("\n[INFO] Refinement process complete.")
-    print(f"[INFO] Newly significant RT Groups: {len(significant_RT_group)} rows.")
-    print(f"[INFO] Remaining messy RT Groups: {len(messy_RT_group)} rows.")
 
     return significant_RT_group, messy_RT_group
 
@@ -239,13 +203,8 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
         pd.DataFrame: Final combined DataFrame `m_z_RT_groups`, containing all significant RT groups.
     """
 
-    print("\n[INFO] Combining significant RT groups...")
-
     # ✅ Check if refined_sig_groups has data
     if refined_sig_groups.empty:
-        print(
-            "[WARNING] No refined significant groups found. Returning original significant_RT_group."
-        )
         return significant_RT_group.copy()
 
     # ✅ Combine both DataFrames
@@ -253,7 +212,6 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
         [significant_RT_group, refined_sig_groups], ignore_index=True
     )
 
-    print(f"[INFO] Final combined m/z_RT_groups contains {len(m_z_RT_groups)} rows.")
     return m_z_RT_groups
 
 
@@ -360,7 +318,6 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
         final_mask = ~(non_external_mask & intensity_mask)
         filtered_m_z_RT_groups = filtered_m_z_RT_groups.loc[final_mask]
 
-    print("[INFO] Merged DataFrame columns:", filtered_m_z_RT_groups.columns)
     return filtered_m_z_RT_groups
 
 
@@ -399,8 +356,6 @@ def rt_vs_mz_plotly(m_z_RT_groups):
     m_z_RT_groups.columns = m_z_RT_groups.columns.str.strip()
 
     # ✅ Extract unique GroupIDs
-    unique_groups = m_z_RT_groups["GroupID"].unique()
-    print(f"[INFO] Plotting {len(unique_groups)} unique GroupIDs.")
 
     # ✅ **Step 1: Add White "X" and "O" First for Legend**
     fig.add_trace(
@@ -468,7 +423,6 @@ def rt_vs_mz_plotly(m_z_RT_groups):
         # ✅ Prepare hover metadata
         hover_texts = []
         symbols = []
-        print("df columns", group_df.columns)
         sample_columns = [col for col in group_df.columns if ".d" in col]
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
@@ -538,10 +492,11 @@ def rt_vs_mz_plotly(m_z_RT_groups):
     return fig
 
 
-print("mass group columns", mass_groups.columns)
+stacked_df = stack_library_with_adjusted()
+mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
 sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
-# Print results
 refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
 
 m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
@@ -550,6 +505,5 @@ filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
 filtered_m_z_RT_groups = add_back_in_sample_intensities(
     stacked_df, filtered_m_z_RT_groups
 )
-filtered_m_z_RT_groups.to_csv("filtered_m_z_RT_groups.csv", index=False)
 fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
 fig.show()
