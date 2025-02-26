@@ -133,7 +133,6 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
         ccs_values = group_df["CCS"].values
         # ✅ Perform linear regression for trendline
         slope, intercept, r_value, p_value, _ = stats.linregress(mz_values, ccs_values)
-
         # ✅ Compute trendline points
         reg_line_x = np.linspace(min(mz_values), max(mz_values), 100)
         reg_line_y = slope * reg_line_x + intercept
@@ -267,16 +266,14 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
     return fig
 
 
-def external_mz_library_matching(IM_group, library_match_source):
+def count_external_library_matches_per_group(IM_group):
     """
     Filters IM_group to retain only groups where:
-    - At least 2 rows come from the external library file.
-    - No more than 2 consecutive external library matches before a sample appears.
-    - Each homologous series contains at least one sample result.
+    - At least 2 rows come from the external library file (Is_External_Library == True).
+    - Each homologous series contains at least one sample result (Is_External_Library == False).
 
     Parameters:
     - IM_group (pd.DataFrame): Data containing identified homologous series.
-    - library_match_source (str): The dynamically extracted standards library filename.
 
     Returns:
     - pd.DataFrame: Filtered IM_group containing only valid groups.
@@ -284,48 +281,38 @@ def external_mz_library_matching(IM_group, library_match_source):
     if IM_group.empty:
         return IM_group
 
+    if "Classification Type" not in IM_group.columns:
+        print("[ERROR] Column 'Classification Type' not found in DataFrame.")
+        return pd.DataFrame()
+
+    # Create the 'Is_External_Library' column based on 'Classification Type'
+    IM_group["Is_External_Library"] = ~IM_group["Classification Type"].isin(
+        ["unmatched", "tentative", "likely"]
+    )
+
+    print("external_mz_library_matching IM Group", IM_group)
     valid_groups = []
-    # ✅ Group by GroupID
+
+    # Group by homologous series (assuming "GroupID" as an identifier)
     for group_id, group_df in IM_group.groupby("GroupID"):
-        # ✅ Identify external library matches based on classification
-        group_df["Is_External_Library"] = ~group_df["Classification Type"].isin(
-            ["unmatched", "likely", "tentative"]
-        )
         source_count = group_df["Is_External_Library"].sum()
-
-        # ✅ Count the number of non-library samples
         sample_count = len(group_df) - source_count
-        print("source_count", source_count)
-        print("sample_count", sample_count)
-        # ✅ Ensure there is at least one sample in the group
+
+        print(f"[DEBUG] GroupID: {group_id}")
+        print(f"[DEBUG] source_count (True): {source_count}")
+        print(f"[DEBUG] sample_count (False): {sample_count}")
+
+        # Ensure there are at least 2 True values and at least 1 False value
         if source_count >= 2 and sample_count >= 1:
-            # ✅ Track consecutive standards
-            consecutive_standards = 0
-            valid_rows = []
-            has_sample = False  # ✅ Track if at least one sample exists
+            valid_groups.append(group_df)
+            print(f"[INFO] Group {group_id} retained.")
 
-            for _, row in group_df.iterrows():
-                is_standard = row["Match Source"] == library_match_source
-
-                if is_standard:
-                    consecutive_standards += 1
-                else:
-                    consecutive_standards = 0  # Reset counter if we find a sample
-                    has_sample = True  # ✅ Found at least one sample
-
-                # ✅ Allow max 2 consecutive standards before a sample
-                if consecutive_standards <= 2:
-                    valid_rows.append(row)
-
-            # ✅ If at least one sample is present, keep this homologous series
-            if has_sample:
-                valid_groups.append(pd.DataFrame(valid_rows))
-
-    # ✅ Combine all valid groups into a new DataFrame
+    # Combine all valid groups into a new DataFrame
     if valid_groups:
         filtered_IM_group = pd.concat(valid_groups, ignore_index=True)
     else:
         filtered_IM_group = pd.DataFrame()
+
     print("filtered IM Group from within the library search module", filtered_IM_group)
     return filtered_IM_group
 
@@ -444,6 +431,58 @@ def stack_library_with_adjusted():
     return stacked_df
 
 
+def limit_consecutive_external_points(filtered_IM_groups):
+    """
+    Limits consecutive "External Library" points to a maximum of 3.
+
+    For each group (ordered by m/z), if there are more than 3 consecutive rows with
+    'Classification Type' equal to "External Library", only the first 3 will be retained.
+
+    Args:
+        m_z_RT_groups (pd.DataFrame): DataFrame containing at least 'GroupID', 'm/z', and 'Classification Type' columns.
+
+    Returns:
+        pd.DataFrame: A DataFrame with consecutive "External Library" rows limited to 3.
+    """
+    # Clean column names
+    filtered_IM_groups.columns = filtered_IM_groups.columns.str.strip()
+
+    filtered_groups = []
+
+    # Process each group separately
+    for group_id, group in filtered_IM_groups.groupby("GroupID"):
+        # Sort each group by m/z
+        group_sorted = group.sort_values("m/z").reset_index(drop=True)
+
+        keep_rows = []
+        consecutive_external_count = 0
+
+        for idx, row in group_sorted.iterrows():
+            # Check classification in a case-insensitive way
+            classification = row["Classification Type"].strip().lower()
+
+            if classification == "external library":
+                consecutive_external_count += 1
+                if consecutive_external_count <= 3:
+                    keep_rows.append(row)
+                else:
+                    # Skip this row, since it's beyond the allowed 3 consecutive external points
+                    continue
+            else:
+                # Reset counter on a non-external row
+                consecutive_external_count = 0
+                keep_rows.append(row)
+
+        if keep_rows:
+            filtered_groups.append(pd.DataFrame(keep_rows))
+
+    # Combine all groups into one DataFrame
+    if filtered_groups:
+        return pd.concat(filtered_groups, ignore_index=True)
+    else:
+        return pd.DataFrame(columns=filtered_IM_groups.columns)
+
+
 import plotly.io as pio
 
 
@@ -471,9 +510,7 @@ def main():
             ]
 
             # ✅ Filter IM groups using external standards check
-            filtered_IM_group = external_mz_library_matching(
-                IM_group_df, library_match_source
-            )
+            filtered_IM_group = count_external_library_matches_per_group(IM_group_df)
 
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)

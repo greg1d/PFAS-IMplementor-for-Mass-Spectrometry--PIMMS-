@@ -170,7 +170,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     # Perform initial linear regression
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
     r_squared = r_value**2
-    print("p value before refinement of the CCS v m/z analysis function: ", p_value)
     # Store classified points
     post_source_decay = []
     branched_isomer = []
@@ -186,11 +185,11 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
         )
         full_point_metadata["Residual"] = residual_ratio  # Store residual
 
-        if residual_ratio < 95:  # Branched Isomer
+        if residual_ratio < 97:  # Branched Isomer
             full_point_metadata["Classification"] = "Branched Isomer"
             branched_isomer.append(full_point_metadata)
 
-        elif residual_ratio > 105:  # Post Source Decay
+        elif residual_ratio > 103:  # Post Source Decay
             full_point_metadata["Classification"] = "Post Source Decay"
             post_source_decay.append(full_point_metadata)
 
@@ -224,7 +223,7 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     mz_values = np.array([p[0] for p in refined_data_points])
     ccs_values = np.array([p[1] for p in refined_data_points])
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
-    print("p value after refinement of the CCS v m/z analysis function: ", p_value)
+    print("p value of the CCS v mz regression: ", p_value)
     # Final classification: if statistically significant, return as IM_group
     if p_value <= significance_cutoff and slope > 0:
         return refined_data_points, post_source_decay, branched_isomer, []
