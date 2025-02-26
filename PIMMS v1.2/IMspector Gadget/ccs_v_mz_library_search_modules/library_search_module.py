@@ -450,10 +450,9 @@ import plotly.io as pio
 
 def main():
     """Stacks data, runs analysis, and plots CCS vs. m/z."""
-    stacked_df = stack_library_with_adjusted()
-    if stacked_df is None:
+    stacked_df = pd.read_csv("stacked_df.csv")
+    if stacked_df.empty:
         return
-    stacked_df.to_csv("stacked_df.csv")
     # ✅ Extract standards library name
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
@@ -480,7 +479,6 @@ def main():
 
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
-    print("filtered_IM_groups", filtered_IM_groups)
     # ✅ Merge all valid IM groups into one DataFrame
     final_IM_group = (
         pd.concat(filtered_IM_groups, ignore_index=True)

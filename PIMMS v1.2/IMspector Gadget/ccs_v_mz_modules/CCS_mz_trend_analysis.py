@@ -23,19 +23,12 @@ def mz_repeating_unit_analysis(
     group_counter = 0
     mass_groups = []
 
-    print("\n[DEBUG] Sorted adjusted_df:")
-    print(adjusted_df)
-
     for start_idx in range(len(adjusted_df)):
         if start_idx in processed_indices:
             continue
         current_idx = start_idx
         current_mz = adjusted_df.at[current_idx, "m/z"]
-        group_counter += 1
-
-        print(
-            f"\n[DEBUG] Starting new group: Group {group_counter}, Start m/z = {current_mz:.5f}"
-        )
+        repeating_unit = None  # Initialize repeating_unit to None
 
         current_group = [
             {
@@ -63,11 +56,6 @@ def mz_repeating_unit_analysis(
                     lower_bound = target_mz - ppm_tolerance
                     upper_bound = target_mz + ppm_tolerance
 
-                    print(
-                        f"[DEBUG] Checking {unit_name}, k={k}, Target m/z={target_mz:.5f}, "
-                        f"Lower bound={lower_bound:.5f}, Upper bound={upper_bound:.5f}"
-                    )
-
                     # Find candidates within the range
                     candidate_df = adjusted_df[
                         (~adjusted_df.index.isin(processed_indices))
@@ -75,20 +63,13 @@ def mz_repeating_unit_analysis(
                         & (adjusted_df["m/z"] <= upper_bound)
                     ]
 
-                    print(
-                        f"[DEBUG] Candidates in range ({lower_bound:.5f}, {upper_bound:.5f}):"
-                    )
-                    print(candidate_df)
-
                     if not candidate_df.empty:
                         for (
                             candidate_idx
                         ) in candidate_df.index:  # Loop through all valid candidates
                             candidate_mz = adjusted_df.at[candidate_idx, "m/z"]
 
-                            print(
-                                f"[MATCH] Found candidate m/z={candidate_mz:.5f} at index {candidate_idx}"
-                            )
+                            repeating_unit = unit_name
 
                             # Append found candidate to current group
                             current_group.append(
@@ -110,9 +91,6 @@ def mz_repeating_unit_analysis(
                             )
 
                             processed_indices.add(candidate_idx)  # Mark as processed
-                            print(
-                                f"[DEBUG] Added to processed_indices: {candidate_idx}"
-                            )
 
                             # Update current position and m/z for next iteration
                             current_mz = adjusted_df.at[candidate_idx, "m/z"]
@@ -126,18 +104,22 @@ def mz_repeating_unit_analysis(
                     break
 
             if not found_next:
-                print(
-                    f"[DEBUG] No further match found for Group {group_counter}, ending group."
-                )
                 break  # No further matches found, end this group
+        # Update the first point's repeating unit to match the rest of the group
+        for entry in current_group:
+            entry["Repeating Unit"] = repeating_unit
 
         # Only save groups with at least 3 points and min-max mz difference ≥ 10
         if len(current_group) >= 3:
             mz_values = [entry["m/z"] for entry in current_group]
             if max(mz_values) - min(mz_values) >= 10:
-                print(
-                    f"[DEBUG] Saving valid group {group_counter} with {len(current_group)} points"
-                )
+                if group_counter == 0:
+                    group_counter = 1  # Start from 1 instead of 0
+                else:
+                    group_counter += 1
+                for entry in current_group:
+                    entry["GroupID"] = group_counter
+
                 mass_groups.append(pd.DataFrame(current_group))
 
     # Combine groups into a final DataFrame
@@ -258,7 +240,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     )
 
     # Print the full mass-only group
-    print("\n[INFO] Mass-Only Group Contents:")
     for point in mass_only_groups:
         pass
 
