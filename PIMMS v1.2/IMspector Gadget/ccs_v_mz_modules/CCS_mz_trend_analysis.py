@@ -81,7 +81,6 @@ def mz_repeating_unit_analysis(
                     print(candidate_df)
 
                     if not candidate_df.empty:
-                        found_next = True
                         for (
                             candidate_idx
                         ) in candidate_df.index:  # Loop through all valid candidates
@@ -115,9 +114,13 @@ def mz_repeating_unit_analysis(
                                 f"[DEBUG] Added to processed_indices: {candidate_idx}"
                             )
 
-                        # Update current position and m/z for next iteration
-                        current_idx = max(candidate_df.index)
-                        current_mz = adjusted_df.at[current_idx, "m/z"]
+                            # Update current position and m/z for next iteration
+                            current_mz = adjusted_df.at[candidate_idx, "m/z"]
+                            found_next = True
+
+                        # Restart from k = 1 after processing a candidate
+                        if found_next:
+                            break
 
                 if not found_next:
                     print(
