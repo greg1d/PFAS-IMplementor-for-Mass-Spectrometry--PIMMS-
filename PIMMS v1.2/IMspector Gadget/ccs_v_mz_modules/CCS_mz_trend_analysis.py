@@ -81,41 +81,44 @@ def mz_repeating_unit_analysis(
                     print(candidate_df)
 
                     if not candidate_df.empty:
+                        found_next = True
                         for (
                             candidate_idx
                         ) in candidate_df.index:  # Loop through all valid candidates
                             candidate_mz = adjusted_df.at[candidate_idx, "m/z"]
 
-                        print(
-                            f"[MATCH] Found candidate m/z={candidate_mz:.5f} at index {candidate_idx}"
-                        )
+                            print(
+                                f"[MATCH] Found candidate m/z={candidate_mz:.5f} at index {candidate_idx}"
+                            )
 
-                        # Append found candidate to current group
-                        current_group.append(
-                            {
-                                "GroupID": group_counter,
-                                "m/z": candidate_mz,
-                                "RT": adjusted_df.at[candidate_idx, "RT"],
-                                "ID": adjusted_df.at[candidate_idx, "ID"],
-                                "CCS": adjusted_df.at[candidate_idx, "CCS"],
-                                "Classification Type": adjusted_df.at[
-                                    candidate_idx, "Classification Type"
-                                ],
-                                "Match Source": adjusted_df.at[
-                                    candidate_idx, "Match Source"
-                                ],
-                                "Match": adjusted_df.at[candidate_idx, "Match"],
-                                "Repeating Unit": unit_name,
-                            }
-                        )
+                            # Append found candidate to current group
+                            current_group.append(
+                                {
+                                    "GroupID": group_counter,
+                                    "m/z": candidate_mz,
+                                    "RT": adjusted_df.at[candidate_idx, "RT"],
+                                    "ID": adjusted_df.at[candidate_idx, "ID"],
+                                    "CCS": adjusted_df.at[candidate_idx, "CCS"],
+                                    "Classification Type": adjusted_df.at[
+                                        candidate_idx, "Classification Type"
+                                    ],
+                                    "Match Source": adjusted_df.at[
+                                        candidate_idx, "Match Source"
+                                    ],
+                                    "Match": adjusted_df.at[candidate_idx, "Match"],
+                                    "Repeating Unit": unit_name,
+                                }
+                            )
 
-                        processed_indices.add(candidate_idx)  # Mark as processed
-                        print(f"[DEBUG] Added to processed_indices: {candidate_idx}")
-                    current_idx = max(
-                        candidate_df.index
-                    )  # Move to the highest index found
-                    current_mz = adjusted_df.at[current_idx, "m/z"]
-                    # Update current position and m/z for next iteration
+                            processed_indices.add(candidate_idx)  # Mark as processed
+                            print(
+                                f"[DEBUG] Added to processed_indices: {candidate_idx}"
+                            )
+
+                        # Update current position and m/z for next iteration
+                        current_idx = max(candidate_df.index)
+                        current_mz = adjusted_df.at[current_idx, "m/z"]
+
                 if not found_next:
                     print(
                         f"[DEBUG] No further match found for Group {group_counter}, ending group."
