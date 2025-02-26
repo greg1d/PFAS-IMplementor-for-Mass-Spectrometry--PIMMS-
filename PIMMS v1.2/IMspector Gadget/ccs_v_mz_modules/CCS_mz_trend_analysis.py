@@ -26,37 +26,37 @@ def mz_repeating_unit_analysis(
     print("\n[DEBUG] Sorted adjusted_df:")
     print(adjusted_df)
 
-    for unit_name, M in selected_repeating_units.items():
-        for start_idx in range(len(adjusted_df)):
-            if start_idx in processed_indices:
-                continue
-            current_idx = start_idx
-            current_mz = adjusted_df.at[current_idx, "m/z"]
-            group_counter += 1
+    for start_idx in range(len(adjusted_df)):
+        if start_idx in processed_indices:
+            continue
+        current_idx = start_idx
+        current_mz = adjusted_df.at[current_idx, "m/z"]
+        group_counter += 1
 
-            print(
-                f"\n[DEBUG] Starting new group: Group {group_counter}, Start m/z = {current_mz:.5f}"
-            )
+        print(
+            f"\n[DEBUG] Starting new group: Group {group_counter}, Start m/z = {current_mz:.5f}"
+        )
 
-            current_group = [
-                {
-                    "GroupID": group_counter,
-                    "m/z": current_mz,
-                    "RT": adjusted_df.at[current_idx, "RT"],
-                    "ID": adjusted_df.at[current_idx, "ID"],
-                    "CCS": adjusted_df.at[current_idx, "CCS"],
-                    "Classification Type": adjusted_df.at[
-                        current_idx, "Classification Type"
-                    ],
-                    "Match Source": adjusted_df.at[current_idx, "Match Source"],
-                    "Match": adjusted_df.at[current_idx, "Match"],
-                    "Repeating Unit": unit_name,
-                }
-            ]
-            processed_indices.add(current_idx)
+        current_group = [
+            {
+                "GroupID": group_counter,
+                "m/z": current_mz,
+                "RT": adjusted_df.at[current_idx, "RT"],
+                "ID": adjusted_df.at[current_idx, "ID"],
+                "CCS": adjusted_df.at[current_idx, "CCS"],
+                "Classification Type": adjusted_df.at[
+                    current_idx, "Classification Type"
+                ],
+                "Match Source": adjusted_df.at[current_idx, "Match Source"],
+                "Match": adjusted_df.at[current_idx, "Match"],
+                "Repeating Unit": "None",  # Initial starting point
+            }
+        ]
+        processed_indices.add(current_idx)
 
-            while True:
-                found_next = False
+        while True:
+            found_next = False
+            for unit_name, M in selected_repeating_units.items():
                 for k in range(1, 4):  # Check k=1, then k=2, then k=3
                     target_mz = current_mz + k * M
                     ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
@@ -64,7 +64,7 @@ def mz_repeating_unit_analysis(
                     upper_bound = target_mz + ppm_tolerance
 
                     print(
-                        f"[DEBUG] k={k}, Target m/z={target_mz:.5f}, "
+                        f"[DEBUG] Checking {unit_name}, k={k}, Target m/z={target_mz:.5f}, "
                         f"Lower bound={lower_bound:.5f}, Upper bound={upper_bound:.5f}"
                     )
 
@@ -118,24 +118,27 @@ def mz_repeating_unit_analysis(
                             current_mz = adjusted_df.at[candidate_idx, "m/z"]
                             found_next = True
 
-                        # Restart from k = 1 after processing a candidate
+                        # Restart from k=1 after processing a candidate
                         if found_next:
                             break
 
-                if not found_next:
-                    print(
-                        f"[DEBUG] No further match found for Group {group_counter}, ending group."
-                    )
-                    break  # No further matches found, end this group
+                if found_next:
+                    break
 
-            # Only save groups with at least 3 points and min-max mz difference ≥ 10
-            if len(current_group) >= 3:
-                mz_values = [entry["m/z"] for entry in current_group]
-                if max(mz_values) - min(mz_values) >= 10:
-                    print(
-                        f"[DEBUG] Saving valid group {group_counter} with {len(current_group)} points"
-                    )
-                    mass_groups.append(pd.DataFrame(current_group))
+            if not found_next:
+                print(
+                    f"[DEBUG] No further match found for Group {group_counter}, ending group."
+                )
+                break  # No further matches found, end this group
+
+        # Only save groups with at least 3 points and min-max mz difference ≥ 10
+        if len(current_group) >= 3:
+            mz_values = [entry["m/z"] for entry in current_group]
+            if max(mz_values) - min(mz_values) >= 10:
+                print(
+                    f"[DEBUG] Saving valid group {group_counter} with {len(current_group)} points"
+                )
+                mass_groups.append(pd.DataFrame(current_group))
 
     # Combine groups into a final DataFrame
     if mass_groups:
@@ -275,7 +278,7 @@ def main():
     }
 
     # ✅ Select a subset of repeating units for analysis
-    SELECTED_UNITS = ["CF2"]
+    SELECTED_UNITS = ["CF2", "OCF2"]
     selected_repeating_units = {key: REPEATING_UNITS[key] for key in SELECTED_UNITS}
     mass_groups = mz_repeating_unit_analysis(adjusted_df, selected_repeating_units)
     print("mass groups", mass_groups)

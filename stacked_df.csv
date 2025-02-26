@@ -1,10 +1,19 @@
-,Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP
-4,TEST A (M-H),Library test file 1.csv,External Library,100000,9,0,90,100,0,0
-,,PFAS Standards,likely,5,10,0,100,149.9968065,0,0
-5,TEST B (M-H),Library test file 1.csv,External Library,100001,10,0,100,149.9968064,0,0
-0,1,PFAS Standards,likely,1,11,17.712,110,199.9936128,300,300
-1,2,PFAS Standards,likely,2,12,18.939,120,249.9904192,0,100
-6,C (M-H),Library test file 1.csv,External Library,100002,13,0,130,299.9872254,0,0
-7,D (M-H),Library test file 1.csv,External Library,100003,14,0,140,349.984032,0,0
-2,3,PFAS Standards,likely,3,15,18.939,150,399.9808384,200,200
-3,4,PFAS Standards,likely,4,16,18.939,160,449.98,100,100
+Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP
+1,Library test file 1.csv,External Library,1,9,0,90,100,0,0
+2,PFAS Standards,likely,2,10,0,100,148.9968065,0,0
+3,PFAS Standards,likely,3,10,0,100,149.9968065,0,0
+4,Library test file 1.csv,External Library,4,10,0,100,149.9968064,0,0
+5,PFAS Standards,likely,5,11,17.712,110,199.9936128,300,300
+6,PFAS Standards,likely,6,12,18.939,120,249.9904192,0,100
+7,Library test file 1.csv,External Library,7,13,0,130,299.9872254,0,0
+8,Library test file 1.csv,External Library,8,14,0,140,349.984032,0,0
+9,PFAS Standards,likely,9,15,18.939,150,399.9808384,200,200
+10,PFAS Standards,likely,10,16,18.939,160,449.98,100,100
+11,PFAS Standards,likely,11,16,18.939,160,699.96403,100,100
+12,PFAS Standards,likely,12,16,18.939,160,799.957642,100,100
+13,PFAS Standards,likely,13,16,18.939,160,899.951254,100,100
+14,PFAS Standards,likely,14,15,18.939,150,200,100,100
+15,PFAS Standards,likely,15,16,18.939,160,265.9917214,100,100
+16,PFAS Standards,likely,16,16,18.939,160,331.9834428,100,100
+17,PFAS Standards,likely,17,16,18.939,160,397.9751642,100,100
+18,PFAS Standards,likely,18,16,18.939,160,463.9668856,100,100
