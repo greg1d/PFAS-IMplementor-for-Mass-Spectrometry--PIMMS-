@@ -285,7 +285,6 @@ def external_mz_library_matching(IM_group, library_match_source):
         return IM_group
 
     valid_groups = []
-    print("IM_group", IM_group)
     # ✅ Group by GroupID
     for group_id, group_df in IM_group.groupby("GroupID"):
         # ✅ Identify external library matches based on classification
@@ -458,7 +457,6 @@ def main():
 
     # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
-    print("mass_groups", mass_groups)
     if mass_groups.empty:
         return
 
