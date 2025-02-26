@@ -2,14 +2,14 @@
 4,1,Library test file 1.csv,External Library,1,1,0,100,100,0,0,0,0,0,0,0,0,0,0,0,perfluorododecanesulfonate 
 5,2,Library test file 1.csv,External Library,2,2,0,110,149.9968064,0,0,0,0,0,0,0,0,0,0,0,perfluorodecanesulfonate 
 0,3,PFAS Standards,External Library,3,3,17.712,120,199.9936128,300,300,300,300,300,300,0,0,0,1000,1000.004006,0
-1,4,PFAS Standards,External Library,4,4,18.939,130,249.9904192,0,100,0,100,0,100,0,0,0,1049.996806,1050.000348,0
-6,5,Library test file 1.csv,External Library,5,5,0,140,299.9872256,0,0,0,0,0,0,0,0,0,0,0,perfluorododecanesulfonate 
-7,6,Library test file 1.csv,External Library,6,6,0,150,349.984032,0,0,0,0,0,0,0,0,0,0,0,perfluorodecanesulfonate 
-2,7,PFAS Standards,External Library,7,7,18.939,160,399.9808384,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,0
-3,8,PFAS Standards,External Library,8,8,18.939,170,449.9776448,100,100,100,100,100,100,0,0,0,1249.990419,1249.995782,0
-6,9,Library test file 1.csv,External Library,9,9,0,180,499.9744512,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,perfluorododecanesulfonate 
-7,10,Library test file 1.csv,External Library,10,10,0,190,549.9712576,100,100,100,100,100,100,0,0,0,1249.990419,1249.995782,perfluorodecanesulfonate 
-6,11,Library test file 1.csv,External Library,11,11,0,200,599.968064,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,perfluorododecanesulfonate 
+1,4,PFAS Standards,likely,4,4,18.939,130,249.9904192,0,100,0,100,0,100,0,0,0,1049.996806,1050.000348,0
+6,5,Library test file 1.csv,likely,5,5,0,140,299.9872256,0,0,0,0,0,0,0,0,0,0,0,perfluorododecanesulfonate 
+7,6,Library test file 1.csv,likely,6,6,0,150,349.984032,0,0,0,0,0,0,0,0,0,0,0,perfluorodecanesulfonate 
+2,7,PFAS Standards,likely,7,7,18.939,160,399.9808384,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,0
+3,8,PFAS Standards,likely,8,8,18.939,170,449.9776448,100,100,100,100,100,100,0,0,0,1249.990419,1249.995782,0
+6,9,Library test file 1.csv,likely,9,9,0,180,499.9744512,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,perfluorododecanesulfonate 
+7,10,Library test file 1.csv,likely,10,10,0,190,549.9712576,100,100,100,100,100,100,0,0,0,1249.990419,1249.995782,perfluorodecanesulfonate 
+6,11,Library test file 1.csv,likely,11,11,0,200,599.968064,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,perfluorododecanesulfonate 
 7,12,Library test file 1.csv,External Library,12,12,0,210,649.9648704,100,100,100,100,100,100,0,0,0,1249.990419,1249.995782,perfluorodecanesulfonate 
 6,13,Library test file 1.csv,External Library,13,13,0,220,699.9616768,200,200,200,200,200,200,0,0,0,1099.993613,1099.991245,perfluorododecanesulfonate 
 7,14,Library test file 1.csv,External Library,14,14,0,230,749.9584832,100,100,100,100,100,100,0,0,0,1249.990419,1249.995782,perfluorodecanesulfonate 
