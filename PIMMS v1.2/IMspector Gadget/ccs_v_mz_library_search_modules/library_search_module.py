@@ -12,8 +12,8 @@ base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
 
 from ccs_v_mz_modules.CCS_mz_trend_analysis import (
-    CCS_v_mz_analysis,
     mz_repeating_unit_analysis,
+    CCS_v_mz_analysis,
 )
 
 # ✅ Ensure `config.py` is properly located
@@ -74,7 +74,7 @@ NUM_SERIES = 10  # Adjust based on the number of homologous series
 HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
-def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
+def library_search_plotly(adjusted_df, filtered_IM_group):
     if filtered_IM_group.empty:
         print("[INFO] No homologous series found. Returning blank graph.")
         fig = go.Figure()
@@ -479,21 +479,19 @@ def limit_consecutive_external_points(filtered_IM_groups):
         return pd.DataFrame(columns=filtered_IM_groups.columns)
 
 
-import plotly.io as pio
+from plotly import io as pio
 
 
 def main():
     """Stacks data, runs analysis, and plots CCS vs. m/z."""
-    stacked_df = pd.read_csv("stacked_df.csv")
-    if stacked_df.empty:
-        return
-    # ✅ Extract standards library name
-    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
+    stacked_df = stack_library_with_adjusted()
 
     # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
     if mass_groups.empty:
         return
+
+    print("mass groups", mass_groups)
 
     # ✅ Run CCS_v_mz_analysis and store IM groups
     filtered_IM_groups = []
@@ -504,7 +502,6 @@ def main():
             IM_group_df = group_df[
                 group_df[["m/z", "CCS"]].apply(tuple, axis=1).isin(IM_group)
             ]
-
             # ✅ Filter IM groups using external standards check
             filtered_IM_group = count_external_library_matches_per_group(IM_group_df)
             filtered_IM_group = limit_consecutive_external_points(filtered_IM_group)
@@ -519,7 +516,7 @@ def main():
     )
 
     # ✅ Generate and Show Plot
-    fig = library_search_plotly(stacked_df, final_IM_group, library_match_source)
+    fig = library_search_plotly(stacked_df, final_IM_group)
     pio.show(fig)  # Display interactive plot
 
 

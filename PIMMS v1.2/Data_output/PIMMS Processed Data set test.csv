@@ -1,9 +1,9 @@
 Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP, 220 B3 16562.d.DeMP
-1,4,PFAS Standards,likely,4,4,130,249.9904192,0,0,0,0,100,0
-6,5,PFAS Standards,likely,5,5,140,299.9872256,0,0,0,0,0,0
-7,6,PFAS Standards,likely,6,6,150,349.984032,0,0,0,0,0,0
-2,7,PFAS Standards,likely,7,7,160,399.9808384,0,0,0,200,200,200
-3,8,PFAS Standards,likely,8,8,170,449.9776448,0,0,0,100,100,100
-6,9,PFAS Standards,likely,9,9,180,499.9744512,0,0,0,200,200,200
-7,10,PFAS Standards,likely,10,10,190,549.9712576,0,0,0,100,100,100
-6,11,PFAS Standards,likely,11,11,200,599.968064,0,0,0,200,200,200
+1,4,likely,likely,4,4,130,249.9904192,0,0,0,0,100,0
+6,5,likely,likely,5,5,140,299.9872256,0,0,0,0,0,0
+7,6,likely,likely,6,6,150,349.984032,0,0,0,0,0,0
+2,7,likely,likely,7,7,160,399.9808384,0,0,0,200,200,200
+3,8,likely,likely,8,8,170,449.9776448,0,0,0,100,100,100
+6,9,likely,likely,9,9,180,499.9744512,0,0,0,200,200,200
+7,10,likely,likely,10,10,190,549.9712576,0,0,0,100,100,100
+6,11,likely,likely,11,11,200,599.968064,0,0,0,200,200,200

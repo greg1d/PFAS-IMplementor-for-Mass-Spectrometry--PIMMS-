@@ -119,7 +119,7 @@ def run_library_search_analysis(selected_repeating_units):
         else pd.DataFrame()
     )
     print("final_IM_group", final_IM_group)
-    return final_IM_group
+    return final_IM_group, stacked_df
 
 
 def run_rt_mz_analysis(selected_repeating_units):

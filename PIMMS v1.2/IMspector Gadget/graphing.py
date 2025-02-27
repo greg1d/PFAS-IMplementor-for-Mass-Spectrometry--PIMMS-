@@ -148,11 +148,10 @@ def plot_figure_2(selected_repeating_units=None):
     )
 
     # ✅ Extract library match source dynamically
-    library_match_source = os.path.splitext(os.path.basename(latest_library_file))[0]
 
     # ✅ Generate and return Plotly plot
     print("\n[INFO] Generating Library Search Plotly plot...")
-    fig2 = library_search_plotly(stacked_df, filtered_IM_group, library_match_source)
+    fig2 = library_search_plotly(stacked_df, filtered_IM_group)
 
     return fig2
 
