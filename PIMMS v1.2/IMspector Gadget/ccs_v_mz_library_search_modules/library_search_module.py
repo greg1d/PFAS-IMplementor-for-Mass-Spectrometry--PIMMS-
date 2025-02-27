@@ -509,6 +509,12 @@ def main():
             filtered_IM_group = count_external_library_matches_per_group(IM_group_df)
             filtered_IM_group = limit_consecutive_external_points(filtered_IM_group)
             if not filtered_IM_group.empty:
+                # ✅ Ensure a new copy is used before modifying
+                filtered_IM_group = filtered_IM_group.copy()
+
+                # ✅ Modify the column safely using `.loc`
+                filtered_IM_group.loc[:, "GroupID"] = group_id
+
                 filtered_IM_groups.append(filtered_IM_group)
     # ✅ Merge all valid IM groups into one DataFrame
 

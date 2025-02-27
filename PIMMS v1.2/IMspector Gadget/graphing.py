@@ -91,58 +91,76 @@ def plot_figure_1(adjusted_df=None, selected_repeating_units=None):
 def plot_figure_2(selected_repeating_units=None):
     """
     Runs library search analysis and generates a Plotly figure.
-
-    Args:
-        selected_repeating_units (dict, optional): User-selected repeating units.
-
-    Returns:
-        plotly.graph_objects.Figure: The generated plot.
     """
+
+    # ✅ Step 1: Check if repeating units are selected
     if (
         selected_repeating_units is None
         or not isinstance(selected_repeating_units, dict)
         or len(selected_repeating_units) == 0
     ):
         print("[WARNING] No repeating units selected. Returning blank figure.")
-        fig2 = go.Figure()
-        fig2.update_layout(
-            title="CCS vs. m/z (No Repeating Units Selected)",
-            xaxis=dict(title=r"<b><i>m/z</i></b>"),
-            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+        return go.Figure().update_layout(
+            title="CCS vs. m/z",
             template="plotly_dark",
+            annotations=[
+                dict(
+                    text="No repeating units selected",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    font=dict(size=20, color="white"),
+                )
+            ],
         )
-        return fig2  # ✅ Skip analysis and return an empty plot
 
+    # ✅ Step 2: Run analysis and get results
     filtered_IM_group, stacked_df = run_library_search_analysis(
         selected_repeating_units
     )
 
+    # ✅ Step 3: Ensure stacked_df is valid
     if stacked_df is None or stacked_df.empty:
-        print("[WARNING] stacked_df is empty. Returning empty plot.")
-        fig2 = go.Figure()
-        fig2.update_layout(
-            title="CCS vs. m/z (No Data Available)",
-            xaxis=dict(title=r"<b><i>m/z</i></b>"),
-            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+        print("[WARNING] Stacked dataset is empty. Returning blank figure.")
+        return go.Figure().update_layout(
+            title="CCS vs. m/z",
             template="plotly_dark",
+            annotations=[
+                dict(
+                    text="No data available",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    font=dict(size=20, color="white"),
+                )
+            ],
         )
-        return fig2  # ✅ Return a blank figure instead of breaking
 
-    # ✅ Step 3: If no valid homologous series found
+    # ✅ Step 4: If no valid homologous series found
     if filtered_IM_group is None or filtered_IM_group.empty:
-        print("[WARNING] No valid homologous series found. Returning empty plot.")
-        fig2 = go.Figure()
-        fig2.update_layout(
-            title="CCS vs. m/z (No Valid Homologous Series Found)",
-            xaxis=dict(title=r"<b><i>m/z</i></b>"),
-            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+        print("[WARNING] No valid homologous series found. Returning blank figure.")
+        return go.Figure().update_layout(
+            title="CCS vs. m/z",
             template="plotly_dark",
+            annotations=[
+                dict(
+                    text="No valid homologous series found",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    font=dict(size=20, color="white"),
+                )
+            ],
         )
-        return fig2  # ✅ Return a blank figure instead of breaking
 
-    # ✅ Step 4: Generate Plotly figure with valid data
-    fig2 = library_search_plotly(stacked_df, filtered_IM_group)
-    return fig2
+    # ✅ Step 5: Generate Plotly figure with valid data
+    return library_search_plotly(stacked_df, filtered_IM_group)
 
 
 def plot_figure_3(selected_repeating_units=None):

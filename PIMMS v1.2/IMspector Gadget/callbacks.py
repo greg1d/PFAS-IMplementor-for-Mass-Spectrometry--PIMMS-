@@ -2,9 +2,10 @@ import base64
 import os
 import sys
 
+from app_layout import REPEATING_UNITS  # ✅ Import repeating units dictionary
 from plotly import graph_objs as go
 
-# ✅ Ensure Python Can Find `config.py`
+# ✅ Ensure Python Can Find config.py
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "ccs_v_mz_modules"))
 )
@@ -19,27 +20,18 @@ sys.path.append(
     )
 )
 
-REPEATING_UNITS = {
-    "CF2": 49.9968064,
-    "OCF2": 65.9917214,
-    "CF2CF2O": 115.988527,
-    "CH2CF2": 64.012456,
-    "HF": 20.0062278,
-}
 
 UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the folder exists
 
-# ✅ Import from `config.py`
+# ✅ Import from config.py
 try:
     from config import LIBRARY_PATH, REPEATING_UNITS
 
     print(f"[DEBUG] Successfully imported repeating_units: {REPEATING_UNITS}")
     print(f"[DEBUG] Default LIBRARY_PATH: {LIBRARY_PATH}")
 except ModuleNotFoundError:
-    print(
-        "[ERROR] Could not import `repeating_units` or `LIBRARY_PATH` from config.py!"
-    )
+    print("[ERROR] Could not import repeating_units or LIBRARY_PATH from config.py!")
     sys.exit(1)
 
 from ccs_v_mz_library_search_modules.library_search_module import (
@@ -47,7 +39,7 @@ from ccs_v_mz_library_search_modules.library_search_module import (
 )
 from ccs_v_mz_modules.plotly_graphing import update_graph
 from dash import Input, Output, State, ctx, no_update
-from graphing import plot_figure_2
+from graphing import plot_figure_1, plot_figure_2
 
 
 def register_callbacks(app, adjusted_df):
@@ -60,18 +52,15 @@ def register_callbacks(app, adjusted_df):
         State("remove_columns", "value"),
     )
     def update_dropdown_options(_, selected_values):
-        # ✅ Filter columns to only include those with ".d" in their names
-        d_columns = [col for col in adjusted_df.columns if ".d" in col]
+        return [{"label": col, "value": col} for col in adjusted_df.columns]
 
-        return [{"label": col, "value": col} for col in d_columns]
-
+    # ✅ Combined callback for graph updates (handles column removal + library upload)
     @app.callback(
         [
             Output("plotly_graph", "figure"),
             Output("library_search_graph", "figure"),
         ],
         [
-            Input("repeating-units-dropdown", "value"),
             Input("remove_columns", "value"),
             Input("upload-library", "contents"),
         ],
@@ -79,86 +68,134 @@ def register_callbacks(app, adjusted_df):
             State("upload-library", "filename"),
         ],
     )
-    def update_graph_callback(
-        selected_units, remove_columns, upload_contents, upload_filename
-    ):
-        """Handles column removal, repeating units selection, AND library updates."""
+    def update_graph_callback(remove_columns, upload_contents, upload_filename):
+        """Handles column removal AND library upload, updating graphs accordingly."""
         triggered_id = ctx.triggered_id
         print(f"[DEBUG] update_graph_callback triggered by: {triggered_id}")
 
         try:
-            # ✅ Default to CF2 if no selection
-            if not selected_units or selected_units == [""]:
-                print("[WARNING] No repeating units selected. Defaulting to CF2.")
-                selected_units = ["CF2"]
+            # ✅ Always update fig1 using the existing adjusted_df
+            fig1 = update_graph(remove_columns, adjusted_df)
 
-            # ✅ Convert selected_units into a dictionary
-            selected_repeating_units = {
-                key: REPEATING_UNITS[key]
-                for key in selected_units
-                if key in REPEATING_UNITS
-            }
-            print(
-                f"[INFO] Updated selected repeating units: {selected_repeating_units}"
-            )
+            # ✅ If no file is uploaded, return fig1 and set fig2 to a default template
+            if triggered_id != "upload-library" or not upload_contents:
+                print("[INFO] No new library uploaded. Returning default fig2.")
 
-            # ✅ Always update fig1
-            fig1 = update_graph(remove_columns, adjusted_df, selected_repeating_units)
+                # ✅ Create default fig2 with a message
+                fig2 = go.Figure()
+                fig2.update_layout(
+                    template="plotly_dark",
+                    xaxis=dict(title=r"<b><i>m/z</i></b>"),
+                    yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+                    annotations=[
+                        dict(
+                            text="Upload a CCS library to visualize trends",
+                            x=0.5,
+                            y=0.5,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=20, color="white"),
+                        )
+                    ],
+                )
+                return fig1, fig2  # ✅ fig1 updates, fig2 shows message
 
-            # ✅ Always update fig2 (regardless of file upload)
-            fig2 = plot_figure_2(selected_repeating_units)
+            print(f"[INFO] Processing uploaded library file: {upload_filename}")
 
-            # ✅ Only process a new library if uploaded
-            if triggered_id == "upload-library" and upload_contents:
-                print(f"[INFO] Processing uploaded library file: {upload_filename}")
+            # ✅ Step 1: Wipe the folder before saving a new file
+            print(f"[INFO] Clearing previous library files in {UPLOAD_FOLDER}...")
+            for file in os.listdir(UPLOAD_FOLDER):
+                file_path = os.path.join(UPLOAD_FOLDER, file)
+                try:
+                    os.remove(file_path)
+                    print(f"[INFO] Deleted: {file_path}")
+                except Exception as e:
+                    print(f"[WARNING] Failed to delete {file_path}: {e}")
 
-                # ✅ Step 1: Wipe previous library files
-                for file in os.listdir(UPLOAD_FOLDER):
-                    file_path = os.path.join(UPLOAD_FOLDER, file)
-                    try:
-                        os.remove(file_path)
-                        print(f"[INFO] Deleted: {file_path}")
-                    except Exception as e:
-                        print(f"[WARNING] Failed to delete {file_path}: {e}")
+            # ✅ Step 2: Save the new uploaded file
+            filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
+            _, content_string = upload_contents.split(",")
 
-                # ✅ Step 2: Save the new uploaded file
-                filepath = os.path.join(UPLOAD_FOLDER, upload_filename)
-                _, content_string = upload_contents.split(",")
-                with open(filepath, "wb") as f:
-                    decoded_data = base64.b64decode(content_string)
-                    f.write(decoded_data)
-                print(f"[INFO] File saved to: {filepath}")
+            with open(filepath, "wb") as f:
+                decoded_data = base64.b64decode(content_string)
+                f.write(decoded_data)
+            print(f"[INFO] File saved to: {filepath}")
 
-                # ✅ Step 3: Run updated analysis with the new library
-                stacked_df = stack_library_with_adjusted()
-                if stacked_df is None or stacked_df.empty:
-                    print(
-                        "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
-                    )
-                    empty_fig = go.Figure()
-                    empty_fig.update_layout(
-                        title="CCS vs. m/z",
-                        template="plotly_dark",
-                        annotations=[
-                            dict(
-                                text="No data available after library update",
-                                x=0.5,
-                                y=0.5,
-                                xref="paper",
-                                yref="paper",
-                                showarrow=False,
-                                font=dict(size=20, color="white"),
-                            )
-                        ],
-                    )
-                    return fig1, empty_fig  # ✅ fig1 updates, fig2 blank
+            # ✅ Step 3: Run updated analysis
+            print(f"[INFO] Running library search with updated file: {filepath}")
 
-                # ✅ Step 4: Update fig2 after processing the new library
-                fig2 = plot_figure_2(selected_repeating_units)
-                print("[INFO] Library search graph updated.")
+            stacked_df = stack_library_with_adjusted()
+            if stacked_df is None or stacked_df.empty:
+                print(
+                    "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+                )
+
+                # ✅ Return dark template with error message
+                empty_fig = go.Figure()
+                empty_fig.update_layout(
+                    title="CCS vs. m/z",
+                    template="plotly_dark",
+                    annotations=[
+                        dict(
+                            text="No data available after library update",
+                            x=0.5,
+                            y=0.5,
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(size=20, color="white"),
+                        )
+                    ],
+                )
+                return fig1, empty_fig  # ✅ fig1 always updates
+
+            # ✅ Step 4: Generate updated figure 2
+            fig2 = plot_figure_2()
+            print("[INFO] Library search graph updated.")
 
             return fig1, fig2
 
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
-            return fig1, no_update  # ✅ fig1 updates, fig2 unchanged
+            return fig1, no_update  # ✅ fig1 always updates, fig2 remains unchanged
+
+    # ✅ Simple Debugging Callback
+    @app.callback(
+        Output("output-text", "children"),
+        Input("repeating-units-dropdown", "value"),
+    )
+    def update_graphs(selected_units):
+        """
+        Updates both figures when the user selects repeating units.
+        """
+        # ✅ If no selection, return blank graphs
+        if not selected_units or selected_units == [""]:
+            print("[WARNING] No repeating units selected. Returning blank graphs.")
+            return go.Figure(), go.Figure()
+
+        # ✅ Convert selected_units into a dictionary (using pre-defined values)
+        valid_repeating_units = {
+            "CF2": 49.9968064,
+            "OCF2": 65.9917214,
+            "CF2CF2O": 115.988527,
+            "CH2CF2": 64.012456,
+            "HF": 20.0062278,
+        }
+
+        # ✅ Filter for only selected repeating units
+        selected_repeating_units = {
+            key: valid_repeating_units[key]
+            for key in selected_units
+            if key in valid_repeating_units
+        }
+
+        # ✅ Debugging information
+        print(f"[DEBUG] User selected repeating units: {selected_units}")
+        print(f"[INFO] Updated selected repeating units: {selected_repeating_units}")
+
+        # ✅ Regenerate Figures
+        fig1 = plot_figure_1(adjusted_df, selected_repeating_units)
+        fig2 = plot_figure_2(selected_repeating_units)
+
+        return fig1, fig2
