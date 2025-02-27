@@ -244,7 +244,7 @@ def library_search_plotly(adjusted_df, filtered_IM_group, library_match_source):
                     color=series_color, dash="dash", width=2
                 ),  # ✅ Dashed line with the correct color
                 textfont=dict(
-                    size=14, color=series_color
+                    size=15, color=series_color
                 ),  # ✅ Match homologous series color
                 name=f"<b>Homologous Series {idx + 1}</b>",  # ✅ Ensure text appears in legend
                 legendgroup=legend_group_name,

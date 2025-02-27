@@ -470,7 +470,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
                 x=mz_values,
                 y=rt_values,
                 mode="markers",
-                marker=dict(size=12, color=series_color, symbol=symbols),
+                marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"RT Group {idx + 1}",
                 legendgroup=legend_group_name,
                 hoverinfo="text",
@@ -492,8 +492,9 @@ def rt_vs_mz_plotly(m_z_RT_groups):
 
 
 stacked_df = stack_library_with_adjusted()
+print(stacked_df)
 mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
-
+print(mass_groups)
 split_mass_groups = split_mass_groups_by_groupid(mass_groups)
 sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
 refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
