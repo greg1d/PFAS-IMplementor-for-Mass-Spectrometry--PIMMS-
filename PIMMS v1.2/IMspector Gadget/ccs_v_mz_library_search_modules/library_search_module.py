@@ -368,10 +368,8 @@ def stack_library_with_adjusted():
     # ✅ Read both DataFrames
     print(f"[INFO] Reading adjusted dataset from: {FILE_PATH}")
     adjusted_df = pd.read_csv(FILE_PATH)
-
     print(f"[INFO] Reading library dataset from: {library_path}")
     library_df = pd.read_csv(library_path)
-
     # ✅ Standardize column names in the library dataset
     column_mapping = {
         "PrecursorMz": "m/z",
@@ -382,7 +380,13 @@ def stack_library_with_adjusted():
     library_df = library_df.rename(columns=column_mapping)
 
     # ✅ Drop unnecessary columns if they exist
-    columns_to_drop = ["CAS", "PrecursorCharge", "PrecursorFormula", "MoleculeGroup"]
+    columns_to_drop = [
+        "CAS",
+        "PrecursorCharge",
+        "PrecursorFormula",
+        "MoleculeGroup",
+        "Name",
+    ]
     library_df = library_df.drop(
         columns=[col for col in columns_to_drop if col in library_df.columns],
         errors="ignore",
@@ -424,7 +428,6 @@ def stack_library_with_adjusted():
         columns=[col for col in extra_columns_to_drop if col in stacked_df.columns],
         errors="ignore",
     )
-
     # ✅ Save for debugging
     return stacked_df
 

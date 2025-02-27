@@ -46,7 +46,6 @@ def mz_repeating_unit_analysis(
             }
         ]
         processed_indices.add(current_idx)
-
         while True:
             found_next = False
             for unit_name, M in selected_repeating_units.items():

@@ -1,7 +1,7 @@
-,Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP, 220 B3 16562.d.DeMP,Name
-0,4,9,likely,likely,4,9.0,130,249.9904,200.0,200.0,200.0,0
-1,5,10,likely,likely,5,10.0,140,299.9872,100.0,100.0,100.0,0
-2,6,11,likely,likely,6,11.0,150,349.984,200.0,200.0,200.0,0
-3,PFDoDS (M-H),Library test file 1.csv,External Library,100000,1,0.0,100,100.0,0.0,0.0,0.0,perfluorododecanesulfonate 
-4,PFDoDS (M-H),Library test file 1.csv,External Library,100001,2,0.0,110,149.9968064,0.0,0.0,0.0,perfluorodecanesulfonate 
-5,PFDoDS (M-H),Library test file 1.csv,External Library,100002,3,0.0,120,199.9936128,0.0,0.0,0.0,perfluorododecanesulfonate 
+,Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP, 220 B3 16562.d.DeMP
+0,4,9,likely,4,4,9.0,130,249.9904,200.0,200.0,200.0
+1,4,10,likely,4,5,10.0,140,299.9872,100.0,100.0,100.0
+2,4,11,likely,4,6,11.0,150,349.984,200.0,200.0,200.0
+3,PFDoDS (M-H),Library test file 1.csv,External Library,100000,1,0.0,100,100.0,0.0,0.0,0.0
+4,PFDoDS (M-H),Library test file 1.csv,External Library,100001,2,0.0,110,149.9968064,0.0,0.0,0.0
+5,PFDoDS (M-H),Library test file 1.csv,External Library,100002,3,0.0,120,199.9936128,0.0,0.0,0.0

@@ -17,7 +17,7 @@ sys.path.append(MODULE_PATH_3)
 
 from analysis import run_analysis, run_library_search_analysis, run_rt_mz_analysis
 from config import FILE_PATH
-from library_search_module import library_search_plotly, stack_library_with_adjusted
+from library_search_module import library_search_plotly
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
 from rt_v_mz_library_searcher import rt_vs_mz_plotly
 
@@ -98,21 +98,27 @@ def plot_figure_2(selected_repeating_units=None):
     Returns:
         plotly.graph_objects.Figure: The generated plot.
     """
-
-    # ✅ Step 1: Fetch the latest library file
-    latest_library_file = get_latest_library_file()
-    if latest_library_file is None:
-        print("[WARNING] No library file available. Returning blank figure.")
-        return go.Figure()
-
-    print(f"[INFO] Running library search with: {latest_library_file}")
-
-    # ✅ Step 2: Run stacking process with updated library
-    stacked_df = stack_library_with_adjusted()
-    if stacked_df is None or stacked_df.empty:
-        print(
-            "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+    if (
+        selected_repeating_units is None
+        or not isinstance(selected_repeating_units, dict)
+        or len(selected_repeating_units) == 0
+    ):
+        print("[WARNING] No repeating units selected. Returning blank figure.")
+        fig2 = go.Figure()
+        fig2.update_layout(
+            title="CCS vs. m/z (No Repeating Units Selected)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
+            template="plotly_dark",
         )
+        return fig2  # ✅ Skip analysis and return an empty plot
+
+    filtered_IM_group, stacked_df = run_library_search_analysis(
+        selected_repeating_units
+    )
+
+    if stacked_df is None or stacked_df.empty:
+        print("[WARNING] stacked_df is empty. Returning empty plot.")
         fig2 = go.Figure()
         fig2.update_layout(
             title="CCS vs. m/z (No Data Available)",
@@ -120,20 +126,11 @@ def plot_figure_2(selected_repeating_units=None):
             yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
             template="plotly_dark",
         )
-        return fig2  # ✅ Return an empty figure instead of breaking the app
+        return fig2  # ✅ Return a blank figure instead of breaking
 
-    print(
-        f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
-    )
-    print("[INFO] Running mz_repeating_unit_analysis...")
-
-    # ✅ Step 3: Run analysis with selected repeating units
-    filtered_IM_group, stacked_df = run_library_search_analysis(
-        selected_repeating_units
-    )
-
+    # ✅ Step 3: If no valid homologous series found
     if filtered_IM_group is None or filtered_IM_group.empty:
-        print("\n[WARNING] No homologous series identified. Returning blank graph.")
+        print("[WARNING] No valid homologous series found. Returning empty plot.")
         fig2 = go.Figure()
         fig2.update_layout(
             title="CCS vs. m/z (No Valid Homologous Series Found)",
@@ -141,18 +138,10 @@ def plot_figure_2(selected_repeating_units=None):
             yaxis=dict(title="<b>CCS (&#8491;<sup>2</sup>)</b>"),
             template="plotly_dark",
         )
-        return fig2  # ✅ Return a blank graph instead of exiting
+        return fig2  # ✅ Return a blank figure instead of breaking
 
-    print(
-        f"[DEBUG] Identified {filtered_IM_group['GroupID'].nunique()} homologous series."
-    )
-
-    # ✅ Extract library match source dynamically
-
-    # ✅ Generate and return Plotly plot
-    print("\n[INFO] Generating Library Search Plotly plot...")
+    # ✅ Step 4: Generate Plotly figure with valid data
     fig2 = library_search_plotly(stacked_df, filtered_IM_group)
-
     return fig2
 
 
@@ -164,14 +153,6 @@ def plot_figure_3(selected_repeating_units=None):
 
 # ✅ Main execution for testing
 if __name__ == "__main__":
-    fig1 = plot_figure_1(
-        selected_repeating_units={"CF2": 49.9968064}
-    )  # Start with no selected units
-    # Start with no selected units
-    if fig1:
-        print("[INFO] Plot generation complete. Displaying plot...")
-        pio.show(fig1)
-
     fig2 = plot_figure_2(
         selected_repeating_units={"CF2": 49.9968064}
     )  # Start with no selected units
@@ -179,10 +160,3 @@ if __name__ == "__main__":
     if fig2:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig2)
-
-    fig3 = plot_figure_3(
-        selected_repeating_units={"CF2": 49.9968064}
-    )  # Start with no selected units
-    if fig3:
-        print("[INFO] Plot generation complete. Displaying plot...")
-        pio.show(fig3)

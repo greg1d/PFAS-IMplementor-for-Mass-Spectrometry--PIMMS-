@@ -89,10 +89,11 @@ def run_library_search_analysis(selected_repeating_units):
 
     # ✅ Step 1: Stack adjusted and library data
     stacked_df = stack_library_with_adjusted()
-    stacked_df.to_csv("stacked_df.csv")  # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
     if mass_groups.empty:
-        return
+        print("[WARNING] No mass groups found. Returning empty DataFrame.")
+        return pd.DataFrame(), stacked_df  # Ensure stacked_df is always returned
+
     # ✅ Run CCS_v_mz_analysis and store IM groups
     filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
@@ -105,7 +106,6 @@ def run_library_search_analysis(selected_repeating_units):
 
             # ✅ Filter IM groups using external standards check
             filtered_IM_group = count_external_library_matches_per_group(IM_group_df)
-            print("filtered_IM_group", filtered_IM_group)
             filtered_IM_group = limit_consecutive_external_points(filtered_IM_group)
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
@@ -116,7 +116,6 @@ def run_library_search_analysis(selected_repeating_units):
         if filtered_IM_groups
         else pd.DataFrame()
     )
-    print("final_IM_group", final_IM_group)
     return final_IM_group, stacked_df
 
 
