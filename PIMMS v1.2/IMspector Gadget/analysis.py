@@ -89,12 +89,10 @@ def run_library_search_analysis(selected_repeating_units):
 
     # ✅ Step 1: Stack adjusted and library data
     stacked_df = stack_library_with_adjusted()
-
-    # ✅ Perform Repeating Unit Analysis
+    stacked_df.to_csv("stacked_df.csv")  # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
     if mass_groups.empty:
         return
-
     # ✅ Run CCS_v_mz_analysis and store IM groups
     filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
