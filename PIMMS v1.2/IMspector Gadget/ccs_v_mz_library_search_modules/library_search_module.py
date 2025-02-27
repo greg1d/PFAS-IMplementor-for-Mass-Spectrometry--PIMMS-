@@ -291,7 +291,7 @@ def count_external_library_matches_per_group(IM_group):
     )
 
     valid_groups = []
-
+    print(f"[DEBUG] IM_group: {IM_group}")
     # Group by homologous series (assuming "GroupID" as an identifier)
     for group_id, group_df in IM_group.groupby("GroupID"):
         source_count = group_df["Is_External_Library"].sum()
@@ -445,7 +445,6 @@ def limit_consecutive_external_points(filtered_IM_groups):
     # Clean column names
 
     filtered_groups = []
-    print("filtered_IM_groups", filtered_IM_groups)
     # Process each group separately
     for group_id, group in filtered_IM_groups.groupby("GroupID"):
         # Sort each group by m/z
@@ -508,7 +507,6 @@ def main():
 
             # ✅ Filter IM groups using external standards check
             filtered_IM_group = count_external_library_matches_per_group(IM_group_df)
-            print("filtered_IM_group", filtered_IM_group)
             filtered_IM_group = limit_consecutive_external_points(filtered_IM_group)
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)

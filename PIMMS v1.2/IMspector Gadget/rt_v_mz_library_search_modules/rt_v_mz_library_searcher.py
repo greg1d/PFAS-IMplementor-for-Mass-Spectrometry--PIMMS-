@@ -14,8 +14,8 @@ sys.path.append(base_dir)
 from ccs_v_mz_library_search_modules.library_search_module import (
     get_library_path,
     stack_library_with_adjusted,
+    mz_repeating_unit_analysis,
 )
-from ccs_v_mz_modules.CCS_mz_trend_analysis import mz_repeating_unit_analysis
 
 # ✅ Use dynamically selected library path
 LIBRARY_PATH = get_library_path()

@@ -1,4 +1,3 @@
-import os
 import sys
 
 import pandas as pd
@@ -10,7 +9,7 @@ sys.path.append(
 
 # Import modules
 from ccs_v_mz_library_search_modules.library_search_module import (
-    external_mz_library_matching,
+    count_external_library_matches_per_group,
     stack_library_with_adjusted,
 )
 from ccs_v_mz_modules.CCS_mz_trend_analysis import (
@@ -25,8 +24,6 @@ from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
     limit_consecutive_external_points,
     add_back_in_sample_intensities,
 )
-
-from config import LIBRARY_PATH
 
 
 def run_analysis(adjusted_df, selected_repeating_units):
@@ -92,56 +89,37 @@ def run_library_search_analysis(selected_repeating_units):
 
     # ✅ Step 1: Stack adjusted and library data
     stacked_df = stack_library_with_adjusted()
-    if stacked_df is None or stacked_df.empty:
-        print("[WARNING] Stacked dataset is empty. Exiting analysis.")
-        return None, None
 
-    print(
-        f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
-    )
-
-    # ✅ Extract library name
-    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
-
-    # ✅ Step 2: Identify homologous series using user-selected repeating units
-    print("[INFO] Running mz_repeating_unit_analysis...")
+    # ✅ Perform Repeating Unit Analysis
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
-
     if mass_groups.empty:
-        print("[WARNING] No homologous series identified.")
-        return None, stacked_df
+        return
 
-    print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
-
-    # ✅ Step 3: Run CCS vs. m/z analysis
+    # ✅ Run CCS_v_mz_analysis and store IM groups
     filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
-        print(f"[INFO] Processing GroupID {group_id}...")
         IM_group, _, _, _ = CCS_v_mz_analysis(group_df)
+
         if IM_group:
             IM_group_df = group_df[
                 group_df[["m/z", "CCS"]].apply(tuple, axis=1).isin(IM_group)
             ]
 
-            # ✅ Step 4: Filter homologous series using external library matching
-            filtered_IM_group = external_mz_library_matching(
-                IM_group_df, library_match_source
-            )
+            # ✅ Filter IM groups using external standards check
+            filtered_IM_group = count_external_library_matches_per_group(IM_group_df)
+            print("filtered_IM_group", filtered_IM_group)
+            filtered_IM_group = limit_consecutive_external_points(filtered_IM_group)
             if not filtered_IM_group.empty:
                 filtered_IM_groups.append(filtered_IM_group)
+    # ✅ Merge all valid IM groups into one DataFrame
 
-    # ✅ Merge valid IM groups into one DataFrame
     final_IM_group = (
         pd.concat(filtered_IM_groups, ignore_index=True)
         if filtered_IM_groups
         else pd.DataFrame()
     )
-
-    print(
-        f"[INFO] Library search analysis completed. {len(final_IM_group)} valid homologous series found."
-    )
-
-    return final_IM_group, stacked_df
+    print("final_IM_group", final_IM_group)
+    return final_IM_group
 
 
 def run_rt_mz_analysis(selected_repeating_units):
@@ -160,5 +138,4 @@ def run_rt_mz_analysis(selected_repeating_units):
     filtered_m_z_RT_groups = add_back_in_sample_intensities(
         stacked_df, filtered_m_z_RT_groups
     )
-    print(filtered_m_z_RT_groups)
     return filtered_m_z_RT_groups
