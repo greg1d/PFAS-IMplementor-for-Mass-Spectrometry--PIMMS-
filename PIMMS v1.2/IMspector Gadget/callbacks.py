@@ -47,7 +47,7 @@ from ccs_v_mz_library_search_modules.library_search_module import (
 )
 from ccs_v_mz_modules.plotly_graphing import update_graph
 from dash import Input, Output, State, ctx, no_update
-from graphing import plot_figure_2
+from graphing import plot_figure_2, plot_figure_3
 
 
 def register_callbacks(app, adjusted_df):
@@ -69,6 +69,7 @@ def register_callbacks(app, adjusted_df):
         [
             Output("plotly_graph", "figure"),
             Output("library_search_graph", "figure"),
+            Output("rt_vs_mz_graph", "figure"),  # ✅ Fig 3: RT vs. m/z Graph
         ],
         [
             Input("repeating-units-dropdown", "value"),
@@ -156,9 +157,14 @@ def register_callbacks(app, adjusted_df):
                 # ✅ Step 4: Update fig2 after processing the new library
                 fig2 = plot_figure_2(selected_repeating_units)
                 print("[INFO] Library search graph updated.")
+                fig3 = plot_figure_3(selected_repeating_units)
 
-            return fig1, fig2
+            return fig1, fig2, fig3
 
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
-            return fig1, no_update  # ✅ fig1 updates, fig2 unchanged
+            return (
+                fig1,
+                no_update,
+                no_update,
+            )  # ✅ fig1 updates, fig2 and fig3 unchanged
