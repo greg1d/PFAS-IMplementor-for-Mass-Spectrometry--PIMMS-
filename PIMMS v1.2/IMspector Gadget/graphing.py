@@ -9,13 +9,17 @@ import plotly.io as pio
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current script's directory
 MODULE_PATH_1 = os.path.join(BASE_DIR, "ccs_v_mz_modules")
 MODULE_PATH_2 = os.path.join(BASE_DIR, "ccs_v_mz_library_search_modules")
+MODULE_PATH_3 = os.path.join(BASE_DIR, "rt_v_mz_library_search_modules")
 
-sys.path.append(MODULE_PATH_1)  # Add `ccs_v_mz_modules` to sys.path
-sys.path.append(MODULE_PATH_2)  # Add `ccs_v_mz_library_search_modules` to sys.path
-from analysis import run_analysis, run_library_search_analysis
+sys.path.append(MODULE_PATH_1)
+sys.path.append(MODULE_PATH_2)
+sys.path.append(MODULE_PATH_3)
+
+from analysis import run_analysis, run_library_search_analysis, run_rt_mz_analysis
 from config import FILE_PATH
 from library_search_module import library_search_plotly, stack_library_with_adjusted
 from plotly_graphing import make_plotly_graph  # ✅ Import from `ccs_v_mz_modules`
+from rt_v_mz_library_searcher import rt_vs_mz_plotly
 
 UPLOAD_FOLDER = "PIMMS v1.2/imported_libraries"
 
