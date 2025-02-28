@@ -18,14 +18,13 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
     mz_repeating_unit_analysis,
 )
 from config import LIBRARY_PATH
-
 from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
-    split_mass_groups_by_groupid,
-    rt_vs_mz_trend_analysis,
-    refine_messy_rt_groups,
+    add_back_in_sample_intensities,
     combine_significant_groups,
     limit_consecutive_external_points,
-    add_back_in_sample_intensities,
+    refine_messy_rt_groups,
+    rt_vs_mz_trend_analysis,
+    split_mass_groups_by_groupid,
 )
 
 
@@ -129,7 +128,6 @@ def run_rt_mz_analysis(selected_repeating_units):
     filtered_m_z_RT_groups = add_back_in_sample_intensities(
         stacked_df, filtered_m_z_RT_groups
     )
-    print(filtered_m_z_RT_groups)
     return filtered_m_z_RT_groups
 
 

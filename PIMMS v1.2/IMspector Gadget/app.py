@@ -11,7 +11,7 @@ import dash
 from app_layout import get_layout
 from callbacks import register_callbacks
 from data_processing import load_adjusted_data
-from graphing import plot_figure_1, plot_figure_2
+from graphing import plot_figure_1, plot_figure_2, plot_figure_3
 
 print("[DEBUG] Module imports successful!")
 
@@ -21,7 +21,7 @@ adjusted_df = load_adjusted_data()
 print("[INFO] Generating initial plots before starting Dash...")
 fig1 = plot_figure_1(adjusted_df)
 fig2 = plot_figure_2(adjusted_df)
-
+fig3 = plot_figure_3(adjusted_df)
 # ✅ Initialize Dash App
 app = dash.Dash(__name__)
 
