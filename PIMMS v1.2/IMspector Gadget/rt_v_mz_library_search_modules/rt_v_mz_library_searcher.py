@@ -197,14 +197,18 @@ def combine_significant_groups(significant_RT_group, refined_sig_groups):
 
     Args:
         significant_RT_group (pd.DataFrame): Previously identified significant RT groups.
-        refined_sig_groups (pd.DataFrame): Newly refined significant RT groups.
+        refined_sig_groups (pd.DataFrame or tuple): Newly refined significant RT groups.
 
     Returns:
         pd.DataFrame: Final combined DataFrame `m_z_RT_groups`, containing all significant RT groups.
     """
 
+    # ✅ Ensure refined_sig_groups is a DataFrame
+    if isinstance(refined_sig_groups, tuple):
+        refined_sig_groups = refined_sig_groups[0]  # Extract first DataFrame
+
     # ✅ Check if refined_sig_groups has data
-    if refined_sig_groups.empty:
+    if isinstance(refined_sig_groups, pd.DataFrame) and refined_sig_groups.empty:
         return significant_RT_group.copy()
 
     # ✅ Combine both DataFrames
@@ -494,13 +498,11 @@ def rt_vs_mz_plotly(m_z_RT_groups):
 def main():
     stacked_df = stack_library_with_adjusted()
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
-
     split_mass_groups = split_mass_groups_by_groupid(mass_groups)
     sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
     refined_sig_groups = refine_messy_rt_groups(messy_groups)
 
     m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
-
     filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
     filtered_m_z_RT_groups = add_back_in_sample_intensities(
         stacked_df, filtered_m_z_RT_groups

@@ -94,7 +94,6 @@ def mz_repeating_unit_analysis(
                     ppm_tolerance = (mass_error_ppm / 1e6) * (
                         current_mz + next_mz_value
                     )
-                    print(f"mass_diff: {mass_diff}, ppm_tolerance: {ppm_tolerance}")
                     if any(
                         abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
                     ):
