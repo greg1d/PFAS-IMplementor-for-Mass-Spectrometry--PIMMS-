@@ -161,3 +161,48 @@ button:hover {
     background-color: #555 !important;
     border-color: #777 !important;
 }
+
+.full-width-upload {
+    display: flex;
+    justify-content: center;
+    /* ✅ Center horizontally */
+    align-items: center;
+    /* ✅ Center vertically */
+    width: 100vw;
+    /* ✅ Full viewport width */
+    height: 15vh;
+    /* ✅ Ensures spacing */
+    margin-bottom: 20px;
+    /* ✅ Adds space between upload button and graphs */
+}
+
+.upload-container {
+    width: 60%;
+    /* ✅ Wider upload button */
+    max-width: 800px;
+    /* ✅ Limits max width */
+    text-align: center;
+    padding: 20px;
+    background-color: #222;
+    /* ✅ Dark background */
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.2);
+}
+
+.graph-row-container {
+    display: flex;
+    justify-content: space-evenly;
+    /* ✅ Ensures side-by-side alignment */
+    align-items: stretch;
+    /* ✅ Forces both graphs to be same height */
+    width: 100%;
+}
+
+.half-width-graph {
+    width: 48%;
+    /* ✅ Ensures graphs are equal width */
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    /* ✅ Ensures children expand properly */
+}

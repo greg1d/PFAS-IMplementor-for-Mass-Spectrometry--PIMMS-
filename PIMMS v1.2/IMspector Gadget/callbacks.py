@@ -139,7 +139,7 @@ def register_callbacks(app, adjusted_df):
                     # ✅ Create empty black-themed figure for Fig 2
                     empty_fig2 = go.Figure()
                     empty_fig2.update_layout(
-                        title="Library Search Graph",
+                        title="CCS vs. <i>m/z</i>",
                         template="plotly_dark",
                         annotations=[
                             dict(
@@ -157,7 +157,7 @@ def register_callbacks(app, adjusted_df):
                     # ✅ Create empty black-themed figure for Fig 3
                     empty_fig3 = go.Figure()
                     empty_fig3.update_layout(
-                        title="RT vs. m/z Graph",
+                        title="RT vs. <i>m/z</i>",
                         template="plotly_dark",
                         annotations=[
                             dict(
@@ -186,7 +186,7 @@ def register_callbacks(app, adjusted_df):
             # ✅ If an error occurs, ensure dark-themed empty figures
             error_fig2 = go.Figure()
             error_fig2.update_layout(
-                title="Library Search Graph",
+                title="CCS vs. <i>m/z</i>",
                 template="plotly_dark",
                 annotations=[
                     dict(
@@ -203,11 +203,11 @@ def register_callbacks(app, adjusted_df):
 
             error_fig3 = go.Figure()
             error_fig3.update_layout(
-                title="RT vs. m/z Graph",
+                title="RT vs. <i>m/z</i> Graph",
                 template="plotly_dark",
                 annotations=[
                     dict(
-                        text="Error loading data",
+                        text="Select an external library to visualize results",
                         x=0.5,
                         y=0.5,
                         xref="paper",

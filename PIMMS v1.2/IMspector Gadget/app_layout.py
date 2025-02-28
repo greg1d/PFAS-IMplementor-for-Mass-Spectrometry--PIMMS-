@@ -55,52 +55,51 @@ def get_layout():
                 ],
                 className="dropdown-container",
             ),
-            # ✅ Section: Side-by-Side Graphs
+            # ✅ Centered Upload Button (Full Width)
             html.Div(
                 [
-                    # ✅ Library Search Section (WITH UPLOAD BUTTON)
+                    dcc.Upload(
+                        id="upload-library",
+                        children=html.Button(
+                            "Upload Library", className="upload-button"
+                        ),
+                        multiple=False,
+                        className="upload-container",
+                    )
+                ],
+                className="full-width-upload",  # ✅ Ensures Upload Button is centered
+            ),
+            # ✅ Side-by-Side Graphs (Library Search & RT vs. m/z)
+            html.Div(
+                [
+                    # ✅ Library Search Graph
                     html.Div(
                         [
                             html.H2(
                                 "Library Search Results", className="section-title"
                             ),
-                            html.Div(
-                                [
-                                    dcc.Upload(
-                                        id="upload-library",
-                                        children=html.Button(
-                                            "Upload Library", className="upload-button"
-                                        ),
-                                        multiple=False,
-                                        className="upload-container",
-                                    ),
-                                    html.Div(
-                                        id="upload-status", className="upload-status"
-                                    ),
-                                ],
-                                className="upload-wrapper",
-                            ),
                             dcc.Graph(
                                 id="library_search_graph",
-                                className="dash-graph half-width",
+                                className="dash-graph",
                             ),
                         ],
-                        className="graph-wrapper",
+                        className="half-width-graph",
                     ),
-                    # ✅ Additional Graph Placeholder
+                    # ✅ RT vs. m/z Graph (Now properly aligned)
                     html.Div(
                         [
                             html.H2(
                                 "RT vs. m/z Trend Analysis", className="section-title"
                             ),
                             dcc.Graph(
-                                id="rt_vs_mz_graph", className="dash-graph half-width"
-                            ),  # Updated Graph ID
+                                id="rt_vs_mz_graph",
+                                className="dash-graph",
+                            ),
                         ],
-                        className="graph-wrapper",
+                        className="half-width-graph",
                     ),
                 ],
-                className="graph-container",
+                className="graph-row-container",  # ✅ Ensures both graphs align
             ),
         ],
         className="dashboard-container",
