@@ -13,6 +13,8 @@ sys.path.append(base_dir)
 
 from ccs_v_mz_library_search_modules.library_search_module import (
     get_library_path,
+    stack_library_with_adjusted,
+    mz_repeating_unit_analysis,
 )
 
 # ✅ Use dynamically selected library path
@@ -489,18 +491,23 @@ def rt_vs_mz_plotly(m_z_RT_groups):
     return fig
 
 
-stacked_df = stack_library_with_adjusted()
-mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+def main():
+    stacked_df = stack_library_with_adjusted()
+    mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
 
-split_mass_groups = split_mass_groups_by_groupid(mass_groups)
-sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
-refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
+    split_mass_groups = split_mass_groups_by_groupid(mass_groups)
+    sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
+    refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
 
-m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
+    m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
-filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
-filtered_m_z_RT_groups = add_back_in_sample_intensities(
-    stacked_df, filtered_m_z_RT_groups
-)
-fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
-fig.show()
+    filtered_m_z_RT_groups = limit_consecutive_external_points(m_z_RT_groups)
+    filtered_m_z_RT_groups = add_back_in_sample_intensities(
+        stacked_df, filtered_m_z_RT_groups
+    )
+    fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
+    fig.show()
+
+
+if __name__ == "__main__":
+    main()
