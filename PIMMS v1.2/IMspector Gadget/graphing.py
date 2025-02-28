@@ -158,8 +158,67 @@ def plot_figure_2(selected_repeating_units=None):
 
 
 def plot_figure_3(selected_repeating_units=None):
+    """
+    Runs library search analysis and generates a Plotly figure.
+
+    Args:
+        selected_repeating_units (dict, optional): User-selected repeating units.
+
+    Returns:
+        plotly.graph_objects.Figure: The generated plot.
+    """
+
+    # ✅ Step 1: Fetch the latest library file
+    latest_library_file = get_latest_library_file()
+    if latest_library_file is None:
+        print("[WARNING] No library file available. Returning blank figure.")
+        return go.Figure()
+
+    print(f"[INFO] Running library search with: {latest_library_file}")
+
+    # ✅ Step 2: Run stacking process with updated library
+    stacked_df = stack_library_with_adjusted()
+    if stacked_df is None or stacked_df.empty:
+        print(
+            "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
+        )
+        fig3 = go.Figure()
+        fig3.update_layout(
+            title="RT vs. m/z (No Data Available)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>RT</b>"),
+            template="plotly_dark",
+        )
+        return fig3  # ✅ Return an empty figure instead of breaking the app
+
+    print(
+        f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
+    )
+    print("[INFO] Running mz_repeating_unit_analysis...")
+
+    # ✅ Step 3: Run analysis with selected repeating units
     filtered_m_z_RT_groups = run_rt_mz_analysis(selected_repeating_units)
+
+    if filtered_m_z_RT_groups is None or filtered_m_z_RT_groups.empty:
+        print("\n[WARNING] No homologous series identified. Returning blank graph.")
+        fig3 = go.Figure()
+        fig3.update_layout(
+            title="RT vs. m/z (No Data Available)",
+            xaxis=dict(title=r"<b><i>m/z</i></b>"),
+            yaxis=dict(title="<b>RT</b>"),
+            template="plotly_dark",
+        )
+        return fig3  # ✅ Return an empty figure instead of breaking the app
+    # ✅ Return a blank graph instead of exiting
+
+    print(
+        f"[DEBUG] Identified {filtered_m_z_RT_groups['GroupID'].nunique()} homologous series."
+    )
+
+    # ✅ Generate and return Plotly plot
+    print("\n[INFO] Generating Library Search Plotly plot...")
     fig3 = rt_vs_mz_plotly(filtered_m_z_RT_groups)
+
     return fig3
 
 
@@ -174,3 +233,8 @@ if __name__ == "__main__":
     if fig2:
         print("[INFO] Plot generation complete. Displaying plot...")
         pio.show(fig2)
+
+    fig3 = plot_figure_3(selected_repeating_units={})  # Start with no selected units
+    if fig3:
+        print("[INFO] Plot generation complete. Displaying plot...")
+        pio.show(fig3)
