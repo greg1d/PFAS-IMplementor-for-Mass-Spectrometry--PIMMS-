@@ -91,12 +91,11 @@ def get_layout():
                     html.Div(
                         [
                             html.H2(
-                                "Additional Graph Placeholder",
-                                className="section-title",
+                                "RT vs. m/z Trend Analysis", className="section-title"
                             ),
                             dcc.Graph(
-                                id="additional_graph", className="dash-graph half-width"
-                            ),
+                                id="rt_vs_mz_graph", className="dash-graph half-width"
+                            ),  # Updated Graph ID
                         ],
                         className="graph-wrapper",
                     ),
