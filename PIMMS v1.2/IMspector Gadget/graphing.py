@@ -153,6 +153,12 @@ def plot_figure_2(selected_repeating_units=None):
     return fig2
 
 
+def plot_figure_3(selected_repeating_units=None):
+    filtered_m_z_RT_groups = run_rt_mz_analysis(selected_repeating_units)
+    fig3 = rt_vs_mz_plotly(filtered_m_z_RT_groups)
+    return fig3
+
+
 # ✅ Main execution for testing
 if __name__ == "__main__":
     fig1 = plot_figure_1(selected_repeating_units={})  # Start with no selected units
