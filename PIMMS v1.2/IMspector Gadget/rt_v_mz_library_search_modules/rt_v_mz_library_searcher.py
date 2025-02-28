@@ -230,9 +230,14 @@ def limit_consecutive_external_points(m_z_RT_groups):
         m_z_RT_groups (pd.DataFrame): DataFrame containing at least 'GroupID', 'm/z', and 'Classification Type' columns.
 
     Returns:
-        pd.DataFrame: A DataFrame with consecutive "External Library" rows limited to 3.
+        pd.DataFrame: A DataFrame with consecutive "External Library" rows limited to 3,
+                      or an empty DataFrame if no homologous series exist.
     """
-    # Clean column names
+    # Check if 'GroupID' column exists
+    if "GroupID" not in m_z_RT_groups.columns:
+        print("[INFO] No homologous series found. Returning empty DataFrame.")
+        return pd.DataFrame(columns=m_z_RT_groups.columns)
+
     filtered_groups = []
 
     # Process each group separately
@@ -252,8 +257,7 @@ def limit_consecutive_external_points(m_z_RT_groups):
                 if consecutive_external_count <= 3:
                     keep_rows.append(row)
                 else:
-                    # Skip this row, since it's beyond the allowed 3 consecutive external points
-                    continue
+                    continue  # Skip extra external points
             else:
                 # Reset counter on a non-external row
                 consecutive_external_count = 0
@@ -262,11 +266,12 @@ def limit_consecutive_external_points(m_z_RT_groups):
         if keep_rows:
             filtered_groups.append(pd.DataFrame(keep_rows))
 
-    # Combine all groups into one DataFrame
-    if filtered_groups:
-        return pd.concat(filtered_groups, ignore_index=True)
-    else:
-        return pd.DataFrame(columns=m_z_RT_groups.columns)
+    # Combine all groups into one DataFrame or return an empty one if no valid groups remain
+    return (
+        pd.concat(filtered_groups, ignore_index=True)
+        if filtered_groups
+        else pd.DataFrame(columns=m_z_RT_groups.columns)
+    )
 
 
 def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
@@ -274,10 +279,12 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
     Adds sample intensity columns from the stacked DataFrame back into the filtered m/z–RT groups.
 
     The function:
+      - Exits early if `filtered_m_z_RT_groups` is empty.
       - Strips any extra whitespace from column names.
       - Identifies columns in the stacked DataFrame whose header contains ".d" (sample intensity columns).
       - Matches rows between the stacked DataFrame and filtered m/z–RT groups based on the "ID" column.
       - Merges the sample intensity values from the stacked DataFrame into the filtered m/z–RT groups.
+      - Removes non-external rows where all sample intensity values are ≤ 0.001.
 
     Args:
         stacked_df (pd.DataFrame): DataFrame that includes sample intensity columns (headers containing ".d")
@@ -285,31 +292,52 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
         filtered_m_z_RT_groups (pd.DataFrame): DataFrame of filtered m/z–RT groups with an "ID" column.
 
     Returns:
-        pd.DataFrame: The filtered m/z–RT groups augmented with the sample intensity columns.
+        pd.DataFrame: The filtered m/z–RT groups augmented with the sample intensity columns,
+                      or an empty DataFrame if `filtered_m_z_RT_groups` is empty.
     """
+    import pandas as pd
 
-    # Clean column names in both DataFrames
-    stacked_df.columns = stacked_df.columns.str.strip()
-    filtered_m_z_RT_groups.columns = filtered_m_z_RT_groups.columns.str.strip()
+    # ✅ Exit early if filtered_m_z_RT_groups is empty (no repeating unit selected)
+    if filtered_m_z_RT_groups.empty:
+        print(
+            "[INFO] No filtered m/z–RT groups found (possibly no repeating unit selected). Returning empty DataFrame."
+        )
+        return pd.DataFrame(
+            columns=["ID"] + [col for col in stacked_df.columns if ".d" in col]
+        )
 
-    # Identify sample intensity columns from the stacked DataFrame (any column name containing ".d")
+    # ✅ Ensure column names are strings before applying .str.strip()
+    filtered_m_z_RT_groups.columns = filtered_m_z_RT_groups.columns.astype(
+        str
+    ).str.strip()
+    stacked_df.columns = stacked_df.columns.astype(str).str.strip()
+
+    # ✅ Identify sample intensity columns from the stacked DataFrame (any column name containing ".d")
     sample_intensity_cols = [col for col in stacked_df.columns if ".d" in col]
 
-    # Check if the "ID" column is present in both DataFrames
+    # ✅ Check if "ID" column exists in both DataFrames
     if "ID" not in stacked_df.columns or "ID" not in filtered_m_z_RT_groups.columns:
         print(
             "[WARNING] 'ID' column is missing in one of the DataFrames. Returning filtered_m_z_RT_groups unchanged."
         )
         return filtered_m_z_RT_groups
 
-    # Extract only the "ID" and sample intensity columns from the stacked DataFrame
+    # ✅ Extract only the "ID" and sample intensity columns from the stacked DataFrame
     intensity_df = stacked_df[["ID"] + sample_intensity_cols]
 
-    # Merge the intensity information into the filtered m/z–RT groups based on the "ID" column.
-    # Using a left join ensures that every row in filtered_m_z_RT_groups is kept.
+    # ✅ Merge the intensity information into the filtered m/z–RT groups based on the "ID" column.
     filtered_m_z_RT_groups = pd.merge(
         filtered_m_z_RT_groups, intensity_df, on="ID", how="left"
     )
+    print("[INFO] Merged DataFrame columns:", filtered_m_z_RT_groups.columns)
+
+    # ✅ Convert sample intensity columns to numeric
+    for col in sample_intensity_cols:
+        filtered_m_z_RT_groups[col] = pd.to_numeric(
+            filtered_m_z_RT_groups[col], errors="coerce"
+        )
+
+    # ✅ Only for non-External Library rows, exclude those where all sample intensity columns are ≤ 0.001
     if sample_intensity_cols:
         non_external_mask = (
             filtered_m_z_RT_groups["Classification Type"] != "External Library"
@@ -317,7 +345,6 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
         intensity_mask = (filtered_m_z_RT_groups[sample_intensity_cols] <= 0.001).all(
             axis=1
         )
-        # Remove rows that are non-external and have all intensities ≤ 0.001
         final_mask = ~(non_external_mask & intensity_mask)
         filtered_m_z_RT_groups = filtered_m_z_RT_groups.loc[final_mask]
 
