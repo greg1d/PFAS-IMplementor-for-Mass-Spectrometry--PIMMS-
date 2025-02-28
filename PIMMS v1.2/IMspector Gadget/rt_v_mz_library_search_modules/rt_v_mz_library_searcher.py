@@ -588,7 +588,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
 
 def main():
     stacked_df = stack_library_with_adjusted()
-    mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
+    mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units={})
     split_mass_groups = split_mass_groups_by_groupid(mass_groups)
     sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
     refined_sig_groups = refine_messy_rt_groups(messy_groups)
