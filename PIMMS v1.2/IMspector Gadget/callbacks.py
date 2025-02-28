@@ -46,7 +46,7 @@ from ccs_v_mz_library_search_modules.library_search_module import (
     stack_library_with_adjusted,
 )
 from ccs_v_mz_modules.plotly_graphing import update_graph
-from dash import Input, Output, State, ctx, no_update
+from dash import Input, Output, State, ctx
 from graphing import plot_figure_2, plot_figure_3
 
 
@@ -136,13 +136,14 @@ def register_callbacks(app, adjusted_df):
                     print(
                         "[WARNING] Stacked dataset is empty after library update. Returning blank graph."
                     )
-                    empty_fig = go.Figure()
-                    empty_fig.update_layout(
-                        title="CCS vs. m/z",
+                    # ✅ Create empty black-themed figure for Fig 2
+                    empty_fig2 = go.Figure()
+                    empty_fig2.update_layout(
+                        title="Library Search Graph",
                         template="plotly_dark",
                         annotations=[
                             dict(
-                                text="No data available after library update",
+                                text="No data available",
                                 x=0.5,
                                 y=0.5,
                                 xref="paper",
@@ -152,7 +153,25 @@ def register_callbacks(app, adjusted_df):
                             )
                         ],
                     )
-                    return fig1, empty_fig  # ✅ fig1 updates, fig2 blank
+
+                    # ✅ Create empty black-themed figure for Fig 3
+                    empty_fig3 = go.Figure()
+                    empty_fig3.update_layout(
+                        title="RT vs. m/z Graph",
+                        template="plotly_dark",
+                        annotations=[
+                            dict(
+                                text="No data available",
+                                x=0.5,
+                                y=0.5,
+                                xref="paper",
+                                yref="paper",
+                                showarrow=False,
+                                font=dict(size=20, color="white"),
+                            )
+                        ],
+                    )
+                    return fig1, empty_fig2, empty_fig3  # ✅ fig1 updates, fig2 blank
 
                 # ✅ Step 4: Update fig2 after processing the new library
                 fig2 = plot_figure_2(selected_repeating_units)
@@ -163,8 +182,44 @@ def register_callbacks(app, adjusted_df):
 
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
+
+            # ✅ If an error occurs, ensure dark-themed empty figures
+            error_fig2 = go.Figure()
+            error_fig2.update_layout(
+                title="Library Search Graph",
+                template="plotly_dark",
+                annotations=[
+                    dict(
+                        text="Select an external library to visualize results",
+                        x=0.5,
+                        y=0.5,
+                        xref="paper",
+                        yref="paper",
+                        showarrow=False,
+                        font=dict(size=20, color="white"),
+                    )
+                ],
+            )
+
+            error_fig3 = go.Figure()
+            error_fig3.update_layout(
+                title="RT vs. m/z Graph",
+                template="plotly_dark",
+                annotations=[
+                    dict(
+                        text="Error loading data",
+                        x=0.5,
+                        y=0.5,
+                        xref="paper",
+                        yref="paper",
+                        showarrow=False,
+                        font=dict(size=20, color="white"),
+                    )
+                ],
+            )
+
             return (
                 fig1,
-                no_update,
-                no_update,
-            )  # ✅ fig1 updates, fig2 and fig3 unchanged
+                error_fig2,
+                error_fig3,
+            )  # ✅ fig1 updates, fig2 & fig3 are error placeholders
