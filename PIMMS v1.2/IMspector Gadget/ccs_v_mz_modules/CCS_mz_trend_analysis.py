@@ -19,110 +19,119 @@ if IMPECTOR_GADGET_DIR not in sys.path:
 def mz_repeating_unit_analysis(
     adjusted_df, selected_repeating_units, mass_error_ppm=10
 ):
+    """
+    Identifies homologous series trends by checking different repeating units.
+    Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
+
+    Args:
+        adjusted_df (pd.DataFrame): Input dataset with m/z values.
+        selected_repeating_units (dict): Dictionary of user-selected repeating units.
+        mass_error_ppm (int): PPM error tolerance for matching.
+
+    Returns:
+        pd.DataFrame: DataFrame containing identified homologous series.
+    """
+    print(f"[DEBUG] User-selected repeating units: {selected_repeating_units}")
+
+    if not isinstance(selected_repeating_units, dict):
+        print(
+            "[ERROR] selected_repeating_units must be a dictionary! Returning blank DataFrame."
+        )
+        return pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+
+    if not selected_repeating_units:
+        print("[WARNING] No repeating units selected. Returning blank DataFrame.")
+        return pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
+
+    iteration_count = 0  # Track loop iterations
+    group_counter = 0  # Track unique Group ID
+
+    # **Sort data by m/z for efficient searching**
     adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
-    processed_indices = set()
-    group_counter = 0
+
+    unique_group_ids = set()
     mass_groups = []
 
-    for start_idx in range(len(adjusted_df)):
-        if start_idx in processed_indices:
-            continue
-        current_idx = start_idx
-        current_mz = adjusted_df.at[current_idx, "m/z"]
-        repeating_unit = None  # Initialize repeating_unit to None
+    for unit_name, M in selected_repeating_units.items():
+        processed_indices = set()
 
-        current_group = [
-            {
-                "GroupID": group_counter,
-                "m/z": current_mz,
-                "RT": adjusted_df.at[current_idx, "RT"],
-                "ID": adjusted_df.at[current_idx, "ID"],
-                "CCS": adjusted_df.at[current_idx, "CCS"],
-                "Classification Type": adjusted_df.at[
-                    current_idx, "Classification Type"
-                ],
-                "Match Source": adjusted_df.at[current_idx, "Match Source"],
-                "Match": adjusted_df.at[current_idx, "Match"],
-                "Repeating Unit": "None",  # Initial starting point
-            }
-        ]
-        processed_indices.add(current_idx)
-        while True:
-            found_next = False
-            for unit_name, M in selected_repeating_units.items():
-                for k in range(1, 4):  # Check k=1, then k=2, then k=3
-                    target_mz = current_mz + k * M
-                    ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
-                    lower_bound = target_mz - ppm_tolerance
-                    upper_bound = target_mz + ppm_tolerance
+        for i in range(len(adjusted_df)):
+            iteration_count += 1
+            if i in processed_indices:
+                continue
 
-                    # Find candidates within the range
-                    candidate_df = adjusted_df[
-                        (~adjusted_df.index.isin(processed_indices))
-                        & (adjusted_df["m/z"] >= lower_bound)
-                        & (adjusted_df["m/z"] <= upper_bound)
-                    ]
+            mz_value = adjusted_df.at[i, "m/z"]
+            group_counter += 1  # Assign new unique GroupID
 
-                    if not candidate_df.empty:
-                        for (
-                            candidate_idx
-                        ) in candidate_df.index:  # Loop through all valid candidates
-                            candidate_mz = adjusted_df.at[candidate_idx, "m/z"]
+            current_group = [
+                {
+                    "GroupID": group_counter,  # Assign Group ID
+                    "m/z": mz_value,
+                    "RT": adjusted_df.at[i, "RT"],
+                    "ID": adjusted_df.at[i, "ID"],
+                    "CCS": adjusted_df.at[i, "CCS"],
+                    "Classification Type": adjusted_df.at[i, "Classification Type"],
+                    "Match Source": adjusted_df.at[i, "Match Source"],
+                    "Match": adjusted_df.at[i, "Match"],
+                    "Repeating Unit": unit_name,
+                }
+            ]
+            processed_indices.add(i)
 
-                            repeating_unit = unit_name
+            search_queue = [i]
 
-                            # Append found candidate to current group
-                            current_group.append(
-                                {
-                                    "GroupID": group_counter,
-                                    "m/z": candidate_mz,
-                                    "RT": adjusted_df.at[candidate_idx, "RT"],
-                                    "ID": adjusted_df.at[candidate_idx, "ID"],
-                                    "CCS": adjusted_df.at[candidate_idx, "CCS"],
-                                    "Classification Type": adjusted_df.at[
-                                        candidate_idx, "Classification Type"
-                                    ],
-                                    "Match Source": adjusted_df.at[
-                                        candidate_idx, "Match Source"
-                                    ],
-                                    "Match": adjusted_df.at[candidate_idx, "Match"],
-                                    "Repeating Unit": unit_name,
-                                }
-                            )
+            while search_queue:
+                current_idx = search_queue.pop(0)
+                current_mz = adjusted_df.at[current_idx, "m/z"]
 
-                            processed_indices.add(candidate_idx)  # Mark as processed
+                for j in range(current_idx + 1, len(adjusted_df)):
+                    iteration_count += 1
+                    if j in processed_indices:
+                        continue
 
-                            # Update current position and m/z for next iteration
-                            current_mz = adjusted_df.at[candidate_idx, "m/z"]
-                            found_next = True
+                    next_mz_value = adjusted_df.at[j, "m/z"]
+                    mass_diff = abs(current_mz - next_mz_value)
+                    ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
 
-                        # Restart from k=1 after processing a candidate
-                        if found_next:
-                            break
+                    if any(
+                        abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
+                    ):
+                        current_group.append(
+                            {
+                                "GroupID": group_counter,  # Keep same Group ID
+                                "m/z": next_mz_value,
+                                "ID": adjusted_df.at[j, "ID"],
+                                "RT": adjusted_df.at[j, "RT"],
+                                "CCS": adjusted_df.at[j, "CCS"],
+                                "Classification Type": adjusted_df.at[
+                                    j, "Classification Type"
+                                ],
+                                "Match Source": adjusted_df.at[j, "Match Source"],
+                                "Match": adjusted_df.at[j, "Match"],
+                                "Repeating Unit": unit_name,
+                            }
+                        )
+                        processed_indices.add(j)
+                        search_queue.append(j)
 
-                if found_next:
-                    break
+            # **Only process groups that have at least 3 points BEFORE expansion**
+            if len(current_group) <= 3:
+                continue  # Skip storing this group
 
-            if not found_next:
-                break  # No further matches found, end this group
-        # Update the first point's repeating unit to match the rest of the group
-        for entry in current_group:
-            entry["Repeating Unit"] = repeating_unit
+            # **Ensure min-max m/z difference is at least 10**
+            min_mz = min(entry["m/z"] for entry in current_group)
+            max_mz = max(entry["m/z"] for entry in current_group)
+            if max_mz - min_mz < 10:
+                continue  # Skip storing this group
 
-        # Only save groups with at least 3 points and min-max mz difference ≥ 10
-        if len(current_group) >= 3:
-            mz_values = [entry["m/z"] for entry in current_group]
-            if max(mz_values) - min(mz_values) >= 10:
-                if group_counter == 0:
-                    group_counter = 1  # Start from 1 instead of 0
-                else:
-                    group_counter += 1
-                for entry in current_group:
-                    entry["GroupID"] = group_counter
+            # **Ensure the group is unique and store it**
+            group_ids = frozenset(entry["ID"] for entry in current_group)
+            if group_ids not in unique_group_ids:
+                unique_group_ids.add(group_ids)
+                group_df = pd.DataFrame(current_group)
+                mass_groups.append(group_df)
 
-                mass_groups.append(pd.DataFrame(current_group))
-
-    # Combine groups into a final DataFrame
+    # **Combine all groups into a single DataFrame**
     if mass_groups:
         mass_groups = pd.concat(mass_groups, ignore_index=True)
     else:
@@ -130,8 +139,8 @@ def mz_repeating_unit_analysis(
             columns=[
                 "GroupID",
                 "m/z",
-                "RT",
                 "ID",
+                "RT",
                 "CCS",
                 "Classification Type",
                 "Match Source",
@@ -140,6 +149,9 @@ def mz_repeating_unit_analysis(
             ]
         )
 
+    print(
+        f"[INFO] mz_repeating_unit_analysis completed. Found {len(mass_groups)} entries."
+    )
     return mass_groups
 
 
