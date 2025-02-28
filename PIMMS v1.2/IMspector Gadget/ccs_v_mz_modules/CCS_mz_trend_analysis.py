@@ -91,8 +91,10 @@ def mz_repeating_unit_analysis(
 
                     next_mz_value = adjusted_df.at[j, "m/z"]
                     mass_diff = abs(current_mz - next_mz_value)
-                    ppm_tolerance = (mass_error_ppm / 1e6) * current_mz
-
+                    ppm_tolerance = (mass_error_ppm / 1e6) * (
+                        current_mz + next_mz_value
+                    )
+                    print(f"mass_diff: {mass_diff}, ppm_tolerance: {ppm_tolerance}")
                     if any(
                         abs(mass_diff - M * k) <= ppm_tolerance for k in range(1, 3)
                     ):
@@ -181,7 +183,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
     # Perform initial linear regression
     slope, intercept, r_value, p_value, _ = linregress(mz_values, ccs_values)
-    r_squared = r_value**2
 
     # Store classified points
     post_source_decay = []
@@ -261,13 +262,15 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
 
 def main():
     """Run the analysis pipeline and return results."""
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
 
-    mass_groups = mz_repeating_unit_analysis(adjusted_df)
+    mass_groups = mz_repeating_unit_analysis(
+        adjusted_df, selected_repeating_units={"CF2": 49.9968064}
+    )
     if mass_groups.empty:
         return None  # Exit if no groups found
-
+    print("mass groups", mass_groups)
     # Explicitly exclude the 'GroupID' column while applying the function
     return mass_groups.groupby("GroupID", group_keys=False).apply(
         lambda group: CCS_v_mz_analysis(
