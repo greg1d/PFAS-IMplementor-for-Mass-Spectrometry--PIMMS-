@@ -19,40 +19,35 @@ from ccs_v_mz_modules.CCS_mz_trend_analysis import (
 )
 from config import LIBRARY_PATH
 
+from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
+    split_mass_groups_by_groupid,
+    rt_vs_mz_trend_analysis,
+    refine_messy_rt_groups,
+    combine_significant_groups,
+    limit_consecutive_external_points,
+    add_back_in_sample_intensities,
+)
+
 
 def run_analysis(adjusted_df, selected_repeating_units):
     """Runs CCS vs. m/z trend analysis pipeline."""
 
-    print("[INFO] Starting mz_repeating_unit_analysis...")
-
     # ✅ Ensure selected_repeating_units is always a dictionary
     if not selected_repeating_units:
-        print("[WARNING] No repeating units selected. Returning blank data.")
         return [], [], [], {}, pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
 
-    # ✅ Run analysis only if there are selected repeating units
-    print(
-        f"[DEBUG] Passing repeating units to mz_repeating_unit_analysis: {selected_repeating_units}"
-    )
     mass_groups = mz_repeating_unit_analysis(adjusted_df, selected_repeating_units)
 
     if mass_groups is None or mass_groups.empty:
-        print("[WARNING] No homologous series identified.")
         return [], [], [], {}, pd.DataFrame(columns=["GroupID", "m/z", "CCS"])
-
-    print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
     # ✅ Process CCS vs. m/z analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
     mass_only_groups = {}
 
-    print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
-
     for idx, (group_id, group_df) in enumerate(
         mass_groups.groupby("GroupID", dropna=True)
     ):
-        print(f"[DEBUG] Analyzing Group {idx + 1} (GroupID: {group_id})")
-
         IM_group, post_source_decay, branched_isomer, mass_only_group = (
             CCS_v_mz_analysis(group_df)
         )
@@ -79,35 +74,22 @@ def run_library_search_analysis(selected_repeating_units):
     Runs full pipeline for library search analysis.
     """
 
-    print("[INFO] Running library search analysis...")
-
     # ✅ Step 1: Stack adjusted and library data
     stacked_df = stack_library_with_adjusted()
     if stacked_df is None or stacked_df.empty:
-        print("[WARNING] Stacked dataset is empty. Exiting analysis.")
         return None, None
-
-    print(
-        f"[DEBUG] Stacked dataset loaded successfully with {len(stacked_df)} rows and {len(stacked_df.columns)} columns."
-    )
-
     # ✅ Extract library name
     library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
 
     # ✅ Step 2: Identify homologous series using user-selected repeating units
-    print("[INFO] Running mz_repeating_unit_analysis...")
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
 
     if mass_groups.empty:
-        print("[WARNING] No homologous series identified.")
         return None, stacked_df
-
-    print(f"[DEBUG] Identified {mass_groups['GroupID'].nunique()} homologous series.")
 
     # ✅ Step 3: Run CCS vs. m/z analysis
     filtered_IM_groups = []
     for group_id, group_df in mass_groups.groupby("GroupID"):
-        print(f"[INFO] Processing GroupID {group_id}...")
         IM_group, _, _, _ = CCS_v_mz_analysis(group_df)
         if IM_group:
             IM_group_df = group_df[
@@ -128,10 +110,6 @@ def run_library_search_analysis(selected_repeating_units):
         else pd.DataFrame()
     )
 
-    print(
-        f"[INFO] Library search analysis completed. {len(final_IM_group)} valid homologous series found."
-    )
-
     return final_IM_group, stacked_df
 
 
@@ -143,7 +121,7 @@ def run_rt_mz_analysis(selected_repeating_units):
     mass_groups = mz_repeating_unit_analysis(stacked_df, selected_repeating_units)
     split_mass_groups = split_mass_groups_by_groupid(mass_groups)
     sig_groups, messy_groups = rt_vs_mz_trend_analysis(split_mass_groups)
-    refined_sig_groups, remaining_messy_groups = refine_messy_rt_groups(messy_groups)
+    refined_sig_groups = refine_messy_rt_groups(messy_groups)
 
     m_z_RT_groups = combine_significant_groups(sig_groups, refined_sig_groups)
 
@@ -151,4 +129,13 @@ def run_rt_mz_analysis(selected_repeating_units):
     filtered_m_z_RT_groups = add_back_in_sample_intensities(
         stacked_df, filtered_m_z_RT_groups
     )
+    print(filtered_m_z_RT_groups)
     return filtered_m_z_RT_groups
+
+
+def main():
+    run_rt_mz_analysis(selected_repeating_units={"CF2": 49.9969064})
+
+
+if __name__ == "__main__":
+    main()

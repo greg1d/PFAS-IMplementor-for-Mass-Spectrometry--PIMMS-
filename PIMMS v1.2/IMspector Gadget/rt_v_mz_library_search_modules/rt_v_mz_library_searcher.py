@@ -146,7 +146,7 @@ def refine_messy_rt_groups(messy_RT_group):
             y = subset["RT"].values
 
             # ✅ Perform linear regression
-            slope, intercept, p_value, _ = linregress(x, y)
+            slope, intercept, r_value, p_value, _ = linregress(x, y)
 
             # ✅ Calculate residuals for each point
             predicted_y = slope * x + intercept
@@ -322,6 +322,70 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
         filtered_m_z_RT_groups = filtered_m_z_RT_groups.loc[final_mask]
 
     return filtered_m_z_RT_groups
+
+
+def filter_only_external_or_only_sample_trends(
+    filtered_m_z_RT_groups, library_match_source
+):
+    """
+    Filters IM_group to retain only groups where:
+    - At least 2 rows come from the external library file.
+    - No more than 2 consecutive external library matches before a sample appears.
+    - Each homologous series contains at least one sample result.
+
+    Parameters:
+    - IM_group (pd.DataFrame): Data containing identified homologous series.
+    - library_match_source (str): The dynamically extracted standards library filename.
+
+    Returns:
+    - pd.DataFrame: Filtered IM_group containing only valid groups.
+    """
+    if filtered_m_z_RT_groups.empty:
+        return filtered_m_z_RT_groups
+
+    valid_groups = []
+    print("IM_group", filtered_m_z_RT_groups)
+    # ✅ Group by GroupID
+    for group_id, group_df in filtered_m_z_RT_groups.groupby("GroupID"):
+        # ✅ Identify external library matches based on classification
+        group_df["Is_External_Library"] = ~group_df["Classification Type"].isin(
+            ["unmatched", "likely", "tentative"]
+        )
+        source_count = group_df["Is_External_Library"].sum()
+
+        # ✅ Count the number of non-library samples
+        sample_count = len(group_df) - source_count
+
+        # ✅ Ensure there is at least one sample in the group
+        if source_count >= 2 and sample_count >= 1:
+            # ✅ Track consecutive standards
+            consecutive_standards = 0
+            valid_rows = []
+            has_sample = False  # ✅ Track if at least one sample exists
+
+            for _, row in group_df.iterrows():
+                is_standard = row["Match Source"] == library_match_source
+
+                if is_standard:
+                    consecutive_standards += 1
+                else:
+                    consecutive_standards = 0  # Reset counter if we find a sample
+                    has_sample = True  # ✅ Found at least one sample
+
+                # ✅ Allow max 2 consecutive standards before a sample
+                if consecutive_standards <= 2:
+                    valid_rows.append(row)
+
+            # ✅ If at least one sample is present, keep this homologous series
+            if has_sample:
+                valid_groups.append(pd.DataFrame(valid_rows))
+
+    # ✅ Combine all valid groups into a new DataFrame
+    if valid_groups:
+        filtered_m_z_RT_groups_no_external = pd.concat(valid_groups, ignore_index=True)
+    else:
+        filtered_m_z_RT_groups = pd.DataFrame()
+    return filtered_m_z_RT_groups_no_external
 
 
 # ✅ Define color scheme using cmocean
@@ -507,6 +571,13 @@ def main():
     filtered_m_z_RT_groups = add_back_in_sample_intensities(
         stacked_df, filtered_m_z_RT_groups
     )
+    LIBRARY_PATH = get_library_path()
+    library_match_source = os.path.splitext(os.path.basename(LIBRARY_PATH))[0]
+    print("Library Path:", LIBRARY_PATH)
+    filtered_m_z_RT_groups = filter_only_external_or_only_sample_trends(
+        filtered_m_z_RT_groups, library_match_source
+    )
+
     fig = rt_vs_mz_plotly(filtered_m_z_RT_groups)
     fig.show()
 

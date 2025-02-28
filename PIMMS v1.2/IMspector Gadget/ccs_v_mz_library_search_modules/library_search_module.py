@@ -327,7 +327,6 @@ def external_mz_library_matching(IM_group, library_match_source):
         filtered_IM_group = pd.concat(valid_groups, ignore_index=True)
     else:
         filtered_IM_group = pd.DataFrame()
-    print("filtered IM Group from within the library search module", filtered_IM_group)
     return filtered_IM_group
 
 
