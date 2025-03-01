@@ -559,19 +559,24 @@ def rt_vs_mz_plotly(m_z_RT_groups):
 
             hover_texts.append(hover_text)
 
-        # 🔹 **Scatter plot points with hover text and custom markers**
         fig.add_trace(
             go.Scatter(
                 x=mz_values,
                 y=rt_values,
-                mode="markers",
+                mode="markers+text",
                 marker=dict(size=15, color=series_color, symbol=symbols),
-                name=f"RT Group {idx + 1}",
+                name=f"Homologous Series {idx + 1}",
                 legendgroup=legend_group_name,
+                showlegend=False,
+                visible="legendonly",
+                text=[
+                    f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
+                    for _, row in group_df.iterrows()
+                ],
+                textposition="middle left",
+                hovertext=hover_texts,
                 hoverinfo="text",
-                text=hover_texts,
-                visible="legendonly",  # Points are hidden by default
-                showlegend=False,  # ✅ Prevent duplicate legend entry
+                hovertemplate="%{hovertext}<extra></extra>",
             )
         )
 

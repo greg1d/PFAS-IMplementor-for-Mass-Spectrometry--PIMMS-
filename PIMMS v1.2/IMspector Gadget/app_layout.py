@@ -36,10 +36,11 @@ def get_layout():
                 ],
                 className="dropdown-container",
             ),
-            # ✅ Debugging Output
-            html.Div(id="output-text", children="Select a repeating unit above."),
             # ✅ Section: CCS vs. m/z Trend Analysis
-            html.H2("CCS vs. <i>m/z</i> Trend Analysis", className="section-title"),
+            html.H2(
+                ["CCS vs. ", html.I("m/z"), " Feature Analysis (entire sample)"],
+                className="section-title",
+            ),
             dcc.Graph(id="plotly_graph", className="dash-graph"),
             # ✅ Dropdown for Column Removal
             html.Div(
