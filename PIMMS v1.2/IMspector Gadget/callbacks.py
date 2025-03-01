@@ -203,7 +203,7 @@ def register_callbacks(app, adjusted_df):
 
             error_fig3 = go.Figure()
             error_fig3.update_layout(
-                title="RT vs. <i>m/z</i> Graph",
+                title="RT vs. <i>m/z</i>",
                 template="plotly_dark",
                 annotations=[
                     dict(

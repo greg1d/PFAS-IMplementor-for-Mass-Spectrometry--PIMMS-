@@ -69,15 +69,17 @@ def get_layout():
                 ],
                 className="full-width-upload",  # ✅ Ensures Upload Button is centered
             ),
+            # ✅ Separate Centered Title for Library Search Results
+            html.Div(
+                html.H2("Library Search Results", className="centered-title"),
+                className="full-width-title",
+            ),
             # ✅ Side-by-Side Graphs (Library Search & RT vs. m/z)
             html.Div(
                 [
                     # ✅ Library Search Graph
                     html.Div(
                         [
-                            html.H2(
-                                "Library Search Results", className="section-title"
-                            ),
                             dcc.Graph(
                                 id="library_search_graph",
                                 className="dash-graph",
@@ -88,9 +90,6 @@ def get_layout():
                     # ✅ RT vs. m/z Graph (Now properly aligned)
                     html.Div(
                         [
-                            html.H2(
-                                "RT vs. m/z Trend Analysis", className="section-title"
-                            ),
                             dcc.Graph(
                                 id="rt_vs_mz_graph",
                                 className="dash-graph",

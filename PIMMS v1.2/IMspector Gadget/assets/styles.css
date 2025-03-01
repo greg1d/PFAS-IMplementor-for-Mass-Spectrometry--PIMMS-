@@ -206,3 +206,20 @@ button:hover {
     flex-direction: column;
     /* ✅ Ensures children expand properly */
 }
+
+.full-width-title {
+    display: flex;
+    justify-content: center;
+    /* ✅ Centers horizontally */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+    /* ✅ Adds spacing before the graphs */
+}
+
+.centered-title {
+    font-size: 24px;
+    /* ✅ Adjust font size if needed */
+    font-weight: bold;
+    text-align: center;
+}
