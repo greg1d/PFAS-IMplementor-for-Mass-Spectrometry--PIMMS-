@@ -170,9 +170,11 @@ button:hover {
     /* ✅ Center vertically */
     width: 100vw;
     /* ✅ Full viewport width */
-    height: 15vh;
+    height: auto;
     /* ✅ Ensures spacing */
-    margin-bottom: 20px;
+    margin-top: 0px;
+    /* ✅ Eliminates additional space above the upload button */
+    margin-bottom: 5px;
     /* ✅ Adds space between upload button and graphs */
 }
 
@@ -212,7 +214,7 @@ button:hover {
     /* ✅ Centers horizontally */
     align-items: center;
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: -5px;
     /* ✅ Adds spacing before the graphs */
 }
 

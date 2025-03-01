@@ -439,7 +439,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
         fig.update_layout(
             title="RT vs. m/z (No Significant Groups Found)",
             xaxis=dict(title=r"<b><i>m/z</i></b>"),
-            yaxis=dict(title="<b>RT (Retention Time)</b>"),
+            yaxis=dict(title="<b>Retention Time (min)</b>"),
             template="plotly_dark",
         )
         return fig
@@ -579,7 +579,7 @@ def rt_vs_mz_plotly(m_z_RT_groups):
     fig.update_layout(
         title="RT vs. m/z Trend Analysis",
         xaxis=dict(title=r"<b><i>m/z</i></b>"),
-        yaxis=dict(title="<b>RT (Retention Time)</b>"),
+        yaxis=dict(title="<b>Retention Time (min)</b>"),
         template="plotly_dark",
     )
 

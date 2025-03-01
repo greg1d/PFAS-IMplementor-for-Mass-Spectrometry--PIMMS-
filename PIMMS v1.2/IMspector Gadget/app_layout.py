@@ -39,7 +39,7 @@ def get_layout():
             # ✅ Debugging Output
             html.Div(id="output-text", children="Select a repeating unit above."),
             # ✅ Section: CCS vs. m/z Trend Analysis
-            html.H2("CCS vs. m/z Trend Analysis", className="section-title"),
+            html.H2("CCS vs. <i>m/z</i> Trend Analysis", className="section-title"),
             dcc.Graph(id="plotly_graph", className="dash-graph"),
             # ✅ Dropdown for Column Removal
             html.Div(
@@ -57,7 +57,7 @@ def get_layout():
             ),
             # ✅ Library Search Results Title (Now ABOVE the upload button)
             html.Div(
-                html.H2("Library Search Results", className="centered-title"),
+                html.H2("Comparison to External Libraries", className="centered-title"),
                 className="full-width-title",
             ),
             # ✅ Upload Button is now **RIGHT BELOW** the title
