@@ -182,7 +182,6 @@ button:hover {
     max-width: 800px;
     /* ✅ Limits max width */
     text-align: center;
-    padding: 20px;
     background-color: #222;
     /* ✅ Dark background */
     border-radius: 10px;

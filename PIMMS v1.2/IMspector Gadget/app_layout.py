@@ -55,7 +55,12 @@ def get_layout():
                 ],
                 className="dropdown-container",
             ),
-            # ✅ Centered Upload Button (Full Width)
+            # ✅ Library Search Results Title (Now ABOVE the upload button)
+            html.Div(
+                html.H2("Library Search Results", className="centered-title"),
+                className="full-width-title",
+            ),
+            # ✅ Upload Button is now **RIGHT BELOW** the title
             html.Div(
                 [
                     dcc.Upload(
@@ -68,11 +73,6 @@ def get_layout():
                     )
                 ],
                 className="full-width-upload",  # ✅ Ensures Upload Button is centered
-            ),
-            # ✅ Separate Centered Title for Library Search Results
-            html.Div(
-                html.H2("Library Search Results", className="centered-title"),
-                className="full-width-title",
             ),
             # ✅ Side-by-Side Graphs (Library Search & RT vs. m/z)
             html.Div(
@@ -87,7 +87,7 @@ def get_layout():
                         ],
                         className="half-width-graph",
                     ),
-                    # ✅ RT vs. m/z Graph (Now properly aligned)
+                    # ✅ RT vs. m/z Graph
                     html.Div(
                         [
                             dcc.Graph(
