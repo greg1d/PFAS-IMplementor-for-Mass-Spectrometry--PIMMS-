@@ -3,7 +3,7 @@ import pandas as pd
 
 def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=None):
     """
-    Identifies neutral loss trends by checking different neutral loss units.
+    Identifies neutral loss trends and allows multiple neutral losses per group.
     Labels the highest m/z point as "M" and subsequent points as "M-neutral loss".
 
     Args:
@@ -14,13 +14,11 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
     Returns:
         pd.DataFrame: DataFrame containing identified neutral loss groups.
     """
-    # Sort data by m/z for efficient searching
     adjusted_df = adjusted_df.sort_values(by="m/z", ascending=False).reset_index(
         drop=True
     )
     neutral_loss_groups = []
 
-    # Ensure required columns exist
     required_columns = {
         "m/z",
         "RT",
@@ -36,29 +34,19 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
             f"CSV file must contain the following columns: {required_columns}"
         )
 
-    # Define default neutral loss units if not provided
     if neutral_loss_units is None:
-        neutral_loss_units = {
-            "SO3": 79.956817,
-            "CO2": 43.98983,
-        }
+        neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
 
-    print(f"[DEBUG] Selected neutral loss units: {neutral_loss_units}")
-
-    # Initialize tracking variables
     group_counter = 0
-    iteration_count = 0
     processed_indices = set()
 
     for i in range(len(adjusted_df)):
-        iteration_count += 1
         if i in processed_indices:
             continue
 
         mz_value = adjusted_df.at[i, "m/z"]
-        group_counter += 1  # Assign new unique GroupID
+        group_counter += 1
 
-        # Initialize the group with the highest m/z value, labeled as "M"
         current_group = [
             {
                 "GroupID": group_counter,
@@ -70,45 +58,48 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                 "Classification Type": adjusted_df.at[i, "Classification Type"],
                 "Match Source": adjusted_df.at[i, "Match Source"],
                 "Match": adjusted_df.at[i, "Match"],
-                "Neutral Loss": "M",  # Label highest point as "M"
+                "Neutral Loss": "M",
             }
         ]
         processed_indices.add(i)
 
-        # Start search queue
         search_queue = [i]
 
         while search_queue:
             current_idx = search_queue.pop(0)
             current_mz = adjusted_df.at[current_idx, "m/z"]
 
-            for j in range(current_idx + 1, len(adjusted_df)):
-                iteration_count += 1
-                if j in processed_indices:
+            for j in range(
+                len(adjusted_df)
+            ):  # Compare ALL peaks, including those already added
+                if j == current_idx or j in processed_indices:
                     continue
 
                 next_mz_value = adjusted_df.at[j, "m/z"]
                 mass_diff = abs(current_mz - next_mz_value)
                 ppm_tolerance = (mass_error_ppm / 1e6) * (current_mz + next_mz_value)
 
+                print(f"[DEBUG] Comparing {current_mz:.6f} to {next_mz_value:.6f}")
                 print(
-                    f"[DEBUG] current_mz: {current_mz}, next_mz_value: {next_mz_value}"
+                    f"[DEBUG] Mass diff: {mass_diff:.6f}, PPM tolerance: {ppm_tolerance:.6f}"
                 )
-                print(f"[DEBUG] mass_diff: {mass_diff}, ppm_tolerance: {ppm_tolerance}")
 
-                # Check if any neutral loss unit satisfies the tolerance
-                matching_unit = None
+                neutral_loss_labels = []  # Track multiple matches
+
                 for unit_name, M in neutral_loss_units.items():
                     mass_separation = abs(mass_diff - M)
                     if mass_separation <= ppm_tolerance:
-                        matching_unit = f"M-{unit_name}"  # Label as M-neutral loss
-                        break  # Exit loop early if a match is found
+                        neutral_loss_labels.append(
+                            f"M-{unit_name}"
+                        )  # Store all matches
 
-                if matching_unit:
-                    print(f"[INFO] Match found for {matching_unit} at {next_mz_value}")
+                if neutral_loss_labels:  # If multiple matches exist
+                    print(
+                        f"[INFO] Multiple neutral losses found at {next_mz_value}: {neutral_loss_labels}"
+                    )
                     current_group.append(
                         {
-                            "GroupID": group_counter,  # Keep same Group ID
+                            "GroupID": group_counter,
                             "m/z": next_mz_value,
                             "RT": adjusted_df.at[j, "RT"],
                             "DT": adjusted_df.at[j, "DT"],
@@ -119,19 +110,17 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                             ],
                             "Match Source": adjusted_df.at[j, "Match Source"],
                             "Match": adjusted_df.at[j, "Match"],
-                            "Neutral Loss": matching_unit,  # Assign "M-neutral loss"
+                            "Neutral Loss": ", ".join(
+                                neutral_loss_labels
+                            ),  # Store multiple neutral losses
                         }
                     )
                     processed_indices.add(j)
-                    search_queue.append(j)
+                    search_queue.append(j)  # Continue checking the new match
 
-        # Ensure that we store the group if matches were found
         if len(current_group) > 1:
             neutral_loss_groups.extend(current_group)
 
-    print(
-        f"[INFO] Neutral loss analysis completed. Found {len(neutral_loss_groups)} entries."
-    )
     return pd.DataFrame(neutral_loss_groups)
 
 
@@ -162,7 +151,6 @@ def filter_neutral_loss_groups(
 
         dt_range = (group["DT"].max() - group["DT"].min()) / group["DT"].min()
         rt_range = group["RT"].max() - group["RT"].min()
-        print(f"[DEBUG] Group {group_id} - DT Range: {dt_range}, RT Range: {rt_range}")
         dt_exceeds = dt_range > dt_threshold
         rt_exceeds = rt_range > rt_threshold
 
@@ -202,7 +190,6 @@ def main():
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
-    print("[INFO] Initial neutral loss groups:\n", neutral_loss_groups)
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
