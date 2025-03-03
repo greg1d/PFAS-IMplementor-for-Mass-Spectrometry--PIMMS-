@@ -166,23 +166,21 @@ def filter_neutral_loss_groups(
         dt_exceeds = dt_range > dt_threshold
         rt_exceeds = rt_range > rt_threshold
 
-        # Apply comparison type
-        if comparison_type == "both" and (dt_exceeds and rt_exceeds):
-            continue  # Exclude entire group
-        elif comparison_type == "either" and (dt_exceeds or rt_exceeds):
-            continue  # Exclude if both exceed
-        elif comparison_type == "DT" and dt_exceeds:
-            continue  # Exclude if DT exceeds
-        elif comparison_type == "RT" and rt_exceeds:
-            continue  # Exclude if RT exceeds
+        # Apply correct logic based on `comparison_type`
+        if comparison_type == "both":
+            if dt_exceeds or rt_exceeds:
+                continue  # Remove entire group
+        elif comparison_type == "either":
+            if dt_exceeds and rt_exceeds:
+                continue  # Remove only if both exceed
+        elif comparison_type == "DT":
+            if dt_exceeds:
+                continue  # Only DT matters
+        elif comparison_type == "RT":
+            if rt_exceeds:
+                continue  # Only RT matters
         elif comparison_type == "none":
             pass  # Keep everything
-
-        if dt_exceeds or rt_exceeds:
-            print(
-                f"[INFO] Excluding Group {group_id} due to DT or RT range exceeding threshold."
-            )
-            continue  # Exclude this group completely
 
         filtered_groups.append(group)
 
@@ -211,7 +209,7 @@ def main():
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
-        neutral_loss_groups, dt_threshold=0.5, rt_threshold=2, comparison_type="RT"
+        neutral_loss_groups, dt_threshold=0.0, rt_threshold=2, comparison_type="RT"
     )
     print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
 
