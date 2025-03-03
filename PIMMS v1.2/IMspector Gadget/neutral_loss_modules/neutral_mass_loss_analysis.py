@@ -177,7 +177,7 @@ def filter_neutral_loss_groups(
 
 def main():
     # Example usage
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
 
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
