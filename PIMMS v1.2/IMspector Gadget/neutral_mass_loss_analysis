@@ -4,7 +4,7 @@ import pandas as pd
 def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=None):
     """
     Identifies neutral loss trends by checking different neutral loss units.
-    Ensures unique groups based on ID values while allowing a single peak to appear in multiple homologous series.
+    Labels the highest m/z point as "M" and subsequent points as "M-neutral loss".
 
     Args:
         adjusted_df (pd.DataFrame): Input dataset with m/z values.
@@ -15,7 +15,9 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
         pd.DataFrame: DataFrame containing identified neutral loss groups.
     """
     # Sort data by m/z for efficient searching
-    adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
+    adjusted_df = adjusted_df.sort_values(by="m/z", ascending=False).reset_index(
+        drop=True
+    )
     neutral_loss_groups = []
 
     # Ensure required columns exist
@@ -56,6 +58,7 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
         mz_value = adjusted_df.at[i, "m/z"]
         group_counter += 1  # Assign new unique GroupID
 
+        # Initialize the group with the highest m/z value, labeled as "M"
         current_group = [
             {
                 "GroupID": group_counter,
@@ -67,7 +70,7 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                 "Classification Type": adjusted_df.at[i, "Classification Type"],
                 "Match Source": adjusted_df.at[i, "Match Source"],
                 "Match": adjusted_df.at[i, "Match"],
-                "Neutral Loss": "None",
+                "Neutral Loss": "M",  # Label highest point as "M"
             }
         ]
         processed_indices.add(i)
@@ -98,7 +101,7 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                 for unit_name, M in neutral_loss_units.items():
                     mass_separation = abs(mass_diff - M)
                     if mass_separation <= ppm_tolerance:
-                        matching_unit = unit_name
+                        matching_unit = f"M-{unit_name}"  # Label as M-neutral loss
                         break  # Exit loop early if a match is found
 
                 if matching_unit:
@@ -116,7 +119,7 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                             ],
                             "Match Source": adjusted_df.at[j, "Match Source"],
                             "Match": adjusted_df.at[j, "Match"],
-                            "Neutral Loss": matching_unit,  # Assign the matched unit
+                            "Neutral Loss": matching_unit,  # Assign "M-neutral loss"
                         }
                     )
                     processed_indices.add(j)
@@ -142,9 +145,6 @@ def main():
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
     print(neutral_loss_groups)
-
-    # Uncomment to save results
-    # neutral_loss_groups.to_csv("neutral_loss_results.csv", index=False)
 
 
 if __name__ == "__main__":
