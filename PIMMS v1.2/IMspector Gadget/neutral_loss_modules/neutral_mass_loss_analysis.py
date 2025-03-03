@@ -149,7 +149,7 @@ def filter_neutral_loss_groups(
     Returns:
         pd.DataFrame: Filtered DataFrame with unwanted groups removed.
     """
-    valid_types = {"both", "either", "DT", "RT", "none"}
+    valid_types = {"both", "DT", "RT", "none"}
     if comparison_type not in valid_types:
         raise ValueError(f"comparison_type must be one of {valid_types}")
 
@@ -170,9 +170,6 @@ def filter_neutral_loss_groups(
         if comparison_type == "both":
             if dt_exceeds or rt_exceeds:
                 continue  # Remove entire group
-        elif comparison_type == "either":
-            if dt_exceeds and rt_exceeds:
-                continue  # Remove only if both exceed
         elif comparison_type == "DT":
             if dt_exceeds:
                 continue  # Only DT matters
@@ -209,7 +206,7 @@ def main():
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
-        neutral_loss_groups, dt_threshold=0.0, rt_threshold=2, comparison_type="RT"
+        neutral_loss_groups, dt_threshold=0.1, rt_threshold=2, comparison_type="both"
     )
     print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
 
