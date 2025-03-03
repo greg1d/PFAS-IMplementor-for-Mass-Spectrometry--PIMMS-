@@ -135,16 +135,87 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
     return pd.DataFrame(neutral_loss_groups)
 
 
+def filter_neutral_loss_groups(
+    neutral_loss_df, dt_threshold=0.05, rt_threshold=1.0, comparison_type="both"
+):
+    """
+    Filters neutral loss groups based on user-defined DT and RT thresholds.
+
+    Args:
+        neutral_loss_df (pd.DataFrame): DataFrame containing neutral loss groups.
+        dt_threshold (float): DT difference threshold as a percentage (e.g., 0.05 for 5%).
+        rt_threshold (float): RT difference threshold in minutes.
+        comparison_type (str): 'both', 'either', 'DT', 'RT', or 'none'.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame with unwanted groups removed.
+    """
+    valid_types = {"both", "either", "DT", "RT", "none"}
+    if comparison_type not in valid_types:
+        raise ValueError(f"comparison_type must be one of {valid_types}")
+
+    filtered_groups = []
+
+    unique_groups = neutral_loss_df["GroupID"].unique()
+
+    for group_id in unique_groups:
+        group = neutral_loss_df[neutral_loss_df["GroupID"] == group_id].copy()
+
+        # Get reference values (first row is 'M')
+        reference_dt = group.iloc[0]["DT"]
+        reference_rt = group.iloc[0]["RT"]
+
+        # Compute DT and RT conditions for all members
+        group["DT_Diff"] = abs(group["DT"] - reference_dt) / reference_dt
+        group["RT_Diff"] = abs(group["RT"] - reference_rt)
+
+        dt_condition = group["DT_Diff"] <= dt_threshold
+        rt_condition = group["RT_Diff"] <= rt_threshold
+
+        if comparison_type == "both":
+            valid_group = dt_condition & rt_condition
+        elif comparison_type == "either":
+            valid_group = dt_condition | rt_condition
+        elif comparison_type == "DT":
+            valid_group = dt_condition
+        elif comparison_type == "RT":
+            valid_group = rt_condition
+        elif comparison_type == "none":
+            valid_group = True  # Include everything
+
+        if valid_group.any():
+            filtered_groups.append(group[valid_group])
+
+    final_df = (
+        pd.concat(filtered_groups, ignore_index=True)
+        if filtered_groups
+        else pd.DataFrame()
+    )
+
+    print(
+        f"[INFO] Filtering complete. Retained {len(final_df)} entries after applying {comparison_type} filter."
+    )
+    return final_df
+
+
 def main():
     # Example usage
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
 
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
+
+    # Step 1: Identify neutral loss groups (without filtering)
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
-    print(neutral_loss_groups)
+    print("[INFO] Initial neutral loss groups:\n", neutral_loss_groups)
+
+    # Step 2: Apply filtering based on user-defined DT and RT thresholds
+    filtered_neutral_loss = filter_neutral_loss_groups(
+        neutral_loss_groups, dt_threshold=0.5, rt_threshold=5.0, comparison_type="both"
+    )
+    print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
 
 
 if __name__ == "__main__":
