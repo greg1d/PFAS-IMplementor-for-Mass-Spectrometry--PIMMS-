@@ -11,6 +11,23 @@ from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
 )
 
 
+def drift_time_tolerance_calculation(
+    DT, IM_resolving_power=60, IM_tolerance_coefficent=3
+):
+    """
+    Calculates the drift time tolerance based on the IM resolving power.
+
+    Args:
+        dt (float): Drift time value.
+        IM_resolving_power (int): IM resolving power (default: 60).
+
+    Returns:
+        float: Drift time tolerance.
+    """
+    dt_threshold = (DT / IM_resolving_power) * IM_tolerance_coefficent
+    return dt_threshold
+
+
 def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=None):
     """
     Identifies neutral loss trends and allows multiple neutral losses per group.
@@ -127,7 +144,11 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
 
 
 def filter_neutral_loss_groups(
-    neutral_loss_df, dt_threshold=0.05, rt_threshold=1.0, comparison_type="both"
+    neutral_loss_df,
+    IM_resolving_power=60,
+    IM_tolerance_coefficient=3,
+    rt_threshold=1.0,
+    comparison_type="both",
 ):
     """
     Filters neutral loss groups based on DT and RT range constraints.
@@ -157,6 +178,9 @@ def filter_neutral_loss_groups(
 
         dt_range = (group["DT"].max() - group["DT"].min()) / group["DT"].min()
         rt_range = group["RT"].max() - group["RT"].min()
+        median_dt = group["DT"].median()
+        dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+        print(dt_threshold)
         dt_exceeds = dt_range > dt_threshold
         rt_exceeds = rt_range > rt_threshold
 
@@ -202,7 +226,11 @@ def main():
     )
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
-        neutral_loss_groups, dt_threshold=0.1, rt_threshold=1, comparison_type="both"
+        neutral_loss_groups,
+        IM_resolving_power=60,
+        IM_tolerance_coefficient=3,
+        rt_threshold=1.0,
+        comparison_type="both",
     )
 
 
