@@ -228,6 +228,125 @@ def filter_neutral_loss_groups(
     return filtered_df, messy_df
 
 
+def refine_messy_groups(
+    messy_df,
+    rt_threshold=1.0,
+    comparison_type="both",
+    IM_resolving_power=60,
+    IM_tolerance_coefficient=3,
+):
+    """
+    Iteratively refines messy groups by removing the point with the greatest absolute difference
+    from the median DT (if DT is selected) or the median RT (if RT is selected) until a valid group is formed.
+
+    Args:
+        messy_df (pd.DataFrame): DataFrame containing messy groups.
+        rt_threshold (float): RT range threshold.
+        comparison_type (str): 'both', 'either', 'DT', 'RT', or 'none'.
+        IM_resolving_power (int): IM resolving power (default: 60).
+        IM_tolerance_coefficient (int): Scaling coefficient for tolerance (default: 3).
+
+    Returns:
+        pd.DataFrame: Refined DataFrame with valid groups.
+    """
+
+    if messy_df.empty:
+        print("[WARNING] No messy groups found. Returning empty DataFrame.")
+        return messy_df
+
+    refined_groups = []
+    unique_groups = messy_df["GroupID"].unique()
+
+    for group_id in unique_groups:
+        group = messy_df[messy_df["GroupID"] == group_id].copy()
+
+        while len(group) > 2:
+            # ✅ Compute **dynamic** DT threshold using median DT of this group
+            median_dt = group["DT"].median()
+            dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+
+            # ✅ Compute median RT for this group
+            median_rt = group["RT"].median()
+
+            # ✅ Compute DT and RT range
+            dt_range = group["DT"].max() - group["DT"].min()
+            rt_range = group["RT"].max() - group["RT"].min()
+
+            # ✅ Apply dynamic threshold logic
+            dt_exceeds = dt_range > dt_threshold
+            rt_exceeds = rt_range > rt_threshold
+
+            # ✅ If group now meets filtering criteria, keep it
+            if (
+                (comparison_type == "both" and not (dt_exceeds or rt_exceeds))
+                or (comparison_type == "either" and not (dt_exceeds and rt_exceeds))
+                or (comparison_type == "DT" and not dt_exceeds)
+                or (comparison_type == "RT" and not rt_exceeds)
+            ):
+                refined_groups.append(group)
+                break
+
+            # ✅ Identify the worst outlier based on selected comparison type
+            if comparison_type == "DT":
+                # Remove point with the **largest absolute difference from median DT**
+                group["DT_Diff"] = abs(group["DT"] - median_dt)
+                worst_outlier = group.loc[group["DT_Diff"].idxmax()]
+                group.drop(columns=["DT_Diff"], inplace=True, errors="ignore")
+
+            elif comparison_type == "RT":
+                # Remove point with the **largest absolute difference from median RT**
+                group["RT_Diff"] = abs(group["RT"] - median_rt)
+                worst_outlier = group.loc[group["RT_Diff"].idxmax()]
+                group.drop(columns=["RT_Diff"], inplace=True, errors="ignore")
+
+            elif comparison_type == "both":
+                # Remove point with the **largest combined DT & RT deviation**
+                group["DT_Diff"] = abs(group["DT"] - median_dt)
+                group["RT_Diff"] = abs(group["RT"] - median_rt)
+                worst_outlier = group.loc[
+                    group[["DT_Diff", "RT_Diff"]].sum(axis=1).idxmax()
+                ]
+                group.drop(
+                    columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
+                )
+
+            elif comparison_type == "either":
+                # Remove point with the **worst DT or RT difference (whichever is greater)**
+                group["DT_Diff"] = abs(group["DT"] - median_dt)
+                group["RT_Diff"] = abs(group["RT"] - median_rt)
+                worst_outlier = group.loc[
+                    group[["DT_Diff", "RT_Diff"]].max(axis=1).idxmax()
+                ]
+                group.drop(
+                    columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
+                )
+
+            else:
+                print(
+                    f"[WARNING] Invalid comparison_type '{comparison_type}'. Keeping group as is."
+                )
+                refined_groups.append(group)
+                break
+
+            # ✅ Remove the worst outlier from the group
+            group = group.drop(worst_outlier.name)
+
+        # ✅ If after all removals, no valid group remains, discard it
+        if len(group) < 2:
+            continue
+
+    final_refined_df = (
+        pd.concat(refined_groups, ignore_index=True)
+        if refined_groups
+        else pd.DataFrame()
+    )
+
+    if final_refined_df.empty:
+        print("[WARNING] No valid groups remained after refinement.")
+
+    return final_refined_df
+
+
 def main():
     # Example usage
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
@@ -244,13 +363,22 @@ def main():
         neutral_loss_groups,
     )
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
-    filtered_neutral_loss = filter_neutral_loss_groups(
+    filtered_neutral_loss, messy_df = filter_neutral_loss_groups(
         neutral_loss_groups,
         IM_resolving_power=60,
         IM_tolerance_coefficient=1,
         rt_threshold=1.0,
         comparison_type="both",
     )
+
+    post_extended_refinement = refine_messy_groups(
+        messy_df,
+        rt_threshold=1.0,
+        comparison_type="both",
+        IM_resolving_power=60,
+        IM_tolerance_coefficient=3,
+    )
+    print(post_extended_refinement)
 
 
 if __name__ == "__main__":
