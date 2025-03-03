@@ -150,7 +150,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
 
 def main():
     # Example usage
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
 
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
@@ -165,7 +165,11 @@ def main():
     )
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
-        neutral_loss_groups, dt_threshold=0.1, rt_threshold=1, comparison_type="both"
+        neutral_loss_groups,
+        IM_resolving_power=60,
+        IM_tolerance_coefficient=5,
+        rt_threshold=1.0,
+        comparison_type="both",
     )
 
     fig = dt_vs_mz_plotly(filtered_neutral_loss)

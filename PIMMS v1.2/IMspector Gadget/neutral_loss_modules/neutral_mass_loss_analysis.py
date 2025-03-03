@@ -169,6 +169,7 @@ def filter_neutral_loss_groups(
     if comparison_type not in valid_types:
         raise ValueError(f"comparison_type must be one of {valid_types}")
 
+    messy_groups = []
     filtered_groups = []
 
     unique_groups = neutral_loss_df["GroupID"].unique()
@@ -180,33 +181,51 @@ def filter_neutral_loss_groups(
         rt_range = group["RT"].max() - group["RT"].min()
         median_dt = group["DT"].median()
         dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
-        print(dt_threshold)
         dt_exceeds = dt_range > dt_threshold
         rt_exceeds = rt_range > rt_threshold
 
         # Apply correct logic based on `comparison_type`
-        if comparison_type == "both":
-            if dt_exceeds or rt_exceeds:
-                continue  # Remove entire group
-        elif comparison_type == "DT":
-            if dt_exceeds:
-                continue  # Only DT matters
-        elif comparison_type == "RT":
-            if rt_exceeds:
+        if comparison_type == "both" and (dt_exceeds or rt_exceeds):
+            if len(group) > 2:
+                messy_groups.append(group)  # ✅ Mark as a "Messy Group"
+                continue
+            else:
+                continue  # Remove small groups that fail criteria
+
+        elif comparison_type == "either" and (dt_exceeds and rt_exceeds):
+            if len(group) > 2:
+                messy_groups.append(group)
+                continue
+            else:
+                continue
+        elif comparison_type == "RT" and rt_exceeds:
+            if len(group) > 2:
+                messy_groups.append(group)
+                continue
+            else:
                 continue  # Only RT matters
+        elif comparison_type == "DT" and dt_exceeds:
+            if len(group) > 2:
+                messy_groups.append(group)
+                continue
+            else:
+                continue
         elif comparison_type == "none":
             pass  # Keep everything
 
         filtered_groups.append(group)
 
-    final_df = (
+    filtered_df = (
         pd.concat(filtered_groups, ignore_index=True)
         if filtered_groups
         else pd.DataFrame()
     )
-
-    print(f"[INFO] Filtering complete. Retained {len(final_df)} entries.")
-    return final_df
+    print("[INFO] Filtered neutral loss groups:\n", filtered_df)
+    messy_df = (
+        pd.concat(messy_groups, ignore_index=True) if messy_groups else pd.DataFrame()
+    )
+    print("[INFO] Messy neutral loss groups:\n", messy_df)
+    return filtered_df, messy_df
 
 
 def main():
@@ -228,7 +247,7 @@ def main():
     filtered_neutral_loss = filter_neutral_loss_groups(
         neutral_loss_groups,
         IM_resolving_power=60,
-        IM_tolerance_coefficient=3,
+        IM_tolerance_coefficient=1,
         rt_threshold=1.0,
         comparison_type="both",
     )
