@@ -78,12 +78,6 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                 next_mz_value = adjusted_df.at[j, "m/z"]
                 mass_diff = abs(current_mz - next_mz_value)
                 ppm_tolerance = (mass_error_ppm / 1e6) * (current_mz + next_mz_value)
-
-                print(f"[DEBUG] Comparing {current_mz:.6f} to {next_mz_value:.6f}")
-                print(
-                    f"[DEBUG] Mass diff: {mass_diff:.6f}, PPM tolerance: {ppm_tolerance:.6f}"
-                )
-
                 neutral_loss_labels = []  # Track multiple matches
 
                 for unit_name, M in neutral_loss_units.items():
@@ -94,9 +88,6 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                         )  # Store all matches
 
                 if neutral_loss_labels:  # If multiple matches exist
-                    print(
-                        f"[INFO] Multiple neutral losses found at {next_mz_value}: {neutral_loss_labels}"
-                    )
                     current_group.append(
                         {
                             "GroupID": group_counter,
@@ -120,8 +111,9 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
 
         if len(current_group) > 1:
             neutral_loss_groups.extend(current_group)
+    result_df = pd.DataFrame(neutral_loss_groups)
 
-    return pd.DataFrame(neutral_loss_groups)
+    return result_df
 
 
 def filter_neutral_loss_groups(
@@ -138,6 +130,10 @@ def filter_neutral_loss_groups(
     Returns:
         pd.DataFrame: Filtered DataFrame with unwanted groups removed.
     """
+    if neutral_loss_df.empty:
+        print("[WARNING] No neutral loss groups to filter. Skipping processing.")
+        return neutral_loss_df  # Return empty DataFrame to prevent further errors.
+
     valid_types = {"both", "DT", "RT", "none"}
     if comparison_type not in valid_types:
         raise ValueError(f"comparison_type must be one of {valid_types}")
@@ -181,7 +177,7 @@ def filter_neutral_loss_groups(
 
 def main():
     # Example usage
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
 
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
@@ -193,7 +189,7 @@ def main():
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
-        neutral_loss_groups, dt_threshold=0.1, rt_threshold=2, comparison_type="both"
+        neutral_loss_groups, dt_threshold=0.1, rt_threshold=1, comparison_type="both"
     )
     print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
 
