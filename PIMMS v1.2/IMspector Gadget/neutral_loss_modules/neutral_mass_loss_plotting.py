@@ -1,6 +1,7 @@
 import os
 import sys
 
+import cmocean
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -9,9 +10,15 @@ from neutral_mass_loss_analysis import (
     neutral_loss_analysis,
 )
 
+# Define color palette
+NUM_SERIES = 10
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
+
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
+import cmocean
+import numpy as np
 from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
     add_back_in_sample_intensities,
 )
@@ -21,7 +28,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
     """
     Generates an interactive Plotly graph for DT vs. m/z analysis.
 
-    - **Each homologous series is visually distinct using color.**
+    - **Each homologous series is visually distinct using the cmocean 'phase' colormap.**
     - **No trendline analysis is performed.**
     - **All data points within the same group share the same color.**
     - **Sample intensities are included in hover text.**
@@ -53,16 +60,18 @@ def dt_vs_mz_plotly(m_z_DT_groups):
     unique_groups = m_z_DT_groups["GroupID"].unique()
     num_groups = len(unique_groups)
 
-    # Generate a unique color for each group
+    # ✅ Assign colors from the cmocean "phase" colormap
     colors = [
-        f"rgb({np.random.randint(0, 255)}, {np.random.randint(0, 255)}, {np.random.randint(0, 255)})"
-        for _ in range(num_groups)
+        f"rgb({int(HOMOLOGOUS_SERIES_COLORS[i % NUM_SERIES][0] * 255)}, "
+        f"{int(HOMOLOGOUS_SERIES_COLORS[i % NUM_SERIES][1] * 255)}, "
+        f"{int(HOMOLOGOUS_SERIES_COLORS[i % NUM_SERIES][2] * 255)})"
+        for i in range(num_groups)
     ]
 
     for idx, (group_id, group_df) in enumerate(m_z_DT_groups.groupby("GroupID")):
         mz_values = group_df["m/z"].values
         dt_values = group_df["DT"].values
-        series_color = colors[idx % num_groups]  # Assign consistent color per group
+        series_color = colors[idx % NUM_SERIES]  # Assign consistent color per group
 
         # ✅ Prepare hover metadata
         hover_texts = []
