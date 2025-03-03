@@ -1,4 +1,14 @@
+import os
+import sys
+
 import pandas as pd
+
+# ✅ Ensure Python Can Find Modules
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(base_dir)
+from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
+    add_back_in_sample_intensities,
+)
 
 
 def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=None):
@@ -186,12 +196,15 @@ def main():
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
-
+    neutral_loss_groups = add_back_in_sample_intensities(
+        adjusted_df,
+        neutral_loss_groups,
+    )
+    print("[INFO] Neutral loss groups:\n", neutral_loss_groups)
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
         neutral_loss_groups, dt_threshold=0.1, rt_threshold=1, comparison_type="both"
     )
-    print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
 
 
 if __name__ == "__main__":
