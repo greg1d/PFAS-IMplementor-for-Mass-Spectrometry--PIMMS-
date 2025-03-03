@@ -200,7 +200,6 @@ def main():
         adjusted_df,
         neutral_loss_groups,
     )
-    print("[INFO] Neutral loss groups:\n", neutral_loss_groups)
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
         neutral_loss_groups, dt_threshold=0.1, rt_threshold=1, comparison_type="both"

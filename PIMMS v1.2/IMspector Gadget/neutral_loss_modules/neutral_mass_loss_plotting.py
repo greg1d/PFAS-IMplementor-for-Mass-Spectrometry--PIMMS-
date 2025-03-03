@@ -1,10 +1,20 @@
-import pandas as pd
-from neutral_mass_loss_analysis import (
-    neutral_loss_analysis,
-    filter_neutral_loss_groups,
-)
-import plotly.graph_objects as go
+import os
+import sys
+
 import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from neutral_mass_loss_analysis import (
+    filter_neutral_loss_groups,
+    neutral_loss_analysis,
+)
+
+# ✅ Ensure Python Can Find Modules
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(base_dir)
+from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
+    add_back_in_sample_intensities,
+)
 
 
 def dt_vs_mz_plotly(m_z_DT_groups):
@@ -121,11 +131,15 @@ def main():
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
-
+    neutral_loss_groups = add_back_in_sample_intensities(
+        adjusted_df,
+        neutral_loss_groups,
+    )
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
         neutral_loss_groups, dt_threshold=0.1, rt_threshold=1, comparison_type="both"
     )
+
     fig = dt_vs_mz_plotly(filtered_neutral_loss)
     fig.show()
     print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
