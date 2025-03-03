@@ -220,11 +220,9 @@ def filter_neutral_loss_groups(
         if filtered_groups
         else pd.DataFrame()
     )
-    print("[INFO] Filtered neutral loss groups:\n", filtered_df)
     messy_df = (
         pd.concat(messy_groups, ignore_index=True) if messy_groups else pd.DataFrame()
     )
-    print("[INFO] Messy neutral loss groups:\n", messy_df)
     return filtered_df, messy_df
 
 
