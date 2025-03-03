@@ -139,13 +139,12 @@ def filter_neutral_loss_groups(
     neutral_loss_df, dt_threshold=0.05, rt_threshold=1.0, comparison_type="both"
 ):
     """
-    Filters neutral loss groups based on user-defined DT and RT thresholds.
+    Filters neutral loss groups based on DT and RT range constraints.
 
     Args:
         neutral_loss_df (pd.DataFrame): DataFrame containing neutral loss groups.
-        dt_threshold (float): DT difference threshold as a percentage (e.g., 0.05 for 5%).
-        rt_threshold (float): RT difference threshold in minutes.
-        comparison_type (str): 'both', 'either', 'DT', 'RT', or 'none'.
+        dt_threshold (float): DT range threshold as a percentage (e.g., 0.05 for 5%).
+        rt_threshold (float): RT range threshold in minutes.
 
     Returns:
         pd.DataFrame: Filtered DataFrame with unwanted groups removed.
@@ -161,30 +160,31 @@ def filter_neutral_loss_groups(
     for group_id in unique_groups:
         group = neutral_loss_df[neutral_loss_df["GroupID"] == group_id].copy()
 
-        # Get reference values (first row is 'M')
-        reference_dt = group.iloc[0]["DT"]
-        reference_rt = group.iloc[0]["RT"]
+        dt_range = (group["DT"].max() - group["DT"].min()) / group["DT"].min()
+        rt_range = group["RT"].max() - group["RT"].min()
+        print(f"[DEBUG] Group {group_id} - DT Range: {dt_range}, RT Range: {rt_range}")
+        dt_exceeds = dt_range > dt_threshold
+        rt_exceeds = rt_range > rt_threshold
 
-        # Compute DT and RT conditions for all members
-        group["DT_Diff"] = abs(group["DT"] - reference_dt) / reference_dt
-        group["RT_Diff"] = abs(group["RT"] - reference_rt)
-
-        dt_condition = group["DT_Diff"] <= dt_threshold
-        rt_condition = group["RT_Diff"] <= rt_threshold
-
-        if comparison_type == "both":
-            valid_group = dt_condition & rt_condition
-        elif comparison_type == "either":
-            valid_group = dt_condition | rt_condition
-        elif comparison_type == "DT":
-            valid_group = dt_condition
-        elif comparison_type == "RT":
-            valid_group = rt_condition
+        # Apply comparison type
+        if comparison_type == "both" and (dt_exceeds and rt_exceeds):
+            continue  # Exclude entire group
+        elif comparison_type == "either" and (dt_exceeds or rt_exceeds):
+            continue  # Exclude if both exceed
+        elif comparison_type == "DT" and dt_exceeds:
+            continue  # Exclude if DT exceeds
+        elif comparison_type == "RT" and rt_exceeds:
+            continue  # Exclude if RT exceeds
         elif comparison_type == "none":
-            valid_group = True  # Include everything
+            pass  # Keep everything
 
-        if valid_group.any():
-            filtered_groups.append(group[valid_group])
+        if dt_exceeds or rt_exceeds:
+            print(
+                f"[INFO] Excluding Group {group_id} due to DT or RT range exceeding threshold."
+            )
+            continue  # Exclude this group completely
+
+        filtered_groups.append(group)
 
     final_df = (
         pd.concat(filtered_groups, ignore_index=True)
@@ -192,9 +192,7 @@ def filter_neutral_loss_groups(
         else pd.DataFrame()
     )
 
-    print(
-        f"[INFO] Filtering complete. Retained {len(final_df)} entries after applying {comparison_type} filter."
-    )
+    print(f"[INFO] Filtering complete. Retained {len(final_df)} entries.")
     return final_df
 
 
@@ -213,7 +211,7 @@ def main():
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss = filter_neutral_loss_groups(
-        neutral_loss_groups, dt_threshold=0.5, rt_threshold=5.0, comparison_type="both"
+        neutral_loss_groups, dt_threshold=0.5, rt_threshold=2, comparison_type="RT"
     )
     print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
 
