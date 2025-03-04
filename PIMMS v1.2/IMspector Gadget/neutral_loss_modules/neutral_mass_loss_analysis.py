@@ -162,7 +162,6 @@ def filter_neutral_loss_groups(
         pd.DataFrame: Filtered DataFrame with unwanted groups removed.
     """
     if neutral_loss_df.empty:
-        print("[WARNING] No neutral loss groups to filter. Skipping processing.")
         return neutral_loss_df  # Return empty DataFrame to prevent further errors.
 
     valid_types = {"both", "DT", "RT", "none"}
@@ -178,10 +177,8 @@ def filter_neutral_loss_groups(
         group = neutral_loss_df[neutral_loss_df["GroupID"] == group_id].copy()
 
         median_dt = group["DT"].median()
-        print("median_dt", median_dt)
         median_rt = group["RT"].median()
         dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
-        print("dt_threshold", dt_threshold)
         # ✅ Compute absolute deviation of each point from the median
         group["DT_Diff"] = abs(group["DT"] - median_dt)
         group["RT_Diff"] = abs(group["RT"] - median_rt)
@@ -233,7 +230,6 @@ def filter_neutral_loss_groups(
     )
     filtered_df = filtered_df.drop(columns=["DT_Diff", "RT_Diff"], errors="ignore")
 
-    print("filtered_df", filtered_df, "messy_df", messy_df)
     return filtered_df, messy_df
 
 
@@ -261,10 +257,8 @@ def refine_messy_groups(
     """
 
     if messy_df.empty:
-        print("[WARNING] No messy groups found. Returning empty DataFrame.")
         return messy_df, pd.DataFrame()
 
-    print("messy_df", messy_df)
     refined_groups = []
     outliers_list = []  # Store outliers separately
     unique_groups = messy_df["GroupID"].unique()
@@ -319,10 +313,6 @@ def refine_messy_groups(
                 refined_groups.append(group)
                 break  # ✅ Exit loop if invalid comparison type
 
-            # ✅ Mark the worst outlier instead of removing it
-            print(
-                f"[INFO] Marking outlier: {worst_outlier[['m/z', 'DT', 'RT']].to_dict()}"
-            )
             worst_outlier["Outlier"] = True  # Mark as outlier
             outliers_list.append(worst_outlier)  # Store outlier separately
             group = group.drop(worst_outlier.name)  # Keep refining without this outlier
@@ -350,8 +340,46 @@ def refine_messy_groups(
     valid_groups = final_df.groupby("GroupID").filter(lambda g: not g["Outlier"].all())
     valid_groups = valid_groups.drop(columns=["DT_Diff", "RT_Diff"], errors="ignore")
 
-    print("valid_groups", valid_groups)
     return valid_groups
+
+
+def combine_filtered_groups(filtered_df, refined_groups):
+    """
+    Combines the valid filtered groups and the refined messy groups into a single DataFrame.
+
+    Args:
+        filtered_df (pd.DataFrame or None): The filtered neutral loss groups that passed initial criteria.
+        refined_groups (pd.DataFrame or None): The refined messy groups after outlier handling.
+
+    Returns:
+        pd.DataFrame: Combined DataFrame containing all valid neutral loss groups.
+    """
+
+    # ✅ Ensure inputs are DataFrames, convert None to empty DataFrame
+    if filtered_df is None or not isinstance(filtered_df, pd.DataFrame):
+        filtered_df = pd.DataFrame()
+
+    if refined_groups is None or not isinstance(refined_groups, pd.DataFrame):
+        refined_groups = pd.DataFrame()
+
+    # ✅ Handle case where both DataFrames are empty
+    if filtered_df.empty and refined_groups.empty:
+        print(
+            "[WARNING] Both filtered_df and refined_groups are empty. Returning empty DataFrame."
+        )
+        return pd.DataFrame()
+
+    # ✅ Combine both DataFrames into one final neutral loss group
+    neutral_loss_groups_after_filtering = pd.concat(
+        [filtered_df, refined_groups], ignore_index=True
+    )
+
+    print(
+        "[INFO] Neutral loss filtering completed. Final dataset shape:",
+        neutral_loss_groups_after_filtering.shape,
+    )
+
+    return neutral_loss_groups_after_filtering
 
 
 def main():
@@ -359,7 +387,6 @@ def main():
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
-    print("adjusted_df", adjusted_df)
     # Step 1: Identify neutral loss groups (without filtering)
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
@@ -368,22 +395,34 @@ def main():
         adjusted_df,
         neutral_loss_groups,
     )
+
+    # ✅ Define shared parameters
+    IM_resolving_power = 60
+    IM_tolerance_coefficient = 3
+    rt_threshold = 1.0
+    comparison_type = "both"
+
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss, messy_df = filter_neutral_loss_groups(
         neutral_loss_groups,
-        IM_resolving_power=60,
-        IM_tolerance_coefficient=3,
-        rt_threshold=1.0,
-        comparison_type="both",
+        IM_resolving_power,
+        IM_tolerance_coefficient,
+        rt_threshold,
+        comparison_type,
     )
 
     post_extended_refinement = refine_messy_groups(
         messy_df,
-        rt_threshold=1.0,
-        comparison_type="both",
-        IM_resolving_power=60,
-        IM_tolerance_coefficient=3,
+        rt_threshold,
+        comparison_type,
+        IM_resolving_power,
+        IM_tolerance_coefficient,
     )
+
+    neutral_loss_groups_after_filtering = combine_filtered_groups(
+        filtered_neutral_loss, post_extended_refinement
+    )
+    print("[INFO] Filtered neutral loss groups:\n", neutral_loss_groups_after_filtering)
 
 
 if __name__ == "__main__":
