@@ -178,8 +178,10 @@ def filter_neutral_loss_groups(
         group = neutral_loss_df[neutral_loss_df["GroupID"] == group_id].copy()
 
         median_dt = group["DT"].median()
+        print("median_dt", median_dt)
         median_rt = group["RT"].median()
         dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+        print("dt_threshold", dt_threshold)
         # ✅ Compute absolute deviation of each point from the median
         group["DT_Diff"] = abs(group["DT"] - median_dt)
         group["RT_Diff"] = abs(group["RT"] - median_rt)
@@ -227,6 +229,7 @@ def filter_neutral_loss_groups(
     messy_df = (
         pd.concat(messy_groups, ignore_index=True) if messy_groups else pd.DataFrame()
     )
+    print("filtered_df", filtered_df, "messy_df", messy_df)
     return filtered_df, messy_df
 
 
@@ -238,48 +241,45 @@ def refine_messy_groups(
     IM_tolerance_coefficient=3,
 ):
     """
-    Iteratively refines messy groups by marking outliers instead of removing them.
-    Adds a new 'Outlier' column where outliers are flagged as True but retained in the dataset.
-    Ensures groups with fewer than 2 non-outliers are excluded.
+    Iteratively refines messy groups by removing the point with the greatest absolute difference
+    from the median DT (if DT is selected) or the median RT (if RT is selected) until a valid group is formed.
 
     Args:
         messy_df (pd.DataFrame): DataFrame containing messy groups.
-        rt_threshold (float): RT deviation threshold.
+        rt_threshold (float): RT range threshold.
         comparison_type (str): 'both', 'either', 'DT', 'RT', or 'none'.
         IM_resolving_power (int): IM resolving power (default: 60).
         IM_tolerance_coefficient (int): Scaling coefficient for tolerance (default: 3).
 
     Returns:
-        pd.DataFrame: Refined DataFrame with valid groups, ensuring unique IDs globally.
+        pd.DataFrame: Refined DataFrame with valid groups.
     """
 
     if messy_df.empty:
         print("[WARNING] No messy groups found. Returning empty DataFrame.")
         return messy_df
-
+    print("messy_df", messy_df)
     refined_groups = []
     unique_groups = messy_df["GroupID"].unique()
-
-    # ✅ Initialize "Outlier" column as False (default)
-    messy_df["Outlier"] = False
 
     for group_id in unique_groups:
         group = messy_df[messy_df["GroupID"] == group_id].copy()
 
-        # ✅ Keep refining until the group meets the threshold OR has <2 non-outlier points
-        while group[~group["Outlier"]].shape[0] > 2:
-            # ✅ Compute **dynamic** DT threshold based on deviation from the median
-            median_dt = group.loc[~group["Outlier"], "DT"].median()
-            median_rt = group.loc[~group["Outlier"], "RT"].median()
+        # ✅ Keep refining until the group meets the threshold OR has <2 points
+        while len(group) >= 2:
+            # ✅ Compute **dynamic** DT threshold using median DT of this group
+            median_dt = group["DT"].median()
+            print("median_dt", median_dt)
+            median_rt = group["RT"].median()
             dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
-
-            # ✅ Compute absolute deviation of each point from the median (only for non-outliers)
+            print("dt_threshold", dt_threshold)
+            # ✅ Compute absolute deviation of each point from the median
             group["DT_Diff"] = abs(group["DT"] - median_dt)
             group["RT_Diff"] = abs(group["RT"] - median_rt)
 
             # ✅ Check if group meets filtering criteria using deviation
-            dt_exceeds = group.loc[~group["Outlier"], "DT_Diff"].max() > dt_threshold
-            rt_exceeds = group.loc[~group["Outlier"], "RT_Diff"].max() > rt_threshold
+            dt_exceeds = group["DT_Diff"].max() > dt_threshold
+            rt_exceeds = group["RT_Diff"].max() > rt_threshold
 
             # ✅ If the group meets the criteria, stop processing
             if (
@@ -288,34 +288,46 @@ def refine_messy_groups(
                 or (comparison_type == "DT" and not dt_exceeds)
                 or (comparison_type == "RT" and not rt_exceeds)
             ):
-                refined_groups.append(
-                    group.drop(columns=["DT_Diff", "RT_Diff"], errors="ignore")
-                )
+                refined_groups.append(group)
                 break  # ✅ Exit once the group is fully clean
 
-            # ✅ Identify the worst outlier based on max deviation from the median (only for non-outliers)
+            # ✅ Identify the worst outlier based on selected comparison type
             if comparison_type == "DT":
-                worst_outlier = group.loc[~group["Outlier"], "DT_Diff"].idxmax()
+                group["DT_Diff"] = abs(group["DT"] - median_dt)
+                worst_outlier = group.loc[group["DT_Diff"].idxmax()]
+                group.drop(columns=["DT_Diff"], inplace=True, errors="ignore")
+
             elif comparison_type == "RT":
-                worst_outlier = group.loc[~group["Outlier"], "RT_Diff"].idxmax()
+                group["RT_Diff"] = abs(group["RT"] - median_rt)
+                worst_outlier = group.loc[group["RT_Diff"].idxmax()]
+                group.drop(columns=["RT_Diff"], inplace=True, errors="ignore")
+
             elif comparison_type == "both":
-                group["Total_Diff"] = group["DT_Diff"] + group["RT_Diff"]
-                worst_outlier = group.loc[~group["Outlier"], "Total_Diff"].idxmax()
-                group.drop(columns=["Total_Diff"], inplace=True, errors="ignore")
+                group["DT_Diff"] = abs(group["DT"] - median_dt)
+                group["RT_Diff"] = abs(group["RT"] - median_rt)
+                worst_outlier = group.loc[
+                    group[["DT_Diff", "RT_Diff"]].sum(axis=1).idxmax()
+                ]
+                group.drop(
+                    columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
+                )
 
-            # ✅ Flag the worst outlier instead of removing it
+            else:
+                print(
+                    f"[WARNING] Invalid comparison_type '{comparison_type}'. Keeping group as is."
+                )
+                refined_groups.append(group)
+                break  # ✅ Exit loop if invalid comparison type
+
+            # ✅ Remove the worst outlier
             print(
-                f"[INFO] Marking outlier: {group.loc[worst_outlier, ['m/z', 'DT', 'RT', 'ID']].to_dict()}"
+                f"[INFO] Removing outlier: {worst_outlier[['m/z', 'DT', 'RT']].to_dict()}"
             )
-            group.at[worst_outlier, "Outlier"] = True
+            group = group.drop(worst_outlier.name)
 
-        # ✅ If after all refinements, there are fewer than 2 valid (Outlier == False) points, discard the group
-        if group[~group["Outlier"]].shape[0] < 2:
+        # ✅ If after all removals, no valid group remains, discard it
+        if len(group) < 2:
             continue
-
-        refined_groups.append(
-            group.drop(columns=["DT_Diff", "RT_Diff"], errors="ignore")
-        )
 
     # ✅ Convert list of DataFrames into a single DataFrame before returning
     if refined_groups:
@@ -325,7 +337,6 @@ def refine_messy_groups(
             pd.DataFrame()
         )  # ✅ Return an empty DataFrame if no valid groups remain
 
-    # ✅ Final step: Remove duplicate IDs, keeping only the first occurrence
     refined_df = refined_df.drop_duplicates(subset="ID", keep="first")
 
     return refined_df
