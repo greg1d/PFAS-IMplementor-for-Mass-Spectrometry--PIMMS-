@@ -295,14 +295,65 @@ def filter_multiple_carboxylic_acids(
     if final_df.empty:
         print("[INFO] No groups matched the specified alignment condition.")
 
-    # ✅ Combine original groups with the new M-8 groups
-    final_combined_df = pd.concat([final_df, m8_group_df], ignore_index=True)
+    return final_df, m8_group_df
 
+
+def reanalyze_neutral_loss_and_handle_exclusions(
+    final_df, m8_group_df, mass_error_ppm=10, neutral_loss_units=None
+):
+    """
+    Re-performs neutral loss analysis on the updated groups.
+    - Any points excluded from neutral loss grouping are added to the M-8 group.
+    - Adds 10,000 to the GroupID of excluded points to move them to the M-8 group.
+
+    Args:
+        final_df (pd.DataFrame): The DataFrame containing the reassigned M/M-8 groups.
+        m8_group_df (pd.DataFrame): The M-8 assigned groups.
+        mass_error_ppm (int): PPM error tolerance for matching.
+        neutral_loss_units (dict): Dictionary of user-defined neutral loss units.
+
+    Returns:
+        pd.DataFrame: Final DataFrame with reanalyzed neutral loss groups and M-8 reassigned.
+    """
+
+    # ✅ Step 1: Run Neutral Loss Analysis on the Updated Groups
+    reanalyzed_neutral_loss_df = neutral_loss_analysis(
+        final_df, mass_error_ppm=mass_error_ppm, neutral_loss_units=neutral_loss_units
+    )
+
+    # ✅ Step 2: Identify Excluded Points
+    excluded_points_df = final_df[
+        ~final_df["ID"].isin(reanalyzed_neutral_loss_df["ID"])
+    ].copy()
+
+    if excluded_points_df.empty:
+        print("[INFO] No excluded points found. Returning reanalyzed dataset as is.")
+        return reanalyzed_neutral_loss_df
+
+    print(
+        f"[INFO] Found {len(excluded_points_df)} excluded points. Assigning them to the M-8 group."
+    )
+
+    # ✅ Step 3: Assign Excluded Points to the M-8 Group
+    excluded_points_df["GroupID"] = (
+        excluded_points_df["GroupID"].astype(int) + 10000
+    )  # Add 10,000 to move to M-8
+
+    # ✅ Step 4: Merge Excluded Points with M-8 Group
+    m8_group_df = pd.concat([m8_group_df, excluded_points_df], ignore_index=True)
+
+    # ✅ Step 5: Merge All DataFrames into the Final Output
+    final_combined_df = pd.concat(
+        [reanalyzed_neutral_loss_df, m8_group_df], ignore_index=True
+    )
+
+    print(f"[INFO] Reanalysis complete. Final dataset shape: {final_combined_df.shape}")
+    print("final group combined df", final_combined_df)
     return final_combined_df
 
 
 def filter_neutral_loss_groups(
-    neutral_loss_df,
+    final_combined_df,
     IM_resolving_power=60,
     IM_tolerance_coefficient=3,
     rt_threshold=1.0,
@@ -319,8 +370,8 @@ def filter_neutral_loss_groups(
     Returns:
         pd.DataFrame: Filtered DataFrame with unwanted groups removed.
     """
-    if neutral_loss_df.empty:
-        return neutral_loss_df  # Return empty DataFrame to prevent further errors.
+    if final_combined_df.empty:
+        return final_combined_df  # Return empty DataFrame to prevent further errors.
 
     valid_types = {"both", "DT", "RT", "none"}
     if comparison_type not in valid_types:
@@ -329,10 +380,10 @@ def filter_neutral_loss_groups(
     messy_groups = []
     filtered_groups = []
 
-    unique_groups = neutral_loss_df["GroupID"].unique()
+    unique_groups = final_combined_df["GroupID"].unique()
 
     for group_id in unique_groups:
-        group = neutral_loss_df[neutral_loss_df["GroupID"] == group_id].copy()
+        group = final_combined_df[final_combined_df["GroupID"] == group_id].copy()
 
         median_dt = group["DT"].median()
         median_rt = group["RT"].median()
@@ -597,8 +648,8 @@ def main():
         comparison_type,
     )
 
-    filter_multiple_carboxylic_acids(
-        neutral_loss_groups,
+    final_df, m8_group_df = filter_multiple_carboxylic_acids(
+        messy_df,
         mass_error_ppm,
         IM_resolving_power,
         IM_tolerance_coefficient,
@@ -606,8 +657,14 @@ def main():
         comparison_type,
     )
 
+    neutral_loss_groups_after_filtering_M8_issue = (
+        reanalyze_neutral_loss_and_handle_exclusions(
+            final_df, m8_group_df, mass_error_ppm=10, neutral_loss_units=None
+        )
+    )
+
     post_extended_refinement = refine_messy_groups(
-        messy_df,
+        neutral_loss_groups_after_filtering_M8_issue,
         rt_threshold,
         comparison_type,
         IM_resolving_power,
@@ -617,8 +674,10 @@ def main():
     neutral_loss_groups_after_filtering = combine_filtered_groups(
         filtered_neutral_loss, post_extended_refinement
     )
-    neutral_loss_groups_after_filtering = (
-        neutral_loss_groups_after_filtering.sort_values(by="GroupID")
+
+    print(
+        "Final neutral loss groups after filtering:",
+        neutral_loss_groups_after_filtering,
     )
 
 
