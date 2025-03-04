@@ -349,7 +349,7 @@ def main():
     # Example usage
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
-
+    print(adjusted_df)
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
 
     # Step 1: Identify neutral loss groups (without filtering)
@@ -366,13 +366,13 @@ def main():
         IM_resolving_power=60,
         IM_tolerance_coefficient=1,
         rt_threshold=1.0,
-        comparison_type="both",
+        comparison_type="DT",
     )
 
     post_extended_refinement = refine_messy_groups(
         messy_df,
         rt_threshold=1.0,
-        comparison_type="both",
+        comparison_type="DT",
         IM_resolving_power=60,
         IM_tolerance_coefficient=3,
     )
