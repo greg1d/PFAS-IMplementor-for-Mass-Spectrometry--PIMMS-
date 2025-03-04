@@ -1,6 +1,7 @@
 import os
 import sys
 
+import numpy as np
 import pandas as pd
 
 # ✅ Ensure Python Can Find Modules
@@ -143,21 +144,29 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
     return result_df
 
 
-def filter_multiple_carboxylic_acids(result_df, mass_error_ppm=10):
+def filter_multiple_carboxylic_acids(
+    result_df,
+    mass_error_ppm=10,
+    IM_resolving_power=60,
+    IM_tolerance_coefficient=5,
+    rt_threshold=1.0,
+    comparison_type="both",
+):
     """
-    Identifies groups where:
-    - A peak has a mass difference of ~8.022843 (M-8).
-    - Another peak has a mass difference of ~79.956817 (M-SO3).
-    - Determines whether M-SO3 aligns with M or M-8.
+    Identifies alignment of M-SO3 relative to M or M-8 based on mass and DT/RT.
 
     Args:
         result_df (pd.DataFrame): DataFrame containing neutral loss groups.
         mass_diff_m8 (float): Expected mass difference for M-8 (default: 8.022843).
         mass_diff_so3 (float): Expected mass difference for M-SO3 (default: 79.956817).
         mass_error_ppm (int): The PPM error tolerance for matching.
+        IM_resolving_power (int): IM resolving power (default: 60).
+        IM_tolerance_coefficient (int): Scaling coefficient for tolerance (default: 3).
+        rt_threshold (float): RT range threshold in minutes.
+        comparison_type (str): 'both', 'either', 'DT', 'RT', or 'none'.
 
     Returns:
-        pd.DataFrame: DataFrame containing only the groups that match the conditions.
+        pd.DataFrame: DataFrame containing only the M, M-8, and M-SO3 peaks with alignment results.
     """
 
     if result_df.empty:
@@ -165,40 +174,131 @@ def filter_multiple_carboxylic_acids(result_df, mass_error_ppm=10):
         return result_df
 
     unique_groups = result_df["GroupID"].unique()
-    matching_groups = []
+    updated_groups = []
+    new_m8_groups = []
     mass_diff_m8 = 8.022843
     mass_diff_so3 = 79.956817
-
     for group_id in unique_groups:
         group = result_df[result_df["GroupID"] == group_id].copy()
         mz_values = group["m/z"].values
-        mz_values_sorted = sorted(mz_values, reverse=True)  # Sort in descending order
 
-        m_peak = mz_values_sorted[0]  # Highest m/z peak (assumed M)
-        m8_peak = None
-        so3_peak = None
+        m_peak, m8_peak, so3_peak = None, None, None
+        m_row, m8_row, so3_row = None, None, None  # Store rows for subgroup
+
+        # ✅ Find the M peak (highest m/z in the group)
+        m_peak = mz_values.max()
+        m_row = group[group["m/z"] == m_peak].iloc[0]
 
         # ✅ Find the M-8 peak
-        for mz in mz_values_sorted[1:]:  # Skip the M peak
-            mass_diff = abs(m_peak - mz)
-            ppm_tolerance = (mass_error_ppm / 1e6) * (m_peak + mz)
-
+        for _, row in group.iterrows():
+            mass_diff = abs(m_peak - row["m/z"])
+            ppm_tolerance = (mass_error_ppm / 1e6) * (m_peak + row["m/z"])
             if abs(mass_diff - mass_diff_m8) <= ppm_tolerance:
-                m8_peak = mz
-                break  # Found M-8, no need to continue searching
+                m8_peak = row["m/z"]
+                m8_row = row
+                break
 
         # ✅ Find the M-SO3 peak
-        for mz in mz_values_sorted[1:]:  # Skip the M peak
-            mass_diff = abs(m8_peak - mz)
-            ppm_tolerance = (mass_error_ppm / 1e6) * (m_peak + mz)
-            print(abs(mass_diff - mass_diff_so3))
-
+        for _, row in group.iterrows():
+            mass_diff = abs(m8_peak - row["m/z"])
+            ppm_tolerance = (mass_error_ppm / 1e6) * (m_peak + row["m/z"])
             if abs(mass_diff - mass_diff_so3) <= ppm_tolerance:
-                so3_peak = mz
-                print("Found M-8-SO3")
-                break  # Found M-SO3
+                so3_peak = row["m/z"]
+                so3_row = row
+                break
 
-    return so3_peak, m8_peak, m_peak
+        if m8_peak and so3_peak:
+            subgroup_df = pd.DataFrame([m_row, m8_row, so3_row])
+
+            print("[INFO] Subgroup created:\n", subgroup_df)
+
+            # **Step 2: Check DT & RT Alignment within the subgroup**
+            dt_m = m_row["DT"]
+            print(f"DT M: {dt_m}")
+            dt_m8 = m8_row["DT"]
+            print(f"DT M8: {dt_m8}")
+            dt_so3 = so3_row["DT"]
+            print(f"DT SO3: {dt_so3}")
+
+            rt_m = m_row["RT"]
+            rt_m8 = m8_row["RT"]
+            rt_so3 = so3_row["RT"]
+
+            # ✅ Compute DT threshold dynamically
+            median_dt = np.median([dt_m, dt_m8, dt_so3])
+            dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+
+            # ✅ Compute absolute differences
+            dt_m_diff = abs(dt_so3 - dt_m)
+            print(f"DT M diff: {dt_m_diff}")
+            dt_m8_diff = abs(dt_so3 - dt_m8)
+            print(f"DT M8 diff: {dt_m8_diff}")
+
+            rt_m_diff = abs(rt_so3 - rt_m)
+            print("RT M diff", rt_m_diff)
+            rt_m8_diff = abs(rt_so3 - rt_m8)
+            print("RT M-8 diff", rt_m8_diff)
+            print("rt threshold", rt_threshold)
+
+            dt_m_valid = dt_m_diff <= dt_threshold
+            dt_m8_valid = dt_m8_diff <= dt_threshold
+
+            rt_m_valid = rt_m_diff <= rt_threshold
+            rt_m8_valid = rt_m8_diff <= rt_threshold
+
+            # ✅ Determine reassignment of SO₃
+            if dt_m8_valid and rt_m8_valid:
+                so3_row["GroupID"] = f"{group_id}_M8"
+                m8_row["GroupID"] = f"{group_id}_M8"
+                new_m8_groups.append(
+                    pd.DataFrame([m8_row, so3_row])
+                )  # Store new M-8 group
+                print(f"[INFO] Group {group_id}: M-8 and SO₃ assigned to new group M8.")
+                group = group[group["m/z"] != m8_peak]
+                group = group[group["m/z"] != so3_peak]
+            elif dt_m_valid and rt_m_valid:
+                so3_row["GroupID"] = group_id
+                print(f"[INFO] Group {group_id}: SO₃ remains in the same group as M.")
+            elif dt_m8_valid or rt_m8_valid:
+                so3_row["GroupID"] = f"{group_id + 10000}"
+                m8_row["GroupID"] = f"{group_id + 10000}"
+                new_m8_groups.append(pd.DataFrame([m8_row, so3_row]))
+                print(
+                    f"[INFO] Group {group_id}: SO₃ assigned to M-8 because it met at least one threshold."
+                )
+                group = group[group["m/z"] != m8_peak]
+                group = group[group["m/z"] != so3_peak]
+            elif dt_m_valid or rt_m_valid:
+                so3_row["GroupID"] = group_id
+                print(
+                    f"[INFO] Group {group_id}: SO₃ assigned to M because it met at least one threshold."
+                )
+            else:
+                print(
+                    f"[INFO] Group {group_id}: M-8 and SO₃ removed due to no valid alignment."
+                )
+                group = group[group["m/z"] != m8_peak]
+                group = group[group["m/z"] != so3_peak]
+
+        updated_groups.append(group)
+
+    final_df = (
+        pd.concat(updated_groups, ignore_index=True)
+        if updated_groups
+        else pd.DataFrame()
+    )
+    print("final df", final_df)
+    m8_group_df = (
+        pd.concat(new_m8_groups, ignore_index=True) if new_m8_groups else pd.DataFrame()
+    )
+    print("m8 group df", m8_group_df)
+    if final_df.empty:
+        print("[INFO] No groups matched the specified alignment condition.")
+
+    # ✅ Combine original groups with the new M-8 groups
+    final_combined_df = pd.concat([final_df, m8_group_df], ignore_index=True)
+
+    return final_combined_df
 
 
 def filter_neutral_loss_groups(
@@ -480,20 +580,26 @@ def main():
         adjusted_df,
         neutral_loss_groups,
     )
-    filter_multiple_carboxylic_acids(
-        neutral_loss_groups,
-        mass_error_ppm=10,
-    )
 
     # ✅ Define shared parameters
     IM_resolving_power = 60
-    IM_tolerance_coefficient = 3
+    IM_tolerance_coefficient = 5
     rt_threshold = 1.0
     comparison_type = "both"
+    mass_error_ppm = 10
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss, messy_df = filter_neutral_loss_groups(
         neutral_loss_groups,
+        IM_resolving_power,
+        IM_tolerance_coefficient,
+        rt_threshold,
+        comparison_type,
+    )
+
+    filter_multiple_carboxylic_acids(
+        neutral_loss_groups,
+        mass_error_ppm,
         IM_resolving_power,
         IM_tolerance_coefficient,
         rt_threshold,
