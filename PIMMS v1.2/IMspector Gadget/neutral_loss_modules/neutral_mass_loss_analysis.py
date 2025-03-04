@@ -143,6 +143,58 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
     return result_df
 
 
+def filter_multiple_carboxylic_acids(
+    result_df,
+    IM_resolving_power=60,
+    IM_tolerance_coefficient=3,
+    rt_threshold=1.0,
+    comparison_type="both",
+    mass_error_ppm=10,
+):
+    if result_df.empty:
+        print("[WARNING] No groups found in result_df. Returning empty DataFrame.")
+        return result_df
+
+    unique_groups = result_df["GroupID"].unique()
+    matching_groups = []
+    print(result_df)
+    for group_id in unique_groups:
+        group = result_df[result_df["GroupID"] == group_id].copy()
+        mz_values = group["m/z"].values
+
+        # ✅ Compare each pair of m/z values in the group
+        for i in range(len(mz_values)):
+            for j in range(i + 1, len(mz_values)):  # Avoid duplicate comparisons
+                current_mz = mz_values[i]
+                next_mz_value = mz_values[j]
+
+                # ✅ Compute mass difference and PPM tolerance
+                mass_diff = abs(current_mz - next_mz_value) - 8.022843
+                ppm_tolerance = (mass_error_ppm / 1e6) * (current_mz + next_mz_value)
+                print(mass_diff)
+                if mass_diff <= ppm_tolerance:
+                    print(
+                        f"[INFO] Group {group_id} matches the mass difference condition (Δm/z = {mass_diff:.6f})"
+                    )
+
+                    matching_groups.append(group)
+                    break  # Exit inner loop once a match is found
+
+            if group_id in [g["GroupID"].iloc[0] for g in matching_groups]:
+                break  # Prevent duplicate entries for the same group
+
+    final_df = (
+        pd.concat(matching_groups, ignore_index=True)
+        if matching_groups
+        else pd.DataFrame()
+    )
+
+    if final_df.empty:
+        print("[INFO] No groups matched the specified mass difference condition.")
+
+    return result_df
+
+
 def filter_neutral_loss_groups(
     neutral_loss_df,
     IM_resolving_power=60,
@@ -406,11 +458,6 @@ def combine_filtered_groups(filtered_df, refined_groups, mz_tolerance=10):
         pd.concat(valid_groups, ignore_index=True) if valid_groups else pd.DataFrame()
     )
 
-    print(
-        "[INFO] Neutral loss filtering completed. Final dataset shape:",
-        final_df.shape,
-    )
-
     return final_df
 
 
@@ -423,10 +470,17 @@ def main():
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
-    print("[INFO] Neutral loss groups:\n", neutral_loss_groups)
     neutral_loss_groups = add_back_in_sample_intensities(
         adjusted_df,
         neutral_loss_groups,
+    )
+    filter_multiple_carboxylic_acids(
+        neutral_loss_groups,
+        IM_resolving_power=60,
+        IM_tolerance_coefficient=3,
+        rt_threshold=1.0,
+        comparison_type="both",
+        mass_error_ppm=10,
     )
 
     # ✅ Define shared parameters
