@@ -143,56 +143,62 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
     return result_df
 
 
-def filter_multiple_carboxylic_acids(
-    result_df,
-    IM_resolving_power=60,
-    IM_tolerance_coefficient=3,
-    rt_threshold=1.0,
-    comparison_type="both",
-    mass_error_ppm=10,
-):
+def filter_multiple_carboxylic_acids(result_df, mass_error_ppm=10):
+    """
+    Identifies groups where:
+    - A peak has a mass difference of ~8.022843 (M-8).
+    - Another peak has a mass difference of ~79.956817 (M-SO3).
+    - Determines whether M-SO3 aligns with M or M-8.
+
+    Args:
+        result_df (pd.DataFrame): DataFrame containing neutral loss groups.
+        mass_diff_m8 (float): Expected mass difference for M-8 (default: 8.022843).
+        mass_diff_so3 (float): Expected mass difference for M-SO3 (default: 79.956817).
+        mass_error_ppm (int): The PPM error tolerance for matching.
+
+    Returns:
+        pd.DataFrame: DataFrame containing only the groups that match the conditions.
+    """
+
     if result_df.empty:
         print("[WARNING] No groups found in result_df. Returning empty DataFrame.")
         return result_df
 
     unique_groups = result_df["GroupID"].unique()
     matching_groups = []
-    print(result_df)
+    mass_diff_m8 = 8.022843
+    mass_diff_so3 = 79.956817
+
     for group_id in unique_groups:
         group = result_df[result_df["GroupID"] == group_id].copy()
         mz_values = group["m/z"].values
+        mz_values_sorted = sorted(mz_values, reverse=True)  # Sort in descending order
 
-        # ✅ Compare each pair of m/z values in the group
-        for i in range(len(mz_values)):
-            for j in range(i + 1, len(mz_values)):  # Avoid duplicate comparisons
-                current_mz = mz_values[i]
-                next_mz_value = mz_values[j]
+        m_peak = mz_values_sorted[0]  # Highest m/z peak (assumed M)
+        m8_peak = None
+        so3_peak = None
 
-                # ✅ Compute mass difference and PPM tolerance
-                mass_diff = abs(current_mz - next_mz_value) - 8.022843
-                ppm_tolerance = (mass_error_ppm / 1e6) * (current_mz + next_mz_value)
-                print(mass_diff)
-                if mass_diff <= ppm_tolerance:
-                    print(
-                        f"[INFO] Group {group_id} matches the mass difference condition (Δm/z = {mass_diff:.6f})"
-                    )
+        # ✅ Find the M-8 peak
+        for mz in mz_values_sorted[1:]:  # Skip the M peak
+            mass_diff = abs(m_peak - mz)
+            ppm_tolerance = (mass_error_ppm / 1e6) * (m_peak + mz)
 
-                    matching_groups.append(group)
-                    break  # Exit inner loop once a match is found
+            if abs(mass_diff - mass_diff_m8) <= ppm_tolerance:
+                m8_peak = mz
+                break  # Found M-8, no need to continue searching
 
-            if group_id in [g["GroupID"].iloc[0] for g in matching_groups]:
-                break  # Prevent duplicate entries for the same group
+        # ✅ Find the M-SO3 peak
+        for mz in mz_values_sorted[1:]:  # Skip the M peak
+            mass_diff = abs(m8_peak - mz)
+            ppm_tolerance = (mass_error_ppm / 1e6) * (m_peak + mz)
+            print(abs(mass_diff - mass_diff_so3))
 
-    final_df = (
-        pd.concat(matching_groups, ignore_index=True)
-        if matching_groups
-        else pd.DataFrame()
-    )
+            if abs(mass_diff - mass_diff_so3) <= ppm_tolerance:
+                so3_peak = mz
+                print("Found M-8-SO3")
+                break  # Found M-SO3
 
-    if final_df.empty:
-        print("[INFO] No groups matched the specified mass difference condition.")
-
-    return result_df
+    return so3_peak, m8_peak, m_peak
 
 
 def filter_neutral_loss_groups(
@@ -476,10 +482,6 @@ def main():
     )
     filter_multiple_carboxylic_acids(
         neutral_loss_groups,
-        IM_resolving_power=60,
-        IM_tolerance_coefficient=3,
-        rt_threshold=1.0,
-        comparison_type="both",
         mass_error_ppm=10,
     )
 
