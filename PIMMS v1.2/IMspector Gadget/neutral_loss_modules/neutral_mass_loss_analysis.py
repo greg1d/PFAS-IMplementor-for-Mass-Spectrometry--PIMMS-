@@ -343,13 +343,15 @@ def refine_messy_groups(
     return valid_groups
 
 
-def combine_filtered_groups(filtered_df, refined_groups):
+def combine_filtered_groups(filtered_df, refined_groups, mz_tolerance=10):
     """
     Combines the valid filtered groups and the refined messy groups into a single DataFrame.
+    Removes groups where all high m/z points (within mz_tolerance of max m/z) are marked as outliers.
 
     Args:
         filtered_df (pd.DataFrame or None): The filtered neutral loss groups that passed initial criteria.
         refined_groups (pd.DataFrame or None): The refined messy groups after outlier handling.
+        mz_tolerance (float): The range within the highest m/z to consider for exclusion.
 
     Returns:
         pd.DataFrame: Combined DataFrame containing all valid neutral loss groups.
@@ -374,23 +376,54 @@ def combine_filtered_groups(filtered_df, refined_groups):
         [filtered_df, refined_groups], ignore_index=True
     )
 
-    print(
-        "[INFO] Neutral loss filtering completed. Final dataset shape:",
-        neutral_loss_groups_after_filtering.shape,
+    # ✅ Identify and remove groups where all high m/z points are outliers
+    valid_groups = []
+    unique_groups = neutral_loss_groups_after_filtering["GroupID"].unique()
+
+    for group_id in unique_groups:
+        group = neutral_loss_groups_after_filtering[
+            neutral_loss_groups_after_filtering["GroupID"] == group_id
+        ].copy()
+
+        if "Outlier" not in group.columns:
+            group["Outlier"] = False  # Ensure outlier column exists
+
+        # ✅ Find the highest m/z value in the group
+        max_mz = group["m/z"].max()
+        high_mz_points = group[group["m/z"] >= (max_mz - mz_tolerance)]
+
+        # ✅ If all high m/z points are outliers, remove the group
+        if high_mz_points["Outlier"].all():
+            print(
+                f"[INFO] Removing Group {group_id}: All high m/z points ({max_mz - mz_tolerance} to {max_mz}) are outliers."
+            )
+            continue  # Skip this group
+
+        valid_groups.append(group)
+
+    # ✅ Final DataFrame with only valid groups
+    final_df = (
+        pd.concat(valid_groups, ignore_index=True) if valid_groups else pd.DataFrame()
     )
 
-    return neutral_loss_groups_after_filtering
+    print(
+        "[INFO] Neutral loss filtering completed. Final dataset shape:",
+        final_df.shape,
+    )
+
+    return final_df
 
 
 def main():
     # Example usage
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
     # Step 1: Identify neutral loss groups (without filtering)
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
+    print("[INFO] Neutral loss groups:\n", neutral_loss_groups)
     neutral_loss_groups = add_back_in_sample_intensities(
         adjusted_df,
         neutral_loss_groups,
@@ -422,9 +455,9 @@ def main():
     neutral_loss_groups_after_filtering = combine_filtered_groups(
         filtered_neutral_loss, post_extended_refinement
     )
-    print("[INFO] Filtered neutral loss groups:\n", neutral_loss_groups_after_filtering)
-
-    neutral_loss_groups_after_filtering.to_csv("filtered_neutral_loss_groups.csv")
+    neutral_loss_groups_after_filtering = (
+        neutral_loss_groups_after_filtering.sort_values(by="GroupID")
+    )
 
 
 if __name__ == "__main__":
