@@ -329,7 +329,6 @@ def add_back_in_sample_intensities(stacked_df, filtered_m_z_RT_groups):
     filtered_m_z_RT_groups = pd.merge(
         filtered_m_z_RT_groups, intensity_df, on="ID", how="left"
     )
-    print("[INFO] Merged DataFrame columns:", filtered_m_z_RT_groups.columns)
 
     # ✅ Convert sample intensity columns to numeric
     for col in sample_intensity_cols:

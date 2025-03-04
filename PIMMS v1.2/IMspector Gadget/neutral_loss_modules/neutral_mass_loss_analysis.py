@@ -254,22 +254,18 @@ def refine_messy_groups(
 
     refined_groups = []
     unique_groups = messy_df["GroupID"].unique()
-    print(messy_df)
     for group_id in unique_groups:
         group = messy_df[messy_df["GroupID"] == group_id].copy()
 
         while len(group) > 2:
             # ✅ Compute **dynamic** DT threshold using median DT of this group
             median_dt = group["DT"].median()
-            print(median_dt)
             dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
-            print(dt_threshold)
             # ✅ Compute median RT for this group
             median_rt = group["RT"].median()
 
             # ✅ Compute DT and RT range
             dt_range = group["DT"].max() - group["DT"].min()
-            print(dt_range)
             rt_range = group["RT"].max() - group["RT"].min()
 
             # ✅ Apply dynamic threshold logic
@@ -326,7 +322,6 @@ def refine_messy_groups(
                     f"[WARNING] Invalid comparison_type '{comparison_type}'. Keeping group as is."
                 )
                 refined_groups.append(group)
-                print("refined groups", refined_groups)
                 break
 
             # ✅ Remove the worst outlier from the group
@@ -340,8 +335,6 @@ def refine_messy_groups(
 
     if refined_groups:
         refined_groups = pd.concat(refined_groups, ignore_index=True)
-        print("[INFO] Returning refined groups as DataFrame.")
-        print(refined_groups)
     else:
         refined_groups = (
             pd.DataFrame()
@@ -372,6 +365,7 @@ def main():
         rt_threshold=1.0,
         comparison_type="DT",
     )
+    print("initial groups", filtered_neutral_loss)
 
     post_extended_refinement = refine_messy_groups(
         messy_df,
@@ -380,6 +374,7 @@ def main():
         IM_resolving_power=60,
         IM_tolerance_coefficient=3,
     )
+    print("groups after refine messy groups", post_extended_refinement)
 
 
 if __name__ == "__main__":
