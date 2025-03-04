@@ -321,17 +321,17 @@ def refine_messy_groups(
         if len(group) < 2:
             continue
 
-        refined_groups.append(group)
-
     # ✅ Convert list of DataFrames into a single DataFrame before returning
     if refined_groups:
-        refined_groups = pd.concat(refined_groups, ignore_index=True)
+        refined_df = pd.concat(refined_groups, ignore_index=True)
     else:
-        refined_groups = (
+        refined_df = (
             pd.DataFrame()
         )  # ✅ Return an empty DataFrame if no valid groups remain
 
-    return refined_groups
+    refined_df = refined_df.drop_duplicates(subset="ID", keep="first")
+
+    return refined_df
 
 
 def main():
