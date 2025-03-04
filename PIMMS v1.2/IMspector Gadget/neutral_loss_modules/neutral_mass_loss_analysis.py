@@ -337,7 +337,15 @@ def refine_messy_groups(
             continue
 
         refined_groups.append(group)
-        print("refined groups", refined_groups)
+
+    if refined_groups:
+        refined_groups = pd.concat(refined_groups, ignore_index=True)
+        print("[INFO] Returning refined groups as DataFrame.")
+        print(refined_groups)
+    else:
+        refined_groups = (
+            pd.DataFrame()
+        )  # ✅ Return an empty DataFrame if no valid groups remain
 
     return refined_groups
 
