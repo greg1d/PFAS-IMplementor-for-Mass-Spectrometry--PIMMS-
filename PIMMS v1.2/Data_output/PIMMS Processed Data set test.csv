@@ -1,4 +1,4 @@
 Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),148 B2 16632.d.DeMP, 149 B2 16631.d.DeMP, 220 B3 16562.d.DeMP
-PFPeS (M-H),PFAS Standards,likely,1,7,10,110,100,-6.88,0.03,N/A,750.999,0,2023.999
+PFPeS (M-H),PFAS Standards,likely,1,10,14,110,100,-6.88,0.03,N/A,750.999,0,2023.999
 PFPeS (M-H),PFAS Standards,likely,2,10,15,110,143.98983,-6.88,0.03,N/A,750.999,0,2023.999
-PFPeS (M-H),PFAS Standards,likely,3,11,20,110,179.956817,-6.88,0.03,N/A,750.999,0,2023.999
+PFPeS (M-H),PFAS Standards,likely,3,10,20,110,179.956817,-6.88,0.03,N/A,750.999,0,2023.999

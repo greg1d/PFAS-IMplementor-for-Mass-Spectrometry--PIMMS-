@@ -177,12 +177,18 @@ def filter_neutral_loss_groups(
     for group_id in unique_groups:
         group = neutral_loss_df[neutral_loss_df["GroupID"] == group_id].copy()
 
-        dt_range = (group["DT"].max() - group["DT"].min()) / group["DT"].min()
-        rt_range = group["RT"].max() - group["RT"].min()
         median_dt = group["DT"].median()
+        print("median_dt", median_dt)
+        median_rt = group["RT"].median()
         dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
-        dt_exceeds = dt_range > dt_threshold
-        rt_exceeds = rt_range > rt_threshold
+        print("dt_threshold", dt_threshold)
+        # ✅ Compute absolute deviation of each point from the median
+        group["DT_Diff"] = abs(group["DT"] - median_dt)
+        group["RT_Diff"] = abs(group["RT"] - median_rt)
+
+        # ✅ Check if group meets filtering criteria using deviation
+        dt_exceeds = group["DT_Diff"].max() > dt_threshold
+        rt_exceeds = group["RT_Diff"].max() > rt_threshold
 
         # Apply correct logic based on `comparison_type`
         if comparison_type == "both" and (dt_exceeds or rt_exceeds):
@@ -223,6 +229,7 @@ def filter_neutral_loss_groups(
     messy_df = (
         pd.concat(messy_groups, ignore_index=True) if messy_groups else pd.DataFrame()
     )
+    print("filtered_df", filtered_df, "messy_df", messy_df)
     return filtered_df, messy_df
 
 
@@ -251,7 +258,7 @@ def refine_messy_groups(
     if messy_df.empty:
         print("[WARNING] No messy groups found. Returning empty DataFrame.")
         return messy_df
-
+    print("messy_df", messy_df)
     refined_groups = []
     unique_groups = messy_df["GroupID"].unique()
 
@@ -262,9 +269,10 @@ def refine_messy_groups(
         while len(group) >= 2:
             # ✅ Compute **dynamic** DT threshold using median DT of this group
             median_dt = group["DT"].median()
-
+            print("median_dt", median_dt)
             median_rt = group["RT"].median()
             dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+            print("dt_threshold", dt_threshold)
             # ✅ Compute absolute deviation of each point from the median
             group["DT_Diff"] = abs(group["DT"] - median_dt)
             group["RT_Diff"] = abs(group["RT"] - median_rt)
@@ -354,13 +362,13 @@ def main():
         IM_resolving_power=60,
         IM_tolerance_coefficient=3,
         rt_threshold=1.0,
-        comparison_type="RT",
+        comparison_type="both",
     )
 
     post_extended_refinement = refine_messy_groups(
         messy_df,
         rt_threshold=1.0,
-        comparison_type="DT",
+        comparison_type="both",
         IM_resolving_power=60,
         IM_tolerance_coefficient=3,
     )
