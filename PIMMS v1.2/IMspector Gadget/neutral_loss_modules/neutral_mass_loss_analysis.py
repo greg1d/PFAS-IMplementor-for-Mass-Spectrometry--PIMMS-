@@ -262,16 +262,16 @@ def refine_messy_groups(
         while len(group) >= 2:
             # ✅ Compute **dynamic** DT threshold using median DT of this group
             median_dt = group["DT"].median()
-            dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+
             median_rt = group["RT"].median()
+            dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
+            # ✅ Compute absolute deviation of each point from the median
+            group["DT_Diff"] = abs(group["DT"] - median_dt)
+            group["RT_Diff"] = abs(group["RT"] - median_rt)
 
-            # ✅ Compute DT and RT range
-            dt_range = group["DT"].max() - group["DT"].min()
-            rt_range = group["RT"].max() - group["RT"].min()
-
-            # ✅ Check if group meets filtering criteria
-            dt_exceeds = dt_range > dt_threshold
-            rt_exceeds = rt_range > rt_threshold
+            # ✅ Check if group meets filtering criteria using deviation
+            dt_exceeds = group["DT_Diff"].max() > dt_threshold
+            rt_exceeds = group["RT_Diff"].max() > rt_threshold
 
             # ✅ If the group meets the criteria, stop processing
             if (
