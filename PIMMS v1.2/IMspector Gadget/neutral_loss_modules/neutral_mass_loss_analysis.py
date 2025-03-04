@@ -254,25 +254,26 @@ def refine_messy_groups(
 
     refined_groups = []
     unique_groups = messy_df["GroupID"].unique()
+
     for group_id in unique_groups:
         group = messy_df[messy_df["GroupID"] == group_id].copy()
 
-        while len(group) > 2:
+        # ✅ Keep refining until the group meets the threshold OR has <2 points
+        while len(group) >= 2:
             # ✅ Compute **dynamic** DT threshold using median DT of this group
             median_dt = group["DT"].median()
             dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
-            # ✅ Compute median RT for this group
             median_rt = group["RT"].median()
 
             # ✅ Compute DT and RT range
             dt_range = group["DT"].max() - group["DT"].min()
             rt_range = group["RT"].max() - group["RT"].min()
 
-            # ✅ Apply dynamic threshold logic
+            # ✅ Check if group meets filtering criteria
             dt_exceeds = dt_range > dt_threshold
             rt_exceeds = rt_range > rt_threshold
 
-            # ✅ If group now meets filtering criteria, keep it
+            # ✅ If the group meets the criteria, stop processing
             if (
                 (comparison_type == "both" and not (dt_exceeds or rt_exceeds))
                 or (comparison_type == "either" and not (dt_exceeds and rt_exceeds))
@@ -280,38 +281,24 @@ def refine_messy_groups(
                 or (comparison_type == "RT" and not rt_exceeds)
             ):
                 refined_groups.append(group)
-                break
+                break  # ✅ Exit once the group is fully clean
 
             # ✅ Identify the worst outlier based on selected comparison type
             if comparison_type == "DT":
-                # Remove point with the **largest absolute difference from median DT**
                 group["DT_Diff"] = abs(group["DT"] - median_dt)
                 worst_outlier = group.loc[group["DT_Diff"].idxmax()]
                 group.drop(columns=["DT_Diff"], inplace=True, errors="ignore")
 
             elif comparison_type == "RT":
-                # Remove point with the **largest absolute difference from median RT**
                 group["RT_Diff"] = abs(group["RT"] - median_rt)
                 worst_outlier = group.loc[group["RT_Diff"].idxmax()]
                 group.drop(columns=["RT_Diff"], inplace=True, errors="ignore")
 
             elif comparison_type == "both":
-                # Remove point with the **largest combined DT & RT deviation**
                 group["DT_Diff"] = abs(group["DT"] - median_dt)
                 group["RT_Diff"] = abs(group["RT"] - median_rt)
                 worst_outlier = group.loc[
                     group[["DT_Diff", "RT_Diff"]].sum(axis=1).idxmax()
-                ]
-                group.drop(
-                    columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
-                )
-
-            elif comparison_type == "either":
-                # Remove point with the **worst DT or RT difference (whichever is greater)**
-                group["DT_Diff"] = abs(group["DT"] - median_dt)
-                group["RT_Diff"] = abs(group["RT"] - median_rt)
-                worst_outlier = group.loc[
-                    group[["DT_Diff", "RT_Diff"]].max(axis=1).idxmax()
                 ]
                 group.drop(
                     columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
@@ -322,9 +309,12 @@ def refine_messy_groups(
                     f"[WARNING] Invalid comparison_type '{comparison_type}'. Keeping group as is."
                 )
                 refined_groups.append(group)
-                break
+                break  # ✅ Exit loop if invalid comparison type
 
-            # ✅ Remove the worst outlier from the group
+            # ✅ Remove the worst outlier
+            print(
+                f"[INFO] Removing outlier: {worst_outlier[['m/z', 'DT', 'RT']].to_dict()}"
+            )
             group = group.drop(worst_outlier.name)
 
         # ✅ If after all removals, no valid group remains, discard it
@@ -333,6 +323,7 @@ def refine_messy_groups(
 
         refined_groups.append(group)
 
+    # ✅ Convert list of DataFrames into a single DataFrame before returning
     if refined_groups:
         refined_groups = pd.concat(refined_groups, ignore_index=True)
     else:
@@ -348,7 +339,7 @@ def main():
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
     adjusted_df = pd.read_csv(file_path)
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
-
+    print("adjusted_df", adjusted_df)
     # Step 1: Identify neutral loss groups (without filtering)
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
@@ -361,11 +352,10 @@ def main():
     filtered_neutral_loss, messy_df = filter_neutral_loss_groups(
         neutral_loss_groups,
         IM_resolving_power=60,
-        IM_tolerance_coefficient=1,
+        IM_tolerance_coefficient=3,
         rt_threshold=1.0,
-        comparison_type="DT",
+        comparison_type="RT",
     )
-    print("initial groups", filtered_neutral_loss)
 
     post_extended_refinement = refine_messy_groups(
         messy_df,
