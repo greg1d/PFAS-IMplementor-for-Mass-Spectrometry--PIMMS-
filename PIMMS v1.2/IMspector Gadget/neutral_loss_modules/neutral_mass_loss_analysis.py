@@ -384,7 +384,7 @@ def combine_filtered_groups(filtered_df, refined_groups):
 
 def main():
     # Example usage
-    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set test.csv"
+    file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
     # Step 1: Identify neutral loss groups (without filtering)
@@ -423,6 +423,8 @@ def main():
         filtered_neutral_loss, post_extended_refinement
     )
     print("[INFO] Filtered neutral loss groups:\n", neutral_loss_groups_after_filtering)
+
+    neutral_loss_groups_after_filtering.to_csv("filtered_neutral_loss_groups.csv")
 
 
 if __name__ == "__main__":
