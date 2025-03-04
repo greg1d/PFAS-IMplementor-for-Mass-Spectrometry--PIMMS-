@@ -218,6 +218,7 @@ def filter_neutral_loss_groups(
                 continue
         elif comparison_type == "none":
             pass  # Keep everything
+        group["Outlier"] = False
 
         filtered_groups.append(group)
 
@@ -226,9 +227,12 @@ def filter_neutral_loss_groups(
         if filtered_groups
         else pd.DataFrame()
     )
+
     messy_df = (
         pd.concat(messy_groups, ignore_index=True) if messy_groups else pd.DataFrame()
     )
+    filtered_df = filtered_df.drop(columns=["DT_Diff", "RT_Diff"], errors="ignore")
+
     print("filtered_df", filtered_df, "messy_df", messy_df)
     return filtered_df, messy_df
 
@@ -300,9 +304,14 @@ def refine_messy_groups(
             elif comparison_type == "RT":
                 worst_outlier = group.loc[group["RT_Diff"].idxmax()]
             elif comparison_type == "both":
-                group["Total_Diff"] = group["DT_Diff"] + group["RT_Diff"]
-                worst_outlier = group.loc[group["Total_Diff"].idxmax()]
-                group.drop(columns=["Total_Diff"], inplace=True, errors="ignore")
+                group["DT_Diff"] = abs(group["DT"] - median_dt)
+                group["RT_Diff"] = abs(group["RT"] - median_rt)
+                worst_outlier = group.loc[
+                    group[["DT_Diff", "RT_Diff"]].sum(axis=1).idxmax()
+                ]
+                group.drop(
+                    columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
+                )
             else:
                 print(
                     f"[WARNING] Invalid comparison_type '{comparison_type}'. Keeping group as is."
@@ -334,7 +343,15 @@ def refine_messy_groups(
 
     refined_df = refined_df.drop_duplicates(subset="ID", keep="first")
 
-    return refined_df, outliers_df
+    # ✅ Adhere refined_df and outliers_df together
+    final_df = pd.concat([refined_df, outliers_df], ignore_index=True)
+
+    # ✅ Remove groups that contain only outliers
+    valid_groups = final_df.groupby("GroupID").filter(lambda g: not g["Outlier"].all())
+    valid_groups = valid_groups.drop(columns=["DT_Diff", "RT_Diff"], errors="ignore")
+
+    print("valid_groups", valid_groups)
+    return valid_groups
 
 
 def main():
@@ -367,7 +384,6 @@ def main():
         IM_resolving_power=60,
         IM_tolerance_coefficient=3,
     )
-    print("groups after refine messy groups", post_extended_refinement)
 
 
 if __name__ == "__main__":
