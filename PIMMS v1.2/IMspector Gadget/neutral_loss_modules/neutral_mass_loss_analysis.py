@@ -152,18 +152,12 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
             # ✅ If within 0.1 Da of M, reassign as "M"
             if secondary_mass_diff <= 0.1:
                 entry["Neutral Loss"] = "M"
-                print(
-                    f"[INFO] Group {group_counter}: Reassigned {entry['m/z']} as M (close to highest m/z)"
-                )
 
             # ✅ Otherwise, check multi-adduct losses
             elif entry["Neutral Loss"] != "M":  # Only modify non-M peaks
                 for unit_name, (lower_bound, upper_bound) in multi_loss_units.items():
                     if lower_bound <= secondary_mass_diff <= upper_bound:
                         entry["Neutral Loss"] = f"M-{unit_name}"  # Update label
-                        print(
-                            f"[INFO] Group {group_counter}: Assigned {entry['Neutral Loss']} for {entry['m/z']}"
-                        )
 
         if len(current_group) > 1:
             neutral_loss_groups.extend(current_group)
@@ -229,9 +223,6 @@ def filter_multiple_carboxylic_acids(
                 # ✅ Find the M-SO3 peak
         for _, row in group.iterrows():
             if m8_peak is None:
-                print(
-                    f"[WARNING] No valid M-8 peak found for Group {group_id}. Skipping SO3 peak search."
-                )
                 break  # Skip processing if no M-8 peak exists
 
             mass_diff = abs(m8_peak - row["m/z"])
@@ -338,7 +329,6 @@ def reanalyze_neutral_loss_and_handle_exclusions(
     ].copy()
 
     if excluded_points_df.empty:
-        print("[INFO] No excluded points found. Returning reanalyzed dataset as is.")
         return reanalyzed_neutral_loss_df
 
     # ✅ Step 3: Assign Excluded Points to the M-8 Group
@@ -388,9 +378,7 @@ def filter_neutral_loss_groups(
         group = final_combined_df[final_combined_df["GroupID"] == group_id].copy()
 
         median_dt = group["DT"].median()
-        print("median dt", median_dt)
         median_rt = group["RT"].median()
-        print("median rt", median_rt)
         dt_threshold = (median_dt / IM_resolving_power) * IM_tolerance_coefficient
         # ✅ Compute absolute deviation of each point from the median
         group["DT_Diff"] = abs(group["DT"] - median_dt)
@@ -398,9 +386,7 @@ def filter_neutral_loss_groups(
 
         # ✅ Check if group meets filtering criteria using deviation
         dt_exceeds = group["DT_Diff"].max() > dt_threshold
-        print("dt exceeds", dt_exceeds)
         rt_exceeds = group["RT_Diff"].max() > rt_threshold
-        print("rt exceeds", dt_exceeds)
 
         # Apply correct logic based on `comparison_type`
         if comparison_type == "both" and (dt_exceeds or rt_exceeds):
@@ -522,9 +508,6 @@ def refine_messy_groups(
                     columns=["DT_Diff", "RT_Diff"], inplace=True, errors="ignore"
                 )
             else:
-                print(
-                    f"[WARNING] Invalid comparison_type '{comparison_type}'. Keeping group as is."
-                )
                 refined_groups.append(group)
                 break  # ✅ Exit loop if invalid comparison type
 
@@ -581,9 +564,6 @@ def combine_filtered_groups(filtered_df, refined_groups, mz_tolerance=10):
 
     # ✅ Handle case where both DataFrames are empty
     if filtered_df.empty and refined_groups.empty:
-        print(
-            "[WARNING] Both filtered_df and refined_groups are empty. Returning empty DataFrame."
-        )
         return pd.DataFrame()
 
     # ✅ Combine both DataFrames into one final neutral loss group
@@ -609,9 +589,6 @@ def combine_filtered_groups(filtered_df, refined_groups, mz_tolerance=10):
 
         # ✅ If all high m/z points are outliers, remove the group
         if high_mz_points["Outlier"].all():
-            print(
-                f"[INFO] Removing Group {group_id}: All high m/z points ({max_mz - mz_tolerance} to {max_mz}) are outliers."
-            )
             continue  # Skip this group
 
         valid_groups.append(group)
@@ -661,7 +638,6 @@ def main():
     final_combined_df = reanalyze_neutral_loss_and_handle_exclusions(
         final_df, m8_group_df, mass_error_ppm=10, neutral_loss_units=None
     )
-    print("final_combined_df inside main", final_combined_df)
     post_extended_refinement = refine_messy_groups(
         final_combined_df,
         rt_threshold,
