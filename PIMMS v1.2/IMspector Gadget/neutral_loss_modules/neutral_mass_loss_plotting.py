@@ -79,6 +79,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
         # ✅ Prepare hover metadata
         hover_texts = []
         sample_columns = [col for col in group_df.columns if ".d" in col]
+        symbols = []
 
         for _, row in group_df.iterrows():
             match_name = row.get("Match", "No Match")
@@ -108,12 +109,11 @@ def dt_vs_mz_plotly(m_z_DT_groups):
             hover_text = (
                 f"Match: {match_name}<br>"
                 f"m/z: {row['m/z']:.4f}<br>"
+                f"DT: {DT}<br>"
                 f"CCS: {row['CCS']:.2f}<br>"
                 f"RT: {row['RT']:.2f}<br>"
                 f"Adduct: {row['Neutral Loss']}<br>"
-                f"DT: {DT}<br>"
                 f"Classification: {classification}<br>"
-                f"Repeating Unit: {repeating_unit}"
             )
             # Only add sample details if the classification is not External Library
             if classification != "External Library":
@@ -121,13 +121,16 @@ def dt_vs_mz_plotly(m_z_DT_groups):
 
             hover_texts.append(hover_text)
 
+            marker_symbol = "x" if row.get("Outlier", False) else "circle"
+            symbols.append(marker_symbol)
+
         # ✅ Scatter plot for the group
         fig.add_trace(
             go.Scatter(
                 x=mz_values,
                 y=dt_values,
                 mode="markers+text",
-                marker=dict(size=15, color=series_color),
+                marker=dict(size=15, color=series_color, symbol=symbols),
                 name=f"Group {group_id}",
                 legendgroup=f"group_{group_id}",
                 showlegend=True,
