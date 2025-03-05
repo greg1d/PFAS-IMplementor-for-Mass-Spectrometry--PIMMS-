@@ -1,19 +1,19 @@
 # Summary
 
-Date : 2025-02-19 14:24:57
+Date : 2025-03-04 16:45:08
 
-Directory c:\\Users\\grego\\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Directory c:\\Users\\Baker Lab 5\\Desktop\\GPK\\PIMMS\\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
 
-Total : 80 files,  38159 codes, 854 comments, 1738 blanks, all 40751 lines
+Total : 90 files,  40445 codes, 1029 comments, 2115 blanks, all 43589 lines
 
 Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
 ## Languages
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| CSV | 13 | 31,080 | 0 | 13 | 31,093 |
-| Python | 60 | 6,876 | 823 | 1,685 | 9,384 |
-| CSS | 1 | 123 | 19 | 21 | 163 |
+| CSV | 18 | 31,720 | 0 | 18 | 31,738 |
+| Python | 65 | 8,481 | 982 | 2,051 | 11,514 |
+| CSS | 1 | 164 | 35 | 27 | 226 |
 | QSS | 1 | 21 | 0 | 3 | 24 |
 | Docker | 1 | 20 | 7 | 7 | 34 |
 | Markdown | 1 | 15 | 0 | 5 | 20 |
@@ -24,22 +24,25 @@ Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-
 ## Directories
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| . | 80 | 38,159 | 854 | 1,738 | 40,751 |
-| . (Files) | 9 | 760 | 20 | 32 | 812 |
+| . | 90 | 40,445 | 1,029 | 2,115 | 43,589 |
+| . (Files) | 13 | 1,398 | 20 | 36 | 1,454 |
 | PIMMS v1.1 files | 9 | 1,156 | 196 | 286 | 1,638 |
 | PIMMS v1.1 files\\PIMMS v1.1.0 | 8 | 1,077 | 189 | 272 | 1,538 |
 | PIMMS v1.1 files\\PIMMS v1.2 | 1 | 79 | 7 | 14 | 100 |
-| PIMMS v1.2 | 45 | 34,584 | 449 | 1,033 | 36,066 |
+| PIMMS v1.2 | 51 | 36,232 | 624 | 1,406 | 38,262 |
 | PIMMS v1.2 (Files) | 2 | 587 | 86 | 116 | 789 |
-| PIMMS v1.2\\Data_output | 3 | 25,846 | 0 | 3 | 25,849 |
+| PIMMS v1.2\\Data_output | 3 | 25,847 | 0 | 3 | 25,850 |
 | PIMMS v1.2\\Figures | 1 | 73 | 9 | 11 | 93 |
-| PIMMS v1.2\\IMspector Gadget | 13 | 1,629 | 180 | 396 | 2,205 |
-| PIMMS v1.2\\IMspector Gadget (Files) | 8 | 512 | 59 | 153 | 724 |
-| PIMMS v1.2\\IMspector Gadget\\assets | 1 | 123 | 19 | 21 | 163 |
-| PIMMS v1.2\\IMspector Gadget\\ccs_v_mz_library_search_modules | 1 | 299 | 40 | 77 | 416 |
-| PIMMS v1.2\\IMspector Gadget\\ccs_v_mz_modules | 3 | 695 | 62 | 145 | 902 |
+| PIMMS v1.2\\IMspector Gadget | 18 | 3,275 | 355 | 768 | 4,398 |
+| PIMMS v1.2\\IMspector Gadget (Files) | 8 | 709 | 81 | 171 | 961 |
+| PIMMS v1.2\\IMspector Gadget\\assets | 1 | 164 | 35 | 27 | 226 |
+| PIMMS v1.2\\IMspector Gadget\\ccs_v_mz_library_search_modules | 1 | 356 | 54 | 95 | 505 |
+| PIMMS v1.2\\IMspector Gadget\\ccs_v_mz_modules | 4 | 803 | 69 | 163 | 1,035 |
+| PIMMS v1.2\\IMspector Gadget\\neutral_loss_modules | 3 | 807 | 57 | 189 | 1,053 |
+| PIMMS v1.2\\IMspector Gadget\\rt_v_mz_library_search_modules | 1 | 436 | 59 | 123 | 618 |
 | PIMMS v1.2\\OpenMS | 3 | 189 | 18 | 42 | 249 |
-| PIMMS v1.2\\import folder | 4 | 2,742 | 0 | 4 | 2,746 |
+| PIMMS v1.2\\import folder | 4 | 2,741 | 0 | 4 | 2,745 |
+| PIMMS v1.2\\imported_libraries | 1 | 2 | 0 | 1 | 3 |
 | PIMMS v1.2\\modules | 15 | 1,668 | 149 | 446 | 2,263 |
 | PIMMS v1.2\\output | 1 | 1,808 | 0 | 1 | 1,809 |
 | PIMMS v1.2\\tests | 3 | 42 | 7 | 14 | 63 |

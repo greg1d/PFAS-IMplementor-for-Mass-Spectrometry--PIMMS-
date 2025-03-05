@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-02-19 08:54:01
+Date : 2025-03-04 16:45:08
 
-Directory c:\\Users\\grego\\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Directory c:\\Users\\Baker Lab 5\\Desktop\\GPK\\PIMMS\\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
 
-Total : 80 files,  38523 codes, 841 comments, 1726 blanks, all 41090 lines
+Total : 90 files,  40445 codes, 1029 comments, 2115 blanks, all 43589 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -21,32 +21,38 @@ Total : 80 files,  38523 codes, 841 comments, 1726 blanks, all 41090 lines
 | [PIMMS v1.1 files/PIMMS v1.1.0/Year organization script.py](/PIMMS%20v1.1%20files/PIMMS%20v1.1.0/Year%20organization%20script.py) | Python | 21 | 7 | 8 | 36 |
 | [PIMMS v1.1 files/PIMMS v1.1.0/setup\_environment.py](/PIMMS%20v1.1%20files/PIMMS%20v1.1.0/setup_environment.py) | Python | 43 | 0 | 13 | 56 |
 | [PIMMS v1.1 files/PIMMS v1.2/Subtracted\_reader.py](/PIMMS%20v1.1%20files/PIMMS%20v1.2/Subtracted_reader.py) | Python | 79 | 7 | 14 | 100 |
-| [PIMMS v1.2/Data\_output/PIMMS Processed Data set test.csv](/PIMMS%20v1.2/Data_output/PIMMS%20Processed%20Data%20set%20test.csv) | CSV | 5 | 0 | 1 | 6 |
+| [PIMMS v1.2/Data\_output/PIMMS Processed Data set test.csv](/PIMMS%20v1.2/Data_output/PIMMS%20Processed%20Data%20set%20test.csv) | CSV | 6 | 0 | 1 | 7 |
 | [PIMMS v1.2/Data\_output/PIMMS Processed Data set.csv](/PIMMS%20v1.2/Data_output/PIMMS%20Processed%20Data%20set.csv) | CSV | 386 | 0 | 1 | 387 |
 | [PIMMS v1.2/Data\_output/adjusted\_after\_blank\_subtraction.csv](/PIMMS%20v1.2/Data_output/adjusted_after_blank_subtraction.csv) | CSV | 25,455 | 0 | 1 | 25,456 |
 | [PIMMS v1.2/Figures/sankey\_filtering\_performance.py](/PIMMS%20v1.2/Figures/sankey_filtering_performance.py) | Python | 73 | 9 | 11 | 93 |
 | [PIMMS v1.2/FluoromatchIM Processor v1.1.py](/PIMMS%20v1.2/FluoromatchIM%20Processor%20v1.1.py) | Python | 312 | 60 | 74 | 446 |
 | [PIMMS v1.2/IMspector Gadget/IMspector Gadget Main.py](/PIMMS%20v1.2/IMspector%20Gadget/IMspector%20Gadget%20Main.py) | Python | 88 | 15 | 33 | 136 |
-| [PIMMS v1.2/IMspector Gadget/analysis.py](/PIMMS%20v1.2/IMspector%20Gadget/analysis.py) | Python | 91 | 11 | 30 | 132 |
-| [PIMMS v1.2/IMspector Gadget/app.py](/PIMMS%20v1.2/IMspector%20Gadget/app.py) | Python | 26 | 8 | 16 | 50 |
-| [PIMMS v1.2/IMspector Gadget/app\_layout.py](/PIMMS%20v1.2/IMspector%20Gadget/app_layout.py) | Python | 17 | 1 | 3 | 21 |
-| [PIMMS v1.2/IMspector Gadget/assets/styles.css](/PIMMS%20v1.2/IMspector%20Gadget/assets/styles.css) | CSS | 61 | 9 | 9 | 79 |
-| [PIMMS v1.2/IMspector Gadget/callbacks.py](/PIMMS%20v1.2/IMspector%20Gadget/callbacks.py) | Python | 113 | 3 | 26 | 142 |
-| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_library\_search\_modules/library\_search\_module.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_library_search_modules/library_search_module.py) | Python | 340 | 42 | 77 | 459 |
-| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_modules/CCS\_mz\_trend\_analysis.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_modules/CCS_mz_trend_analysis.py) | Python | 221 | 22 | 52 | 295 |
+| [PIMMS v1.2/IMspector Gadget/analysis.py](/PIMMS%20v1.2/IMspector%20Gadget/analysis.py) | Python | 98 | 11 | 31 | 140 |
+| [PIMMS v1.2/IMspector Gadget/app.py](/PIMMS%20v1.2/IMspector%20Gadget/app.py) | Python | 26 | 8 | 14 | 48 |
+| [PIMMS v1.2/IMspector Gadget/app\_layout.py](/PIMMS%20v1.2/IMspector%20Gadget/app_layout.py) | Python | 93 | 10 | 4 | 107 |
+| [PIMMS v1.2/IMspector Gadget/assets/styles.css](/PIMMS%20v1.2/IMspector%20Gadget/assets/styles.css) | CSS | 164 | 35 | 27 | 226 |
+| [PIMMS v1.2/IMspector Gadget/callbacks.py](/PIMMS%20v1.2/IMspector%20Gadget/callbacks.py) | Python | 182 | 16 | 28 | 226 |
+| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_library\_search\_modules/library\_search\_module.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_library_search_modules/library_search_module.py) | Python | 356 | 54 | 95 | 505 |
+| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_modules/CCS\_mz\_trend\_analysis.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_modules/CCS_mz_trend_analysis.py) | Python | 213 | 20 | 50 | 283 |
 | [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_modules/dash\_formatting.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_modules/dash_formatting.py) | Python | 26 | 0 | 3 | 29 |
-| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_modules/plotly\_graphing.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_modules/plotly_graphing.py) | Python | 468 | 40 | 90 | 598 |
-| [PIMMS v1.2/IMspector Gadget/config.py](/PIMMS%20v1.2/IMspector%20Gadget/config.py) | Python | 27 | 7 | 7 | 41 |
+| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_modules/mz\_repeating\_unit\_analysis\_binary\_search.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_modules/mz_repeating_unit_analysis_binary_search.py) | Python | 104 | 7 | 18 | 129 |
+| [PIMMS v1.2/IMspector Gadget/ccs\_v\_mz\_modules/plotly\_graphing.py](/PIMMS%20v1.2/IMspector%20Gadget/ccs_v_mz_modules/plotly_graphing.py) | Python | 460 | 42 | 92 | 594 |
+| [PIMMS v1.2/IMspector Gadget/config.py](/PIMMS%20v1.2/IMspector%20Gadget/config.py) | Python | 20 | 6 | 8 | 34 |
 | [PIMMS v1.2/IMspector Gadget/data\_processing.py](/PIMMS%20v1.2/IMspector%20Gadget/data_processing.py) | Python | 18 | 0 | 5 | 23 |
-| [PIMMS v1.2/IMspector Gadget/graphing.py](/PIMMS%20v1.2/IMspector%20Gadget/graphing.py) | Python | 91 | 8 | 29 | 128 |
+| [PIMMS v1.2/IMspector Gadget/graphing.py](/PIMMS%20v1.2/IMspector%20Gadget/graphing.py) | Python | 184 | 15 | 48 | 247 |
+| [PIMMS v1.2/IMspector Gadget/neutral\_loss\_modules/neutral\_mass\_loss\_analysis.py](/PIMMS%20v1.2/IMspector%20Gadget/neutral_loss_modules/neutral_mass_loss_analysis.py) | Python | 504 | 37 | 117 | 658 |
+| [PIMMS v1.2/IMspector Gadget/neutral\_loss\_modules/neutral\_mass\_loss\_analysis\_compares\_to\_external\_lib.py](/PIMMS%20v1.2/IMspector%20Gadget/neutral_loss_modules/neutral_mass_loss_analysis_compares_to_external_lib.py) | Python | 165 | 6 | 42 | 213 |
+| [PIMMS v1.2/IMspector Gadget/neutral\_loss\_modules/neutral\_mass\_loss\_plotting.py](/PIMMS%20v1.2/IMspector%20Gadget/neutral_loss_modules/neutral_mass_loss_plotting.py) | Python | 138 | 14 | 30 | 182 |
+| [PIMMS v1.2/IMspector Gadget/rt\_v\_mz\_library\_search\_modules/rt\_v\_mz\_library\_searcher.py](/PIMMS%20v1.2/IMspector%20Gadget/rt_v_mz_library_search_modules/rt_v_mz_library_searcher.py) | Python | 436 | 59 | 123 | 618 |
 | [PIMMS v1.2/Main.py](/PIMMS%20v1.2/Main.py) | Python | 275 | 26 | 42 | 343 |
 | [PIMMS v1.2/OpenMS/2D\_spectrum\_import.py](/PIMMS%20v1.2/OpenMS/2D_spectrum_import.py) | Python | 47 | 9 | 15 | 71 |
 | [PIMMS v1.2/OpenMS/Testing\_OpenMS.py](/PIMMS%20v1.2/OpenMS/Testing_OpenMS.py) | Python | 75 | 7 | 23 | 105 |
 | [PIMMS v1.2/OpenMS/mzML file creator.py](/PIMMS%20v1.2/OpenMS/mzML%20file%20creator.py) | Python | 67 | 2 | 4 | 73 |
 | [PIMMS v1.2/import folder/Baker\_Group\_RPLC\_DTIMS\_MS\_PFAS\_Library\_Negative.csv](/PIMMS%20v1.2/import%20folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv) | CSV | 120 | 0 | 1 | 121 |
 | [PIMMS v1.2/import folder/Kauffman\_M-H\_external\_PFAS\_library\_mz\_only.csv](/PIMMS%20v1.2/import%20folder/Kauffman_M-H_external_PFAS_library_mz_only.csv) | CSV | 2,587 | 0 | 1 | 2,588 |
-| [PIMMS v1.2/import folder/Library test file 1.csv](/PIMMS%20v1.2/import%20folder/Library%20test%20file%201.csv) | CSV | 5 | 0 | 1 | 6 |
 | [PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv](/PIMMS%20v1.2/import%20folder/MPFAC%20HIF%20ES%20SIL%20peaks.csv) | CSV | 30 | 0 | 1 | 31 |
+| [PIMMS v1.2/import folder/test\_library\_2.csv](/PIMMS%20v1.2/import%20folder/test_library_2.csv) | CSV | 4 | 0 | 1 | 5 |
+| [PIMMS v1.2/imported\_libraries/test\_library\_2.csv](/PIMMS%20v1.2/imported_libraries/test_library_2.csv) | CSV | 2 | 0 | 1 | 3 |
 | [PIMMS v1.2/modules/ML\_algorithm\_density.py](/PIMMS%20v1.2/modules/ML_algorithm_density.py) | Python | 14 | 0 | 3 | 17 |
 | [PIMMS v1.2/modules/Standard\_library\_scoring.py](/PIMMS%20v1.2/modules/Standard_library_scoring.py) | Python | 203 | 3 | 58 | 264 |
 | [PIMMS v1.2/modules/Testing\_OpenMS.py](/PIMMS%20v1.2/modules/Testing_OpenMS.py) | Python | 75 | 7 | 23 | 105 |
@@ -59,7 +65,7 @@ Total : 80 files,  38523 codes, 841 comments, 1726 blanks, all 41090 lines
 | [PIMMS v1.2/modules/gui\_module.py](/PIMMS%20v1.2/modules/gui_module.py) | Python | 112 | 17 | 30 | 159 |
 | [PIMMS v1.2/modules/mass\_defect\_filter.py](/PIMMS%20v1.2/modules/mass_defect_filter.py) | Python | 19 | 3 | 7 | 29 |
 | [PIMMS v1.2/modules/monoisotopic\_grouper.py](/PIMMS%20v1.2/modules/monoisotopic_grouper.py) | Python | 96 | 4 | 22 | 122 |
-| [PIMMS v1.2/modules/plotly\_graphing.py](/PIMMS%20v1.2/modules/plotly_graphing.py) | Python | 304 | 20 | 57 | 381 |
+| [PIMMS v1.2/modules/plotly\_graphing.py](/PIMMS%20v1.2/modules/plotly_graphing.py) | Python | 279 | 19 | 53 | 351 |
 | [PIMMS v1.2/modules/post\_source\_decay\_filter.py](/PIMMS%20v1.2/modules/post_source_decay_filter.py) | Python | 39 | 9 | 22 | 70 |
 | [PIMMS v1.2/modules/smearing\_filter.py](/PIMMS%20v1.2/modules/smearing_filter.py) | Python | 34 | 6 | 10 | 50 |
 | [PIMMS v1.2/output/final\_adjusted\_dataset.csv](/PIMMS%20v1.2/output/final_adjusted_dataset.csv) | CSV | 1,808 | 0 | 1 | 1,809 |
@@ -86,10 +92,14 @@ Total : 80 files,  38523 codes, 841 comments, 1726 blanks, all 41090 lines
 | [config.json](/config.json) | JSON | 1 | 0 | 0 | 1 |
 | [debug\_filtered\_IM\_group.csv](/debug_filtered_IM_group.csv) | CSV | 43 | 0 | 1 | 44 |
 | [debug\_stacked\_df.csv](/debug_stacked_df.csv) | CSV | 505 | 0 | 1 | 506 |
-| [group\_df.csv](/group_df.csv) | CSV | 6 | 0 | 1 | 7 |
+| [filtered\_neutral\_loss\_groups.csv](/filtered_neutral_loss_groups.csv) | CSV | 11 | 0 | 1 | 12 |
+| [group\_df.csv](/group_df.csv) | CSV | 5 | 0 | 1 | 6 |
 | [main.py](/main.py) | Python | 38 | 8 | 17 | 63 |
+| [mass\_groups.csv](/mass_groups.csv) | CSV | 71 | 0 | 1 | 72 |
+| [neutral\_loss\_groups\_after\_filtering.csv](/neutral_loss_groups_after_filtering.csv) | CSV | 52 | 0 | 1 | 53 |
 | [requirements.txt](/requirements.txt) | pip requirements | 12 | 0 | 0 | 12 |
 | [setup\_environment.sh](/setup_environment.sh) | Shell Script | 11 | 5 | 4 | 20 |
 | [stacked\_df.csv](/stacked_df.csv) | CSV | 505 | 0 | 1 | 506 |
+| [stacked\_df\_debug.csv](/stacked_df_debug.csv) | CSV | 124 | 0 | 1 | 125 |
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
