@@ -36,6 +36,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
     - **Each homologous series is visually distinct using the cmocean 'phase' colormap.**
     - **No trendline analysis is performed.**
     - **All data points within the same group share the same color.**
+    - **Outliers are plotted as 'X' markers but do NOT appear in the legend.**
     - **Sample intensities are included in hover text.**
 
     Args:
@@ -44,6 +45,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
     Returns:
         plotly.graph_objects.Figure: A Plotly figure displaying grouped DT vs. m/z data points.
     """
+
     if m_z_DT_groups.empty:
         print("[INFO] No significant DT vs. m/z groups found. Returning blank graph.")
         fig = go.Figure()
@@ -57,7 +59,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
 
     fig = go.Figure()
 
-    # ✅ Dummy trace for "External Library Match" (X)
+    # ✅ Dummy trace for "Outlier" (X) so it appears separately in the legend
     fig.add_trace(
         go.Scatter(
             x=[None],  # Dummy point (does not appear in the plot)
@@ -65,12 +67,12 @@ def dt_vs_mz_plotly(m_z_DT_groups):
             mode="markers",
             marker=dict(size=15, color="white", symbol="x"),
             name="<b>Outlier in RT/DT</b>",
-            legendgroup="library_match",
-            showlegend=True,  # ✅ Always visible
+            showlegend=True,
             hoverinfo="skip",
-            visible=True,  # ✅ Always visible, not toggled
+            visible=True,
         )
     )
+
     # ✅ Strip whitespace from column names
     m_z_DT_groups.columns = m_z_DT_groups.columns.str.strip()
 
@@ -91,74 +93,73 @@ def dt_vs_mz_plotly(m_z_DT_groups):
         dt_values = group_df["DT"].values
         series_color = colors[idx % NUM_SERIES]  # Assign consistent color per group
 
+        # ✅ Separate outliers from non-outliers
+        outlier_mask = group_df["Outlier"] == True
+        non_outliers = group_df[~outlier_mask]
+        outliers = group_df[outlier_mask]
+
         # ✅ Prepare hover metadata
         hover_texts = []
         sample_columns = [col for col in group_df.columns if ".d" in col]
-        symbols = []
 
-        for _, row in group_df.iterrows():
-            match_name = row.get("Match", "No Match")
-            classification = row.get("Classification Type", "Unknown")
-            DT = row.get("DT", "N/A")  # Safely access DT
-            repeating_unit = row.get("Repeating Unit", "N/A")
-
-            # ✅ Extract sample intensity details
-            sample_info = []
-            matched_row = row.to_frame().T
-            if not matched_row.empty:
-                for col in sample_columns:
-                    col_stripped = col.strip()
-                    if col_stripped in matched_row.columns:
-                        val = matched_row[col_stripped].values[0]
-                        try:
-                            val = float(val)
-                            if pd.notna(val) and val >= 0.001:
-                                sample_info.append(f"{col_stripped}: {val:.2f}")
-                        except ValueError:
-                            print(
-                                f"[WARNING] Could not convert value {val} in column {col_stripped} to float."
-                            )
-            sample_text = "<br>".join(sample_info) if sample_info else "None"
-
-            # --- Construct hover text ---
-            hover_text = (
-                f"Match: {match_name}<br>"
-                f"m/z: {row['m/z']:.4f}<br>"
-                f"DT: {DT}<br>"
-                f"CCS: {row['CCS']:.2f}<br>"
-                f"RT: {row['RT']:.2f}<br>"
-                f"Adduct: {row['Neutral Loss']}<br>"
-                f"Classification: {classification}<br>"
-            )
-            # Only add sample details if the classification is not External Library
-            if classification != "External Library":
-                hover_text += f"<br>Samples:<br>{sample_text}"
-
-            hover_texts.append(hover_text)
-
-            marker_symbol = "x" if row.get("Outlier", False) else "circle"
-            symbols.append(marker_symbol)
-
-        # ✅ Scatter plot for the group
+        # ✅ Scatter plot for NON-Outliers (circles)
         fig.add_trace(
             go.Scatter(
-                x=mz_values,
-                y=dt_values,
+                x=non_outliers["m/z"],
+                y=non_outliers["DT"],
                 mode="markers+text",
-                marker=dict(size=15, color=series_color, symbol=symbols),
-                name=f"Group {group_id}",
+                marker=dict(size=15, color=series_color, symbol="circle"),
+                name=f"Group {group_id}",  # ✅ This appears in the legend
                 legendgroup=f"group_{group_id}",
                 showlegend=True,
                 text=[
                     f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
-                    for _, row in group_df.iterrows()
+                    for _, row in non_outliers.iterrows()
                 ],
                 textposition="middle left",
-                hovertext=hover_texts,
                 hoverinfo="text",
-                hovertemplate="%{hovertext}<extra></extra>",
+                hovertext=[
+                    f"Match: {row.get('Match', 'No Match')}<br>"
+                    f"m/z: {row['m/z']:.4f}<br>"
+                    f"DT: {row['DT']}<br>"
+                    f"CCS: {row['CCS']:.2f}<br>"
+                    f"RT: {row['RT']:.2f}<br>"
+                    f"Adduct: {row['Neutral Loss']}<br>"
+                    f"Classification: {row.get('Classification Type', 'Unknown')}"
+                    for _, row in non_outliers.iterrows()
+                ],
             )
         )
+
+        # ✅ Scatter plot for Outliers (X) (DOES NOT appear in legend)
+        if not outliers.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=outliers["m/z"],
+                    y=outliers["DT"],
+                    mode="markers+text",
+                    marker=dict(size=15, color=series_color, symbol="x"),
+                    name=f"Outlier in Group {group_id}",
+                    legendgroup=f"group_{group_id}",
+                    showlegend=False,  # ✅ Prevents it from appearing in legend
+                    text=[
+                        f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
+                        for _, row in outliers.iterrows()
+                    ],
+                    textposition="middle left",
+                    hoverinfo="text",
+                    hovertext=[
+                        f"Match: {row.get('Match', 'No Match')}<br>"
+                        f"m/z: {row['m/z']:.4f}<br>"
+                        f"DT: {row['DT']}<br>"
+                        f"CCS: {row['CCS']:.2f}<br>"
+                        f"RT: {row['RT']:.2f}<br>"
+                        f"Adduct: {row['Neutral Loss']}<br>"
+                        f"Classification: {row.get('Classification Type', 'Unknown')}"
+                        for _, row in outliers.iterrows()
+                    ],
+                )
+            )
 
     # ✅ Update Plot Layout
     fig.update_layout(
