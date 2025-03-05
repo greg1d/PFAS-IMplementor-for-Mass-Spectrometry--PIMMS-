@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
-
 # Define color palette
 NUM_SERIES = 10
 HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
@@ -16,16 +15,16 @@ base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
 import cmocean
 import numpy as np
-from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
-    add_back_in_sample_intensities,
-)
 from neutral_mass_loss_analysis import (
-    filter_neutral_loss_groups,
-    neutral_loss_analysis,
     combine_filtered_groups,
     filter_multiple_carboxylic_acids,
+    filter_neutral_loss_groups,
+    neutral_loss_analysis,
     reanalyze_neutral_loss_and_handle_exclusions,
     refine_messy_groups,
+)
+from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
+    add_back_in_sample_intensities,
 )
 
 
@@ -44,7 +43,6 @@ def dt_vs_mz_plotly(m_z_DT_groups):
     Returns:
         plotly.graph_objects.Figure: A Plotly figure displaying grouped DT vs. m/z data points.
     """
-
     if m_z_DT_groups.empty:
         print("[INFO] No significant DT vs. m/z groups found. Returning blank graph.")
         fig = go.Figure()
@@ -111,6 +109,8 @@ def dt_vs_mz_plotly(m_z_DT_groups):
                 f"Match: {match_name}<br>"
                 f"m/z: {row['m/z']:.4f}<br>"
                 f"CCS: {row['CCS']:.2f}<br>"
+                f"RT: {row['RT']:.2f}<br>"
+                f"Adduct: {row['Neutral Loss']}<br>"
                 f"DT: {DT}<br>"
                 f"Classification: {classification}<br>"
                 f"Repeating Unit: {repeating_unit}"
