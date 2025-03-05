@@ -65,6 +65,13 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
     if neutral_loss_units is None:
         neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
 
+    # Define specific mass differences for multiple adduct losses
+    multi_loss_units = {
+        "2CO2": (87, 89),
+        "CO2-SO3": (123, 125),
+        "2SO3": (159, 161),
+    }
+
     group_counter = 0
     processed_indices = set()
 
@@ -137,8 +144,30 @@ def neutral_loss_analysis(adjusted_df, mass_error_ppm=10, neutral_loss_units=Non
                     processed_indices.add(j)
                     search_queue.append(j)  # Continue checking the new match
 
+        highest_mz = max(entry["m/z"] for entry in current_group)  # Identify M peak
+
+        for entry in current_group:
+            secondary_mass_diff = abs(highest_mz - entry["m/z"])
+
+            # ✅ If within 0.1 Da of M, reassign as "M"
+            if secondary_mass_diff <= 0.1:
+                entry["Neutral Loss"] = "M"
+                print(
+                    f"[INFO] Group {group_counter}: Reassigned {entry['m/z']} as M (close to highest m/z)"
+                )
+
+            # ✅ Otherwise, check multi-adduct losses
+            elif entry["Neutral Loss"] != "M":  # Only modify non-M peaks
+                for unit_name, (lower_bound, upper_bound) in multi_loss_units.items():
+                    if lower_bound <= secondary_mass_diff <= upper_bound:
+                        entry["Neutral Loss"] = f"M-{unit_name}"  # Update label
+                        print(
+                            f"[INFO] Group {group_counter}: Assigned {entry['Neutral Loss']} for {entry['m/z']}"
+                        )
+
         if len(current_group) > 1:
             neutral_loss_groups.extend(current_group)
+
     result_df = pd.DataFrame(neutral_loss_groups)
 
     return result_df
