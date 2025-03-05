@@ -112,6 +112,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
                 name=f"Group {group_id}",  # ✅ This appears in the legend
                 legendgroup=f"group_{group_id}",
                 showlegend=True,
+                visible="legendonly",
                 text=[
                     f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
                     for _, row in non_outliers.iterrows()
@@ -141,7 +142,8 @@ def dt_vs_mz_plotly(m_z_DT_groups):
                     marker=dict(size=15, color=series_color, symbol="x"),
                     name=f"Outlier in Group {group_id}",
                     legendgroup=f"group_{group_id}",
-                    showlegend=False,  # ✅ Prevents it from appearing in legend
+                    showlegend=False,
+                    visible="legendonly",
                     text=[
                         f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
                         for _, row in outliers.iterrows()
