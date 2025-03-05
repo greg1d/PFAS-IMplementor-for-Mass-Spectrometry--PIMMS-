@@ -56,6 +56,20 @@ def dt_vs_mz_plotly(m_z_DT_groups):
 
     fig = go.Figure()
 
+    # ✅ Dummy trace for "External Library Match" (X)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="x"),
+            name="<b>Outlier in RT/DT</b>",
+            legendgroup="library_match",
+            showlegend=True,  # ✅ Always visible
+            hoverinfo="skip",
+            visible=True,  # ✅ Always visible, not toggled
+        )
+    )
     # ✅ Strip whitespace from column names
     m_z_DT_groups.columns = m_z_DT_groups.columns.str.strip()
 
