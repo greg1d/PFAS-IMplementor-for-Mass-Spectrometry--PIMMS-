@@ -601,6 +601,46 @@ def combine_filtered_groups(filtered_df, refined_groups, mz_tolerance=10):
     return final_df
 
 
+def reorder_group_ids(neutral_loss_groups_after_filtering):
+    """
+    Reorders GroupIDs sequentially after sorting each group by the highest m/z value.
+
+    Args:
+        neutral_loss_groups_after_filtering (pd.DataFrame): DataFrame containing neutral loss groups.
+
+    Returns:
+        pd.DataFrame: DataFrame with updated sequential GroupIDs.
+    """
+
+    if neutral_loss_groups_after_filtering.empty:
+        print("[INFO] No groups found to reorder. Returning empty DataFrame.")
+        return neutral_loss_groups_after_filtering
+
+    # ✅ Make a copy to avoid modifying the original DataFrame
+    df = neutral_loss_groups_after_filtering.copy()
+
+    # ✅ Ensure GroupID is integer type
+    df["GroupID"] = df["GroupID"].astype(int)
+
+    # ✅ Sort by GroupID first, then sort within each group by m/z (descending)
+    df.sort_values(by=["GroupID", "m/z"], ascending=[True, False], inplace=True)
+
+    # ✅ Generate new sequential GroupIDs starting at 1
+    unique_group_ids = df["GroupID"].unique()
+    new_group_id_mapping = {
+        old_id: new_id for new_id, old_id in enumerate(unique_group_ids, start=1)
+    }
+
+    # ✅ Apply new GroupID mapping
+    df["GroupID"] = df["GroupID"].map(new_group_id_mapping)
+
+    print(
+        f"[INFO] Reordered groups. New GroupIDs range from 1 to {df['GroupID'].max()}."
+    )
+
+    return df
+
+
 def main():
     # Example usage
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
@@ -653,9 +693,10 @@ def main():
         adjusted_df,
         neutral_loss_groups_after_filtering,
     )
-    neutral_loss_groups_after_filtering.to_csv(
-        "neutral_loss_groups_after_filtering.csv", index=False
+    neutral_loss_groups_after_filtering = reorder_group_ids(
+        neutral_loss_groups_after_filtering
     )
+    print(neutral_loss_groups_after_filtering)
 
 
 if __name__ == "__main__":

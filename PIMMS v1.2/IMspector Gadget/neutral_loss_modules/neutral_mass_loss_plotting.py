@@ -22,6 +22,7 @@ from neutral_mass_loss_analysis import (
     neutral_loss_analysis,
     reanalyze_neutral_loss_and_handle_exclusions,
     refine_messy_groups,
+    reorder_group_ids,
 )
 from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
     add_back_in_sample_intensities,
@@ -222,6 +223,9 @@ def main():
     neutral_loss_groups_after_filtering = add_back_in_sample_intensities(
         adjusted_df,
         neutral_loss_groups_after_filtering,
+    )
+    neutral_loss_groups_after_filtering = reorder_group_ids(
+        neutral_loss_groups_after_filtering
     )
     fig = dt_vs_mz_plotly(neutral_loss_groups_after_filtering)
     fig.show()
