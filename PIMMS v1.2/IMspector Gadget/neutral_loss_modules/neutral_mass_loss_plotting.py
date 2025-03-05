@@ -5,10 +5,7 @@ import cmocean
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from neutral_mass_loss_analysis import (
-    filter_neutral_loss_groups,
-    neutral_loss_analysis,
-)
+
 
 # Define color palette
 NUM_SERIES = 10
@@ -21,6 +18,14 @@ import cmocean
 import numpy as np
 from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
     add_back_in_sample_intensities,
+)
+from neutral_mass_loss_analysis import (
+    filter_neutral_loss_groups,
+    neutral_loss_analysis,
+    combine_filtered_groups,
+    filter_multiple_carboxylic_acids,
+    reanalyze_neutral_loss_and_handle_exclusions,
+    refine_messy_groups,
 )
 
 
@@ -152,29 +157,58 @@ def main():
     # Example usage
     file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(file_path)
-
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
-
     # Step 1: Identify neutral loss groups (without filtering)
     neutral_loss_groups = neutral_loss_analysis(
         adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
     )
-    neutral_loss_groups = add_back_in_sample_intensities(
-        adjusted_df,
-        neutral_loss_groups,
-    )
+
+    # ✅ Define shared parameters
+    IM_resolving_power = 60
+    IM_tolerance_coefficient = 1
+    rt_threshold = 0.5
+    comparison_type = "both"
+    mass_error_ppm = 10
+
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
-    filtered_neutral_loss = filter_neutral_loss_groups(
+    filtered_neutral_loss, messy_df = filter_neutral_loss_groups(
         neutral_loss_groups,
-        IM_resolving_power=60,
-        IM_tolerance_coefficient=5,
-        rt_threshold=1.0,
-        comparison_type="both",
+        IM_resolving_power,
+        IM_tolerance_coefficient,
+        rt_threshold,
+        comparison_type,
     )
 
-    fig = dt_vs_mz_plotly(filtered_neutral_loss)
+    final_df, m8_group_df = filter_multiple_carboxylic_acids(
+        messy_df,
+        mass_error_ppm,
+        IM_resolving_power,
+        IM_tolerance_coefficient,
+        rt_threshold,
+    )
+
+    final_combined_df = reanalyze_neutral_loss_and_handle_exclusions(
+        final_df, m8_group_df, mass_error_ppm=10, neutral_loss_units=None
+    )
+    print("final_combined_df inside main", final_combined_df)
+    post_extended_refinement = refine_messy_groups(
+        final_combined_df,
+        rt_threshold,
+        comparison_type,
+        IM_resolving_power,
+        IM_tolerance_coefficient,
+    )
+
+    neutral_loss_groups_after_filtering = combine_filtered_groups(
+        filtered_neutral_loss, post_extended_refinement
+    )
+    neutral_loss_groups_after_filtering = add_back_in_sample_intensities(
+        adjusted_df,
+        neutral_loss_groups_after_filtering,
+    )
+    fig = dt_vs_mz_plotly(neutral_loss_groups_after_filtering)
     fig.show()
-    print("[INFO] Filtered neutral loss groups:\n", filtered_neutral_loss)
+    print("[INFO] Filtered neutral loss groups:\n", neutral_loss_groups_after_filtering)
 
 
 if __name__ == "__main__":
