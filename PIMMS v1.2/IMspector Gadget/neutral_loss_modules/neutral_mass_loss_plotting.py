@@ -7,15 +7,9 @@ import pandas as pd
 import plotly.graph_objects as go
 
 
-# Define color palette
-NUM_SERIES = 10
-HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
-
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
-import cmocean
-import numpy as np
 from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
     add_back_in_sample_intensities,
 )
@@ -27,6 +21,10 @@ from neutral_mass_loss_analysis import (
     reanalyze_neutral_loss_and_handle_exclusions,
     refine_messy_groups,
 )
+
+# Define color palette
+NUM_SERIES = 10
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 
 def dt_vs_mz_plotly(m_z_DT_groups):
