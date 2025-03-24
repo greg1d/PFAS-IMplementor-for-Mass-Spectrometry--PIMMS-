@@ -6,20 +6,26 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
+# Define color palette
+NUM_SERIES = 10
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
 
 # ✅ Ensure Python Can Find Modules
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(base_dir)
-from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
-    add_back_in_sample_intensities,
-)
+import cmocean
+import numpy as np
 from neutral_mass_loss_analysis import (
-    filter_neutral_loss_groups,
-    neutral_loss_analysis,
     combine_filtered_groups,
     filter_multiple_carboxylic_acids,
+    filter_neutral_loss_groups,
+    neutral_loss_analysis,
     reanalyze_neutral_loss_and_handle_exclusions,
     refine_messy_groups,
+    reorder_group_ids,
+)
+from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
+    add_back_in_sample_intensities,
 )
 
 # Define color palette
@@ -34,6 +40,7 @@ def dt_vs_mz_plotly(m_z_DT_groups):
     - **Each homologous series is visually distinct using the cmocean 'phase' colormap.**
     - **No trendline analysis is performed.**
     - **All data points within the same group share the same color.**
+    - **Outliers are plotted as 'X' markers but do NOT appear in the legend.**
     - **Sample intensities are included in hover text.**
 
     Args:
@@ -56,6 +63,20 @@ def dt_vs_mz_plotly(m_z_DT_groups):
 
     fig = go.Figure()
 
+    # ✅ Dummy trace for "Outlier" (X) so it appears separately in the legend
+    fig.add_trace(
+        go.Scatter(
+            x=[None],  # Dummy point (does not appear in the plot)
+            y=[None],
+            mode="markers",
+            marker=dict(size=15, color="white", symbol="x"),
+            name="<b>Outlier in RT/DT</b>",
+            showlegend=True,
+            hoverinfo="skip",
+            visible=True,
+        )
+    )
+
     # ✅ Strip whitespace from column names
     m_z_DT_groups.columns = m_z_DT_groups.columns.str.strip()
 
@@ -76,69 +97,75 @@ def dt_vs_mz_plotly(m_z_DT_groups):
         dt_values = group_df["DT"].values
         series_color = colors[idx % NUM_SERIES]  # Assign consistent color per group
 
+        # ✅ Separate outliers from non-outliers
+        outlier_mask = group_df["Outlier"] == True
+        non_outliers = group_df[~outlier_mask]
+        outliers = group_df[outlier_mask]
+
         # ✅ Prepare hover metadata
         hover_texts = []
         sample_columns = [col for col in group_df.columns if ".d" in col]
 
-        for _, row in group_df.iterrows():
-            match_name = row.get("Match", "No Match")
-            classification = row.get("Classification Type", "Unknown")
-            DT = row.get("DT", "N/A")  # Safely access DT
-            repeating_unit = row.get("Repeating Unit", "N/A")
-
-            # ✅ Extract sample intensity details
-            sample_info = []
-            matched_row = row.to_frame().T
-            if not matched_row.empty:
-                for col in sample_columns:
-                    col_stripped = col.strip()
-                    if col_stripped in matched_row.columns:
-                        val = matched_row[col_stripped].values[0]
-                        try:
-                            val = float(val)
-                            if pd.notna(val) and val >= 0.001:
-                                sample_info.append(f"{col_stripped}: {val:.2f}")
-                        except ValueError:
-                            print(
-                                f"[WARNING] Could not convert value {val} in column {col_stripped} to float."
-                            )
-            sample_text = "<br>".join(sample_info) if sample_info else "None"
-
-            # --- Construct hover text ---
-            hover_text = (
-                f"Match: {match_name}<br>"
-                f"m/z: {row['m/z']:.4f}<br>"
-                f"CCS: {row['CCS']:.2f}<br>"
-                f"DT: {DT}<br>"
-                f"Classification: {classification}<br>"
-                f"Repeating Unit: {repeating_unit}"
-            )
-            # Only add sample details if the classification is not External Library
-            if classification != "External Library":
-                hover_text += f"<br>Samples:<br>{sample_text}"
-
-            hover_texts.append(hover_text)
-
-        # ✅ Scatter plot for the group
+        # ✅ Scatter plot for NON-Outliers (circles)
         fig.add_trace(
             go.Scatter(
-                x=mz_values,
-                y=dt_values,
+                x=non_outliers["m/z"],
+                y=non_outliers["DT"],
                 mode="markers+text",
-                marker=dict(size=15, color=series_color),
-                name=f"Group {group_id}",
+                marker=dict(size=15, color=series_color, symbol="circle"),
+                name=f"Group {group_id}",  # ✅ This appears in the legend
                 legendgroup=f"group_{group_id}",
                 showlegend=True,
+                visible="legendonly",
                 text=[
                     f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
-                    for _, row in group_df.iterrows()
+                    for _, row in non_outliers.iterrows()
                 ],
                 textposition="middle left",
-                hovertext=hover_texts,
                 hoverinfo="text",
-                hovertemplate="%{hovertext}<extra></extra>",
+                hovertext=[
+                    f"Match: {row.get('Match', 'No Match')}<br>"
+                    f"m/z: {row['m/z']:.4f}<br>"
+                    f"DT: {row['DT']}<br>"
+                    f"CCS: {row['CCS']:.2f}<br>"
+                    f"RT: {row['RT']:.2f}<br>"
+                    f"Adduct: {row['Neutral Loss']}<br>"
+                    f"Classification: {row.get('Classification Type', 'Unknown')}"
+                    for _, row in non_outliers.iterrows()
+                ],
             )
         )
+
+        # ✅ Scatter plot for Outliers (X) (DOES NOT appear in legend)
+        if not outliers.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=outliers["m/z"],
+                    y=outliers["DT"],
+                    mode="markers+text",
+                    marker=dict(size=15, color=series_color, symbol="x"),
+                    name=f"Outlier in Group {group_id}",
+                    legendgroup=f"group_{group_id}",
+                    showlegend=False,
+                    visible="legendonly",
+                    text=[
+                        f"{row.get('Match', 'No Match')}<br>{row.get('Classification Type', 'Unknown')}"
+                        for _, row in outliers.iterrows()
+                    ],
+                    textposition="middle left",
+                    hoverinfo="text",
+                    hovertext=[
+                        f"Match: {row.get('Match', 'No Match')}<br>"
+                        f"m/z: {row['m/z']:.4f}<br>"
+                        f"DT: {row['DT']}<br>"
+                        f"CCS: {row['CCS']:.2f}<br>"
+                        f"RT: {row['RT']:.2f}<br>"
+                        f"Adduct: {row['Neutral Loss']}<br>"
+                        f"Classification: {row.get('Classification Type', 'Unknown')}"
+                        for _, row in outliers.iterrows()
+                    ],
+                )
+            )
 
     # ✅ Update Plot Layout
     fig.update_layout(
@@ -203,6 +230,9 @@ def main():
     neutral_loss_groups_after_filtering = add_back_in_sample_intensities(
         adjusted_df,
         neutral_loss_groups_after_filtering,
+    )
+    neutral_loss_groups_after_filtering = reorder_group_ids(
+        neutral_loss_groups_after_filtering
     )
     fig = dt_vs_mz_plotly(neutral_loss_groups_after_filtering)
     fig.show()
