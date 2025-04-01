@@ -227,6 +227,150 @@ def plot_filtered_ccs(
     plt.show()
 
 
+def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5), sharey=False)
+
+    # Prepare sorted m/z for line plotting
+    mz_sorted = np.sort(adjusted_df["m/z"].values)
+    ln_mz_sorted = np.log(mz_sorted)
+
+    # Compute RT quantile lines
+    rt_q05_line = rt_eq["q05_slope"] * ln_mz_sorted + rt_eq["q05_intercept"]
+    rt_q95_line = rt_eq["q95_slope"] * ln_mz_sorted + rt_eq["q95_intercept"]
+
+    # Compute CCS quantile lines
+    ccs_q05_line = ccs_eq["q05_slope"] * ln_mz_sorted + ccs_eq["q05_intercept"]
+    ccs_q95_line = ccs_eq["q95_slope"] * ln_mz_sorted + ccs_eq["q95_intercept"]
+
+    # === Panel 1: RT Full ===
+    ax = axes[0]
+    ax.scatter(
+        filtered_rt["m/z"],
+        filtered_rt["RT"],
+        color="gray",
+        alpha=0.3,
+        s=15,
+        label="Within Bounds",
+    )
+    excluded_rt = adjusted_df[~adjusted_df.index.isin(filtered_rt.index)]
+    ax.scatter(
+        excluded_rt["m/z"],
+        excluded_rt["RT"],
+        color="red",
+        alpha=0.6,
+        edgecolors="k",
+        s=30,
+        label="Outside Bounds",
+    )
+    ax.plot(mz_sorted, rt_q05_line, linestyle="--", color="red")
+    ax.plot(mz_sorted, rt_q95_line, linestyle="--", color="red")
+    ax.fill_between(mz_sorted, rt_q05_line, rt_q95_line, color="red", alpha=0.1)
+    ax.set_title("RT: Filtered", fontsize=10, fontweight="bold", family="Arial")
+    ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, family="Arial")
+    ax.set_ylim(0, 20)
+    ax.grid(True)
+
+    # === Panel 2: CCS Filtered ===
+    log_mz = np.log(adjusted_df["m/z"])
+    ccs_q05 = ccs_eq["q05_slope"] * log_mz + ccs_eq["q05_intercept"]
+    ccs_q95 = ccs_eq["q95_slope"] * log_mz + ccs_eq["q95_intercept"]
+    excluded_ccs = adjusted_df[
+        (adjusted_df["CCS"] < ccs_q05) | (adjusted_df["CCS"] > ccs_q95)
+    ]
+    ccs_line_q05 = ccs_eq["q05_slope"] * ln_mz_sorted + ccs_eq["q05_intercept"]
+    ccs_line_q95 = ccs_eq["q95_slope"] * ln_mz_sorted + ccs_eq["q95_intercept"]
+
+    ax = axes[1]
+    ax.scatter(
+        filtered_ccs["m/z"],
+        filtered_ccs["CCS"],
+        color="gray",
+        alpha=0.3,
+        s=15,
+        label="Within Bounds",
+    )
+    ax.scatter(
+        excluded_ccs["m/z"],
+        excluded_ccs["CCS"],
+        color="red",
+        alpha=0.6,
+        edgecolors="k",
+        s=30,
+        label="Outside Bounds",
+    )
+    ax.plot(
+        mz_sorted, ccs_line_q05, linestyle="--", color="red", label="5th Percentile"
+    )
+    ax.plot(
+        mz_sorted, ccs_line_q95, linestyle="--", color="red", label="95th Percentile"
+    )
+    ax.fill_between(mz_sorted, ccs_line_q05, ccs_line_q95, color="red", alpha=0.1)
+    ax.set_title("CCS: Filtered", fontsize=10, fontweight="bold", family="Arial")
+    ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, family="Arial")
+    ax.set_ylim(0, 300)
+    ax.grid(True)
+
+    # === Panel 3: CCS Filtered ===
+    combined_indices = set(adjusted_df.index) - set(
+        filtered_rt.index.intersection(filtered_ccs.index)
+    )
+    combined_outliers = adjusted_df.loc[list(combined_indices)]
+    combined_inliers = adjusted_df.drop(index=list(combined_indices))
+
+    ax = axes[2]
+    ax.scatter(
+        combined_inliers["m/z"],
+        combined_inliers["CCS"],
+        color="gray",
+        alpha=0.3,
+        s=15,
+        label="Within Bounds",
+    )
+    ax.scatter(
+        combined_outliers["m/z"],
+        combined_outliers["CCS"],
+        color="red",
+        alpha=0.6,
+        edgecolors="k",
+        s=30,
+        label="Outside (RT or CCS)",
+    )
+    ax.set_title(
+        "Combined Filter: CCS View", fontsize=10, fontweight="bold", family="Arial"
+    )
+    ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, family="Arial")
+    ax.set_ylim(0, 300)
+    ax.grid(True)
+
+    # Shared styling
+    for ax in axes:
+        ax.tick_params(axis="both", labelsize=9)
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontname("Arial")
+            label.set_fontweight("bold")
+
+    # Shared legend
+    handles, labels = axes[2].get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
+    legend = axes[2].legend(
+        unique.values(),
+        unique.keys(),
+        loc="upper left",
+        fontsize=8,
+        frameon=True,
+        fancybox=True,
+        facecolor="white",
+        edgecolor="gray",
+        framealpha=0.7,
+    )
+    for text in legend.get_texts():
+        text.set_fontweight("bold")
+        text.set_fontfamily("Arial")
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
+
+
 def main():
     # File paths
     library_file = (
@@ -245,6 +389,7 @@ def main():
     filtered_df_ccs = exclude_ccs_values(adjusted_df, RT_eq)
     plot_filtered_rt(adjusted_df, filtered_df, RT_eq)
     plot_filtered_ccs(adjusted_df, filtered_df_ccs, ccs_eq)
+    plot_triple_panel(adjusted_df, filtered_df, filtered_df_ccs, RT_eq, ccs_eq)
 
 
 if __name__ == "__main__":
