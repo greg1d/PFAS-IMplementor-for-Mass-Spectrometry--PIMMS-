@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from patsy import dmatrix
-from statsmodels.regression.quantile_regression import QuantReg
 from sklearn.model_selection import KFold
+from statsmodels.regression.quantile_regression import QuantReg
 
 # Define models globally
 models = {
@@ -130,9 +130,9 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         # Add metric box with KFold results
         metrics_text = (
             f"Pinball Loss:\n"
-            f"  5% = {pin5:.3f}\n"
-            f"  50% = {pin50:.3f}\n"
-            f"  95% = {pin95:.3f}\n"
+            f"5% = {pin5:.3f}\n"
+            f"50% = {pin50:.3f}\n"
+            f"95% = {pin95:.3f}\n"
             f"Coverage: {coverage:.2%}\n"
             f"Width: {interval_width:.2f}"
         )
@@ -205,6 +205,26 @@ def run_analysis(library_file):
         print(f"\n{model_name} Model Cross-Validation Results:")
         for metric, value in metrics.items():
             print(f"  {metric}: {value:.3f}")
+
+    # Logarithmic Model Equations (5th and 95th Percentiles)
+    X = dmatrix("1 + log_mz", df, return_type="dataframe")
+    model_5 = QuantReg(df["PrecursorRT"], X)
+    res_5 = model_5.fit(q=0.05)
+
+    model_95 = QuantReg(df["PrecursorRT"], X)
+    res_95 = model_95.fit(q=0.95)
+
+    # Extract coefficients for 5th and 95th percentiles
+    coefficients_5 = res_5.params
+    coefficients_95 = res_95.params
+
+    equation_5 = f"y = {coefficients_5[1]:.4f} * ln(x) + {coefficients_5[0]:.4f}"
+    equation_95 = f"y = {coefficients_95[1]:.4f} * ln(x) + {coefficients_95[0]:.4f}"
+    print("\nEquation for the 5th Percentile:")
+    print(equation_5)
+
+    print("\nEquation for the 95th Percentile:")
+    print(equation_95)
 
     # Plot the results
     plot_results(df, cross_val_results)
