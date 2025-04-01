@@ -41,7 +41,7 @@ from post_source_decay_filter import remove_post_source_decay
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/data/sampler_data.csv"]
+    file_paths = ["PIMMS v1.2/data/paired_sampler_analysis.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -62,8 +62,8 @@ def main():
     include_rt = False
 
     # Hardcoded filter parameters
-    min_intensity = 500  # Minimum intensity cutoff
-    rt_min = 0.5  # Minimum RT
+    min_intensity = 1000  # Minimum intensity cutoff
+    rt_min = 2  # Minimum RT
     rt_max = 16  # Maximum RT
     mass_min = 68.98  # Minimum mass
     mass_max = 1700  # Maximum mass
@@ -71,7 +71,7 @@ def main():
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
 
-    frequency_threshold = 10  # Detection frequency threshold percentage
+    frequency_threshold = 5  # Detection frequency threshold percentage
 
     try:
         # Process files and separate data

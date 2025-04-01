@@ -185,7 +185,7 @@ def main():
     neutral_loss_units = {"SO3": 79.956817, "CO2": 43.98983}
     # Step 1: Identify neutral loss groups (without filtering)
     neutral_loss_groups = neutral_loss_analysis(
-        adjusted_df, mass_error_ppm=10, neutral_loss_units=neutral_loss_units
+        adjusted_df, mass_error_ppm=20, neutral_loss_units=neutral_loss_units
     )
 
     # ✅ Define shared parameters
@@ -193,7 +193,7 @@ def main():
     IM_tolerance_coefficient = 1
     rt_threshold = 0.5
     comparison_type = "both"
-    mass_error_ppm = 10
+    mass_error_ppm = 20
 
     # Step 2: Apply filtering based on user-defined DT and RT thresholds
     filtered_neutral_loss, messy_df = filter_neutral_loss_groups(
