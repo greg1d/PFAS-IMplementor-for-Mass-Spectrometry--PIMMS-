@@ -123,7 +123,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
         color="gray",
         alpha=0.3,
         s=15,
-        label="Observed",
+        label="Library Features",
     )
     ax.plot(x_sorted, q50_sorted, color="black", label="Median (50%)")
     ax.plot(x_sorted, q5_sorted, linestyle="--", color="red", label="5th Percentile")
