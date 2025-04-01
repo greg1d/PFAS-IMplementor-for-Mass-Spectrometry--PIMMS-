@@ -40,31 +40,39 @@ def exclude_rt_values(adjusted_df, rt_eq):
     return filtered
 
 
-def plot_filtered_rt(adjusted_df, filtered_df, rt_eq, title="RT Filtering with Bounds"):
-    plt.figure(figsize=(9, 6))
-
-    # Recalculate the bounds using the equation
+def plot_filtered_rt(
+    adjusted_df, filtered_df, rt_eq, title="Filtered RT with Quantile Bounds"
+):
+    # Recalculate bounds
     log_mz = np.log(adjusted_df["m/z"])
     q05 = rt_eq["q05_slope"] * log_mz + rt_eq["q05_intercept"]
     q95 = rt_eq["q95_slope"] * log_mz + rt_eq["q95_intercept"]
 
-    # Identify excluded points
+    # Identify outliers
     mask = (adjusted_df["RT"] < q05) | (adjusted_df["RT"] > q95)
     excluded_df = adjusted_df[mask]
 
-    # Plot included (filtered) points
-    plt.scatter(
+    # Prepare for line plotting
+    mz_sorted = np.sort(adjusted_df["m/z"].values)
+    ln_mz_sorted = np.log(mz_sorted)
+    line_q05 = rt_eq["q05_slope"] * ln_mz_sorted + rt_eq["q05_intercept"]
+    line_q95 = rt_eq["q95_slope"] * ln_mz_sorted + rt_eq["q95_intercept"]
+
+    # Start plot
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    # Plot inliers
+    ax.scatter(
         filtered_df["m/z"],
         filtered_df["RT"],
-        color="steelblue",
-        alpha=0.6,
-        edgecolors="k",
-        s=30,
+        color="gray",
+        alpha=0.3,
+        s=15,
         label="Within Bounds",
     )
 
-    # Plot excluded (outlier) points
-    plt.scatter(
+    # Plot outliers
+    ax.scatter(
         excluded_df["m/z"],
         excluded_df["RT"],
         color="red",
@@ -74,28 +82,43 @@ def plot_filtered_rt(adjusted_df, filtered_df, rt_eq, title="RT Filtering with B
         label="Outside Bounds",
     )
 
-    # Sort x values for smooth line plotting
-    mz_sorted = np.sort(adjusted_df["m/z"].values)
-    ln_mz_sorted = np.log(mz_sorted)
-    line_q05 = rt_eq["q05_slope"] * ln_mz_sorted + rt_eq["q05_intercept"]
-    line_q95 = rt_eq["q95_slope"] * ln_mz_sorted + rt_eq["q95_intercept"]
+    # Plot quantile lines and band
+    ax.plot(mz_sorted, line_q05, linestyle="--", color="red", label="5th Percentile")
+    ax.plot(mz_sorted, line_q95, linestyle="--", color="red", label="95th Percentile")
+    ax.fill_between(mz_sorted, line_q05, line_q95, color="red", alpha=0.1)
 
-    # Plot the quantile regression bounds
-    plt.plot(mz_sorted, line_q05, color="black", linestyle="--", label="5th Percentile")
-    plt.plot(
-        mz_sorted, line_q95, color="black", linestyle="--", label="95th Percentile"
+    # Axis labels, limits, and ticks
+    ax.set_title(title, fontsize=10, fontweight="bold", fontfamily="Arial")
+    ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
+    ax.set_ylabel(
+        "Retention Time (min)", fontsize=10, fontweight="bold", fontfamily="Arial"
     )
-    plt.fill_between(mz_sorted, line_q05, line_q95, color="gray", alpha=0.15)
+    ax.set_ylim(0, 20)
+    ax.grid(True)
+    ax.tick_params(axis="both", labelsize=9)
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_fontname("Arial")
+        label.set_fontweight("bold")
 
-    # Formatting
-    plt.xlabel("m/z", fontsize=12, fontweight="bold", fontfamily="Arial")
-    plt.ylabel(
-        "Retention Time (min)", fontsize=12, fontweight="bold", fontfamily="Arial"
+    # Styled legend
+    handles, labels = ax.get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
+    legend = ax.legend(
+        unique.values(),
+        unique.keys(),
+        loc="upper left",
+        fontsize=8,
+        frameon=True,
+        fancybox=True,
+        facecolor="white",
+        edgecolor="gray",
+        framealpha=0.7,
     )
-    plt.title(title, fontsize=13, fontweight="bold", fontfamily="Arial")
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
+    for text in legend.get_texts():
+        text.set_fontweight("bold")
+        text.set_fontfamily("Arial")
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 
 
