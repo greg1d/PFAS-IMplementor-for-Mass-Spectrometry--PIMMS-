@@ -228,7 +228,7 @@ def plot_filtered_ccs(
 
 
 def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5), sharey=False)
+    fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=False)
 
     # Prepare sorted m/z for line plotting
     mz_sorted = np.sort(adjusted_df["m/z"].values)
