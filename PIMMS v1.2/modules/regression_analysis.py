@@ -56,9 +56,9 @@ def exclude_ccs_values(adjusted_df, CCS_eq):
 
     q05 = CCS_eq["q05_slope"] * log_mz + CCS_eq["q05_intercept"]
     q95 = CCS_eq["q95_slope"] * log_mz + CCS_eq["q95_intercept"]
-
+    print(f"q05: {q05}")
     filtered = adjusted_df[
-        (adjusted_df["RT"] >= q05) & (adjusted_df["RT"] <= q95)
+        (adjusted_df["CCS"] >= q05) & (adjusted_df["CCS"] <= q95)
     ].copy()
     return filtered
 
@@ -194,9 +194,7 @@ def plot_filtered_ccs(
     # Axis labels, limits, and ticks
     ax.set_title(title, fontsize=10, fontweight="bold", fontfamily="Arial")
     ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
-    ax.set_ylabel(
-        "Retention Time (min)", fontsize=10, fontweight="bold", fontfamily="Arial"
-    )
+    ax.set_ylabel("CCS", fontsize=10, fontweight="bold", fontfamily="Arial")
     ax.set_ylim(0, 300)
     ax.grid(True)
     ax.tick_params(axis="both", labelsize=9)
@@ -348,9 +346,9 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
             label.set_fontweight("bold")
 
     # Shared legend
-    handles, labels = axes[2].get_legend_handles_labels()
+    handles, labels = axes[1].get_legend_handles_labels()
     unique = dict(zip(labels, handles))
-    legend = axes[2].legend(
+    legend = axes[1].legend(
         unique.values(),
         unique.keys(),
         loc="upper left",
@@ -389,14 +387,13 @@ def main():
     # Run quantile regression on CCS (doesn't need to return anything for this use case)
     print("\nRunning Quantile Regression on CCS...")
     ccs_eq = run_CCS_regression_analysis(library_file)
-    print(ccs_eq)
     RT_eq = run_RT_regression_analysis(library_file)
-    print(RT_eq)
+
     adjusted_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(adjusted_path)
 
     filtered_df_rt = exclude_rt_values(adjusted_df, RT_eq)
-    filtered_df_ccs = exclude_ccs_values(adjusted_df, RT_eq)
+    filtered_df_ccs = exclude_ccs_values(adjusted_df, ccs_eq)
 
     plot_triple_panel(adjusted_df, filtered_df_rt, filtered_df_ccs, RT_eq, ccs_eq)
 
