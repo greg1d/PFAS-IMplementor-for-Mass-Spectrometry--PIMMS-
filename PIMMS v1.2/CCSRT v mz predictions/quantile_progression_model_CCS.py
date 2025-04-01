@@ -203,6 +203,27 @@ def run_analysis(library_file):
         for metric, value in metrics.items():
             print(f"  {metric}: {value:.3f}")
 
+    # Logarithmic Model Equations (5th and 95th Percentiles)
+    X = dmatrix("log_mz", df, return_type="dataframe")
+    model_5 = QuantReg(df["PrecursorCCS"], X)
+    res_5 = model_5.fit(q=0.05)
+
+    model_95 = QuantReg(df["PrecursorCCS"], X)
+    res_95 = model_95.fit(q=0.95)
+
+    # Extract coefficients for 5th and 95th percentiles
+    coefficients_5 = res_5.params
+    coefficients_95 = res_95.params
+
+    equation_5 = f"y = {coefficients_5[0]:.4f} * log(x) + {coefficients_5[1]:.4f}"
+    equation_95 = f"y = {coefficients_95[0]:.4f} * log(x) + {coefficients_95[1]:.4f}"
+
+    print("\nEquation for the 5th Percentile:")
+    print(equation_5)
+
+    print("\nEquation for the 95th Percentile:")
+    print(equation_95)
+
     # Plot the results
     plot_results(df, cross_val_results)
 
