@@ -40,6 +40,29 @@ def exclude_rt_values(adjusted_df, rt_eq):
     return filtered
 
 
+def exclude_ccs_values(adjusted_df, CCS_eq):
+    """
+    Exclude rows where RT is outside the 5th–95th percentile range
+    defined by log(m/z) regression equations.
+
+    Parameters:
+        adjusted_df (pd.DataFrame): Must include 'm/z' and 'RT' columns.
+        rt_eq (dict): Dictionary with 'q05_slope', 'q05_intercept', 'q95_slope', 'q95_intercept'.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame.
+    """
+    log_mz = np.log(adjusted_df["m/z"])
+
+    q05 = CCS_eq["q05_slope"] * log_mz + CCS_eq["q05_intercept"]
+    q95 = CCS_eq["q95_slope"] * log_mz + CCS_eq["q95_intercept"]
+
+    filtered = adjusted_df[
+        (adjusted_df["RT"] >= q05) & (adjusted_df["RT"] <= q95)
+    ].copy()
+    return filtered
+
+
 def plot_filtered_rt(
     adjusted_df, filtered_df, rt_eq, title="Filtered RT with Quantile Bounds"
 ):
@@ -137,8 +160,10 @@ def main():
     adjusted_df = pd.read_csv(adjusted_path)
 
     filtered_df = exclude_rt_values(adjusted_df, RT_eq)
-    print(filtered_df)
+    filtered_df_ccs = exclude_ccs_values(adjusted_df, RT_eq)
     plot_filtered_rt(adjusted_df, filtered_df, RT_eq)
+
+    print("\nFiltered DataFrame:", filtered_df_ccs)
 
 
 if __name__ == "__main__":
