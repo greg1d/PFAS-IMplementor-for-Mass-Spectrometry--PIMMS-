@@ -142,7 +142,6 @@ def plot_filtered_rt(
         text.set_fontfamily("Arial")
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
 def plot_filtered_ccs(
@@ -224,7 +223,6 @@ def plot_filtered_ccs(
         text.set_fontfamily("Arial")
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
 def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
@@ -366,6 +364,18 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
     for text in legend.get_texts():
         text.set_fontweight("bold")
         text.set_fontfamily("Arial")
+    for i, ax in enumerate(axes):
+        if i in [1, 2]:
+            ax.set_ylabel(
+                "CCS (Å²)", fontsize=10, fontweight="bold", fontfamily="Arial"
+            )
+        elif i == 0:
+            ax.set_ylabel(
+                "Retention Time (min)",
+                fontsize=10,
+                fontweight="bold",
+                fontfamily="Arial",
+            )
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
@@ -385,11 +395,10 @@ def main():
     adjusted_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(adjusted_path)
 
-    filtered_df = exclude_rt_values(adjusted_df, RT_eq)
+    filtered_df_rt = exclude_rt_values(adjusted_df, RT_eq)
     filtered_df_ccs = exclude_ccs_values(adjusted_df, RT_eq)
-    plot_filtered_rt(adjusted_df, filtered_df, RT_eq)
-    plot_filtered_ccs(adjusted_df, filtered_df_ccs, ccs_eq)
-    plot_triple_panel(adjusted_df, filtered_df, filtered_df_ccs, RT_eq, ccs_eq)
+
+    plot_triple_panel(adjusted_df, filtered_df_rt, filtered_df_ccs, RT_eq, ccs_eq)
 
 
 if __name__ == "__main__":

@@ -211,13 +211,3 @@ def run_RT_regression_analysis(library_file):
         "q95_intercept": coef_95["Intercept"],
         "q95_slope": coef_95["log_mz"],
     }
-
-
-if __name__ == "__main__":
-    # File path for the dataset
-    library_file = (
-        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
-    )
-
-    # Run the analysis
-    run_RT_regression_analysis(library_file)
