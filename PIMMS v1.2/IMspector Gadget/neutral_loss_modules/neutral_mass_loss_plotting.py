@@ -28,6 +28,10 @@ from rt_v_mz_library_search_modules.rt_v_mz_library_searcher import (
     add_back_in_sample_intensities,
 )
 
+# Define color palette
+NUM_SERIES = 10
+HOMOLOGOUS_SERIES_COLORS = cmocean.cm.phase(np.linspace(0, 1, NUM_SERIES))
+
 
 def dt_vs_mz_plotly(m_z_DT_groups):
     """

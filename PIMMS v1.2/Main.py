@@ -41,7 +41,7 @@ from post_source_decay_filter import remove_post_source_decay
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/data/20202021_data_set.csv"]
+    file_paths = ["PIMMS v1.2/data/sampler_data.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -71,7 +71,7 @@ def main():
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
 
-    frequency_threshold = 20  # Detection frequency threshold percentage
+    frequency_threshold = 10  # Detection frequency threshold percentage
 
     try:
         # Process files and separate data

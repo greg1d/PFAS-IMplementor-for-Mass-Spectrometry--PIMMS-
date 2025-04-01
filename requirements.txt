@@ -10,3 +10,7 @@ tqdm
 PyQt6
 watchdog
 pyarrow
+cmocean
+scikit-learn
+plotly
+dash
