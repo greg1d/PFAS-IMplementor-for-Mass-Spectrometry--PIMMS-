@@ -56,7 +56,6 @@ def exclude_ccs_values(adjusted_df, CCS_eq):
 
     q05 = CCS_eq["q05_slope"] * log_mz + CCS_eq["q05_intercept"]
     q95 = CCS_eq["q95_slope"] * log_mz + CCS_eq["q95_intercept"]
-    print(f"q05: {q05}")
     filtered = adjusted_df[
         (adjusted_df["CCS"] >= q05) & (adjusted_df["CCS"] <= q95)
     ].copy()
@@ -379,23 +378,47 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
     plt.show()
 
 
+def produce_filtered_df(
+    adjusted_df, library_file, rt_eq, ccs_eq, rt_filter=True, ccs_filter=True
+):
+    filtered_df = adjusted_df.copy()
+    ccs_eq = run_CCS_regression_analysis(library_file)
+    rt_eq = run_RT_regression_analysis(library_file)
+    if rt_filter:
+        log_mz = np.log(filtered_df["m/z"])
+        rt_q05 = rt_eq["q05_slope"] * log_mz + rt_eq["q05_intercept"]
+        rt_q95 = rt_eq["q95_slope"] * log_mz + rt_eq["q95_intercept"]
+        rt_mask = (filtered_df["RT"] >= rt_q05.values) & (
+            filtered_df["RT"] <= rt_q95.values
+        )
+        filtered_df = filtered_df[rt_mask].copy()
+
+    if ccs_filter:
+        log_mz = np.log(filtered_df["m/z"])
+        ccs_q05 = ccs_eq["q05_slope"] * log_mz + ccs_eq["q05_intercept"]
+        ccs_q95 = ccs_eq["q95_slope"] * log_mz + ccs_eq["q95_intercept"]
+        ccs_mask = (filtered_df["CCS"] >= ccs_q05.values) & (
+            filtered_df["CCS"] <= ccs_q95.values
+        )
+        filtered_df = filtered_df[ccs_mask].copy()
+
+    return filtered_df
+
+
 def main():
     # File paths
     library_file = (
         r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
     )
-    # Run quantile regression on CCS (doesn't need to return anything for this use case)
-    print("\nRunning Quantile Regression on CCS...")
-    ccs_eq = run_CCS_regression_analysis(library_file)
-    RT_eq = run_RT_regression_analysis(library_file)
-
     adjusted_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     adjusted_df = pd.read_csv(adjusted_path)
+    # Run quantile regression on CCS (doesn't need to return anything for this use case)
 
-    filtered_df_rt = exclude_rt_values(adjusted_df, RT_eq)
-    filtered_df_ccs = exclude_ccs_values(adjusted_df, ccs_eq)
+    rt_filter = True
+    ccs_filter = True
+    filtered = produce_filtered_df(adjusted_df, library_file, rt_filter, ccs_filter)
 
-    plot_triple_panel(adjusted_df, filtered_df_rt, filtered_df_ccs, RT_eq, ccs_eq)
+    print("filtered_df shape:", filtered.shape)
 
 
 if __name__ == "__main__":
