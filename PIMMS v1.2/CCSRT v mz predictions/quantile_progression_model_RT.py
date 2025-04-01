@@ -42,6 +42,7 @@ for model_name, X in models.items():
     # Convert the design matrix to NumPy array for compatibility with KFold
     X_array = np.array(X)
 
+    # Store metrics for each fold
     pinball_losses_5 = []
     pinball_losses_50 = []
     pinball_losses_95 = []
@@ -108,13 +109,12 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     q50_sorted = preds[0.5].values[sort_idx]
     q95_sorted = preds[0.95].values[sort_idx]
 
-    pin5 = pinball_loss(df["PrecursorRT"], preds[0.05], 0.05)
-    pin50 = pinball_loss(df["PrecursorRT"], preds[0.5], 0.5)
-    pin95 = pinball_loss(df["PrecursorRT"], preds[0.95], 0.95)
-    coverage = (
-        (df["PrecursorRT"] >= preds[0.05]) & (df["PrecursorRT"] <= preds[0.95])
-    ).mean()
-    interval_width = (preds[0.95] - preds[0.05]).mean()
+    # Fetch cross-validation results for the current model
+    pin5 = cross_val_results[label]["Pinball Loss 5%"]
+    pin50 = cross_val_results[label]["Pinball Loss 50%"]
+    pin95 = cross_val_results[label]["Pinball Loss 95%"]
+    coverage = cross_val_results[label]["Coverage"]
+    interval_width = cross_val_results[label]["Width"]
 
     # Plot data and quantile lines
     ax.scatter(
@@ -130,7 +130,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     ax.plot(x_sorted, q95_sorted, linestyle="--", color="red", label="95th Percentile")
     ax.fill_between(x_sorted, q5_sorted, q95_sorted, color="red", alpha=0.1)
 
-    # Add metric box
+    # Add metric box with KFold results
     metrics_text = (
         f"Pinball Loss:\n"
         f"  5% = {pin5:.3f}\n"

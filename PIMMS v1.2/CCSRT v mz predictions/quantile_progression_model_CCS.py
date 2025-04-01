@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from patsy import dmatrix
 from statsmodels.regression.quantile_regression import QuantReg
+from sklearn.model_selection import KFold
 
 # Load and prepare data
 file_path = r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
@@ -28,6 +29,69 @@ def pinball_loss(y, y_pred, q):
     return np.mean(np.maximum(q * delta, (q - 1) * delta))
 
 
+# KFold Cross-validation setup
+kf = KFold(n_splits=5, shuffle=True, random_state=42)  # 5-fold cross-validation
+
+# Initialize dictionaries to store cross-validation results
+cross_val_results = {}
+
+# Run KFold cross-validation for each model
+for model_name, X in models.items():
+    print(f"\nRunning k-fold cross-validation for {model_name}...")
+
+    # Convert the design matrix to NumPy array for compatibility with KFold
+    X_array = np.array(X)
+
+    # Store metrics for each fold
+    pinball_losses_5 = []
+    pinball_losses_50 = []
+    pinball_losses_95 = []
+    coverage_list = []
+    width_list = []
+
+    # Perform k-fold cross-validation
+    for train_index, test_index in kf.split(df):
+        X_train, X_test = X_array[train_index], X_array[test_index]
+        y_train, y_test = (
+            df["PrecursorCCS"].values[train_index],
+            df["PrecursorCCS"].values[test_index],
+        )
+
+        preds = {}
+        for q in quantiles:
+            model = QuantReg(y_train, X_train)
+            res = model.fit(q=q)
+            preds[q] = res.predict(X_test)
+
+        # Calculate Pinball Loss for each quantile
+        pin5 = pinball_loss(y_test, preds[0.05], 0.05)
+        pin50 = pinball_loss(y_test, preds[0.5], 0.5)
+        pin95 = pinball_loss(y_test, preds[0.95], 0.95)
+        pinball_losses_5.append(pin5)
+        pinball_losses_50.append(pin50)
+        pinball_losses_95.append(pin95)
+
+        # Coverage and Width
+        coverage = ((y_test >= preds[0.05]) & (y_test <= preds[0.95])).mean()
+        coverage_list.append(coverage)
+        interval_width = (preds[0.95] - preds[0.05]).mean()
+        width_list.append(interval_width)
+
+    # Store the results for each model
+    cross_val_results[model_name] = {
+        "Pinball Loss 5%": np.mean(pinball_losses_5),
+        "Pinball Loss 50%": np.mean(pinball_losses_50),
+        "Pinball Loss 95%": np.mean(pinball_losses_95),
+        "Coverage": np.mean(coverage_list),
+        "Width": np.mean(width_list),
+    }
+
+# Print the cross-validation results
+for model_name, metrics in cross_val_results.items():
+    print(f"\n{model_name} Model Cross-Validation Results:")
+    for metric, value in metrics.items():
+        print(f"  {metric}: {value:.3f}")
+
 # Plot setup
 fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=True)
 
@@ -45,23 +109,14 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     q50_sorted = preds[0.5].values[sort_idx]
     q95_sorted = preds[0.95].values[sort_idx]
 
-    pin5 = pinball_loss(df["PrecursorCCS"], preds[0.05], 0.05)
-    pin50 = pinball_loss(df["PrecursorCCS"], preds[0.5], 0.5)
-    pin95 = pinball_loss(df["PrecursorCCS"], preds[0.95], 0.95)
-    coverage = (
-        (df["PrecursorCCS"] >= preds[0.05]) & (df["PrecursorCCS"] <= preds[0.95])
-    ).mean()
-    interval_width = (preds[0.95] - preds[0.05]).mean()
+    # Fetch cross-validation results for the current model
+    pin5 = cross_val_results[label]["Pinball Loss 5%"]
+    pin50 = cross_val_results[label]["Pinball Loss 50%"]
+    pin95 = cross_val_results[label]["Pinball Loss 95%"]
+    coverage = cross_val_results[label]["Coverage"]
+    interval_width = cross_val_results[label]["Width"]
 
     # Plot data and quantile lines
-    ax.scatter(
-        df["PrecursorMz"],
-        df["PrecursorCCS"],
-        color="gray",
-        alpha=0.3,
-        s=15,
-        label="Observed",
-    )
     ax.scatter(
         df["PrecursorMz"],
         df["PrecursorCCS"],
@@ -75,7 +130,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     ax.plot(x_sorted, q95_sorted, linestyle="--", color="red", label="95th Percentile")
     ax.fill_between(x_sorted, q5_sorted, q95_sorted, color="red", alpha=0.1)
 
-    # Add metric box
+    # Add metric box with KFold results
     metrics_text = (
         f"Pinball Loss:\n"
         f"  5% = {pin5:.3f}\n"
@@ -84,7 +139,6 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
         f"Coverage: {coverage:.2%}\n"
         f"Width: {interval_width:.2f}"
     )
-    print(metrics_text)
     ax.text(
         0.97,
         0.03,
@@ -103,6 +157,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     ax.set_title(label, fontsize=10, fontweight="bold", fontfamily="Arial")
     ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
 
+    ax.set_ylim(70, 300)
     ax.grid(True)
 
     ax.tick_params(axis="both", labelsize=9)
