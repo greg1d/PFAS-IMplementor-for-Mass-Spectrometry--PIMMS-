@@ -29,8 +29,6 @@ def run_kfold_cv(
 
     # Run KFold cross-validation for each model
     for model_name, formula in models.items():
-        print(f"\nRunning k-fold cross-validation for {model_name}...")
-
         # Convert the design matrix to NumPy array for compatibility with KFold
         X = dmatrix(formula, df, return_type="dataframe")
         X_array = np.array(X)
@@ -184,11 +182,9 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         text.set_fontweight("bold")
         text.set_fontfamily("Arial")
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
-# Main function to run the analysis on a dataset
-def run_analysis(library_file):
+def run_CCS_regression_analysis(library_file):
     # Load data
     df = pd.read_csv(library_file)
     df = df[["PrecursorMz", "PrecursorCCS"]].dropna()
@@ -197,34 +193,24 @@ def run_analysis(library_file):
     # Run KFold cross-validation
     cross_val_results = run_kfold_cv(df)
 
-    # Print the results
-    for model_name, metrics in cross_val_results.items():
-        print(f"\n{model_name} Model Cross-Validation Results:")
-        for metric, value in metrics.items():
-            print(f"  {metric}: {value:.3f}")
-
     # Logarithmic Model Equations (5th and 95th Percentiles)
     X = dmatrix("1 + log_mz", df, return_type="dataframe")
-    model_5 = QuantReg(df["PrecursorCCS"], X)
-    res_5 = model_5.fit(q=0.05)
+    model_5 = QuantReg(df["PrecursorCCS"], X).fit(q=0.05)
+    model_95 = QuantReg(df["PrecursorCCS"], X).fit(q=0.95)
 
-    model_95 = QuantReg(df["PrecursorCCS"], X)
-    res_95 = model_95.fit(q=0.95)
-
-    # Extract coefficients for 5th and 95th percentiles
-    coefficients_5 = res_5.params
-    coefficients_95 = res_95.params
-
-    equation_5 = f"y = {coefficients_5[1]:.4f} * ln(x) + {coefficients_5[0]:.4f}"
-    equation_95 = f"y = {coefficients_95[1]:.4f} * ln(x) + {coefficients_95[0]:.4f}"
-    print("\nEquation for the 5th Percentile:")
-    print(equation_5)
-
-    print("\nEquation for the 95th Percentile:")
-    print(equation_95)
+    coef_5 = model_5.params
+    coef_95 = model_95.params
 
     # Plot the results
     plot_results(df, cross_val_results)
+
+    # Return coefficients for use elsewhere
+    return {
+        "q05_intercept": coef_5["Intercept"],
+        "q05_slope": coef_5["log_mz"],
+        "q95_intercept": coef_95["Intercept"],
+        "q95_slope": coef_95["log_mz"],
+    }
 
 
 if __name__ == "__main__":
@@ -234,4 +220,4 @@ if __name__ == "__main__":
     )
 
     # Run the analysis
-    run_analysis(library_file)
+    run_CCS_regression_analysis(library_file)
