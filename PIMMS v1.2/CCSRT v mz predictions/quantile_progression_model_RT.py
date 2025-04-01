@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from patsy import dmatrix
 from statsmodels.regression.quantile_regression import QuantReg
+from sklearn.model_selection import KFold
 
 # Load and prepare data
 file_path = r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
@@ -27,6 +28,68 @@ def pinball_loss(y, y_pred, q):
     delta = y - y_pred
     return np.mean(np.maximum(q * delta, (q - 1) * delta))
 
+
+# KFold Cross-validation setup
+kf = KFold(n_splits=5, shuffle=True, random_state=42)  # 5-fold cross-validation
+
+# Initialize dictionaries to store cross-validation results
+cross_val_results = {}
+
+# Run KFold cross-validation for each model
+for model_name, X in models.items():
+    print(f"\nRunning k-fold cross-validation for {model_name}...")
+
+    # Convert the design matrix to NumPy array for compatibility with KFold
+    X_array = np.array(X)
+
+    pinball_losses_5 = []
+    pinball_losses_50 = []
+    pinball_losses_95 = []
+    coverage_list = []
+    width_list = []
+
+    # Perform k-fold cross-validation
+    for train_index, test_index in kf.split(df):
+        X_train, X_test = X_array[train_index], X_array[test_index]
+        y_train, y_test = (
+            df["PrecursorRT"].values[train_index],
+            df["PrecursorRT"].values[test_index],
+        )
+
+        preds = {}
+        for q in quantiles:
+            model = QuantReg(y_train, X_train)
+            res = model.fit(q=q)
+            preds[q] = res.predict(X_test)
+
+        # Calculate Pinball Loss for each quantile
+        pin5 = pinball_loss(y_test, preds[0.05], 0.05)
+        pin50 = pinball_loss(y_test, preds[0.5], 0.5)
+        pin95 = pinball_loss(y_test, preds[0.95], 0.95)
+        pinball_losses_5.append(pin5)
+        pinball_losses_50.append(pin50)
+        pinball_losses_95.append(pin95)
+
+        # Coverage and Width
+        coverage = ((y_test >= preds[0.05]) & (y_test <= preds[0.95])).mean()
+        coverage_list.append(coverage)
+        interval_width = (preds[0.95] - preds[0.05]).mean()
+        width_list.append(interval_width)
+
+    # Store the results for each model
+    cross_val_results[model_name] = {
+        "Pinball Loss 5%": np.mean(pinball_losses_5),
+        "Pinball Loss 50%": np.mean(pinball_losses_50),
+        "Pinball Loss 95%": np.mean(pinball_losses_95),
+        "Coverage": np.mean(coverage_list),
+        "Width": np.mean(width_list),
+    }
+
+# Print the cross-validation results
+for model_name, metrics in cross_val_results.items():
+    print(f"\n{model_name} Model Cross-Validation Results:")
+    for metric, value in metrics.items():
+        print(f"  {metric}: {value:.3f}")
 
 # Plot setup
 fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=True)
@@ -54,14 +117,6 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     interval_width = (preds[0.95] - preds[0.05]).mean()
 
     # Plot data and quantile lines
-    ax.scatter(
-        df["PrecursorMz"],
-        df["PrecursorRT"],
-        color="gray",
-        alpha=0.3,
-        s=15,
-        label="Observed",
-    )
     ax.scatter(
         df["PrecursorMz"],
         df["PrecursorRT"],
@@ -112,7 +167,9 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
 
     # Add y-axis label only to the first plot
     if i == 0:
-        ax.set_ylabel("CCS (Å²)", fontsize=10, fontweight="bold", fontfamily="Arial")
+        ax.set_ylabel(
+            "Retention Time (min)", fontsize=10, fontweight="bold", fontfamily="Arial"
+        )
 
 handles, labels = axes[1].get_legend_handles_labels()
 unique = dict(zip(labels, handles))  # Remove duplicates by label

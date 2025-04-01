@@ -112,9 +112,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
 
     # Add y-axis label only to the first plot
     if i == 0:
-        ax.set_ylabel(
-            "Retention time (min)", fontsize=10, fontweight="bold", fontfamily="Arial"
-        )
+        ax.set_ylabel("CCS (Å²)", fontsize=10, fontweight="bold", fontfamily="Arial")
 
 handles, labels = axes[1].get_legend_handles_labels()
 unique = dict(zip(labels, handles))  # Remove duplicates by label
