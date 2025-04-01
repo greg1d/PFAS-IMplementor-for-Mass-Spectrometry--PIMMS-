@@ -7,7 +7,7 @@ from statsmodels.regression.quantile_regression import QuantReg
 # Load and prepare data
 file_path = r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
 df = pd.read_csv(file_path)
-df = df[["PrecursorMz", "PrecursorRT"]].dropna()
+df = df[["PrecursorMz", "PrecursorCCS"]].dropna()
 df["log_mz"] = np.log(df["PrecursorMz"])
 
 quantiles = [0.05, 0.5, 0.95]  # Use 5th and 95th instead
@@ -17,7 +17,7 @@ models = {
     "Linear": dmatrix("PrecursorMz", df, return_type="dataframe"),
     "Logarithmic": dmatrix("log_mz", df, return_type="dataframe"),
     "Spline": dmatrix(
-        "bs(log_mz, df=3, include_intercept=False)", df, return_type="dataframe"
+        "bs(log_mz, df=5, include_intercept=False)", df, return_type="dataframe"
     ),
 }
 
@@ -34,7 +34,7 @@ fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=True)
 for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     preds = {}
     for q in quantiles:
-        model = QuantReg(df["PrecursorRT"], X)
+        model = QuantReg(df["PrecursorCCS"], X)
         res = model.fit(q=q)
         preds[q] = res.predict(X)
 
@@ -45,18 +45,18 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     q50_sorted = preds[0.5].values[sort_idx]
     q95_sorted = preds[0.95].values[sort_idx]
 
-    pin5 = pinball_loss(df["PrecursorRT"], preds[0.05], 0.05)
-    pin50 = pinball_loss(df["PrecursorRT"], preds[0.5], 0.5)
-    pin95 = pinball_loss(df["PrecursorRT"], preds[0.95], 0.95)
+    pin5 = pinball_loss(df["PrecursorCCS"], preds[0.05], 0.05)
+    pin50 = pinball_loss(df["PrecursorCCS"], preds[0.5], 0.5)
+    pin95 = pinball_loss(df["PrecursorCCS"], preds[0.95], 0.95)
     coverage = (
-        (df["PrecursorRT"] >= preds[0.05]) & (df["PrecursorRT"] <= preds[0.95])
+        (df["PrecursorCCS"] >= preds[0.05]) & (df["PrecursorCCS"] <= preds[0.95])
     ).mean()
     interval_width = (preds[0.95] - preds[0.05]).mean()
 
     # Plot data and quantile lines
     ax.scatter(
         df["PrecursorMz"],
-        df["PrecursorRT"],
+        df["PrecursorCCS"],
         color="gray",
         alpha=0.3,
         s=15,
@@ -64,7 +64,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     )
     ax.scatter(
         df["PrecursorMz"],
-        df["PrecursorRT"],
+        df["PrecursorCCS"],
         color="gray",
         alpha=0.3,
         s=15,
@@ -84,6 +84,7 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
         f"Coverage: {coverage:.2%}\n"
         f"Width: {interval_width:.2f}"
     )
+    print(metrics_text)
     ax.text(
         0.97,
         0.03,
@@ -102,7 +103,6 @@ for i, (ax, (label, X)) in enumerate(zip(axes, models.items())):
     ax.set_title(label, fontsize=10, fontweight="bold", fontfamily="Arial")
     ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
 
-    ax.set_ylim(0, 20)
     ax.grid(True)
 
     ax.tick_params(axis="both", labelsize=9)
