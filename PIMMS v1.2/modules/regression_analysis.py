@@ -145,6 +145,88 @@ def plot_filtered_rt(
     plt.show()
 
 
+def plot_filtered_ccs(
+    adjusted_df, filtered_df, ccs_eq, title="Filtered CCS with Quantile Bounds"
+):
+    # Recalculate bounds
+    log_mz = np.log(adjusted_df["m/z"])
+    q05 = ccs_eq["q05_slope"] * log_mz + ccs_eq["q05_intercept"]
+    q95 = ccs_eq["q95_slope"] * log_mz + ccs_eq["q95_intercept"]
+
+    # Identify outliers
+    mask = (adjusted_df["CCS"] < q05) | (adjusted_df["CCS"] > q95)
+    excluded_df = adjusted_df[mask]
+
+    # Prepare for line plotting
+    mz_sorted = np.sort(adjusted_df["m/z"].values)
+    ln_mz_sorted = np.log(mz_sorted)
+    line_q05 = ccs_eq["q05_slope"] * ln_mz_sorted + ccs_eq["q05_intercept"]
+    line_q95 = ccs_eq["q95_slope"] * ln_mz_sorted + ccs_eq["q95_intercept"]
+
+    # Start plot
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    # Plot inliers
+    ax.scatter(
+        filtered_df["m/z"],
+        filtered_df["CCS"],
+        color="gray",
+        alpha=0.3,
+        s=15,
+        label="Within Bounds",
+    )
+
+    # Plot outliers
+    ax.scatter(
+        excluded_df["m/z"],
+        excluded_df["CCS"],
+        color="red",
+        alpha=0.6,
+        edgecolors="k",
+        s=30,
+        label="Outside Bounds",
+    )
+
+    # Plot quantile lines and band
+    ax.plot(mz_sorted, line_q05, linestyle="--", color="red", label="5th Percentile")
+    ax.plot(mz_sorted, line_q95, linestyle="--", color="red", label="95th Percentile")
+    ax.fill_between(mz_sorted, line_q05, line_q95, color="red", alpha=0.1)
+
+    # Axis labels, limits, and ticks
+    ax.set_title(title, fontsize=10, fontweight="bold", fontfamily="Arial")
+    ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
+    ax.set_ylabel(
+        "Retention Time (min)", fontsize=10, fontweight="bold", fontfamily="Arial"
+    )
+    ax.set_ylim(0, 300)
+    ax.grid(True)
+    ax.tick_params(axis="both", labelsize=9)
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_fontname("Arial")
+        label.set_fontweight("bold")
+
+    # Styled legend
+    handles, labels = ax.get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
+    legend = ax.legend(
+        unique.values(),
+        unique.keys(),
+        loc="upper left",
+        fontsize=8,
+        frameon=True,
+        fancybox=True,
+        facecolor="white",
+        edgecolor="gray",
+        framealpha=0.7,
+    )
+    for text in legend.get_texts():
+        text.set_fontweight("bold")
+        text.set_fontfamily("Arial")
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
+
+
 def main():
     # File paths
     library_file = (
@@ -162,8 +244,7 @@ def main():
     filtered_df = exclude_rt_values(adjusted_df, RT_eq)
     filtered_df_ccs = exclude_ccs_values(adjusted_df, RT_eq)
     plot_filtered_rt(adjusted_df, filtered_df, RT_eq)
-
-    print("\nFiltered DataFrame:", filtered_df_ccs)
+    plot_filtered_ccs(adjusted_df, filtered_df_ccs, ccs_eq)
 
 
 if __name__ == "__main__":
