@@ -92,7 +92,7 @@ def rt_vs_mz_trend_analysis(split_mass_groups):
         print(f"[DEBUG] Group {group_id}:  p={p_value:.4g}")
 
         # ✅ Categorize groups based on p-value
-        if p_value < 0.05:
+        if p_value < 0.05 and r_value > 0.98:
             significant_RT_groups.append(df)  # Store significant group
         else:
             messy_RT_groups.append(df)  # Store messy group
@@ -157,7 +157,7 @@ def refine_messy_rt_groups(messy_RT_group):
             subset["Residual"] = residuals
 
             # ✅ If p < 0.05 and ≥ 3 points, store as significant
-            if p_value < 0.05:
+            if p_value < 0.05 and r_value > 0.98:
                 significant_RT_groups.append(subset.drop(columns=["Residual"]))
                 print(
                     f"[INFO] Group {group_id}: p={p_value:.4g}, added to significant_RT_group"
