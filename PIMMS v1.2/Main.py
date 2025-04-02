@@ -37,6 +37,7 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
     load_external_targets_library,
 )
 from post_source_decay_filter import remove_post_source_decay
+from regression_analysis import produce_filtered_df
 
 
 def main():
@@ -56,13 +57,13 @@ def main():
     control_samples = [f"Blank {i}.d" for i in range(1, 10)]
 
     # Set tolerances
-    mass_error_ppm = 10  # Mass error in ppm
+    mass_error_ppm = 20  # Mass error in ppm
     ccs_error_percentage = 2  # CCS variance as 2% tolerance
     rt_tolerance = 0.5
     include_rt = False
 
     # Hardcoded filter parameters
-    min_intensity = 1000  # Minimum intensity cutoff
+    min_intensity = 10  # Minimum intensity cutoff
     rt_min = 2  # Minimum RT
     rt_max = 16  # Maximum RT
     mass_min = 68.98  # Minimum mass
@@ -72,6 +73,9 @@ def main():
     upper_mass_filter_bound = 0.12
 
     frequency_threshold = 5  # Detection frequency threshold percentage
+
+    rt_filter = True
+    ccs_filter = True
 
     try:
         # Process files and separate data
@@ -329,6 +333,21 @@ def main():
         )
     except Exception as e:
         print(f"[ERROR] Failed to perform mass defect filtering: {e}")
+        sys.exit(1)
+
+    print("[INFO] Applying regression analysis filter...")
+    try:
+        adjusted_df = produce_filtered_df(
+            adjusted_df, standards_library_file, rt_filter, ccs_filter
+        )
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying post filter decay filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+    except Exception as e:
+        print(f"[ERROR] Failed to perform regression analysis: {e}")
         sys.exit(1)
 
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"

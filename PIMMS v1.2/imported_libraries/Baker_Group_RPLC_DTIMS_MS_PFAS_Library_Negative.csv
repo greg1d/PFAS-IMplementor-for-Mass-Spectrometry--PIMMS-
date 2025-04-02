@@ -67,7 +67,6 @@ Perfluoroethercarboxylic acids,PFAS (-) PFECA,HFPO-TeA (dimer),C24H2F46O10,M-H,2
 ,PFAS (-) PFECA,PFO4DA,C6HF11O6,M-H,146.66,6.68,376.9525,-1,39492-90-5,,"Perfluoro(3,5,7,9-tetraoxadecanoic) acid",
 ,PFAS (-) PFECA,PFO3DoDA,C7HF13O5,M-H-CO2,149.52,10.07,366.9645,-1,151772-59-7,,"Perfluoro-3,6,9-trioxadecanoic acid",multiple adducts should coelute
 ,PFAS (-) PFECA,PFECA G,C7HF13O3,M-H-CO2,138.97,4.24,334.9747,-1,801212-59-9,,Perfluoro-4-isopropoxybutanoic acid,
-,PFAS (-) PFECA,unknown compound 1,C9HF17O5,M-H-CO2,163.22,11.58,466.9583,-1,801212-59-9,,Perfluoro-4-isopropoxybutanoic acid,
 ,PFAS (-) PFECA,ADONA,C7H2F12O4,M-H-CO2,139.58,10.95,332.979,-1,919005-14-4,,"4,8-Dioxa-3H-perfluorononanoic acid",
 ,PFAS (-) PFECA,HFPO-DA,C6HF11O3,M-H-CO2,127.46,7.14,284.9779,-1,13252-13-6,GenX,Perfluoro-2-propoxypropanoic acid,isomer of E1 - LC separated
 ,PFAS (-) PFECA,PEPA,C5HF9O3,M-H-CO2,120.92,5.01,234.9811,-1,377-76-4,,Perfluoro-2-ethoxypropanoic acid,isomer of PFMOBA - LC separated
@@ -87,7 +86,7 @@ Perfluoroethersulfonic acids,PFAS (-) PFESA,Nafion Byproduct 1,C7HF13O5S,M-H,156
 ,PFAS (-) PFESA,PFEESA,C4HF9O4S,M-H,137.99,6.31,314.9379,-1,113507-82-7,,Perfluoroethoxyethanesulfonic acid,
 ,PFAS (-) PFESA,NVHOS,C4H2F8O4S,M-H,132.93,3.41,296.9473,-1,801209-99-4,,Perfluoroethoxysulfonic acid,
 ,PFAS (-) PFESA,9Cl-PF3ONS,C8HF16SO4Cl,M-H,170.24,10.82,530.8956,-1,73606-19-6,F-53B,9-chlorohexadecafluoro-3-oxanone-1-sulfonic acid,
-,PFAS (-) PFESA,11Cl-PF3OUdS,C10HF20SO4Cl,M-H,186.52,12.1,630.8892,-1,763051-92-9,F-53B minor,,
+,PFAS (-) PFESA,11Cl-PF3OUdS,C10HF20SO4Cl,M-H,186.52,12.1,630.8892,-1,763051- 92-9,F-53B minor,,
 Perfluoroalkylsulfonamides,PFAS (-) PFASA,NEtFOSAA,C12H8F17NO4S,M-H,197.2,11.79,583.983,-1,2991-50-6,,N-ethylperfluoro-1-octanesulfonamideoacetic acid ,
 ,PFAS (-) PFASA,EtFOSE,C12H10F17NO3S,M-H,197.38,12.01,570.0037,-1,1691-99-2,,N-Ethyl-N-(2-hydroxyethyl)perfluorooctanesulfonamide,
 ,PFAS (-) PFASA,FDSA,C10H2F21NO2S,M-H,188.12,12.54,597.9398,-1,,,Perfluorodecanesulfonamide,
@@ -119,4 +118,3 @@ Perfluoroalkylphosphates/phosphinates/phosphate esters,PFAS (-) PFP,diSAmPAP,C24
 ,PFAS (-) PFP,Cl-PFHxPA,C6H2F12ClO3P,M-H,156.12,5.54,414.9166,-1,,,6-Chloroperfluorohexylphosphonic acid ,
 ,PFAS (-) PFP,PFHxPA,C6H2F13O3P,M-H,152.88,4.55,398.9461,-1,40143-76-8,,Perfluorohexylphosphonic acid ,
 ,PFAS (-) PFP,PFBPA,C4H2F9O3P,M-H,135.68,0.66,298.9525,-1,52299-24-8,,Perfluorobutylphosphonic acid,
-,PFAS (-) PFP,PFBPA,C4H2F9O3P,M-H,135.68,0.66,298.9525,-1,52299-24-9,,Perfluorobutylphosphonic acid,
