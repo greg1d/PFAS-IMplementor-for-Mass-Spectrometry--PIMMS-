@@ -34,87 +34,83 @@ def group_by_mz_ppm(adjusted_df, mass_error_ppm):
             group_df = adjusted_df[adjusted_df["m/z"].isin(group_mz)].copy()
             group_dfs.append(group_df)
             used.update(group_mz)
-
     return group_dfs
 
 
-def optimal_ccs_grouping(groups, ccs_tolerance=2.0):
-    """Split each m/z group DataFrame by CCS spread (≤ 2% of min CCS)."""
+def optimal_ccs_grouping(group_dfs, ccs_tolerance=2.0):
+    """
+    Further split each m/z group (DataFrame) by CCS spread so that each subgroup has
+    max CCS spread ≤ `ccs_tolerance` percent of the min CCS in the group.
+    """
     final_groups = []
 
-    for group_idx, group_df in enumerate(groups, 1):
+    for group_idx, group_df in enumerate(group_dfs, 1):
         group_df = group_df.sort_values(by="CCS").reset_index(drop=True)
         ccs_list = group_df["CCS"].tolist()
-        mz_list = group_df["m/z"].tolist()
 
         i = 0
         n = len(ccs_list)
 
         while i < n:
-            sub_group = [mz_list[i]]
+            sub_indices = [i]
             sub_min_ccs = ccs_list[i]
             j = i + 1
 
             while j < n:
                 max_ccs = max(ccs_list[i : j + 1])
-                min_ccs = sub_min_ccs
-                percent_diff = (max_ccs - min_ccs) / min_ccs * 100
+                percent_diff = (max_ccs - sub_min_ccs) / sub_min_ccs * 100
 
                 if percent_diff <= ccs_tolerance:
-                    sub_group.append(mz_list[j])
+                    sub_indices.append(j)
                     j += 1
                 else:
                     break
 
-            sub_df = group_df[group_df["m/z"].isin(sub_group)].copy()
+            sub_df = group_df.loc[sub_indices].copy()
             final_groups.append(sub_df)
 
-            print(f"\n[CCS Subgroup] {len(sub_group)} peaks:")
-            print(sub_df[["m/z", "CCS"]].to_string(index=False))
-
-            i += len(sub_group)
+            i += len(sub_indices)
 
     return final_groups
 
 
-def optimal_rt_grouping(adjusted_df, ccs_refined_groups, rt_tolerance=0.5):
-    """Further split CCS-refined groups by RT range within rt_tolerance."""
+def optimal_rt_grouping(group_dfs, rt_tolerance=0.5):
+    """
+    Further split each group (DataFrame) by RT spread so that each subgroup has
+    RT range ≤ `rt_tolerance` (in minutes).
+    """
     final_groups = []
 
-    for group_idx, mz_group in enumerate(ccs_refined_groups, 1):
-        group_df = adjusted_df[adjusted_df["m/z"].isin(mz_group)].copy()
+    for group_idx, group_df in enumerate(group_dfs, 1):
         group_df = group_df.sort_values(by="RT").reset_index(drop=True)
         rt_list = group_df["RT"].tolist()
-        mz_list = group_df["m/z"].tolist()
 
         i = 0
         n = len(rt_list)
 
         while i < n:
-            sub_group = [mz_list[i]]
+            sub_indices = [i]
             rt_min = rt_list[i]
             j = i + 1
 
             while j < n:
                 rt_max = max(rt_list[i : j + 1])
-                rt_range = rt_max - rt_min
+                rt_diff = rt_max - rt_min
 
-                if rt_range <= rt_tolerance:
-                    sub_group.append(mz_list[j])
+                if rt_diff <= rt_tolerance:
+                    sub_indices.append(j)
                     j += 1
                 else:
                     break
 
-            final_groups.append(sub_group)
-            print(f"\n[RT-Refined Group] {len(sub_group)} peaks:")
-            print(
-                adjusted_df[adjusted_df["m/z"].isin(sub_group)][
-                    ["m/z", "RT"]
-                ].to_string(index=False)
-            )
+            sub_df = group_df.loc[sub_indices].copy()
+            final_groups.append(sub_df)
 
-            i += len(sub_group)
+            print(f"\n[RT Subgroup] {len(sub_df)} peaks (Group {group_idx})")
+            print(sub_df[["m/z", "RT"]].to_string(index=False))
 
+            i += len(sub_indices)
+    print(final_groups)
     return final_groups
 
 
@@ -125,13 +121,11 @@ def main():
     ccs_tolerance = 2.0
     rt_tolerance = 0.5  # Set here and passed to RT filter
 
-    print("[INFO] Grouping by m/z (±10 ppm)...")
     mz_groups = group_by_mz_ppm(adjusted_df, mass_error_ppm)
-    print(f"[INFO] m/z groups found: {len(mz_groups)}")
 
     CCS_groups = optimal_ccs_grouping(mz_groups, ccs_tolerance)
 
-    print(f"[INFO] CCS groups found: {len(CCS_groups)}")
+    RT_groups = optimal_rt_grouping(CCS_groups, rt_tolerance)
 
 
 if __name__ == "__main__":
