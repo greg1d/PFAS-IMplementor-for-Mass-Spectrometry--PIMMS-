@@ -10,11 +10,10 @@ from blank_subtraction import (  # type: ignore
 )
 from blank_subtraction_workflow import perform_blank_subtraction, process_files  # type: ignore
 from branching_filter import (  # type: ignore
-    analyze_adjusted_df as branching_analyze,
+    branching_analyze,
+    branching_merge,
 )
-from branching_filter import (  # type: ignore
-    merge_groups_into_adjusted_df as branching_merge,
-)
+
 from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter  # type: ignore
 from ML_algorithm_density import (  # type: ignore
     fluorinated_density_filter,  # Importing fluorinated density filter
@@ -185,7 +184,7 @@ def main():
         print(f"[INFO] Number of groups identified by branching filter: {len(groups)}")
 
         # Merge groups into adjusted_df
-        adjusted_df = branching_merge(adjusted_df, groups)
+        adjusted_df = branching_merge(groups)
         adjusted_df.to_csv("PIMMS v1.2/Data_output/branching_filter.csv", index=False)
         # Count non-zero rows after merging
         group_avg, group_std = count_non_zero_rows(adjusted_df)
