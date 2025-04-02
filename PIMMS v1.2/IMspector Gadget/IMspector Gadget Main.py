@@ -59,7 +59,6 @@ def main():
 
     # **Step 2: Perform CCS vs. m/z analysis**
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
-    mass_only_groups = {}
 
     print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
     for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
@@ -75,9 +74,6 @@ def main():
         branched_isomer_groups.append(branched_isomer)
         post_source_decay_groups.append(post_source_decay)
 
-        if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
-            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
-
     # **Step 3: Print Debugging Before Plotting**
     print("\n[INFO] Final Data Sent to Plot:")
     print(
@@ -89,9 +85,6 @@ def main():
     print(
         f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups if group)} points"
     )
-    print(
-        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values() if group)} points"
-    )
 
     # **Step 4: Generate Plotly plot**
     fig = make_plotly_graph(
@@ -99,7 +92,6 @@ def main():
         refined_groups,
         branched_isomer_groups,
         post_source_decay_groups,
-        mass_only_groups,
         mass_groups,
     )
 

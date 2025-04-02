@@ -213,25 +213,6 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     for point in post_source_decay + branched_isomer:
         pass
 
-    # If fewer than 3 points remain after filtering, add ALL flagged points to mass-only group
-    if len(refined_data_points) < 3:
-        # Combine flagged points + remaining valid points
-        mass_only_groups = (
-            post_source_decay
-            + branched_isomer
-            + [
-                {"m/z": mz, "CCS": ccs, "Classification": "Mass-Only"}
-                for mz, ccs in refined_data_points
-            ]
-        )
-        print("\n[DEBUG] Mass-Only Group Identified:")
-        if mass_only_groups:
-            for point in mass_only_groups:
-                pass
-        else:
-            print("[ERROR] Mass-Only Group is empty after processing!")
-        return [], post_source_decay, branched_isomer, mass_only_groups
-
     # Recalculate regression after removing flagged points
     mz_values = np.array([p[0] for p in refined_data_points])
     ccs_values = np.array([p[1] for p in refined_data_points])
@@ -241,22 +222,11 @@ def CCS_v_mz_analysis(mass_groups, significance_cutoff=0.05):
     if p_value <= significance_cutoff and slope > 0:
         return refined_data_points, post_source_decay, branched_isomer, []
 
-    # Combine flagged points + remaining valid points
-    mass_only_groups = (
-        post_source_decay
-        + branched_isomer
-        + [
-            {"m/z": mz, "CCS": ccs, "Classification": "Mass-Only"}
-            for mz, ccs in refined_data_points
-        ]
+    return (
+        [],
+        post_source_decay,
+        branched_isomer,
     )
-
-    # Print the full mass-only group
-    print("\n[INFO] Mass-Only Group Contents:")
-    for point in mass_only_groups:
-        pass
-
-    return [], post_source_decay, branched_isomer, mass_only_groups
 
 
 def main():

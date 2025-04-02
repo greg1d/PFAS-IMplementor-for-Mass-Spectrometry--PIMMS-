@@ -42,7 +42,6 @@ def run_analysis(adjusted_df, selected_repeating_units):
 
     # ✅ Process CCS vs. m/z analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
-    mass_only_groups = {}
 
     for idx, (group_id, group_df) in enumerate(
         mass_groups.groupby("GroupID", dropna=True)
@@ -56,14 +55,10 @@ def run_analysis(adjusted_df, selected_repeating_units):
         branched_isomer_groups.append(branched_isomer)
         post_source_decay_groups.append(post_source_decay)
 
-        if mass_only_group:
-            mass_only_groups[f"Group {idx + 1}"] = mass_only_group
-
     return (
         refined_groups,
         branched_isomer_groups,
         post_source_decay_groups,
-        mass_only_groups,
         mass_groups,
     )
 

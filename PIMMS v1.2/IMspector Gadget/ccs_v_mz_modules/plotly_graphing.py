@@ -195,7 +195,6 @@ def make_plotly_graph(
     refined_groups,
     branched_isomers,
     post_source_decay,
-    mass_only_groups,
     mass_groups,
 ):
     fig = go.Figure()
@@ -352,24 +351,6 @@ def make_plotly_graph(
                 )
             )
 
-    # **Step 8: Plot Mass-Only Points**
-    for group_name, group in mass_only_groups.items():
-        for point in group:
-            fig.add_trace(
-                go.Scatter(
-                    x=[point["m/z"]],
-                    y=[point["CCS"]],
-                    mode="markers",
-                    marker=dict(size=8, color="green"),
-                    name="Mass-Only",
-                    legendgroup="mass_only_group",
-                    showlegend=False,
-                    hovertemplate=f"m/z: {point['m/z']:.4f}<br>CCS: {point['CCS']:.2f}<br>"
-                    f"Classification: Mass-Only<extra></extra>",
-                    visible=True,
-                )
-            )
-
     # **Final Layout Update**
     fig.update_layout(
         xaxis=dict(title=r"<b><i>m/z</i></b>"),
@@ -472,7 +453,6 @@ def update_graph(remove_columns, adjusted_df, repeating_units=None):
 
     # ✅ Process each group through CCS_v_mz_analysis
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
-    mass_only_groups = {}
 
     for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
         print(
@@ -480,16 +460,12 @@ def update_graph(remove_columns, adjusted_df, repeating_units=None):
         )
 
         try:
-            IM_group, post_source_decay, branched_isomer, mass_only_group = (
-                CCS_v_mz_analysis(group_df)
-            )
+            IM_group, post_source_decay, branched_isomer = CCS_v_mz_analysis(group_df)
 
             refined_groups.append(IM_group)
             branched_isomer_groups.append(branched_isomer)
             post_source_decay_groups.append(post_source_decay)
 
-            if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
-                mass_only_groups[f"Group {idx + 1}"] = mass_only_group
         except Exception as e:
             print(f"[ERROR] Error processing Group {group_id}: {e}")
 
@@ -504,9 +480,6 @@ def update_graph(remove_columns, adjusted_df, repeating_units=None):
     print(
         f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups)} points"
     )
-    print(
-        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values())} points"
-    )
 
     # ✅ Generate updated graph
     fig = make_plotly_graph(
@@ -514,7 +487,6 @@ def update_graph(remove_columns, adjusted_df, repeating_units=None):
         refined_groups,  # ✅ Now included!
         branched_isomer_groups,
         post_source_decay_groups,
-        mass_only_groups,
         mass_groups,  # ✅ Ensure mass-only groups are passed properly
     )
 
@@ -540,7 +512,6 @@ def main():
 
     # **Step 2: Perform CCS vs. m/z analysis**
     refined_groups, branched_isomer_groups, post_source_decay_groups = [], [], []
-    mass_only_groups = {}  # ✅ Store mass-only groups in a dictionary
 
     print("\n[INFO] Performing CCS_v_mz_analysis on identified mass groups...")
     for idx, (group_id, group_df) in enumerate(mass_groups.groupby("GroupID")):
@@ -556,10 +527,6 @@ def main():
         post_source_decay_groups.append(post_source_decay)
 
         # ✅ Store each group in the dictionary correctly
-        if isinstance(mass_only_group, list) and len(mass_only_group) > 0:
-            mass_only_groups[f"Group {idx + 1}"] = (
-                mass_only_group  # ✅ Dictionary format
-            )
 
     # **Step 3: Print Debugging Before Plotting**
     print("\n[INFO] Final Data Sent to Plot:")
@@ -570,9 +537,6 @@ def main():
     print(
         f"  - Post Source Decay: {sum(len(group) for group in post_source_decay_groups)} points"
     )
-    print(
-        f"  - Mass-Only Groups: {sum(len(group) for group in mass_only_groups.values())} points"
-    )
 
     # **Step 4: Generate Plotly plot**
     fig = make_plotly_graph(
@@ -580,7 +544,6 @@ def main():
         refined_groups,
         branched_isomer_groups,
         post_source_decay_groups,
-        mass_only_groups,
         mass_groups,  # ✅ Now correctly formatted as a dictionary
     )
 

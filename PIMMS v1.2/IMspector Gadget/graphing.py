@@ -70,7 +70,6 @@ def plot_figure_1(adjusted_df=None, selected_repeating_units=None):
         refined_groups,
         branched_isomers,
         post_source_decay,
-        mass_only_groups,
         mass_groups,
     ) = run_analysis(adjusted_df, selected_repeating_units)
 
@@ -81,7 +80,6 @@ def plot_figure_1(adjusted_df=None, selected_repeating_units=None):
         refined_groups,
         branched_isomers,
         post_source_decay,
-        mass_only_groups,
         mass_groups,
     )
 
