@@ -15,7 +15,6 @@ def find_similar_peaks(array, mass, mass_error_ppm=10):
 
     j_start = bisect.bisect_left(array, lower_bound)
     j_end = bisect.bisect_right(array, upper_bound)
-    print(array[j_start:j_end])
     return array[j_start:j_end]
 
 
@@ -34,27 +33,66 @@ def group_by_mz_ppm(adjusted_df, mass_error_ppm):
             groups.append(group)
             used.update(group)
 
-    # Debug print
-    for i, group in enumerate(groups, 1):
-        print(f"\n[Group {i}] ({len(group)} peaks)")
-        for mz in group:
-            print(f"  m/z = {mz:.6f}")
-
     return groups
 
 
+def optimal_ccs_grouping(adjusted_df, mz_groups, ccs_tolerance=2.0):
+    """Split each m/z group by CCS so that CCS spread is ≤ 2% of the min CCS."""
+    final_groups = []
+
+    for group_idx, mz_group in enumerate(mz_groups, 1):
+        group_df = adjusted_df[adjusted_df["m/z"].isin(mz_group)].copy()
+        group_df = group_df.sort_values(by="CCS").reset_index(drop=True)
+        ccs_list = group_df["CCS"].tolist()
+        mz_list = group_df["m/z"].tolist()
+
+        i = 0
+        n = len(ccs_list)
+
+        while i < n:
+            sub_group = [mz_list[i]]
+            sub_min_ccs = ccs_list[i]
+            j = i + 1
+
+            while j < n:
+                max_ccs = max(ccs_list[i : j + 1])
+                min_ccs = sub_min_ccs
+                percent_diff = (max_ccs - min_ccs) / min_ccs * 100
+
+                if percent_diff <= ccs_tolerance:
+                    sub_group.append(mz_list[j])
+                    j += 1
+                else:
+                    break
+
+            final_groups.append(sub_group)
+            print(f"\n[Final Group] {len(sub_group)} peaks:")
+            print(
+                adjusted_df[adjusted_df["m/z"].isin(sub_group)][
+                    ["m/z", "CCS"]
+                ].to_string(index=False)
+            )
+
+            i += len(sub_group)
+
+    return final_groups
+
+
 def main():
-    # Example adjusted_df with rows to process
     adjusted_df = pd.read_csv("PIMMS v1.2/Data_output/post_smearing_filter.csv")
 
     mass_error_ppm = 10
-    rt_tolerance = 0.5
     ccs_tolerance = 2.0
 
-    # Identify groups
-    groups = group_by_mz_ppm(adjusted_df, mass_error_ppm)
-    # Merge groups into a single feature
-    print(f"\n[INFO] Total groups identified: {len(groups)}")
+    print("[INFO] Grouping by m/z (±10 ppm)...")
+    mz_groups = group_by_mz_ppm(adjusted_df, mass_error_ppm)
+
+    print(f"[INFO] m/z groups found: {len(mz_groups)}")
+
+    print("[INFO] Refining groups by CCS tolerance (≤ 2%)...")
+    final_groups = optimal_ccs_grouping(adjusted_df, mz_groups, ccs_tolerance)
+
+    print(f"\n[INFO] Total final CCS-refined groups: {len(final_groups)}")
 
 
 if __name__ == "__main__":
