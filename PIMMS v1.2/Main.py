@@ -42,7 +42,7 @@ from regression_analysis import produce_filtered_df
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/data/paired_sampler_analysis.csv"]
+    file_paths = ["PIMMS v1.2/data/Dummy test blank subtracted data.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -57,7 +57,7 @@ def main():
     control_samples = [f"Blank {i}.d" for i in range(1, 10)]
 
     # Set tolerances
-    mass_error_ppm = 20  # Mass error in ppm
+    mass_error_ppm = 10  # Mass error in ppm
     ccs_error_percentage = 2  # CCS variance as 2% tolerance
     rt_tolerance = 0.5
     include_rt = False
@@ -74,8 +74,8 @@ def main():
 
     frequency_threshold = 5  # Detection frequency threshold percentage
 
-    rt_filter = True
-    ccs_filter = True
+    rt_filter = False
+    ccs_filter = False
 
     try:
         # Process files and separate data
@@ -186,7 +186,7 @@ def main():
 
         # Merge groups into adjusted_df
         adjusted_df = branching_merge(adjusted_df, groups)
-
+        adjusted_df.to_csv("PIMMS v1.2/Data_output/branching_filter.csv", index=False)
         # Count non-zero rows after merging
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(

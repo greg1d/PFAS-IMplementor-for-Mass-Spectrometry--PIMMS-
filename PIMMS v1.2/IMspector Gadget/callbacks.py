@@ -178,7 +178,7 @@ def register_callbacks(app, adjusted_df):
                 print("[INFO] Library search graph updated.")
                 fig3 = plot_figure_3(selected_repeating_units)
 
-            return fig1, fig2, fig3
+            return fig1, fig2, fig3, None
 
         except Exception as e:
             print(f"[ERROR] Exception in update_graph_callback: {e}")
