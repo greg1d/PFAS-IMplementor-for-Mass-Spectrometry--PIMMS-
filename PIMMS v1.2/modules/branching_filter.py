@@ -19,29 +19,30 @@ def find_similar_peaks(array, mass, mass_error_ppm=10):
 
 
 def group_by_mz_ppm(adjusted_df, mass_error_ppm):
-    """Identify groups of m/z values within ±ppm."""
+    """Identify m/z groups within ±ppm and return a list of DataFrames per group."""
     mz_array = sorted(adjusted_df["m/z"].dropna())
     used = set()
-    groups = []
+    group_dfs = []
 
     for mz in mz_array:
         if mz in used:
             continue
-        group = find_similar_peaks(mz_array, mz, mass_error_ppm)
-        group = [val for val in group if val not in used]
-        if group:
-            groups.append(group)
-            used.update(group)
+        group_mz = find_similar_peaks(mz_array, mz, mass_error_ppm)
+        group_mz = [val for val in group_mz if val not in used]
 
-    return groups
+        if group_mz:
+            group_df = adjusted_df[adjusted_df["m/z"].isin(group_mz)].copy()
+            group_dfs.append(group_df)
+            used.update(group_mz)
+
+    return group_dfs
 
 
-def optimal_ccs_grouping(adjusted_df, mz_groups, ccs_tolerance=2.0):
-    """Split each m/z group by CCS so that CCS spread is ≤ 2% of the min CCS."""
+def optimal_ccs_grouping(groups, ccs_tolerance=2.0):
+    """Split each m/z group DataFrame by CCS spread (≤ 2% of min CCS)."""
     final_groups = []
 
-    for group_idx, mz_group in enumerate(mz_groups, 1):
-        group_df = adjusted_df[adjusted_df["m/z"].isin(mz_group)].copy()
+    for group_idx, group_df in enumerate(groups, 1):
         group_df = group_df.sort_values(by="CCS").reset_index(drop=True)
         ccs_list = group_df["CCS"].tolist()
         mz_list = group_df["m/z"].tolist()
@@ -65,11 +66,50 @@ def optimal_ccs_grouping(adjusted_df, mz_groups, ccs_tolerance=2.0):
                 else:
                     break
 
+            sub_df = group_df[group_df["m/z"].isin(sub_group)].copy()
+            final_groups.append(sub_df)
+
+            print(f"\n[CCS Subgroup] {len(sub_group)} peaks:")
+            print(sub_df[["m/z", "CCS"]].to_string(index=False))
+
+            i += len(sub_group)
+
+    return final_groups
+
+
+def optimal_rt_grouping(adjusted_df, ccs_refined_groups, rt_tolerance=0.5):
+    """Further split CCS-refined groups by RT range within rt_tolerance."""
+    final_groups = []
+
+    for group_idx, mz_group in enumerate(ccs_refined_groups, 1):
+        group_df = adjusted_df[adjusted_df["m/z"].isin(mz_group)].copy()
+        group_df = group_df.sort_values(by="RT").reset_index(drop=True)
+        rt_list = group_df["RT"].tolist()
+        mz_list = group_df["m/z"].tolist()
+
+        i = 0
+        n = len(rt_list)
+
+        while i < n:
+            sub_group = [mz_list[i]]
+            rt_min = rt_list[i]
+            j = i + 1
+
+            while j < n:
+                rt_max = max(rt_list[i : j + 1])
+                rt_range = rt_max - rt_min
+
+                if rt_range <= rt_tolerance:
+                    sub_group.append(mz_list[j])
+                    j += 1
+                else:
+                    break
+
             final_groups.append(sub_group)
-            print(f"\n[Final Group] {len(sub_group)} peaks:")
+            print(f"\n[RT-Refined Group] {len(sub_group)} peaks:")
             print(
                 adjusted_df[adjusted_df["m/z"].isin(sub_group)][
-                    ["m/z", "CCS"]
+                    ["m/z", "RT"]
                 ].to_string(index=False)
             )
 
@@ -83,16 +123,15 @@ def main():
 
     mass_error_ppm = 10
     ccs_tolerance = 2.0
+    rt_tolerance = 0.5  # Set here and passed to RT filter
 
     print("[INFO] Grouping by m/z (±10 ppm)...")
     mz_groups = group_by_mz_ppm(adjusted_df, mass_error_ppm)
-
     print(f"[INFO] m/z groups found: {len(mz_groups)}")
 
-    print("[INFO] Refining groups by CCS tolerance (≤ 2%)...")
-    final_groups = optimal_ccs_grouping(adjusted_df, mz_groups, ccs_tolerance)
+    CCS_groups = optimal_ccs_grouping(mz_groups, ccs_tolerance)
 
-    print(f"\n[INFO] Total final CCS-refined groups: {len(final_groups)}")
+    print(f"[INFO] CCS groups found: {len(CCS_groups)}")
 
 
 if __name__ == "__main__":
