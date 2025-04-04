@@ -1,0 +1,38 @@
+﻿Name,Notes,"Detection Frequency (No blank subtraction, All samples)","Detection Frequency (After Blank Subtraction, NIST Samples only)"
+PFBS,heavy,100,0
+PFPeS,,46.15384615,75
+PFHxS,branched,61.53846154,100
+PFHxS,linear,61.53846154,100
+PFHxS,heavy,100,0
+PFHxS,heavy,100,0
+PFECHS,,53.84615385,87.5
+PFHpS,linear,61.53846154,100
+PFHpS,branched,30.76923077,50
+PFOS,linear,76.92307692,100
+PFOS,branched,61.53846154,100
+PFOS,heavy,100,0
+PFDS,,23.07692308,37.5
+PFHxA,heavy,100,62.5
+PFHpA,,53.84615385,87.5
+PFHpA,heavy,100,37.5
+PFOA,branched,53.84615385,87.5
+PFOA,linear,100,100
+PFOA,heavy,100,37.5
+PFNA ,,69.23076923,100
+PFNA,heavy,100,0
+PFDA,,38.46153846,62.5
+PFDA,heavy,92.30769231,0
+PFUdA,heavy,100,87.5
+PFDoA,heavy,100,100
+PFTeDA,heavy,61.53846154,100
+4:2 FTS,heavy,100,62.5
+6:2 FTS,heavy,100,0
+8:2 FTS,heavy,100,0
+FOSA,heavy,61.53846154,100
+N-MeFOSAA,heavy,100,0
+N-EtFOSAA,heavy,100,0
+N-MeFOSA,heavy,61.53846154,100
+N-MeFOSA,"heavy, smaller peak",61.53846154,25
+N-EtFOSA,heavy,61.53846154,100
+N-EtFOSA,"heavy, smaller peak",69.23076923,100
+HFPO-DA,heavy,46.15384615,75
