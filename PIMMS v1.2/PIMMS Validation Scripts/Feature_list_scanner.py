@@ -23,19 +23,26 @@ def build_name_notes(row):
 
 
 skyline_df["Name_Notes"] = skyline_df.apply(build_name_notes, axis=1)
+
+# Rename columns for Skyline frequencies
 skyline_df = skyline_df.rename(
     columns={
-        "Detection Frequency (No blank subtraction, All samples)": "Skyline detection frequency - All Samples, No Blank Subtraction"
+        "Detection Frequency (No blank subtraction, All samples)": "Skyline detection frequency - All Samples, No Blank Subtraction",
+        "Detection Frequency (After Blank Subtraction, NIST Samples only)": "Skyline Sample Detection Frequency",
     }
 )
+
 skyline_names = set(skyline_df["Name_Notes"])
 
-# Create dictionary to map Name (Notes) to Skyline detection frequency
-skyline_freq_map = dict(
+# Create dictionary mappings from Name (Notes)
+skyline_freq_all_map = dict(
     zip(
         skyline_df["Name_Notes"],
         skyline_df["Skyline detection frequency - All Samples, No Blank Subtraction"],
     )
+)
+skyline_freq_sample_map = dict(
+    zip(skyline_df["Name_Notes"], skyline_df["Skyline Sample Detection Frequency"])
 )
 
 # === Rename target columns for consistency
@@ -124,16 +131,18 @@ for idx, target in targets_df.iterrows():
             lambda row: compute_freq(row, sample_cols + blank_cols), axis=1
         )
 
-        # Append matches
         all_matches.append(matches)
 
 # === Post-processing after matching
 if all_matches:
     final_df = pd.concat(all_matches, ignore_index=True)
 
-    # Add Skyline detection frequency to final_df using name map
+    # Map Skyline detection frequencies to final_df using Name (Notes)
     final_df["Skyline detection frequency - All Samples, No Blank Subtraction"] = (
-        final_df["Name"].map(skyline_freq_map)
+        final_df["Name"].map(skyline_freq_all_map)
+    )
+    final_df["Skyline Sample Detection Frequency"] = final_df["Name"].map(
+        skyline_freq_sample_map
     )
 
     # Print final output
@@ -150,14 +159,10 @@ if all_matches:
                 "Detection_Freq_Sample",
                 "Detection_Frequency_blanks_+_samples",
                 "Skyline detection frequency - All Samples, No Blank Subtraction",
+                "Skyline Sample Detection Frequency",
             ]
         ].to_string(index=False, float_format="%.4f")
     )
 
-    # Optional: also list matches with Skyline
-    print("\n✅ Names found in both match output and Skyline detection file:")
-    for name in final_df["Name"].unique():
-        if name in skyline_names:
-            print(name)
 else:
     print("⚠️ No matched features found.")
