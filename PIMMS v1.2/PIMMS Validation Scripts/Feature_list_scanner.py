@@ -44,10 +44,23 @@ for idx, target in targets_df.iterrows():
     ].copy()
 
     if not matches.empty:
+        # Calculate error metrics
+        matches["MassError_ppm"] = (
+            (matches["m/z"] - target["m/z"]) / target["m/z"]
+        ) * 1e6
+        matches["RT_Error"] = abs(matches["RT"] - target["RT"])
+        matches["CCS_Error_pct"] = (
+            (matches["CCS"] - target["CCS"]) / target["CCS"]
+        ) * 100
+
         print(f"\n--- Matches for Target [{idx}] {target['Molecule_Name']} ---")
         print(
             f"Target m/z: {target['m/z']:.6f}, RT: {target['RT']:.2f}, CCS: {target['CCS']:.2f}"
         )
-        print(matches[["m/z", "RT", "CCS"]].to_string(index=False))
+        print(
+            matches[
+                ["m/z", "RT", "CCS", "MassError_ppm", "RT_Error", "CCS_Error_pct"]
+            ].to_string(index=False, float_format="%.4f")
+        )
     else:
         print(f"\nNo match for Target [{idx}] {target['Molecule_Name']}")
