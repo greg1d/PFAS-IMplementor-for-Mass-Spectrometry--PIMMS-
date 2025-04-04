@@ -62,7 +62,28 @@ for idx, target in targets_df.iterrows():
 
         matches["Name"] = name_with_notes
 
-        # Reorder and print
+        # === Detection Frequency Calculation ===
+        sample_cols = [col for col in matches.columns if "NIST" in col]
+        blank_cols = [col for col in matches.columns if "Method" in col]
+
+        def compute_freq(row, cols):
+            values = row[cols]
+            detected = (values > 10).sum()
+            total = len(cols)
+            return detected / total if total > 0 else None
+
+        matches["Detection_Freq_Sample"] = matches.apply(
+            lambda row: compute_freq(row, sample_cols), axis=1
+        )
+        matches["Detection_Freq_Blank"] = matches.apply(
+            lambda row: compute_freq(row, blank_cols), axis=1
+        )
+
+        # Primary detection frequency = sample detection frequency
+        combined_cols = sample_cols + blank_cols
+        matches["Detection_Frequency_blanks_+_samples"] = matches.apply(
+            lambda row: compute_freq(row, combined_cols), axis=1
+        )  # Reorder and print
         print(
             matches[
                 [
@@ -73,6 +94,8 @@ for idx, target in targets_df.iterrows():
                     "MassError_ppm",
                     "RT_Error",
                     "CCS_Error_pct",
+                    "Detection_Freq_Sample",
+                    "Detection_Frequency_blanks_+_samples",
                 ]
             ].to_string(index=False, float_format="%.4f")
         )
