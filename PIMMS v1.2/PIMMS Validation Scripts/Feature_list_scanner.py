@@ -31,6 +31,7 @@ skyline_df = skyline_df.rename(
     columns={
         "Detection Frequency (No blank subtraction, All samples)": "Skyline detection frequency - All Samples, No Blank Subtraction",
         "Detection Frequency (After Blank Subtraction, NIST Samples only)": "Skyline Sample Detection Frequency",
+        "Skyline average intensity": "Skyline average intensity",
     }
 )
 
@@ -45,6 +46,9 @@ skyline_freq_all_map = dict(
 )
 skyline_freq_sample_map = dict(
     zip(skyline_df["Name_Notes"], skyline_df["Skyline Sample Detection Frequency"])
+)
+skyline_intensity_map = dict(
+    zip(skyline_df["Name_Notes"], skyline_df["Skyline average intensity"])
 )
 
 # === Rename target columns for consistency
@@ -61,7 +65,7 @@ targets_df = targets_df.rename(
 all_matches = []
 
 # === Tolerance values
-rt_tol = 0.5  # minutes
+rt_tol = 0.2  # minutes
 ccs_tol_pct = 0.02  # 2%
 mz_tol = 10  # ppm
 # === Perform matching
@@ -163,13 +167,14 @@ for idx, target in targets_df.iterrows():
 if all_matches:
     final_df = pd.concat(all_matches, ignore_index=True)
 
-    # Map Skyline detection frequencies to final_df using Name (Notes)
+    # Map Skyline detection frequencies and intensity to final_df
     final_df["Skyline detection frequency - All Samples, No Blank Subtraction"] = (
         final_df["Name"].map(skyline_freq_all_map)
     )
     final_df["Skyline Sample Detection Frequency"] = final_df["Name"].map(
         skyline_freq_sample_map
     )
+    final_df["Skyline Average Intensity"] = final_df["Name"].map(skyline_intensity_map)
 # === Round each specified column ===
 rounding_map = {
     "Mass Error (ppm)": 3,
@@ -192,6 +197,7 @@ final_df = final_df.rename(
         "RT_Error": "RT Error",
         "CCS_Error_pct": "CCS Error (%)",
         "MassError_ppm": "Mass Error (ppm)",
+        "Skyline average intensity": "Skyline Average Intensity",
     }
 )
 
@@ -227,7 +233,7 @@ core_columns = [
 
 # === Add all ".d" columns after core columns ===
 d_cols = [col for col in final_df.columns if ".d" in col and col not in core_columns]
-final_columns = core_columns + d_cols
+final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
 
 # === Subset only the selected columns ===
 final_df = final_df[[col for col in final_columns if col in final_df.columns]]

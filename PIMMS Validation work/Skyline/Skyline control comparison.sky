@@ -24,9 +24,7 @@
       </transition_filter>
       <ion_mobility_filtering window_width_calc_type="resolving_power" resolving_power="20" />
       <transition_libraries ion_match_tolerance="0.5" min_ion_count="0" ion_count="3" pick_from="all" />
-      <transition_integration integrate_all="true">
-        <synchronize_integration all="true" />
-      </transition_integration>
+      <transition_integration integrate_all="true" />
       <transition_instrument min_mz="50" max_mz="1700" mz_match_tolerance="0.055" />
       <transition_full_scan precursor_isotopes="Count" precursor_isotope_filter="1" precursor_mass_analyzer="tof" precursor_res="20000" retention_time_filter_type="ms2_ids" retention_time_filter_length="5">
         <isotope_enrichments name="Default">
@@ -201,7 +199,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="5.334017" start_time="4.88901663" end_time="6.152817" ccs="133.60000610351563" ion_mobility_ms1="17.711042404174805" ion_mobility_window="1.7711042165756226" ion_mobility_type="drift_time_msec" fwhm="0.100865118" area="1551295.13" background="0" height="172402.016" mass_error_ppm="-3.5" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="5.31865" start_time="4.89145" end_time="6.15525" ccs="133.60000610351563" ion_mobility_ms1="17.711042404174805" ion_mobility_window="1.7711042165756226" ion_mobility_type="drift_time_msec" fwhm="0.111813486" area="1599306.88" background="0" height="153300.641" mass_error_ppm="-3.7" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C4HF9O3S[M3C13-H]" neutral_mass_average="300.10016879999995" neutral_mass_monoisotopic="299.95026808957005" custom_ion_name="PFBS">
+        <transition fragment_type="precursor" ion_formula="C4HF9O3S[M3C13-H]" neutral_mass_average="300.10016879999995" neutral_mass_monoisotopic="299.95026808957005" custom_ion_name="PFBS" isotope_dist_rank="1" isotope_dist_proportion="0.919349968">
           <precursor_mz>301.953057</precursor_mz>
           <product_mz>301.953057</product_mz>
           <collision_energy>0</collision_energy>
@@ -223,18 +221,18 @@
         </transition>
       </precursor>
     </molecule>
-    <molecule explicit_retention_time="7.03" neutral_formula="C5HF11O3S" neutral_mass_average="350.1078252" neutral_mass_monoisotopic="349.94707441503004" custom_ion_name="PFPeS" avg_measured_retention_time="7.172659">
+    <molecule explicit_retention_time="7.03" neutral_formula="C5HF11O3S" neutral_mass_average="350.1078252" neutral_mass_monoisotopic="349.94707441503004" custom_ion_name="PFPeS" avg_measured_retention_time="7.233585">
       <note category="5">Done</note>
       <peptide_results>
-        <peptide_result replicate="Method Blank 1" peak_count_ratio="0" retention_time="7.10133362" />
-        <peptide_result replicate="Method Blank 2" peak_count_ratio="0" retention_time="7.09905" />
-        <peptide_result replicate="Method Blank 3" peak_count_ratio="0" retention_time="7.10738325" />
-        <peptide_result replicate="Method Blank 4" peak_count_ratio="0" retention_time="7.10595" />
-        <peptide_result replicate="Method Blank 5" peak_count_ratio="0" retention_time="7.10795832" />
+        <peptide_result replicate="Method Blank 1" peak_count_ratio="0" retention_time="7.23483372" />
+        <peptide_result replicate="Method Blank 2" peak_count_ratio="0" retention_time="7.23254967" />
+        <peptide_result replicate="Method Blank 3" peak_count_ratio="0" retention_time="7.2230835" />
+        <peptide_result replicate="Method Blank 4" peak_count_ratio="0" retention_time="7.22165" />
+        <peptide_result replicate="Method Blank 5" peak_count_ratio="0" retention_time="7.224117" />
         <peptide_result replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="7.26481676" />
         <peptide_result replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="7.26356649" />
         <peptide_result replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="7.24903345" />
-        <peptide_result replicate="NIST SRM-1957 6" peak_count_ratio="0" />
+        <peptide_result replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="7.22828341" />
         <peptide_result replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="7.22461653" />
         <peptide_result replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="7.20288324" />
         <peptide_result replicate="NIST SRM-1957 9" peak_count_ratio="0" />
@@ -242,36 +240,36 @@
       </peptide_results>
       <precursor charge="-1" precursor_mz="348.939798" explicit_ccs_sqa="142.2" collision_energy="0" ion_formula="C5HF11O3S[M-H]" neutral_mass_average="350.1078252" neutral_mass_monoisotopic="349.94707441503004" custom_ion_name="PFPeS">
         <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" retention_time="7.10133362" start_time="6.73643351" end_time="7.46623325" ccs="142.19999694824219" ion_mobility_ms1="18.917436599731445" ion_mobility_window="1.8917436599731445" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" retention_time="7.09905" start_time="6.73415" end_time="7.46395" ccs="142.19999694824219" ion_mobility_ms1="18.917436599731445" ion_mobility_window="1.8917436599731445" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" retention_time="7.10738325" start_time="6.742483" end_time="7.47228336" ccs="142.19999694824219" ion_mobility_ms1="18.894407272338867" ion_mobility_window="1.8894407749176025" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" retention_time="7.10595" start_time="6.74105" end_time="7.47085" ccs="142.19999694824219" ion_mobility_ms1="18.917436599731445" ion_mobility_window="1.8917436599731445" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" retention_time="7.10795832" start_time="6.74188328" end_time="7.47403336" ccs="142.19999694824219" ion_mobility_ms1="18.894407272338867" ion_mobility_window="1.8894407749176025" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="7.26481676" start_time="6.7486167" end_time="7.47841644" ccs="142.19999694824219" ion_mobility_ms1="18.883516311645508" ion_mobility_window="1.8883516788482666" ion_mobility_type="drift_time_msec" fwhm="0.045789212" area="1152.1958" background="0" height="366.9729" mass_error_ppm="4.1" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="7.26356649" start_time="6.74736643" end_time="7.47716665" ccs="142.19999694824219" ion_mobility_ms1="18.883516311645508" ion_mobility_window="1.8883516788482666" ion_mobility_type="drift_time_msec" fwhm="0.0463255122" area="1756.14429" background="0" height="607.831" mass_error_ppm="-8.4" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="7.24903345" start_time="6.73283339" end_time="7.462633" ccs="142.19999694824219" ion_mobility_ms1="18.883516311645508" ion_mobility_window="1.8883516788482666" ion_mobility_type="drift_time_msec" fwhm="0.0542638078" area="1893.07825" background="0" height="574.949036" mass_error_ppm="-0.8" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="0" ccs="142.19999694824219" ion_mobility_ms1="18.918596267700195" ion_mobility_window="1.891859769821167" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="7.22461653" start_time="6.74401665" end_time="7.473817" ccs="142.19999694824219" ion_mobility_ms1="18.918596267700195" ion_mobility_window="1.891859769821167" ion_mobility_type="drift_time_msec" fwhm="0.0511278659" area="2516.08057" background="0" height="789.220642" mass_error_ppm="-1.7" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="7.20288324" start_time="6.740083" end_time="7.46988344" ccs="142.19999694824219" ion_mobility_ms1="18.918596267700195" ion_mobility_window="1.891859769821167" ion_mobility_type="drift_time_msec" fwhm="0.0455030724" area="2615.393" background="0" height="903.851" mass_error_ppm="-4.6" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="142.19999694824219" ion_mobility_ms1="18.96636962890625" ion_mobility_window="1.896636962890625" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="142.19999694824219" ion_mobility_ms1="18.96636962890625" ion_mobility_window="1.896636962890625" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" retention_time="7.23483372" start_time="7.02123356" end_time="7.4484334" ccs="142.19999694824219" ion_mobility_ms1="18.917436599731445" ion_mobility_window="1.8917436599731445" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" retention_time="7.23254967" start_time="7.01895" end_time="7.44615" ccs="142.19999694824219" ion_mobility_ms1="18.917436599731445" ion_mobility_window="1.8917436599731445" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" retention_time="7.2230835" start_time="7.00948334" end_time="7.436683" ccs="142.19999694824219" ion_mobility_ms1="18.894407272338867" ion_mobility_window="1.8894407749176025" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" retention_time="7.22165" start_time="7.00805" end_time="7.43525" ccs="142.19999694824219" ion_mobility_ms1="18.917436599731445" ion_mobility_window="1.8917436599731445" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" retention_time="7.224117" start_time="7.0099" end_time="7.43833351" ccs="142.19999694824219" ion_mobility_ms1="18.894407272338867" ion_mobility_window="1.8894407749176025" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="7.26481676" start_time="7.015617" end_time="7.44281673" ccs="142.19999694824219" ion_mobility_ms1="18.883516311645508" ion_mobility_window="1.8883516788482666" ion_mobility_type="drift_time_msec" fwhm="0.045789212" area="1152.1958" background="0" height="366.9729" mass_error_ppm="4.1" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="7.26356649" start_time="7.01436663" end_time="7.44156647" ccs="142.19999694824219" ion_mobility_ms1="18.883516311645508" ion_mobility_window="1.8883516788482666" ion_mobility_type="drift_time_msec" fwhm="0.04632427" area="1756.09729" background="0" height="607.831" mass_error_ppm="-8.4" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="7.24903345" start_time="7.01763344" end_time="7.44483328" ccs="142.19999694824219" ion_mobility_ms1="18.883516311645508" ion_mobility_window="1.8883516788482666" ion_mobility_type="drift_time_msec" fwhm="0.0542638078" area="1893.07825" background="0" height="574.949036" mass_error_ppm="-0.8" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="7.22828341" start_time="7.01398325" end_time="7.44308329" ccs="142.19999694824219" ion_mobility_type="drift_time_msec" fwhm="0.0410023071" area="636.1712" background="0" height="273" mass_error_ppm="-4.3" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="7.22461653" start_time="7.011017" end_time="7.43821669" ccs="142.19999694824219" ion_mobility_ms1="18.918596267700195" ion_mobility_window="1.891859769821167" ion_mobility_type="drift_time_msec" fwhm="0.0511278659" area="2516.08057" background="0" height="789.220642" mass_error_ppm="-1.7" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="7.20288324" start_time="7.00708342" end_time="7.43428326" ccs="142.19999694824219" ion_mobility_ms1="18.918596267700195" ion_mobility_window="1.891859769821167" ion_mobility_type="drift_time_msec" fwhm="0.0455018543" area="2615.323" background="0" height="903.851" mass_error_ppm="-4.6" truncated="0" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="142.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="142.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C5HF11O3S[M-H]" neutral_mass_average="350.1078252" neutral_mass_monoisotopic="349.94707441503004" custom_ion_name="PFPeS">
+        <transition fragment_type="precursor" ion_formula="C5HF11O3S[M-H]" neutral_mass_average="350.1078252" neutral_mass_monoisotopic="349.94707441503004" custom_ion_name="PFPeS" isotope_dist_rank="1" isotope_dist_proportion="0.8932211">
           <precursor_mz>348.939798</precursor_mz>
           <product_mz>348.939798</product_mz>
           <collision_energy>0</collision_energy>
           <transition_results>
-            <transition_peak replicate="Method Blank 1" retention_time="6.73643351" start_time="6.73643351" end_time="7.46623325" ion_mobility="18.917436599731445" ion_mobility_window="1.8917436599731445" area="0" background="0" height="0" fwhm="0.729794" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 2" retention_time="6.73415" start_time="6.73415" end_time="7.46395" ion_mobility="18.917436599731445" ion_mobility_window="1.8917436599731445" area="0" background="0" height="0" fwhm="0.729794" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 3" retention_time="6.742483" start_time="6.742483" end_time="7.47228336" ion_mobility="18.894407272338867" ion_mobility_window="1.8894407749176025" area="0" background="0" height="0" fwhm="0.7298136" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 4" retention_time="6.74105" start_time="6.74105" end_time="7.47085" ion_mobility="18.917436599731445" ion_mobility_window="1.8917436599731445" area="0" background="0" height="0" fwhm="0.7298136" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 5" retention_time="6.74188328" start_time="6.74188328" end_time="7.47403336" ion_mobility="18.894407272338867" ion_mobility_window="1.8894407749176025" area="0" background="0" height="0" fwhm="0.7386894" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="42" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 1" mass_error_ppm="4.1" retention_time="7.26481676" start_time="6.7486167" end_time="7.47841644" ion_mobility="18.883516311645508" ion_mobility_window="1.8883516788482666" area="1152.1958" background="0" height="366.9729" fwhm="0.045789212" truncated="false" identified="false" rank="1" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 2" mass_error_ppm="-8.4" retention_time="7.26356649" start_time="6.74736643" end_time="7.47716665" ion_mobility="18.883516311645508" ion_mobility_window="1.8883516788482666" area="1756.14429" background="0" height="607.831" fwhm="0.0463255122" truncated="false" identified="false" rank="1" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 3" mass_error_ppm="-0.8" retention_time="7.24903345" start_time="6.73283339" end_time="7.462633" ion_mobility="18.883516311645508" ion_mobility_window="1.8883516788482666" area="1893.07825" background="0" height="574.949036" fwhm="0.0542638078" truncated="false" identified="false" rank="1" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 6" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 7" mass_error_ppm="-1.7" retention_time="7.22461653" start_time="6.74401665" end_time="7.473817" ion_mobility="18.918596267700195" ion_mobility_window="1.891859769821167" area="2516.08057" background="0" height="789.220642" fwhm="0.0511278659" truncated="false" identified="false" rank="1" points_across="41" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 8" mass_error_ppm="-4.6" retention_time="7.20288324" start_time="6.740083" end_time="7.46988344" ion_mobility="18.918596267700195" ion_mobility_window="1.891859769821167" area="2615.393" background="0" height="903.851" fwhm="0.0455030724" truncated="false" identified="false" rank="1" points_across="41" user_set="TRUE" />
+            <transition_peak replicate="Method Blank 1" retention_time="7.02123356" start_time="7.02123356" end_time="7.4484334" ion_mobility="18.917436599731445" ion_mobility_window="1.8917436599731445" area="0" background="0" height="0" fwhm="0.4271965" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="Method Blank 2" retention_time="7.01895" start_time="7.01895" end_time="7.44615" ion_mobility="18.917436599731445" ion_mobility_window="1.8917436599731445" area="0" background="0" height="0" fwhm="0.4271965" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="Method Blank 3" retention_time="7.00948334" start_time="7.00948334" end_time="7.436683" ion_mobility="18.894407272338867" ion_mobility_window="1.8894407749176025" area="0" background="0" height="0" fwhm="0.4271965" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="Method Blank 4" retention_time="7.00805" start_time="7.00805" end_time="7.43525" ion_mobility="18.917436599731445" ion_mobility_window="1.8917436599731445" area="0" background="0" height="0" fwhm="0.4271965" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="Method Blank 5" retention_time="7.0099" start_time="7.0099" end_time="7.43833351" ion_mobility="18.894407272338867" ion_mobility_window="1.8894407749176025" area="0" background="0" height="0" fwhm="0.4279976" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="25" user_set="TRUE" />
+            <transition_peak replicate="NIST SRM-1957 1" mass_error_ppm="4.1" retention_time="7.26481676" start_time="7.015617" end_time="7.44281673" ion_mobility="18.883516311645508" ion_mobility_window="1.8883516788482666" area="1152.1958" background="0" height="366.9729" fwhm="0.045789212" truncated="false" identified="false" rank="1" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="NIST SRM-1957 2" mass_error_ppm="-8.4" retention_time="7.26356649" start_time="7.01436663" end_time="7.44156647" ion_mobility="18.883516311645508" ion_mobility_window="1.8883516788482666" area="1756.09729" background="0" height="607.831" fwhm="0.04632427" truncated="false" identified="false" rank="1" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="NIST SRM-1957 3" mass_error_ppm="-0.8" retention_time="7.24903345" start_time="7.01763344" end_time="7.44483328" ion_mobility="18.883516311645508" ion_mobility_window="1.8883516788482666" area="1893.07825" background="0" height="574.949036" fwhm="0.0542638078" truncated="false" identified="false" rank="1" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="NIST SRM-1957 6" mass_error_ppm="-4.3" retention_time="7.22828341" start_time="7.01398325" end_time="7.44308329" area="636.1712" background="0" height="273" fwhm="0.0410023071" truncated="false" identified="false" rank="1" points_across="25" user_set="TRUE" />
+            <transition_peak replicate="NIST SRM-1957 7" mass_error_ppm="-1.7" retention_time="7.22461653" start_time="7.011017" end_time="7.43821669" ion_mobility="18.918596267700195" ion_mobility_window="1.891859769821167" area="2516.08057" background="0" height="789.220642" fwhm="0.0511278659" truncated="false" identified="false" rank="1" points_across="24" user_set="TRUE" />
+            <transition_peak replicate="NIST SRM-1957 8" mass_error_ppm="-4.6" retention_time="7.20288324" start_time="7.00708342" end_time="7.43428326" ion_mobility="18.918596267700195" ion_mobility_window="1.891859769821167" area="2615.323" background="0" height="903.851" fwhm="0.0455018543" truncated="false" identified="false" rank="1" points_across="24" user_set="TRUE" />
             <transition_peak replicate="NIST SRM-1957 9" user_set="TRUE" />
             <transition_peak replicate="NIST SRM-1957 10" user_set="TRUE" />
           </transition_results>
@@ -366,7 +364,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="8.466817" start_time="8.306617" end_time="9.534817" ccs="150.5" ion_mobility_ms1="20.173437118530273" ion_mobility_window="2.0173437595367432" ion_mobility_type="drift_time_msec" fwhm="0.09721627" area="908814.4" background="0" height="108309.6" mass_error_ppm="-6.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="8.45145" start_time="8.30905" end_time="9.53725" ccs="150.5" ion_mobility_ms1="20.173437118530273" ion_mobility_window="2.0173437595367432" ion_mobility_type="drift_time_msec" fwhm="0.09998454" area="926113.2" background="0" height="102883.695" mass_error_ppm="-6.9" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C6HF13O3S[M-H]" neutral_mass_average="400.11548159999995" neutral_mass_monoisotopic="399.94388074049004" custom_ion_name="PFHxS">
+        <transition fragment_type="precursor" ion_formula="C6HF13O3S[M-H]" neutral_mass_average="400.11548159999995" neutral_mass_monoisotopic="399.94388074049004" custom_ion_name="PFHxS" isotope_dist_rank="1" isotope_dist_proportion="0.8835292">
           <precursor_mz>398.936605</precursor_mz>
           <product_mz>398.936605</product_mz>
           <collision_energy>0</collision_energy>
@@ -403,7 +401,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="8.466817" start_time="8.306617" end_time="9.534817" ccs="151.19999694824219" ion_mobility_ms1="20.274347305297852" ion_mobility_window="2.0274348258972168" ion_mobility_type="drift_time_msec" fwhm="0.09340557" area="57350.09" background="0" height="8840.133" mass_error_ppm="-2.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="8.43365" start_time="8.30905" end_time="9.53725" ccs="151.19999694824219" ion_mobility_ms1="20.274347305297852" ion_mobility_window="2.0274348258972168" ion_mobility_type="drift_time_msec" fwhm="0.105941519" area="64750.85" background="0" height="8175.46875" mass_error_ppm="-3.2" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C6HF13O3S[M2O18-H]" neutral_mass_average="400.11548159999995" neutral_mass_monoisotopic="399.94388074049004" custom_ion_name="PFHxS">
+        <transition fragment_type="precursor" ion_formula="C6HF13O3S[M2O18-H]" neutral_mass_average="400.11548159999995" neutral_mass_monoisotopic="399.94388074049004" custom_ion_name="PFHxS" isotope_dist_rank="1" isotope_dist_proportion="0.8710199">
           <precursor_mz>402.945096</precursor_mz>
           <product_mz>402.945096</product_mz>
           <collision_energy>0</collision_energy>
@@ -440,7 +438,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="8.466817" start_time="8.306617" end_time="9.534817" ccs="151.30000305175781" ion_mobility_ms1="20.286174774169922" ion_mobility_window="2.0286173820495605" ion_mobility_type="drift_time_msec" fwhm="0.09652801" area="2519609.75" background="0" height="305019.4" mass_error_ppm="-4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="8.45145" start_time="8.30905" end_time="9.53725" ccs="151.30000305175781" ion_mobility_ms1="20.286174774169922" ion_mobility_window="2.0286173820495605" ion_mobility_type="drift_time_msec" fwhm="0.106222369" area="2528737.25" background="0" height="268781.75" mass_error_ppm="-4.8" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C6HF13O3S[M3C13-H]" neutral_mass_average="400.11548159999995" neutral_mass_monoisotopic="399.94388074049004" custom_ion_name="PFHxS">
+        <transition fragment_type="precursor" ion_formula="C6HF13O3S[M3C13-H]" neutral_mass_average="400.11548159999995" neutral_mass_monoisotopic="399.94388074049004" custom_ion_name="PFHxS" isotope_dist_rank="1" isotope_dist_proportion="0.8998395">
           <precursor_mz>401.946669</precursor_mz>
           <product_mz>401.946669</product_mz>
           <collision_energy>0</collision_energy>
@@ -493,9 +491,9 @@
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="9.503016" start_time="9.147017" end_time="10.0014162" ccs="153.30000305175781" ion_mobility_ms1="20.590585708618164" ion_mobility_window="2.059058666229248" ion_mobility_type="drift_time_msec" fwhm="0.119954504" area="10251.2529" background="0" height="1609.82678" mass_error_ppm="-6.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="9.49908352" start_time="9.143084" end_time="9.997483" ccs="153.30000305175781" ion_mobility_ms1="20.590585708618164" ion_mobility_window="2.059058666229248" ion_mobility_type="drift_time_msec" fwhm="0.12732248" area="6924.20361" background="0" height="1096.60815" mass_error_ppm="-6.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="9.410216" start_time="9.143217" end_time="9.997617" ccs="153.30000305175781" ion_mobility_ms1="20.642171859741211" ion_mobility_window="2.0642173290252686" ion_mobility_type="drift_time_msec" fwhm="0.09384" area="4019.98218" background="0" height="937.702454" mass_error_ppm="-9.1" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="153.30000305175781" ion_mobility_ms1="20.642171859741211" ion_mobility_window="2.0642173290252686" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="153.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8F15HO3S[M-H]" neutral_mass_average="462.133988" neutral_mass_monoisotopic="461.94068706595" custom_ion_name="PFECHS">
+        <transition fragment_type="precursor" ion_formula="C8F15HO3S[M-H]" neutral_mass_average="462.133988" neutral_mass_monoisotopic="461.94068706595" custom_ion_name="PFECHS" isotope_dist_rank="1" isotope_dist_proportion="0.8644633">
           <precursor_mz>460.933411</precursor_mz>
           <product_mz>460.933411</product_mz>
           <collision_energy>0</collision_energy>
@@ -596,16 +594,16 @@
           <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" retention_time="9.163283" start_time="8.96748352" end_time="9.359083" ccs="159.19999694824219" ion_mobility_ms1="21.342159271240234" ion_mobility_window="2.1342158317565918" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" retention_time="9.16185" start_time="8.96605" end_time="9.35765" ccs="159.19999694824219" ion_mobility_ms1="21.367958068847656" ion_mobility_window="2.13679575920105" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" retention_time="9.170792" start_time="8.974167" end_time="9.367416" ccs="159.19999694824219" ion_mobility_ms1="21.342159271240234" ion_mobility_window="2.1342158317565918" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_ms1="21.320331573486328" ion_mobility_window="2.132033109664917" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_ms1="21.320331573486328" ion_mobility_window="2.132033109664917" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="9.385034" start_time="8.975634" end_time="9.509633" ccs="159.19999694824219" ion_mobility_ms1="21.320331573486328" ion_mobility_window="2.132033109664917" ion_mobility_type="drift_time_msec" fwhm="0.0547419935" area="2613.88257" background="0" height="765.8667" mass_error_ppm="-2.1" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="9.354834" start_time="8.9619" end_time="9.47975" ccs="159.19999694824219" ion_mobility_ms1="21.370384216308594" ion_mobility_window="2.1370384693145752" ion_mobility_type="drift_time_msec" fwhm="0.0570055731" area="6067.18848" background="0" height="1566" mass_error_ppm="-5.5" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="9.342816" start_time="8.969017" end_time="9.485217" ccs="159.19999694824219" ion_mobility_ms1="21.370384216308594" ion_mobility_window="2.1370384693145752" ion_mobility_type="drift_time_msec" fwhm="0.06601761" area="6112.11426" background="0" height="1370.3429" mass_error_ppm="-1.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="9.338883" start_time="8.965083" end_time="9.463483" ccs="159.19999694824219" ion_mobility_ms1="21.370384216308594" ion_mobility_window="2.1370384693145752" ion_mobility_type="drift_time_msec" fwhm="0.06979003" area="5914.233" background="0" height="1439.67029" mass_error_ppm="-8.1" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_ms1="21.423749923706055" ion_mobility_window="2.1423749923706055" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_ms1="21.423749923706055" ion_mobility_window="2.1423749923706055" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="159.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C7HF15O3S[M-H]" neutral_mass_average="450.123138" neutral_mass_monoisotopic="449.94068706595" custom_ion_name="PFHpS">
+        <transition fragment_type="precursor" ion_formula="C7HF15O3S[M-H]" neutral_mass_average="450.123138" neutral_mass_monoisotopic="449.94068706595" custom_ion_name="PFHpS" isotope_dist_rank="1" isotope_dist_proportion="0.8739472">
           <precursor_mz>448.933411</precursor_mz>
           <product_mz>448.933411</product_mz>
           <collision_energy>0</collision_energy>
@@ -702,9 +700,9 @@
       <precursor charge="-1" precursor_mz="498.930217" explicit_ccs_sqa="168.3" collision_energy="0" ion_formula="C8HF17O3S[M-H]" neutral_mass_average="500.13079439999996" neutral_mass_monoisotopic="499.93749339141004" custom_ion_name="PFOS">
         <precursor_results>
           <precursor_peak replicate="Method Blank 1" peak_count_ratio="1" retention_time="10.4388332" start_time="10.2786331" end_time="11.1152334" ccs="168.30000305175781" ion_mobility_ms1="22.6614990234375" ion_mobility_window="2.2661497592926025" ion_mobility_type="drift_time_msec" fwhm="0.0186673142" area="22.6634464" background="0" height="19.4899025" mass_error_ppm="1.1" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="168.30000305175781" ion_mobility_ms1="22.6614990234375" ion_mobility_window="2.2661497592926025" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="168.30000305175781" ion_mobility_ms1="22.634237289428711" ion_mobility_window="2.2634236812591553" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="168.30000305175781" ion_mobility_ms1="22.6614990234375" ion_mobility_window="2.2661497592926025" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="168.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="168.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="168.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 5" peak_count_ratio="1" retention_time="10.4209337" start_time="10.278183" end_time="11.11755" ccs="168.30000305175781" ion_mobility_ms1="22.634237289428711" ion_mobility_window="2.2634236812591553" ion_mobility_type="drift_time_msec" fwhm="0.0295044277" area="445.1294" background="0" height="230" mass_error_ppm="-9" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="10.5222168" start_time="10.433217" end_time="11.1274166" ccs="168.30000305175781" ion_mobility_ms1="22.606636047363281" ion_mobility_window="2.2606637477874756" ion_mobility_type="drift_time_msec" fwhm="0.06713659" area="2276538" background="0" height="533916.938" mass_error_ppm="-4.5" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="10.5031662" start_time="10.4141665" end_time="11.1261663" ccs="168.30000305175781" ion_mobility_ms1="22.606636047363281" ion_mobility_window="2.2606637477874756" ion_mobility_type="drift_time_msec" fwhm="0.0710753" area="2351341" background="0" height="521521.3" mass_error_ppm="-4.9" truncated="0" identified="false" user_set="TRUE" />
@@ -715,7 +713,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="10.4070168" start_time="10.3002167" end_time="11.1190166" ccs="168.30000305175781" ion_mobility_ms1="22.720909118652344" ion_mobility_window="2.2720909118652344" ion_mobility_type="drift_time_msec" fwhm="0.100571223" area="2622149.25" background="0" height="333669.469" mass_error_ppm="-5.8" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="10.37385" start_time="10.28485" end_time="11.12145" ccs="168.30000305175781" ion_mobility_ms1="22.720909118652344" ion_mobility_window="2.2720909118652344" ion_mobility_type="drift_time_msec" fwhm="0.101989031" area="2763856.5" background="0" height="334246" mass_error_ppm="-6.4" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8HF17O3S[M-H]" neutral_mass_average="500.13079439999996" neutral_mass_monoisotopic="499.93749339141004" custom_ion_name="PFOS">
+        <transition fragment_type="precursor" ion_formula="C8HF17O3S[M-H]" neutral_mass_average="500.13079439999996" neutral_mass_monoisotopic="499.93749339141004" custom_ion_name="PFOS" isotope_dist_rank="1" isotope_dist_proportion="0.8644633">
           <precursor_mz>498.930217</precursor_mz>
           <product_mz>498.930217</product_mz>
           <collision_energy>0</collision_energy>
@@ -752,7 +750,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="10.4070168" start_time="10.3002167" end_time="11.1190166" ccs="169.30000305175781" ion_mobility_ms1="22.866128921508789" ion_mobility_window="2.2866129875183105" ion_mobility_type="drift_time_msec" fwhm="0.0976095647" area="1661561.5" background="0" height="226625.063" mass_error_ppm="-5.6" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="10.37385" start_time="10.28485" end_time="11.12145" ccs="169.30000305175781" ion_mobility_ms1="22.866128921508789" ion_mobility_window="2.2866129875183105" ion_mobility_type="drift_time_msec" fwhm="0.0971663" area="1676780.75" background="0" height="218934.563" mass_error_ppm="-6.6" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8HF17O3S[M8C13-H]" neutral_mass_average="500.13079439999996" neutral_mass_monoisotopic="499.93749339141004" custom_ion_name="PFOS">
+        <transition fragment_type="precursor" ion_formula="C8HF17O3S[M8C13-H]" neutral_mass_average="500.13079439999996" neutral_mass_monoisotopic="499.93749339141004" custom_ion_name="PFOS" isotope_dist_rank="1" isotope_dist_proportion="0.906520963">
           <precursor_mz>506.957056</precursor_mz>
           <product_mz>506.957056</product_mz>
           <collision_energy>0</collision_energy>
@@ -770,60 +768,6 @@
             <transition_peak replicate="NIST SRM-1957 8" mass_error_ppm="-4.8" retention_time="10.4780836" start_time="10.3890829" end_time="11.1188831" ion_mobility="22.809480667114258" ion_mobility_window="2.2809481620788574" area="1864810.25" background="0" height="297389.156" fwhm="0.09502926" truncated="false" identified="false" rank="1" points_across="41" user_set="TRUE" />
             <transition_peak replicate="NIST SRM-1957 9" mass_error_ppm="-5.6" retention_time="10.4070168" start_time="10.3002167" end_time="11.1190166" ion_mobility="22.866128921508789" ion_mobility_window="2.2866129875183105" area="1661561.5" background="0" height="226625.063" fwhm="0.0976095647" truncated="false" identified="false" rank="1" points_across="46" user_set="TRUE" />
             <transition_peak replicate="NIST SRM-1957 10" mass_error_ppm="-6.6" retention_time="10.37385" start_time="10.28485" end_time="11.12145" ion_mobility="22.866128921508789" ion_mobility_window="2.2866129875183105" area="1676780.75" background="0" height="218934.563" fwhm="0.0971663" truncated="false" identified="false" rank="1" points_across="46" user_set="TRUE" />
-          </transition_results>
-        </transition>
-      </precursor>
-    </molecule>
-    <molecule explicit_retention_time="11.1" neutral_formula="C9HF19SO3" neutral_mass_average="550.1384508" neutral_mass_monoisotopic="549.93429971687" custom_ion_name="PFNS" avg_measured_retention_time="10.9336338">
-      <peptide_results>
-        <peptide_result replicate="Method Blank 1" peak_count_ratio="0" />
-        <peptide_result replicate="Method Blank 2" peak_count_ratio="0" />
-        <peptide_result replicate="Method Blank 3" peak_count_ratio="0" />
-        <peptide_result replicate="Method Blank 4" peak_count_ratio="0" />
-        <peptide_result replicate="Method Blank 5" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 1" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 2" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="10.9336338" />
-        <peptide_result replicate="NIST SRM-1957 6" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 7" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 8" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 9" peak_count_ratio="0" />
-        <peptide_result replicate="NIST SRM-1957 10" peak_count_ratio="0" />
-      </peptide_results>
-      <precursor charge="-1" precursor_mz="548.927024" explicit_ccs_sqa="177.2" collision_energy="0" ion_formula="C9HF19SO3[M-H]" neutral_mass_average="550.1384508" neutral_mass_monoisotopic="549.93429971687" custom_ion_name="PFNS">
-        <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.922782897949219" ion_mobility_window="2.3922781944274902" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.922782897949219" ion_mobility_window="2.3922781944274902" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.894094467163086" ion_mobility_window="2.3894095420837402" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.922782897949219" ion_mobility_window="2.3922781944274902" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.894094467163086" ion_mobility_window="2.3894095420837402" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.860866546630859" ion_mobility_window="2.3860867023468018" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.860866546630859" ion_mobility_window="2.3860867023468018" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="10.9336338" start_time="10.6666336" end_time="11.200633" ccs="177.19999694824219" ion_mobility_ms1="23.860866546630859" ion_mobility_window="2.3860867023468018" ion_mobility_type="drift_time_msec" fwhm="0.02103464" area="70.67179" background="0" height="52.2458839" mass_error_ppm="-5.9" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.92652702331543" ion_mobility_window="2.3926527500152588" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.92652702331543" ion_mobility_window="2.3926527500152588" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.92652702331543" ion_mobility_window="2.3926527500152588" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.9857234954834" ion_mobility_window="2.3985724449157715" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="177.19999694824219" ion_mobility_ms1="23.9857234954834" ion_mobility_window="2.3985724449157715" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-        </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C9HF19SO3[M-H]" neutral_mass_average="550.1384508" neutral_mass_monoisotopic="549.93429971687" custom_ion_name="PFNS">
-          <precursor_mz>548.927024</precursor_mz>
-          <product_mz>548.927024</product_mz>
-          <collision_energy>0</collision_energy>
-          <transition_results>
-            <transition_peak replicate="Method Blank 1" user_set="FALSE" />
-            <transition_peak replicate="Method Blank 2" user_set="FALSE" />
-            <transition_peak replicate="Method Blank 3" user_set="FALSE" />
-            <transition_peak replicate="Method Blank 4" user_set="FALSE" />
-            <transition_peak replicate="Method Blank 5" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 1" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 2" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 3" mass_error_ppm="-5.9" retention_time="10.9336338" start_time="10.6666336" end_time="11.200633" ion_mobility="23.860866546630859" ion_mobility_window="2.3860867023468018" area="70.67179" background="0" height="52.2458839" fwhm="0.02103464" truncated="false" identified="false" rank="1" points_across="30" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 6" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 7" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 8" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 9" user_set="FALSE" />
-            <transition_peak replicate="NIST SRM-1957 10" user_set="FALSE" />
           </transition_results>
         </transition>
       </precursor>
@@ -846,21 +790,21 @@
       </peptide_results>
       <precursor charge="-1" precursor_mz="598.92383" explicit_ccs_sqa="186.2" collision_energy="0" ion_formula="C10HF21O3S[M-H]" neutral_mass_average="600.1461072" neutral_mass_monoisotopic="599.93110604233" custom_ion_name="PFDS">
         <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.193628311157227" ion_mobility_window="2.5193629264831543" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.193628311157227" ion_mobility_window="2.5193629264831543" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.163505554199219" ion_mobility_window="2.5163505077362061" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.193628311157227" ion_mobility_window="2.5193629264831543" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.163505554199219" ion_mobility_window="2.5163505077362061" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
+          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
+          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
+          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
+          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
+          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="11.8928165" start_time="11.7682171" end_time="12.017417" ccs="186.19999694824219" ion_mobility_ms1="25.124605178833008" ion_mobility_window="2.512460470199585" ion_mobility_type="drift_time_msec" fwhm="0.04550335" area="4387.17627" background="0" height="1568.40881" mass_error_ppm="-2.8" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="11.8915663" start_time="11.7847662" end_time="12.0161667" ccs="186.19999694824219" ion_mobility_ms1="25.124605178833008" ion_mobility_window="2.512460470199585" ion_mobility_type="drift_time_msec" fwhm="0.0512302741" area="5261.68262" background="0" height="1696.16284" mass_error_ppm="-3.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="11.8948336" start_time="11.7880335" end_time="11.9838333" ccs="186.19999694824219" ion_mobility_ms1="25.124605178833008" ion_mobility_window="2.512460470199585" ion_mobility_type="drift_time_msec" fwhm="0.05100808" area="2692.77441" background="0" height="876.6703" mass_error_ppm="-5.2" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.198030471801758" ion_mobility_window="2.5198030471801758" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.198030471801758" ion_mobility_window="2.5198030471801758" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.198030471801758" ion_mobility_window="2.5198030471801758" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.2601261138916" ion_mobility_window="2.526012659072876" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_ms1="25.2601261138916" ion_mobility_window="2.526012659072876" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="FALSE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="186.19999694824219" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C10HF21O3S[M-H]" neutral_mass_average="600.1461072" neutral_mass_monoisotopic="599.93110604233" custom_ion_name="PFDS">
+        <transition fragment_type="precursor" ion_formula="C10HF21O3S[M-H]" neutral_mass_average="600.1461072" neutral_mass_monoisotopic="599.93110604233" custom_ion_name="PFDS" isotope_dist_rank="1" isotope_dist_proportion="0.845829964">
           <precursor_mz>598.92383</precursor_mz>
           <product_mz>598.92383</product_mz>
           <collision_energy>0</collision_energy>
@@ -916,7 +860,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="6.793617" start_time="6.41981649" end_time="7.57681656" ccs="124.59999847412109" ion_mobility_ms1="16.437393188476563" ion_mobility_window="1.6437393426895142" ion_mobility_type="drift_time_msec" fwhm="0.103705615" area="79530.11" background="0" height="10143.53" mass_error_ppm="-4.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="6.79605" start_time="6.42225" end_time="7.57925" ccs="124.59999847412109" ion_mobility_ms1="16.437393188476563" ion_mobility_window="1.6437393426895142" ion_mobility_type="drift_time_msec" fwhm="0.1164078" area="75180.36" background="0" height="8449.377" mass_error_ppm="-5.1" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C6HF11O2[M4C13-H-CO2]" neutral_mass_average="314.0542752" neutral_mass_monoisotopic="313.98008908503" custom_ion_name="PFHxA">
+        <transition fragment_type="precursor" ion_formula="C6HF11O2[M4C13-H-CO2]" neutral_mass_average="314.0542752" neutral_mass_monoisotopic="313.98008908503" custom_ion_name="PFHxA" isotope_dist_rank="1" isotope_dist_proportion="0.9697387">
           <precursor_mz>272.996403</precursor_mz>
           <product_mz>272.996403</product_mz>
           <collision_energy>0</collision_energy>
@@ -968,9 +912,9 @@
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="8.417216" start_time="8.007816" end_time="8.969017" ccs="132.39999389648438" ion_mobility_ms1="17.546585083007813" ion_mobility_window="1.754658579826355" ion_mobility_type="drift_time_msec" fwhm="0.0698226243" area="4768.36865" background="0" height="1156.12476" mass_error_ppm="-4.3" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="8.413283" start_time="8.003883" end_time="8.965083" ccs="132.39999389648438" ion_mobility_ms1="17.546585083007813" ion_mobility_window="1.754658579826355" ion_mobility_type="drift_time_msec" fwhm="0.0521086641" area="5185.18164" background="0" height="1534.22864" mass_error_ppm="1.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="8.324417" start_time="8.004017" end_time="8.965217" ccs="132.39999389648438" ion_mobility_ms1="17.591228485107422" ion_mobility_window="1.7591228485107422" ion_mobility_type="drift_time_msec" fwhm="0.05646392" area="2299.474" background="0" height="653.762939" mass_error_ppm="-7" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="132.39999389648438" ion_mobility_ms1="17.591228485107422" ion_mobility_window="1.7591228485107422" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="132.39999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C7HF13O2[M-H-CO2]" neutral_mass_average="364.0619316" neutral_mass_monoisotopic="363.97689541049004" custom_ion_name="PFHpA">
+        <transition fragment_type="precursor" ion_formula="C7HF13O2[M-H-CO2]" neutral_mass_average="364.0619316" neutral_mass_monoisotopic="363.97689541049004" custom_ion_name="PFHpA" isotope_dist_rank="1" isotope_dist_proportion="0.936702132">
           <precursor_mz>318.97979</precursor_mz>
           <product_mz>318.97979</product_mz>
           <collision_energy>0</collision_energy>
@@ -1007,7 +951,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="8.324417" start_time="8.004017" end_time="8.965217" ccs="132.69999694824219" ion_mobility_ms1="17.637990951538086" ion_mobility_window="1.7637989521026611" ion_mobility_type="drift_time_msec" fwhm="0.0988363" area="373603.625" background="0" height="43183.3438" mass_error_ppm="-6.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="8.30905" start_time="8.00645" end_time="8.96765" ccs="132.69999694824219" ion_mobility_ms1="17.637990951538086" ion_mobility_window="1.7637989521026611" ion_mobility_type="drift_time_msec" fwhm="0.100365877" area="379747.9" background="0" height="39272.5977" mass_error_ppm="-6.6" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C7HF13O2[M3C13-H-CO2]" neutral_mass_average="364.0619316" neutral_mass_monoisotopic="363.97689541049004" custom_ion_name="PFHpA">
+        <transition fragment_type="precursor" ion_formula="C7HF13O2[M3C13-H-CO2]" neutral_mass_average="364.0619316" neutral_mass_monoisotopic="363.97689541049004" custom_ion_name="PFHpA" isotope_dist_rank="1" isotope_dist_proportion="0.9538601">
           <precursor_mz>321.989854</precursor_mz>
           <product_mz>321.989854</product_mz>
           <collision_energy>0</collision_energy>
@@ -1058,7 +1002,7 @@
           <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="9.283283" start_time="8.836984" end_time="9.4262" ccs="139.5" ion_mobility_ms1="18.595273971557617" ion_mobility_window="1.8595274686813354" ion_mobility_type="drift_time_msec" fwhm="0.0878093243" area="7682.24951" background="0" height="1505" mass_error_ppm="-3.9" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="9.307217" start_time="8.844417" end_time="9.431817" ccs="139.5" ion_mobility_ms1="18.595273971557617" ion_mobility_window="1.8595274686813354" ion_mobility_type="drift_time_msec" fwhm="0.10703557" area="5800.0083" background="0" height="927.1981" mass_error_ppm="-5.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="9.285483" start_time="8.840484" end_time="9.427883" ccs="139.5" ion_mobility_ms1="18.595273971557617" ion_mobility_window="1.8595274686813354" ion_mobility_type="drift_time_msec" fwhm="0.0594449677" area="6797.3125" background="0" height="1259.34" mass_error_ppm="-2.3" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="139.5" ion_mobility_ms1="18.642309188842773" ion_mobility_window="1.8642308712005615" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="139.5" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="9.21685" start_time="8.84305" end_time="9.32365" ccs="139.5" ion_mobility_ms1="18.642309188842773" ion_mobility_window="1.8642308712005615" ion_mobility_type="drift_time_msec" fwhm="0.0561649129" area="1909.25391" background="0" height="496.217651" mass_error_ppm="-15.3" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
         <transition fragment_type="precursor" ion_formula="C8HF15O2[M-H-CO2]" neutral_mass_average="414.069588" neutral_mass_monoisotopic="413.97370173595" custom_ion_name="PFOA" isotope_dist_rank="1" isotope_dist_proportion="0.9265485">
@@ -1115,7 +1059,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="9.463616" start_time="9.036417" end_time="10.780817" ccs="139.5" ion_mobility_ms1="18.642309188842773" ion_mobility_window="1.8642308712005615" ion_mobility_type="drift_time_msec" fwhm="0.10082113" area="291801.438" background="0" height="35131.957" mass_error_ppm="-7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="9.44825" start_time="9.03885" end_time="10.78325" ccs="139.5" ion_mobility_ms1="18.642309188842773" ion_mobility_window="1.8642308712005615" ion_mobility_type="drift_time_msec" fwhm="0.0928411558" area="294952.969" background="0" height="32966.6133" mass_error_ppm="-7.1" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8HF15O2[M-H-CO2]" neutral_mass_average="414.069588" neutral_mass_monoisotopic="413.97370173595" custom_ion_name="PFOA">
+        <transition fragment_type="precursor" ion_formula="C8HF15O2[M-H-CO2]" neutral_mass_average="414.069588" neutral_mass_monoisotopic="413.97370173595" custom_ion_name="PFOA" isotope_dist_rank="1" isotope_dist_proportion="0.9265485">
           <precursor_mz>368.976596</precursor_mz>
           <product_mz>368.976596</product_mz>
           <collision_energy>0</collision_energy>
@@ -1152,7 +1096,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="9.463616" start_time="9.036417" end_time="10.780817" ccs="139.80000305175781" ion_mobility_ms1="18.694984436035156" ion_mobility_window="1.8694984912872314" ion_mobility_type="drift_time_msec" fwhm="0.0946069956" area="679001" background="0" height="82531.1641" mass_error_ppm="-4.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="9.44825" start_time="9.03885" end_time="10.78325" ccs="139.80000305175781" ion_mobility_ms1="18.694984436035156" ion_mobility_window="1.8694984912872314" ion_mobility_type="drift_time_msec" fwhm="0.106539063" area="695017.3" background="0" height="73364.2656" mass_error_ppm="-6.1" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8HF15O2[M7C13-H-CO2]" neutral_mass_average="414.069588" neutral_mass_monoisotopic="413.97370173595" custom_ion_name="PFOA">
+        <transition fragment_type="precursor" ion_formula="C8HF15O2[M7C13-H-CO2]" neutral_mass_average="414.069588" neutral_mass_monoisotopic="413.97370173595" custom_ion_name="PFOA" isotope_dist_rank="1" isotope_dist_proportion="0.9655248">
           <precursor_mz>376.00008</precursor_mz>
           <product_mz>376.00008</product_mz>
           <collision_energy>0</collision_energy>
@@ -1195,7 +1139,7 @@
           <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" retention_time="10.5723333" start_time="10.1006336" end_time="11.0440331" ccs="147" ion_mobility_ms1="19.682165145874023" ion_mobility_window="1.9682165384292603" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" retention_time="10.54335" start_time="10.20515" end_time="10.88155" ccs="147" ion_mobility_ms1="19.682165145874023" ion_mobility_window="1.9682165384292603" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" retention_time="10.5516834" start_time="10.0888834" end_time="11.0144835" ccs="147" ion_mobility_ms1="19.658271789550781" ion_mobility_window="1.9658271074295044" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="147" ion_mobility_ms1="19.682165145874023" ion_mobility_window="1.9682165384292603" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="147" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 5" peak_count_ratio="1" retention_time="10.4030838" start_time="9.956634" end_time="11.11755" ccs="147" ion_mobility_ms1="19.658271789550781" ion_mobility_window="1.9658271074295044" ion_mobility_type="drift_time_msec" fwhm="0.0178499222" area="59.97574" background="0" height="56" mass_error_ppm="-20.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="10.5044165" start_time="10.2908163" end_time="10.789217" ccs="147" ion_mobility_ms1="19.64396858215332" ion_mobility_window="1.9643968343734741" ion_mobility_type="drift_time_msec" fwhm="0.0632930845" area="38310.7656" background="0" height="9755.025" mass_error_ppm="-4.6" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="10.4853668" start_time="10.2183666" end_time="10.7701664" ccs="147" ion_mobility_ms1="19.64396858215332" ion_mobility_window="1.9643968343734741" ion_mobility_type="drift_time_msec" fwhm="0.06888502" area="39549.5234" background="0" height="9317.647" mass_error_ppm="-4.4" truncated="0" identified="false" user_set="TRUE" />
@@ -1206,7 +1150,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="10.3892164" start_time="10.1222162" end_time="10.9588165" ccs="147" ion_mobility_ms1="19.733238220214844" ion_mobility_window="1.9733238220214844" ion_mobility_type="drift_time_msec" fwhm="0.09386024" area="38793.43" background="0" height="6047.93555" mass_error_ppm="-8.1" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="10.37385" start_time="10.01785" end_time="11.28165" ccs="147" ion_mobility_ms1="19.733238220214844" ion_mobility_window="1.9733238220214844" ion_mobility_type="drift_time_msec" fwhm="0.100168146" area="36948.4922" background="0" height="5420.78662" mass_error_ppm="-8.7" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C9HF17O2[M-H-CO2]" neutral_mass_average="464.0772444" neutral_mass_monoisotopic="463.97050806141004" custom_ion_name="PFNA">
+        <transition fragment_type="precursor" ion_formula="C9HF17O2[M-H-CO2]" neutral_mass_average="464.0772444" neutral_mass_monoisotopic="463.97050806141004" custom_ion_name="PFNA" isotope_dist_rank="1" isotope_dist_proportion="0.9165095">
           <precursor_mz>418.973402</precursor_mz>
           <product_mz>418.973402</product_mz>
           <collision_energy>0</collision_energy>
@@ -1243,7 +1187,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="10.3892164" start_time="10.1222162" end_time="10.9588165" ccs="147.39999389648438" ion_mobility_ms1="19.798906326293945" ion_mobility_window="1.9798907041549683" ion_mobility_type="drift_time_msec" fwhm="0.094219856" area="298605.25" background="0" height="39741.2656" mass_error_ppm="-8.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="10.37385" start_time="10.01785" end_time="11.28165" ccs="147.39999389648438" ion_mobility_ms1="19.798906326293945" ion_mobility_window="1.9798907041549683" ion_mobility_type="drift_time_msec" fwhm="0.102430128" area="305274.156" background="0" height="36152.793" mass_error_ppm="-8.8" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C9HF17O2[M8C13-H-CO2]" neutral_mass_average="464.0772444" neutral_mass_monoisotopic="463.97050806141004" custom_ion_name="PFNA">
+        <transition fragment_type="precursor" ion_formula="C9HF17O2[M8C13-H-CO2]" neutral_mass_average="464.0772444" neutral_mass_monoisotopic="463.97050806141004" custom_ion_name="PFNA" isotope_dist_rank="1" isotope_dist_proportion="0.9606996">
           <precursor_mz>427.000241</precursor_mz>
           <product_mz>427.000241</product_mz>
           <collision_energy>0</collision_energy>
@@ -1292,12 +1236,12 @@
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="11.2685671" start_time="10.5031662" end_time="12.5323668" ccs="155.30000305175781" ion_mobility_ms1="20.823785781860352" ion_mobility_window="2.082378625869751" ion_mobility_type="drift_time_msec" fwhm="0.05324889" area="4705.115" background="0" height="1477.05054" mass_error_ppm="-5" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="11.2718334" start_time="10.5064335" end_time="12.5356331" ccs="155.30000305175781" ion_mobility_ms1="20.823785781860352" ion_mobility_window="2.082378625869751" ion_mobility_type="drift_time_msec" fwhm="0.06820016" area="7633.14551" background="0" height="1852.97412" mass_error_ppm="-7.5" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="11.2303829" start_time="10.4982338" end_time="12.5339" ccs="155.30000305175781" ion_mobility_ms1="20.870786666870117" ion_mobility_window="2.0870788097381592" ion_mobility_type="drift_time_msec" fwhm="0.0835876241" area="9279.104" background="0" height="1891" mass_error_ppm="-9.2" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="0" ccs="155.30000305175781" ion_mobility_ms1="20.870786666870117" ion_mobility_window="2.0870788097381592" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="0" ccs="155.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="11.2256832" start_time="10.495883" end_time="12.5250835" ccs="155.30000305175781" ion_mobility_ms1="20.870786666870117" ion_mobility_window="2.0870788097381592" ion_mobility_type="drift_time_msec" fwhm="0.0651215762" area="9098.272" background="0" height="2206.982" mass_error_ppm="-2.5" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="155.30000305175781" ion_mobility_ms1="20.923011779785156" ion_mobility_window="2.0923013687133789" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="155.30000305175781" ion_mobility_ms1="20.923011779785156" ion_mobility_window="2.0923013687133789" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="155.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="155.30000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C10HF19O2[M-H-CO2]" neutral_mass_average="514.0849008" neutral_mass_monoisotopic="513.96731438686993" custom_ion_name="PFDA">
+        <transition fragment_type="precursor" ion_formula="C10HF19O2[M-H-CO2]" neutral_mass_average="514.0849008" neutral_mass_monoisotopic="513.96731438686993" custom_ion_name="PFDA" isotope_dist_rank="1" isotope_dist_proportion="0.9065751">
           <precursor_mz>468.970209</precursor_mz>
           <product_mz>468.970209</product_mz>
           <collision_energy>0</collision_energy>
@@ -1332,9 +1276,9 @@
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="11.2474165" start_time="10.4998169" end_time="12.5290165" ccs="155.89999389648438" ion_mobility_ms1="20.958080291748047" ion_mobility_window="2.0958080291748047" ion_mobility_type="drift_time_msec" fwhm="0.092356" area="279034.875" background="0" height="46189.543" mass_error_ppm="-6.9" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="11.2434835" start_time="10.495883" end_time="12.5250835" ccs="155.89999389648438" ion_mobility_ms1="20.958080291748047" ion_mobility_window="2.0958080291748047" ion_mobility_type="drift_time_msec" fwhm="0.0959266648" area="272495.469" background="0" height="43422.2578" mass_error_ppm="-6.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.1546164" start_time="10.4960165" end_time="12.5252171" ccs="155.89999389648438" ion_mobility_ms1="21.0105037689209" ion_mobility_window="2.10105037689209" ion_mobility_type="drift_time_msec" fwhm="0.09198504" area="224961.938" background="0" height="32690.47" mass_error_ppm="-8.8" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="155.89999389648438" ion_mobility_ms1="21.0105037689209" ion_mobility_window="2.10105037689209" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="155.89999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C10HF19O2[M5C13-H-CO2]" neutral_mass_average="514.0849008" neutral_mass_monoisotopic="513.96731438686993" custom_ion_name="PFDA">
+        <transition fragment_type="precursor" ion_formula="C10HF19O2[M5C13-H-CO2]" neutral_mass_average="514.0849008" neutral_mass_monoisotopic="513.96731438686993" custom_ion_name="PFDA" isotope_dist_rank="1" isotope_dist_proportion="0.934679">
           <precursor_mz>473.986983</precursor_mz>
           <product_mz>473.986983</product_mz>
           <collision_energy>0</collision_energy>
@@ -1388,7 +1332,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.8310165" start_time="11.2614164" end_time="12.3828163" ccs="164.39999389648438" ion_mobility_ms1="22.221687316894531" ion_mobility_window="2.2221686840057373" ion_mobility_type="drift_time_msec" fwhm="0.08810208" area="155182.109" background="0" height="24938.9414" mass_error_ppm="-7.6" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.79785" start_time="11.38845" end_time="12.40305" ccs="164.39999389648438" ion_mobility_ms1="22.221687316894531" ion_mobility_window="2.2221686840057373" ion_mobility_type="drift_time_msec" fwhm="0.09113652" area="166520.25" background="0" height="24184.32" mass_error_ppm="-9.8" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C11HF21O2[M6C13-H-CO2]" neutral_mass_average="564.09255719999987" neutral_mass_monoisotopic="563.96412071233" custom_ion_name="PFUdA">
+        <transition fragment_type="precursor" ion_formula="C11HF21O2[M6C13-H-CO2]" neutral_mass_average="564.09255719999987" neutral_mass_monoisotopic="563.96412071233" custom_ion_name="PFUdA" isotope_dist_rank="1" isotope_dist_proportion="0.9302114">
           <precursor_mz>524.987144</precursor_mz>
           <product_mz>524.987144</product_mz>
           <collision_energy>0</collision_energy>
@@ -1442,7 +1386,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="12.4006166" start_time="12.062417" end_time="12.934617" ccs="172.60000610351563" ion_mobility_ms1="23.381687164306641" ion_mobility_window="2.3381686210632324" ion_mobility_type="drift_time_msec" fwhm="0.09080681" area="101616.586" background="0" height="17236.4" mass_error_ppm="-6.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="12.38525" start_time="12.06485" end_time="12.93705" ccs="172.60000610351563" ion_mobility_ms1="23.381687164306641" ion_mobility_window="2.3381686210632324" ion_mobility_type="drift_time_msec" fwhm="0.0925510749" area="110730.086" background="0" height="17443.5332" mass_error_ppm="-6.1" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C12HF23O2[M1C13-H-CO2]" neutral_mass_average="614.1002136" neutral_mass_monoisotopic="613.96092703778993" custom_ion_name="PFDoA">
+        <transition fragment_type="precursor" ion_formula="C12HF23O2[M1C13-H-CO2]" neutral_mass_average="614.1002136" neutral_mass_monoisotopic="613.96092703778993" custom_ion_name="PFDoA" isotope_dist_rank="1" isotope_dist_proportion="0.892756343">
           <precursor_mz>569.967176</precursor_mz>
           <product_mz>569.967176</product_mz>
           <collision_energy>0</collision_energy>
@@ -1484,7 +1428,7 @@
         <precursor_results>
           <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" retention_time="13.3580332" start_time="13.0376329" end_time="13.6784334" ccs="188.80000305175781" ion_mobility_ms1="25.607595443725586" ion_mobility_window="2.5607595443725586" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" retention_time="13.35575" start_time="13.03535" end_time="13.67615" ccs="188.80000305175781" ion_mobility_ms1="25.607595443725586" ion_mobility_window="2.5607595443725586" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="188.80000305175781" ion_mobility_ms1="25.577003479003906" ion_mobility_window="2.5577003955841064" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="188.80000305175781" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" retention_time="13.36265" start_time="13.04225" end_time="13.68305" ccs="188.80000305175781" ion_mobility_ms1="25.607595443725586" ion_mobility_window="2.5607595443725586" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" retention_time="13.3675251" start_time="13.04615" end_time="13.6889" ccs="188.80000305175781" ion_mobility_ms1="25.577003479003906" ion_mobility_window="2.5577003955841064" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="13.4236164" start_time="13.0498171" end_time="13.6906166" ccs="188.80000305175781" ion_mobility_ms1="25.5362548828125" ion_mobility_window="2.5536255836486816" ion_mobility_type="drift_time_msec" fwhm="0.06084206" area="91456.85" background="0" height="24357.6973" mass_error_ppm="-1.9" truncated="0" identified="false" user_set="TRUE" />
@@ -1496,7 +1440,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="13.3262167" start_time="13.0414171" end_time="13.6822166" ccs="188.80000305175781" ion_mobility_ms1="25.675251007080078" ion_mobility_window="2.5675251483917236" ion_mobility_type="drift_time_msec" fwhm="0.0845101" area="74534.41" background="0" height="13773.0781" mass_error_ppm="-7.9" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="13.31085" start_time="13.04385" end_time="13.68465" ccs="188.80000305175781" ion_mobility_ms1="25.675251007080078" ion_mobility_window="2.5675251483917236" ion_mobility_type="drift_time_msec" fwhm="0.07760701" area="75661.19" background="0" height="13565.6865" mass_error_ppm="-8.2" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C14HF27O2[M1C13-H-CO2]" neutral_mass_average="714.11552639999979" neutral_mass_monoisotopic="713.95453968870993" custom_ion_name="PFTeDA">
+        <transition fragment_type="precursor" ion_formula="C14HF27O2[M1C13-H-CO2]" neutral_mass_average="714.11552639999979" neutral_mass_monoisotopic="713.95453968870993" custom_ion_name="PFTeDA" isotope_dist_rank="1" isotope_dist_proportion="0.8736094">
           <precursor_mz>669.960789</precursor_mz>
           <product_mz>669.960789</product_mz>
           <collision_energy>0</collision_energy>
@@ -1552,7 +1496,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="6.63341665" start_time="6.18841648" end_time="7.434417" ccs="151" ion_mobility_ms1="20.100418090820313" ion_mobility_window="2.0100417137145996" ion_mobility_type="drift_time_msec" fwhm="0.100650527" area="360931.281" background="0" height="40891.5273" mass_error_ppm="-8" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="6.61805" start_time="6.19085" end_time="7.43685" ccs="151" ion_mobility_ms1="20.100418090820313" ion_mobility_window="2.0100417137145996" ion_mobility_type="drift_time_msec" fwhm="0.113045789" area="358163.281" background="0" height="34930.28" mass_error_ppm="-7.9" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C6H5F9SO3[M2C13-H]" neutral_mass_average="328.1536288" neutral_mass_monoisotopic="327.98156822957003" custom_ion_name="4:2 FTS">
+        <transition fragment_type="precursor" ion_formula="C6H5F9SO3[M2C13-H]" neutral_mass_average="328.1536288" neutral_mass_monoisotopic="327.98156822957003" custom_ion_name="4:2 FTS" isotope_dist_rank="1" isotope_dist_proportion="0.8939515">
           <precursor_mz>328.981002</precursor_mz>
           <product_mz>328.981002</product_mz>
           <collision_energy>0</collision_energy>
@@ -1606,7 +1550,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="9.374617" start_time="8.840616" end_time="10.1756163" ccs="169" ion_mobility_ms1="22.717159271240234" ion_mobility_window="2.2717158794403076" ion_mobility_type="drift_time_msec" fwhm="0.09922511" area="429151.438" background="0" height="51680.11" mass_error_ppm="-6.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="9.37705" start_time="8.84305" end_time="10.17805" ccs="169" ion_mobility_ms1="22.717159271240234" ion_mobility_window="2.2717158794403076" ion_mobility_type="drift_time_msec" fwhm="0.104583465" area="409255.9" background="0" height="42892.7461" mass_error_ppm="-7.4" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8H5F13SO3[M2C13-H]" neutral_mass_average="428.1689416" neutral_mass_monoisotopic="427.97518088049003" custom_ion_name="6:2 FTS">
+        <transition fragment_type="precursor" ion_formula="C8H5F13SO3[M2C13-H]" neutral_mass_average="428.1689416" neutral_mass_monoisotopic="427.97518088049003" custom_ion_name="6:2 FTS" isotope_dist_rank="1" isotope_dist_proportion="0.8748698">
           <precursor_mz>428.97461499999997</precursor_mz>
           <product_mz>428.97461499999997</product_mz>
           <collision_energy>0</collision_energy>
@@ -1660,7 +1604,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.136817" start_time="10.6918163" end_time="11.7064171" ccs="187" ion_mobility_ms1="25.294174194335938" ion_mobility_window="2.5294175148010254" ion_mobility_type="drift_time_msec" fwhm="0.09546167" area="323844.8" background="0" height="45043.88" mass_error_ppm="-6.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.12145" start_time="10.69425" end_time="11.70885" ccs="187" ion_mobility_ms1="25.294174194335938" ion_mobility_window="2.5294175148010254" ion_mobility_type="drift_time_msec" fwhm="0.0943491459" area="346926.563" background="0" height="45768.332" mass_error_ppm="-6.9" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C10H5F17SO3[M2C13-H]" neutral_mass_average="528.18425439999987" neutral_mass_monoisotopic="527.96879353141" custom_ion_name="8:2 FTS">
+        <transition fragment_type="precursor" ion_formula="C10H5F17SO3[M2C13-H]" neutral_mass_average="528.18425439999987" neutral_mass_monoisotopic="527.96879353141" custom_ion_name="8:2 FTS" isotope_dist_rank="1" isotope_dist_proportion="0.856187761">
           <precursor_mz>528.968227</precursor_mz>
           <product_mz>528.968227</product_mz>
           <collision_energy>0</collision_energy>
@@ -1716,7 +1660,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.653017" start_time="11.2970171" end_time="12.4006166" ccs="170.5" ion_mobility_ms1="23.027688980102539" ion_mobility_window="2.3027689456939697" ion_mobility_type="drift_time_msec" fwhm="0.09484165" area="458492.2" background="0" height="65401.2266" mass_error_ppm="-7.5" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.63765" start_time="11.29945" end_time="12.40305" ccs="170.5" ion_mobility_ms1="23.027688980102539" ion_mobility_window="2.3027689456939697" ion_mobility_type="drift_time_msec" fwhm="0.09441542" area="483568.531" background="0" height="63950.5977" mass_error_ppm="-7.8" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C8F17SO2NH2[M8C13-H]" neutral_mass_average="499.14603439999996" neutral_mass_monoisotopic="498.95347779641008" custom_ion_name="FOSA">
+        <transition fragment_type="precursor" ion_formula="C8F17SO2NH2[M8C13-H]" neutral_mass_average="499.14603439999996" neutral_mass_monoisotopic="498.95347779641008" custom_ion_name="FOSA" isotope_dist_rank="1" isotope_dist_proportion="0.905385137">
           <precursor_mz>505.97304</precursor_mz>
           <product_mz>505.97304</product_mz>
           <collision_energy>0</collision_energy>
@@ -1738,59 +1682,22 @@
         </transition>
       </precursor>
     </molecule>
-    <molecule explicit_retention_time="10.94" neutral_formula="C11H6F17NO4S" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA" avg_measured_retention_time="11.5622873">
+    <molecule explicit_retention_time="10.94" auto_manage_children="false" neutral_formula="C11H6F17NO4S" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA" avg_measured_retention_time="11.5403681">
       <peptide_results>
-        <peptide_result replicate="Method Blank 1" peak_count_ratio="0.5" retention_time="11.5780334" />
-        <peptide_result replicate="Method Blank 2" peak_count_ratio="0.5" retention_time="11.57575" />
-        <peptide_result replicate="Method Blank 3" peak_count_ratio="0.5" retention_time="11.5751839" />
-        <peptide_result replicate="Method Blank 4" peak_count_ratio="0.5" retention_time="11.5826492" />
-        <peptide_result replicate="Method Blank 5" peak_count_ratio="0.5" retention_time="11.572937" />
-        <peptide_result replicate="NIST SRM-1957 1" peak_count_ratio="0.5" retention_time="11.5902166" />
-        <peptide_result replicate="NIST SRM-1957 2" peak_count_ratio="0.5" retention_time="11.5889664" />
+        <peptide_result replicate="Method Blank 1" peak_count_ratio="1" retention_time="11.5246334" />
+        <peptide_result replicate="Method Blank 2" peak_count_ratio="1" retention_time="11.52235" />
+        <peptide_result replicate="Method Blank 3" peak_count_ratio="1" retention_time="11.5128832" />
+        <peptide_result replicate="Method Blank 4" peak_count_ratio="1" retention_time="11.52925" />
+        <peptide_result replicate="Method Blank 5" peak_count_ratio="1" retention_time="11.5104837" />
+        <peptide_result replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="11.5902166" />
+        <peptide_result replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="11.5889664" />
         <peptide_result replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="11.5922337" />
         <peptide_result replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="11.5696" />
-        <peptide_result replicate="NIST SRM-1957 7" peak_count_ratio="0.5" retention_time="11.5678167" />
-        <peptide_result replicate="NIST SRM-1957 8" peak_count_ratio="0.5" retention_time="11.5638838" />
-        <peptide_result replicate="NIST SRM-1957 9" peak_count_ratio="0.5" retention_time="11.4928169" />
-        <peptide_result replicate="NIST SRM-1957 10" peak_count_ratio="0.5" retention_time="11.45965" />
+        <peptide_result replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="11.5678167" />
+        <peptide_result replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="11.5638838" />
+        <peptide_result replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.4928169" />
+        <peptide_result replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.45965" />
       </peptide_results>
-      <precursor charge="-1" precursor_mz="569.967331" explicit_ccs_sqa="190" collision_energy="0" ion_formula="C11H6F17NO4S[M-H]" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA">
-        <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" retention_time="11.6314335" start_time="11.1864338" end_time="12.0764332" ccs="190" ion_mobility_ms1="25.680377960205078" ion_mobility_window="2.5680379867553711" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" retention_time="11.62915" start_time="11.18415" end_time="12.07415" ccs="190" ion_mobility_ms1="25.680377960205078" ion_mobility_window="2.5680379867553711" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" retention_time="11.6374836" start_time="11.1924829" end_time="12.0824833" ccs="190" ion_mobility_ms1="25.649703979492188" ion_mobility_window="2.5649704933166504" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" retention_time="11.6360493" start_time="11.19105" end_time="12.08105" ccs="190" ion_mobility_ms1="25.680377960205078" ion_mobility_window="2.5680379867553711" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" retention_time="11.6353912" start_time="11.1889334" end_time="12.08185" ccs="190" ion_mobility_ms1="25.649703979492188" ion_mobility_window="2.5649704933166504" ion_mobility_type="drift_time_msec" area="0" background="0" height="0" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="0" ccs="190" ion_mobility_ms1="25.608631134033203" ion_mobility_window="2.5608632564544678" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="0" ccs="190" ion_mobility_ms1="25.608631134033203" ion_mobility_window="2.5608632564544678" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="11.5922337" start_time="11.1828337" end_time="12.0728331" ccs="190" ion_mobility_ms1="25.608631134033203" ion_mobility_window="2.5608632564544678" ion_mobility_type="drift_time_msec" fwhm="0.0578751378" area="2963.5188" background="0" height="723.54364" mass_error_ppm="-3.1" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="11.5696" start_time="11.17685" end_time="12.0696" ccs="190" ion_mobility_ms1="25.685031890869141" ion_mobility_window="2.5685031414031982" ion_mobility_type="drift_time_msec" fwhm="0.0377251729" area="2025.2522" background="0" height="899" mass_error_ppm="-9.4" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="0" ccs="190" ion_mobility_ms1="25.685031890869141" ion_mobility_window="2.5685031414031982" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="0" ccs="190" ion_mobility_ms1="25.685031890869141" ion_mobility_window="2.5685031414031982" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="190" ion_mobility_ms1="25.748239517211914" ion_mobility_window="2.5748238563537598" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="190" ion_mobility_ms1="25.748239517211914" ion_mobility_window="2.5748238563537598" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-        </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C11H6F17NO4S[M-H]" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA">
-          <precursor_mz>569.967331</precursor_mz>
-          <product_mz>569.967331</product_mz>
-          <collision_energy>0</collision_energy>
-          <transition_results>
-            <transition_peak replicate="Method Blank 1" retention_time="11.1864338" start_time="11.1864338" end_time="12.0764332" ion_mobility="25.680377960205078" ion_mobility_window="2.5680379867553711" area="0" background="0" height="0" fwhm="0.8899689" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="50" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 2" retention_time="11.18415" start_time="11.18415" end_time="12.07415" ion_mobility="25.680377960205078" ion_mobility_window="2.5680379867553711" area="0" background="0" height="0" fwhm="0.890016556" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="50" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 3" retention_time="11.1924829" start_time="11.1924829" end_time="12.0824833" ion_mobility="25.649703979492188" ion_mobility_window="2.5649704933166504" area="0" background="0" height="0" fwhm="0.890016556" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="50" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 4" retention_time="11.19105" start_time="11.19105" end_time="12.08105" ion_mobility="25.680377960205078" ion_mobility_window="2.5680379867553711" area="0" background="0" height="0" fwhm="0.890016556" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="50" user_set="TRUE" />
-            <transition_peak replicate="Method Blank 5" retention_time="11.1889334" start_time="11.1889334" end_time="12.08185" ion_mobility="25.649703979492188" ion_mobility_window="2.5649704933166504" area="0" background="0" height="0" fwhm="0.8924961" fwhm_degenerate="true" truncated="false" identified="false" rank="0" points_across="51" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 1" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 2" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 3" mass_error_ppm="-3.1" retention_time="11.5922337" start_time="11.1828337" end_time="12.0728331" ion_mobility="25.608631134033203" ion_mobility_window="2.5608632564544678" area="2963.5188" background="0" height="723.54364" fwhm="0.0578751378" truncated="false" identified="false" rank="1" points_across="50" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 6" mass_error_ppm="-9.4" retention_time="11.5696" start_time="11.17685" end_time="12.0696" ion_mobility="25.685031890869141" ion_mobility_window="2.5685031414031982" area="2025.2522" background="0" height="899" fwhm="0.0377251729" truncated="false" identified="false" rank="1" points_across="51" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 7" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 8" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 9" user_set="TRUE" />
-            <transition_peak replicate="NIST SRM-1957 10" user_set="TRUE" />
-          </transition_results>
-        </transition>
-      </precursor>
       <precursor charge="-1" isotope_label="heavy" precursor_mz="572.986161" explicit_ccs_sqa="193.8" collision_energy="0" ion_formula="C11H6F17NO4S[M3H2-H]" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA">
         <precursor_results>
           <precursor_peak replicate="Method Blank 1" peak_count_ratio="1" retention_time="11.5246334" start_time="11.1864338" end_time="12.0764332" ccs="193.80000305175781" ion_mobility_ms1="26.199012756347656" ion_mobility_window="2.619901180267334" ion_mobility_type="drift_time_msec" fwhm="0.106573552" area="219022.5" background="0" height="26680.63" mass_error_ppm="-6.4" truncated="0" identified="false" user_set="TRUE" />
@@ -1807,7 +1714,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.4928169" start_time="11.190217" end_time="12.0802164" ccs="193.80000305175781" ion_mobility_ms1="26.26832389831543" ion_mobility_window="2.6268324851989746" ion_mobility_type="drift_time_msec" fwhm="0.09650274" area="163025.563" background="0" height="23824.22" mass_error_ppm="-8.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.45965" start_time="11.19265" end_time="12.08265" ccs="193.80000305175781" ion_mobility_ms1="26.26832389831543" ion_mobility_window="2.6268324851989746" ion_mobility_type="drift_time_msec" fwhm="0.09589298" area="170384.828" background="0" height="23877.1855" mass_error_ppm="-8.8" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C11H6F17NO4S[M3H2-H]" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA">
+        <transition fragment_type="precursor" ion_formula="C11H6F17NO4S[M3H2-H]" neutral_mass_average="571.2091444" neutral_mass_monoisotopic="570.97460719641" custom_ion_name="N-MeFOSAA" isotope_dist_rank="1" isotope_dist_proportion="0.788975">
           <precursor_mz>572.986161</precursor_mz>
           <product_mz>572.986161</product_mz>
           <collision_energy>0</collision_energy>
@@ -1861,7 +1768,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.8310165" start_time="11.4572163" end_time="12.6498165" ccs="197.39999389648438" ion_mobility_ms1="26.775056838989258" ion_mobility_window="2.6775057315826416" ion_mobility_type="drift_time_msec" fwhm="0.09335179" area="131469.547" background="0" height="20319.7148" mass_error_ppm="-6" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.81565" start_time="11.45965" end_time="12.65225" ccs="197.39999389648438" ion_mobility_ms1="26.775056838989258" ion_mobility_window="2.6775057315826416" ion_mobility_type="drift_time_msec" fwhm="0.09515094" area="146564.125" background="0" height="20345.582" mass_error_ppm="-8.5" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C12H8F17NO4S[M5H2-H]" neutral_mass_average="585.23587440000006" neutral_mass_monoisotopic="584.99025726641" custom_ion_name="N-EtFOSAA">
+        <transition fragment_type="precursor" ion_formula="C12H8F17NO4S[M5H2-H]" neutral_mass_average="585.23587440000006" neutral_mass_monoisotopic="584.99025726641" custom_ion_name="N-EtFOSAA" isotope_dist_rank="1" isotope_dist_proportion="0.754546642">
           <precursor_mz>589.014365</precursor_mz>
           <product_mz>589.014365</product_mz>
           <collision_energy>0</collision_energy>
@@ -1955,21 +1862,21 @@
       </peptide_results>
       <precursor charge="-1" isotope_label="heavy" precursor_mz="514.980682" explicit_ccs_sqa="174.4" collision_energy="0" ion_formula="C9H4F17NO2S[M3H2-H]" neutral_mass_average="513.1727644" neutral_mass_monoisotopic="512.96912786641008" custom_ion_name="N-MeFOSA">
         <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_ms1="23.505641937255859" ion_mobility_window="2.3505642414093018" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 2" peak_count_ratio="1" retention_time="11.54015" start_time="11.23755" end_time="11.82495" ccs="174.39999389648438" ion_mobility_ms1="23.505641937255859" ion_mobility_window="2.3505642414093018" ion_mobility_type="drift_time_msec" fwhm="0.05877238" area="3545.0874" background="0" height="914.152832" mass_error_ppm="-8.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 3" peak_count_ratio="1" retention_time="11.5128832" start_time="11.1746836" end_time="11.9756832" ccs="174.39999389648438" ion_mobility_ms1="23.477426528930664" ion_mobility_window="2.3477425575256348" ion_mobility_type="drift_time_msec" fwhm="0.09857448" area="4456.258" background="0" height="800.5791" mass_error_ppm="-8.7" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_ms1="23.505641937255859" ion_mobility_window="2.3505642414093018" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_ms1="23.477426528930664" ion_mobility_window="2.3477425575256348" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="11.5902166" start_time="11.3410168" end_time="11.7682171" ccs="174.39999389648438" ion_mobility_ms1="23.44605827331543" ion_mobility_window="2.3446059226989746" ion_mobility_type="drift_time_msec" fwhm="0.0500178" area="4071.965" background="0" height="1351.42554" mass_error_ppm="-9.1" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="11.5889664" start_time="11.2685671" end_time="11.7491665" ccs="174.39999389648438" ion_mobility_ms1="23.44605827331543" ion_mobility_window="2.3446059226989746" ion_mobility_type="drift_time_msec" fwhm="0.0625954941" area="3801.959" background="0" height="993.717957" mass_error_ppm="-8.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="11.5744333" start_time="11.3964329" end_time="11.7524338" ccs="174.39999389648438" ion_mobility_ms1="23.44605827331543" ion_mobility_window="2.3446059226989746" ion_mobility_type="drift_time_msec" fwhm="0.06297476" area="5507.90771" background="0" height="1430.21484" mass_error_ppm="4.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="11.5696" start_time="11.39115" end_time="11.8733" ccs="174.39999389648438" ion_mobility_ms1="23.509170532226563" ion_mobility_window="2.3509171009063721" ion_mobility_type="drift_time_msec" fwhm="0.07991065" area="11862.3447" background="0" height="2644" mass_error_ppm="-7.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="11.5500164" start_time="11.3008165" end_time="11.7814169" ccs="174.39999389648438" ion_mobility_ms1="23.509170532226563" ion_mobility_window="2.3509171009063721" ion_mobility_type="drift_time_msec" fwhm="0.08291321" area="10569.3613" background="0" height="2160.24414" mass_error_ppm="-1.8" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_ms1="23.509170532226563" ion_mobility_window="2.3509171009063721" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_ms1="23.567415237426758" ion_mobility_window="2.3567414283752441" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="174.39999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.45965" start_time="11.22825" end_time="11.74445" ccs="174.39999389648438" ion_mobility_ms1="23.567415237426758" ion_mobility_window="2.3567414283752441" ion_mobility_type="drift_time_msec" fwhm="0.07383922" area="5866.32129" background="0" height="1303.53491" mass_error_ppm="-9.4" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C9H4F17NO2S[M3H2-H]" neutral_mass_average="513.1727644" neutral_mass_monoisotopic="512.96912786641008" custom_ion_name="N-MeFOSA">
+        <transition fragment_type="precursor" ion_formula="C9H4F17NO2S[M3H2-H]" neutral_mass_average="513.1727644" neutral_mass_monoisotopic="512.96912786641008" custom_ion_name="N-MeFOSA" isotope_dist_rank="1" isotope_dist_proportion="0.809363663">
           <precursor_mz>514.980682</precursor_mz>
           <product_mz>514.980682</product_mz>
           <collision_energy>0</collision_energy>
@@ -2063,11 +1970,11 @@
       </peptide_results>
       <precursor charge="-1" isotope_label="heavy" precursor_mz="531.008886" explicit_ccs_sqa="178.9" collision_energy="0" ion_formula="C10H6F17NO2S[M5H2-H]" neutral_mass_average="527.1994944" neutral_mass_monoisotopic="526.98477793641007" custom_ion_name="N-EtFOSA">
         <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_ms1="24.133316040039063" ion_mobility_window="2.4133315086364746" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_ms1="24.133316040039063" ion_mobility_window="2.4133315086364746" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_ms1="24.104389190673828" ion_mobility_window="2.4104390144348145" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="Method Blank 4" peak_count_ratio="1" retention_time="11.84965" start_time="11.52925" end_time="12.47265" ccs="178.89999389648438" ion_mobility_ms1="24.133316040039063" ion_mobility_window="2.4133315086364746" ion_mobility_type="drift_time_msec" fwhm="0.0564821549" area="2251.69873" background="0" height="683.6667" mass_error_ppm="-3.8" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_ms1="24.104389190673828" ion_mobility_window="2.4104390144348145" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="178.89999389648438" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="11.9284163" start_time="11.6792164" end_time="12.0886164" ccs="178.89999389648438" ion_mobility_ms1="24.070220947265625" ion_mobility_window="2.40702223777771" ion_mobility_type="drift_time_msec" fwhm="0.0538062379" area="8520.854" background="0" height="2596.35938" mass_error_ppm="-3.4" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="11.9271669" start_time="11.4999666" end_time="12.4789667" ccs="178.89999389648438" ion_mobility_ms1="24.070220947265625" ion_mobility_window="2.40702223777771" ion_mobility_type="drift_time_msec" fwhm="0.05385078" area="9839.676" background="0" height="2994.142" mass_error_ppm="-5.2" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="11.9304333" start_time="11.5388336" end_time="12.482233" ccs="178.89999389648438" ion_mobility_ms1="24.070220947265625" ion_mobility_window="2.40702223777771" ion_mobility_type="drift_time_msec" fwhm="0.0569690876" area="9528.398" background="0" height="2733.07813" mass_error_ppm="-1.2" truncated="0" identified="false" user_set="TRUE" />
@@ -2077,7 +1984,7 @@
           <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="1" retention_time="11.8132162" start_time="11.4216166" end_time="12.471817" ccs="178.89999389648438" ion_mobility_ms1="24.196846008300781" ion_mobility_window="2.4196846485137939" ion_mobility_type="drift_time_msec" fwhm="0.06185463" area="9458.891" background="0" height="2186.76416" mass_error_ppm="-7.1" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="1" retention_time="11.79785" start_time="11.35285" end_time="12.47425" ccs="178.89999389648438" ion_mobility_ms1="24.196846008300781" ion_mobility_window="2.4196846485137939" ion_mobility_type="drift_time_msec" fwhm="0.06975526" area="10842.1416" background="0" height="2522.07422" mass_error_ppm="-8.3" truncated="0" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C10H6F17NO2S[M5H2-H]" neutral_mass_average="527.1994944" neutral_mass_monoisotopic="526.98477793641007" custom_ion_name="N-EtFOSA">
+        <transition fragment_type="precursor" ion_formula="C10H6F17NO2S[M5H2-H]" neutral_mass_average="527.1994944" neutral_mass_monoisotopic="526.98477793641007" custom_ion_name="N-EtFOSA" isotope_dist_rank="1" isotope_dist_proportion="0.7733009">
           <precursor_mz>531.008886</precursor_mz>
           <product_mz>531.008886</product_mz>
           <collision_energy>0</collision_energy>
@@ -2119,21 +2026,21 @@
       </peptide_results>
       <precursor charge="-1" isotope_label="heavy" precursor_mz="286.984608" explicit_ccs_sqa="127" collision_energy="0" ion_formula="C6HF11O3[M2C13-H-CO2]" neutral_mass_average="330.0536752" neutral_mass_monoisotopic="329.97500371502997" custom_ion_name="HFPO-DA">
         <precursor_results>
-          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.751270294189453" ion_mobility_window="1.6751270294189453" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.751270294189453" ion_mobility_window="1.6751270294189453" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.730690002441406" ion_mobility_window="1.6730688810348511" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.751270294189453" ion_mobility_window="1.6751270294189453" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.730690002441406" ion_mobility_window="1.6730688810348511" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 1" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 2" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 3" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 4" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="Method Blank 5" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 1" peak_count_ratio="1" retention_time="7.44281673" start_time="7.193617" end_time="7.63861656" ccs="127" ion_mobility_ms1="16.729465484619141" ion_mobility_window="1.672946572303772" ion_mobility_type="drift_time_msec" fwhm="0.047936514" area="4019.411" background="0" height="1359.57751" mass_error_ppm="-0.6" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 2" peak_count_ratio="1" retention_time="7.42376661" start_time="7.1923666" end_time="7.637367" ccs="127" ion_mobility_ms1="16.729465484619141" ion_mobility_window="1.672946572303772" ion_mobility_type="drift_time_msec" fwhm="0.0556517057" area="6059.386" background="0" height="1684.68115" mass_error_ppm="0.8" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 3" peak_count_ratio="1" retention_time="7.42703342" start_time="7.17783356" end_time="7.62283325" ccs="127" ion_mobility_ms1="16.729465484619141" ion_mobility_window="1.672946572303772" ion_mobility_type="drift_time_msec" fwhm="0.06407795" area="5213.64844" background="0" height="1226.268" mass_error_ppm="-1.7" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 6" peak_count_ratio="1" retention_time="7.4074" start_time="7.1926" end_time="7.6217165" ccs="127" ion_mobility_ms1="16.751312255859375" ion_mobility_window="1.6751312017440796" ion_mobility_type="drift_time_msec" fwhm="0.06288224" area="3788.21167" background="0" height="955" mass_error_ppm="-1.1" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 7" peak_count_ratio="1" retention_time="7.38481665" start_time="7.189017" end_time="7.63401651" ccs="127" ion_mobility_ms1="16.751312255859375" ion_mobility_window="1.6751312017440796" ion_mobility_type="drift_time_msec" fwhm="0.0428146049" area="2765.60474" background="0" height="892.8296" mass_error_ppm="-1.3" truncated="0" identified="false" user_set="TRUE" />
           <precursor_peak replicate="NIST SRM-1957 8" peak_count_ratio="1" retention_time="7.4164834" start_time="7.18508339" end_time="7.63008356" ccs="127" ion_mobility_ms1="16.751312255859375" ion_mobility_window="1.6751312017440796" ion_mobility_type="drift_time_msec" fwhm="0.053834673" area="1910.10364" background="0" height="581.287231" mass_error_ppm="-4.2" truncated="0" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.794139862060547" ion_mobility_window="1.6794140338897705" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
-          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="127" ion_mobility_ms1="16.794139862060547" ion_mobility_window="1.6794140338897705" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 9" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
+          <precursor_peak replicate="NIST SRM-1957 10" peak_count_ratio="0" ccs="127" ion_mobility_type="drift_time_msec" identified="false" user_set="TRUE" />
         </precursor_results>
-        <transition fragment_type="precursor" ion_formula="C6HF11O3[M2C13-H-CO2]" neutral_mass_average="330.0536752" neutral_mass_monoisotopic="329.97500371502997" custom_ion_name="HFPO-DA">
+        <transition fragment_type="precursor" ion_formula="C6HF11O3[M2C13-H-CO2]" neutral_mass_average="330.0536752" neutral_mass_monoisotopic="329.97500371502997" custom_ion_name="HFPO-DA" isotope_dist_rank="1" isotope_dist_proportion="0.956176043">
           <precursor_mz>286.984608</precursor_mz>
           <product_mz>286.984608</product_mz>
           <collision_energy>0</collision_energy>
