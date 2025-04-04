@@ -48,19 +48,31 @@ for idx, target in targets_df.iterrows():
         matches["MassError_ppm"] = (
             (matches["m/z"] - target["m/z"]) / target["m/z"]
         ) * 1e6
-        matches["RT_Error"] = abs(matches["RT"] - target["RT"])
+        matches["RT_Error"] = matches["RT"] - target["RT"]
         matches["CCS_Error_pct"] = (
             (matches["CCS"] - target["CCS"]) / target["CCS"]
         ) * 100
 
-        print(f"\n--- Matches for Target [{idx}] {target['Molecule_Name']} ---")
-        print(
-            f"Target m/z: {target['m/z']:.6f}, RT: {target['RT']:.2f}, CCS: {target['CCS']:.2f}"
-        )
+        # Compose Name (Notes)
+        name_with_notes = str(target["Molecule_Name"])
+        if "Notes" in target:
+            notes = str(target["Notes"]).strip()
+            if notes and notes.lower() != "nan":
+                name_with_notes += f" ({notes})"
+
+        matches["Name"] = name_with_notes
+
+        # Reorder and print
         print(
             matches[
-                ["m/z", "RT", "CCS", "MassError_ppm", "RT_Error", "CCS_Error_pct"]
+                [
+                    "Name",
+                    "m/z",
+                    "RT",
+                    "CCS",
+                    "MassError_ppm",
+                    "RT_Error",
+                    "CCS_Error_pct",
+                ]
             ].to_string(index=False, float_format="%.4f")
         )
-    else:
-        print(f"\nNo match for Target [{idx}] {target['Molecule_Name']}")
