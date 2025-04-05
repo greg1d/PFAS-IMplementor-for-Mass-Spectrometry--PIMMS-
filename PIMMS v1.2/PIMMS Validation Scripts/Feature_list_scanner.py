@@ -4,8 +4,8 @@ import pandas as pd
 features_file = (
     r"PIMMS Validation work\PIMMS data\All Features - No Blank Subtraction.csv"
 )
-targets_file = r"PIMMS Validation work\Target_list.csv"
-skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output.csv"
+targets_file = r"PIMMS Validation work\Target lists\Target_list_linear_only.csv"
+skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output_linear.csv"
 
 # === Load data ===
 features_df = pd.read_csv(features_file)
@@ -67,7 +67,7 @@ all_matches = []
 # === Tolerance values
 rt_tol = 0.2  # minutes
 ccs_tol_pct = 0.02  # 2%
-mz_tol = 10  # ppm
+mz_tol = 15  # ppm
 # === Perform matching
 for idx, target in targets_df.iterrows():
     mz_tol_ppm = target["m/z"] * mz_tol / 1_000_000
@@ -241,5 +241,5 @@ final_df = final_df[[col for col in final_columns if col in final_df.columns]]
 # === Print and export ===
 print(final_df.to_string(index=False, float_format="%.4f"))
 
-output_path = r"PIMMS Validation work\Skyline comparison data\Initial test.csv"
+output_path = r"PIMMS Validation work\Comparison test output\Common Organic Molecules - profiler output with all features.csv"
 final_df.to_csv(output_path, index=False)

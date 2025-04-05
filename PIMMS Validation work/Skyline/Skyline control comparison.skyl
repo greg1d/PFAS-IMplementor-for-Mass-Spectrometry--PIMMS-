@@ -1,8 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <audit_log_root format_version="22.2">
-  <document_hash>EKPXkk3R8+mDUs9Avw0fXfFuDYc=</document_hash>
-  <root_hash>WHmWLp72SBeHrUoAYwnQ1RAIMzI=</root_hash>
+  <document_hash>xMdQXbQPdzyFd2zaoZ6ZGjv4Stk=</document_hash>
+  <root_hash>1QX5zUyBb+BWqJdHrKahVROB0rs=</root_hash>
   <audit_log>
+    <audit_log_entry skyline_version="22.2.0.527-841287d47 (64-Bit)" time_stamp="2025-04-05T19:18:36-04:00" user="DESKTOP-3VHV4T0\Greg Kudzin" mode="m">
+      <undo_redo>
+        <type>deleted_target</type>
+        <name>PFAS (-) PFSA{2:PropertySeparator}PFHxS (C6HF13O3S){2:PropertySeparator}402.9451[M2O18-H] (heavy)</name>
+        <en_expanded>Deleted target PFAS (-) PFSA &gt; PFHxS (C6HF13O3S) &gt; 402.9451[M2O18-H] (heavy)</en_expanded>
+      </undo_redo>
+      <summary>
+        <type>deleted_target</type>
+        <name>PFAS (-) PFSA{2:PropertySeparator}PFHxS (C6HF13O3S){2:PropertySeparator}402.9451[M2O18-H] (heavy)</name>
+        <en_expanded>Deleted target PFAS (-) PFSA &gt; PFHxS (C6HF13O3S) &gt; 402.9451[M2O18-H] (heavy)</en_expanded>
+      </summary>
+      <hash>HC57ZoSHu2CZaGO3Vn9pGJ7nSMA=</hash>
+    </audit_log_entry>
     <audit_log_entry skyline_version="22.2.0.527-841287d47 (64-Bit)" time_stamp="2025-04-04T10:25:40-04:00" user="DESKTOP-3VHV4T0\Greg Kudzin" mode="m">
       <undo_redo>
         <type>removed_all_peaks_from</type>
