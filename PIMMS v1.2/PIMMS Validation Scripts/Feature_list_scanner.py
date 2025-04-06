@@ -251,7 +251,74 @@ subset = duplicates[["Name"] + d_cols]
 max_d_values = duplicates[["Name"] + d_cols].groupby("Name", as_index=False).max()
 
 merged = pd.merge(core_info, max_d_values, on="Name", how="left")
-print(merged)
+
+import pandas as pd
+
+# === Identify duplicate rows by "Name" ===
+duplicates = final_df[final_df["Name"].duplicated(keep=False)]
+
+# Core columns for info
+core_columns = [
+    "Name",
+    "Feature List Row ID",
+    "Feature List RT",
+    "RT Error",
+    "Feature List DT",
+    "Feature List CCS",
+    "CCS Error (%)",
+    "Feature List m/z",
+    "Mass Error (ppm)",
+    "Detection_Freq_Sample",
+    "Skyline Sample Detection Frequency",
+    "Detection_Frequency_blanks_+_samples",
+    "Skyline detection frequency - All Samples, No Blank Subtraction",
+]
+
+# Extract unique core info per duplicate group
+core_info = duplicates[
+    ["Name"] + [col for col in core_columns if col != "Name"]
+].drop_duplicates("Name")
+
+# Get all .d columns
+d_cols = [col for col in final_df.columns if ".d" in col]
+max_d_values = duplicates[["Name"] + d_cols].groupby("Name", as_index=False).max()
+
+# Merge core info + max .d values
+merged = pd.merge(core_info, max_d_values, on="Name", how="left")
+
+# Identify names of duplicate groups
+duplicate_names = merged["Name"].unique()
+
+# Get all other rows that aren't part of the duplicates
+non_duplicates = final_df[~final_df["Name"].isin(duplicate_names)].copy()
+
+
+# === Function to ensure all column names are unique before merging ===
+def deduplicate_columns(columns):
+    seen = {}
+    new_cols = []
+    for col in columns:
+        if col not in seen:
+            seen[col] = 1
+            new_cols.append(col)
+        else:
+            seen[col] += 1
+            new_cols.append(f"{col}.{seen[col]}")
+    return new_cols
+
+
+# Deduplicate column names in both DataFrames
+merged.columns = deduplicate_columns(merged.columns)
+non_duplicates.columns = deduplicate_columns(non_duplicates.columns)
+
+# Merge deduplicated + non-duplicate data
+final_combined = pd.concat([merged, non_duplicates], ignore_index=True)
+
+# Optional: reorder final columns
+final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
+final_combined = final_combined[
+    [col for col in final_columns if col in final_combined.columns]
+]
 
 output_path = r"PIMMS Validation work\Comparison test output\Common Organic Molecules - profiler output with all features.csv"
-final_df.to_csv(output_path, index=False)
+final_combined.to_csv(output_path, index=False)
