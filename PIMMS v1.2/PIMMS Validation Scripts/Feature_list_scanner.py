@@ -217,7 +217,7 @@ for col, decimals in rounding_map.items():
 # === Columns to keep and reorder ===
 core_columns = [
     "Name",
-    "ID",
+    "Feature List Row ID",  # was "ID"
     "Feature List RT",
     "RT Error",
     "Feature List DT",
@@ -231,6 +231,7 @@ core_columns = [
     "Skyline detection frequency - All Samples, No Blank Subtraction",
 ]
 
+
 # === Add all ".d" columns after core columns ===
 d_cols = [col for col in final_df.columns if ".d" in col and col not in core_columns]
 final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
@@ -238,8 +239,19 @@ final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
 # === Subset only the selected columns ===
 final_df = final_df[[col for col in final_columns if col in final_df.columns]]
 
-# === Print and export ===
-print(final_df.to_string(index=False, float_format="%.4f"))
+# === Print rows in final_df with duplicate "Name" values ===
+duplicates = final_df[final_df["Name"].duplicated(keep=False)]
+core_info = duplicates[
+    ["Name"] + [col for col in core_columns if col != "Name"]
+].drop_duplicates("Name")
+
+# === Get only .d columns (plus "Name" for context) ===
+d_cols = [col for col in final_df.columns if ".d" in col]
+subset = duplicates[["Name"] + d_cols]
+max_d_values = duplicates[["Name"] + d_cols].groupby("Name", as_index=False).max()
+
+merged = pd.merge(core_info, max_d_values, on="Name", how="left")
+print(merged)
 
 output_path = r"PIMMS Validation work\Comparison test output\Common Organic Molecules - profiler output with all features.csv"
 final_df.to_csv(output_path, index=False)
