@@ -117,7 +117,6 @@ for idx, target in targets_df.iterrows():
 
         # Detection frequency
         sample_cols = [col for col in matches.columns if "NIST" in col]
-        blank_cols = [col for col in matches.columns if "Method" in col]
 
         def compute_freq(row, cols):
             values = row[cols]
@@ -128,11 +127,9 @@ for idx, target in targets_df.iterrows():
         matches["Detection_Freq_Sample"] = matches.apply(
             lambda row: compute_freq(row, sample_cols), axis=1
         )
-        matches["Detection_Freq_Blank"] = matches.apply(
-            lambda row: compute_freq(row, blank_cols), axis=1
-        )
+
         matches["Detection_Frequency_blanks_+_samples"] = matches.apply(
-            lambda row: compute_freq(row, sample_cols + blank_cols), axis=1
+            lambda row: compute_freq(row, sample_cols), axis=1
         )
 
         all_matches.append(matches)
@@ -149,10 +146,6 @@ for idx, target in targets_df.iterrows():
             "Feature List m/z": "N/A",
             "Mass Error (ppm)": "N/A",
             "Detection_Freq_Sample": 0,
-            "Skyline Sample Detection Frequency": skyline_freq_sample_map.get(
-                name_with_notes, 0
-            ),
-            "Detection_Frequency_blanks_+_samples": 0,
             "Skyline detection frequency - All Samples, No Blank Subtraction": skyline_freq_all_map.get(
                 name_with_notes, 0
             ),
@@ -180,7 +173,6 @@ rounding_map = {
     "Mass Error (ppm)": 3,
     "Detection_Freq_Sample": 2,
     "Skyline Sample Detection Frequency": 2,
-    "Detection_Frequency_blanks_+_samples": 2,
     "Skyline detection frequency - All Samples, No Blank Subtraction": 2,
     "CCS Error (%)": 3,
 }
@@ -204,7 +196,6 @@ final_df = final_df.rename(
 # === Convert selected detection frequency columns to percentages ===
 for col in [
     "Detection_Freq_Sample",
-    "Detection_Frequency_blanks_+_samples",
 ]:
     if col in final_df.columns:
         final_df[col] = final_df[col] * 100
@@ -226,8 +217,6 @@ core_columns = [
     "Feature List m/z",
     "Mass Error (ppm)",
     "Detection_Freq_Sample",
-    "Skyline Sample Detection Frequency",
-    "Detection_Frequency_blanks_+_samples",
     "Skyline detection frequency - All Samples, No Blank Subtraction",
 ]
 
@@ -252,9 +241,7 @@ max_d_values = duplicates[["Name"] + d_cols].groupby("Name", as_index=False).max
 
 merged = pd.merge(core_info, max_d_values, on="Name", how="left")
 
-import pandas as pd
 
-# === Identify duplicate rows by "Name" ===
 duplicates = final_df[final_df["Name"].duplicated(keep=False)]
 
 # Core columns for info
@@ -269,9 +256,8 @@ core_columns = [
     "Feature List m/z",
     "Mass Error (ppm)",
     "Detection_Freq_Sample",
-    "Skyline Sample Detection Frequency",
-    "Detection_Frequency_blanks_+_samples",
     "Skyline detection frequency - All Samples, No Blank Subtraction",
+    "Skyline Average Intensity",  # <-- Make sure it's here
 ]
 
 # Extract unique core info per duplicate group
@@ -315,7 +301,7 @@ non_duplicates.columns = deduplicate_columns(non_duplicates.columns)
 final_combined = pd.concat([merged, non_duplicates], ignore_index=True)
 
 # Optional: reorder final columns
-final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
+final_columns = core_columns + d_cols
 final_combined = final_combined[
     [col for col in final_columns if col in final_combined.columns]
 ]
