@@ -2,7 +2,7 @@ import pandas as pd
 
 # === File paths ===
 features_file = (
-    r"PIMMS Validation work\PIMMS data\All Features - No Blank Subtraction.csv"
+    r"PIMMS Validation work\PIMMS data\All Features - unchecked single ion features.csv"
 )
 targets_file = r"PIMMS Validation work\Target lists\Target_list_linear_only.csv"
 skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output_linear.csv"
@@ -297,14 +297,29 @@ def deduplicate_columns(columns):
 merged.columns = deduplicate_columns(merged.columns)
 non_duplicates.columns = deduplicate_columns(non_duplicates.columns)
 
+
 # Merge deduplicated + non-duplicate data
 final_combined = pd.concat([merged, non_duplicates], ignore_index=True)
 
+final_combined["Accuracy"] = (
+    final_combined["Detection_Freq_Sample"]
+    / final_combined["Skyline detection frequency - All Samples, No Blank Subtraction"]
+) * 100
+
+final_combined["Accuracy"] = final_combined["Accuracy"].round(2)
+
+cols = final_combined.columns.tolist()
+if "Skyline Average Intensity" in cols and "Accuracy" in cols:
+    idx = cols.index("Skyline Average Intensity")
+    cols.insert(idx, cols.pop(cols.index("Accuracy")))
+    final_combined = final_combined[cols]
+
+
 # Optional: reorder final columns
-final_columns = core_columns + d_cols
+final_columns = core_columns + ["Accuracy", "Skyline Average Intensity"] + d_cols
 final_combined = final_combined[
     [col for col in final_columns if col in final_combined.columns]
 ]
 
-output_path = r"PIMMS Validation work\Comparison test output\Common Organic Molecules - profiler output with all features.csv"
+output_path = r"PIMMS Validation work\Comparison test output\Unchecked single ion features - profiler output with all features.csv"
 final_combined.to_csv(output_path, index=False)
