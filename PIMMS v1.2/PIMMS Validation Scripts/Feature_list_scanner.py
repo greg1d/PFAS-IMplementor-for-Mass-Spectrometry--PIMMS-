@@ -10,6 +10,8 @@ features_df = pd.read_csv(features_file)
 targets_df = pd.read_csv(targets_file)
 skyline_df = pd.read_csv(skyline_file)
 
+print("Skyline columns:", skyline_df.columns.tolist())
+
 
 # === Normalize and build Name (Notes) for Skyline comparison ===
 def build_name_notes(row):
@@ -24,28 +26,28 @@ def build_name_notes(row):
 
 skyline_df["Name_Notes"] = skyline_df.apply(build_name_notes, axis=1)
 
-# Rename columns for Skyline frequencies
-skyline_df = skyline_df.rename(
-    columns={
-        "Detection Frequency (No blank subtraction, All samples)": "Skyline All Detection Frequency",
-        "Detection Frequency (After Blank Subtraction, NIST Samples only)": "Skyline Sample Detection Frequency After Blank Subtraction",
-        "Skyline average intensity - post blank subtraction": "Skyline Average Intensity After Blank Subtraction",
-    }
+skyline_df.columns = skyline_df.columns.str.strip()
+
+# Print just the two specified columns
+print(
+    skyline_df[
+        [
+            "Detection Frequency (After Blank Subtraction, NIST Samples only)",
+            "Skyline average intensity post blank subtraction",
+        ]
+    ]
 )
 
 skyline_names = set(skyline_df["Name_Notes"])
 skyline_df.columns = skyline_df.columns.str.strip()
 print(skyline_df.columns.tolist())
 
-# Create dictionary mappings from Name (Notes)
-skyline_freq_all_map = dict(
+
+skyline_freq_sample_map = dict(
     zip(
         skyline_df["Name_Notes"],
         skyline_df["Detection Frequency (After Blank Subtraction, NIST Samples only)"],
     )
-)
-skyline_freq_sample_map = dict(
-    zip(skyline_df["Name_Notes"], skyline_df["Skyline Sample Detection Frequency"])
 )
 skyline_intensity_map = dict(
     zip(
@@ -149,7 +151,7 @@ for idx, target in targets_df.iterrows():
             "Feature List m/z": "N/A",
             "Mass Error (ppm)": "N/A",
             "Detection_Freq_Sample": 0,
-            "Detection Frequency (After Blank Subtraction, NIST Samples only)": skyline_freq_all_map.get(
+            "Detection Frequency (After Blank Subtraction, NIST Samples only)": skyline_freq_sample_map.get(
                 name_with_notes, 0
             ),
         }
@@ -165,7 +167,7 @@ if all_matches:
 
     # Map Skyline detection frequencies and intensity to final_df
     final_df["Detection Frequency (After Blank Subtraction, NIST Samples only)"] = (
-        final_df["Name"].map(skyline_freq_all_map)
+        final_df["Name"].map(skyline_freq_sample_map)
     )
     final_df["Skyline Sample Detection Frequency"] = final_df["Name"].map(
         skyline_freq_sample_map

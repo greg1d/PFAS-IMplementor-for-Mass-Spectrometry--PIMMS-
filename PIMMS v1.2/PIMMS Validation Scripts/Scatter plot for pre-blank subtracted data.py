@@ -7,7 +7,7 @@ from sklearn.metrics import r2_score
 
 # Load CSV
 file_path = (
-    r"PIMMS Validation work\Comparison test output\All analytes comparison master.csv"
+    r"PIMMS Validation work\Comparison test output\Report single ion features.csv"
 )
 df = pd.read_csv(file_path)
 
@@ -117,10 +117,15 @@ for side in ["left", "bottom"]:
     axins.spines[side].set_linewidth(2)
 axins.spines["top"].set_visible(False)
 axins.spines["right"].set_visible(False)
-
+ax.set_title(
+    "Report single ion features \n with charge state z=1",
+    fontsize=10,
+    fontweight="bold",
+    fontname="Arial",
+)
 plt.tight_layout()
 plt.savefig(
-    r"PIMMS v1.2\PIMMS Validation Scripts\Performance with peak area all detections.png",
+    r"PIMMS v1.2\PIMMS Validation Scripts\Report single ion features.png",
     dpi=300,
     transparent=True,
     bbox_inches="tight",

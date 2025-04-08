@@ -12,13 +12,17 @@ file_path = (
 df = pd.read_csv(file_path)
 
 # Extract relevant columns
-x = df["Skyline (pre blank subtraction)"]
-y = df["Profiler (pre blank subtraction)"]
+x = df["Skyline (post blank subtraction)"]
+y = df["Profiler (post blank subtraction)"]
+
+x[x < 0] = 0
+y[y < 0] = 0
 # Determine conditions
-true_neg = (x == 0) & (y <= 0.001)
-true_pos = (y > 0.001) & (x > 0)
-false_neg = (y <= 0.001) & (x > 0)
-false_pos = (y > 0.001) & (x == 0)
+true_neg = (x == 0) & (y == 0)
+true_pos = (y > 0) & (x > 0)
+false_neg = (y == 0) & (x > 0)
+false_pos = (y > 0) & (x == 0)
+# Convert negatives to 0
 
 # Print counts
 print("True Positives:", true_pos.sum())
@@ -26,7 +30,7 @@ print("True Negatives:", true_neg.sum())
 print("False Positives:", false_pos.sum())
 print("False Negatives:", false_neg.sum())
 # Determine conditions
-true_conditions = ((y == 0) & (x <= 0.001)) | ((x > 0.001) & (y > 0))
+true_conditions = ((y == 0) & (x == 0)) | ((x > 0) & (y > 0))
 false_conditions = ~true_conditions
 
 # Plot main figure
@@ -96,14 +100,14 @@ axins = inset_axes(
     ax,
     width="40%",
     height="40%",
-    bbox_to_anchor=(0.1, 0.7, 0.7, 0.7),  # x0, y0, width, height
+    bbox_to_anchor=(0.15, 0.7, 0.7, 0.7),  # x0, y0, width, height
     bbox_transform=ax.transAxes,
     loc="lower left",
 )
 axins.scatter(x[true_conditions], y[true_conditions], color="green", alpha=0.6)
 axins.scatter(x[false_conditions], y[false_conditions], color="red", alpha=0.6)
-axins.set_xlim(-60, 15000)
-axins.set_ylim(-10, 30)
+axins.set_xlim(-10000, 80000)
+axins.set_ylim(-100, 1500)
 axins.tick_params(axis="both", width=2)
 
 # Inset tick label styling
@@ -120,7 +124,7 @@ axins.spines["right"].set_visible(False)
 
 plt.tight_layout()
 plt.savefig(
-    r"PIMMS v1.2\PIMMS Validation Scripts\Performance with peak area all detections.png",
+    r"PIMMS v1.2\PIMMS Validation Scripts\Performance with peak area all detections post blank subtraction.png",
     dpi=300,
     transparent=True,
     bbox_inches="tight",
