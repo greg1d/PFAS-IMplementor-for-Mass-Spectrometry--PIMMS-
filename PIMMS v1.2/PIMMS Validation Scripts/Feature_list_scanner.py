@@ -1,9 +1,7 @@
 import pandas as pd
 
 # === File paths ===
-features_file = (
-    r"PIMMS Validation work\PIMMS data\All Features - unchecked single ion features.csv"
-)
+features_file = r"PIMMS Validation work\PIMMS data\after_blank_subtraction.csv"
 targets_file = r"PIMMS Validation work\Target lists\Target_list_linear_only.csv"
 skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output_linear.csv"
 
@@ -29,26 +27,31 @@ skyline_df["Name_Notes"] = skyline_df.apply(build_name_notes, axis=1)
 # Rename columns for Skyline frequencies
 skyline_df = skyline_df.rename(
     columns={
-        "Detection Frequency (No blank subtraction, All samples)": "Skyline detection frequency - All Samples, No Blank Subtraction",
-        "Detection Frequency (After Blank Subtraction, NIST Samples only)": "Skyline Sample Detection Frequency",
-        "Skyline average intensity": "Skyline average intensity",
+        "Detection Frequency (No blank subtraction, All samples)": "Skyline All Detection Frequency",
+        "Detection Frequency (After Blank Subtraction, NIST Samples only)": "Skyline Sample Detection Frequency After Blank Subtraction",
+        "Skyline average intensity - post blank subtraction": "Skyline Average Intensity After Blank Subtraction",
     }
 )
 
 skyline_names = set(skyline_df["Name_Notes"])
+skyline_df.columns = skyline_df.columns.str.strip()
+print(skyline_df.columns.tolist())
 
 # Create dictionary mappings from Name (Notes)
 skyline_freq_all_map = dict(
     zip(
         skyline_df["Name_Notes"],
-        skyline_df["Skyline detection frequency - All Samples, No Blank Subtraction"],
+        skyline_df["Detection Frequency (After Blank Subtraction, NIST Samples only)"],
     )
 )
 skyline_freq_sample_map = dict(
     zip(skyline_df["Name_Notes"], skyline_df["Skyline Sample Detection Frequency"])
 )
 skyline_intensity_map = dict(
-    zip(skyline_df["Name_Notes"], skyline_df["Skyline average intensity"])
+    zip(
+        skyline_df["Name_Notes"],
+        skyline_df["Skyline average intensity post blank subtraction"],
+    )
 )
 
 # === Rename target columns for consistency
@@ -57,7 +60,7 @@ targets_df = targets_df.rename(
         "PrecursorMz": "m/z",
         "PrecursorCCS": "CCS",
         "PrecursorRT": "RT",
-        "Molecule Name": "Molecule_Name",
+        "Molecule Name": "PrecursorName",
     }
 )
 
@@ -90,7 +93,7 @@ for idx, target in targets_df.iterrows():
     ].copy()
 
     # Consistent Name (Notes)
-    molecule_name = str(target["Molecule_Name"]).strip()
+    molecule_name = str(target["PrecursorName"]).strip()
     molecule_name = " ".join(molecule_name.split())
     notes = (
         str(target["Notes"]).strip()
@@ -146,7 +149,7 @@ for idx, target in targets_df.iterrows():
             "Feature List m/z": "N/A",
             "Mass Error (ppm)": "N/A",
             "Detection_Freq_Sample": 0,
-            "Skyline detection frequency - All Samples, No Blank Subtraction": skyline_freq_all_map.get(
+            "Detection Frequency (After Blank Subtraction, NIST Samples only)": skyline_freq_all_map.get(
                 name_with_notes, 0
             ),
         }
@@ -161,19 +164,21 @@ if all_matches:
     final_df = pd.concat(all_matches, ignore_index=True)
 
     # Map Skyline detection frequencies and intensity to final_df
-    final_df["Skyline detection frequency - All Samples, No Blank Subtraction"] = (
+    final_df["Detection Frequency (After Blank Subtraction, NIST Samples only)"] = (
         final_df["Name"].map(skyline_freq_all_map)
     )
     final_df["Skyline Sample Detection Frequency"] = final_df["Name"].map(
         skyline_freq_sample_map
     )
-    final_df["Skyline Average Intensity"] = final_df["Name"].map(skyline_intensity_map)
+    final_df["Skyline average intensity - post blank subtraction"] = final_df[
+        "Name"
+    ].map(skyline_intensity_map)
 # === Round each specified column ===
 rounding_map = {
     "Mass Error (ppm)": 3,
     "Detection_Freq_Sample": 2,
     "Skyline Sample Detection Frequency": 2,
-    "Skyline detection frequency - All Samples, No Blank Subtraction": 2,
+    "Detection Frequency (After Blank Subtraction, NIST Samples only)": 2,
     "CCS Error (%)": 3,
 }
 
@@ -189,7 +194,7 @@ final_df = final_df.rename(
         "RT_Error": "RT Error",
         "CCS_Error_pct": "CCS Error (%)",
         "MassError_ppm": "Mass Error (ppm)",
-        "Skyline average intensity": "Skyline Average Intensity",
+        "Skyline average intensity - post blank subtraction": "Skyline Average Intensity",
     }
 )
 
@@ -217,7 +222,7 @@ core_columns = [
     "Feature List m/z",
     "Mass Error (ppm)",
     "Detection_Freq_Sample",
-    "Skyline detection frequency - All Samples, No Blank Subtraction",
+    "Detection Frequency (After Blank Subtraction, NIST Samples only)",
 ]
 
 
@@ -256,7 +261,7 @@ core_columns = [
     "Feature List m/z",
     "Mass Error (ppm)",
     "Detection_Freq_Sample",
-    "Skyline detection frequency - All Samples, No Blank Subtraction",
+    "Detection Frequency (After Blank Subtraction, NIST Samples only)",
     "Skyline Average Intensity",  # <-- Make sure it's here
 ]
 
@@ -303,7 +308,7 @@ final_combined = pd.concat([merged, non_duplicates], ignore_index=True)
 
 final_combined["Accuracy"] = (
     final_combined["Detection_Freq_Sample"]
-    / final_combined["Skyline detection frequency - All Samples, No Blank Subtraction"]
+    / final_combined["Detection Frequency (After Blank Subtraction, NIST Samples only)"]
 ) * 100
 
 final_combined["Accuracy"] = final_combined["Accuracy"].round(2)
@@ -321,5 +326,7 @@ final_combined = final_combined[
     [col for col in final_columns if col in final_combined.columns]
 ]
 
-output_path = r"PIMMS Validation work\Comparison test output\Unchecked single ion features - profiler output with all features.csv"
+output_path = (
+    r"PIMMS Validation work\Comparison test output\after blank subtraction.csv"
+)
 final_combined.to_csv(output_path, index=False)

@@ -10,21 +10,13 @@ df = pd.read_csv(file_path, header=None)
 # Extract data
 accuracy_values = df.iloc[1, 1:].astype(float).tolist()
 feature_counts = df.iloc[2, 1:].astype(int).tolist()
-colors = [
-    "#9ADCBB",
-    "#18BDB0",
-    "#0095AF",
-    "#005D9E",
-]  # Colorblind-friendly sequential palette
+colors = ["#3E4A89", "#E41A1C", "#4DAF4A", "#FF7F00"]
 
 # Labels
 x_labels = ["1", "2", "3", "4"]
-bar_labels = ["198/\n226", "198/\n226", "139/\n226", "110/\n226"]
 
 # Create figure and axes with transparent background
-fig, ax1 = plt.subplots(
-    figsize=(4, 4), facecolor="none"
-)  # figure size and transparency
+fig, ax1 = plt.subplots(figsize=(2.7, 4), facecolor="none")
 
 # Bar plot (Accuracy)
 bars = ax1.bar(
@@ -35,20 +27,6 @@ bars = ax1.bar(
     linewidth=1.2,
     width=0.6,
 )
-
-# Add centered text labels
-for bar, label in zip(bars, bar_labels):
-    height = bar.get_height()
-    ax1.text(
-        bar.get_x() + bar.get_width() / 2,
-        height / 2,
-        label,
-        ha="center",
-        va="center",
-        fontsize=8,
-        weight="bold",
-        color="black",
-    )
 
 # Format primary y-axis (Accuracy)
 ax1.set_ylabel("Accuracy (%)", weight="bold", fontsize=10)
@@ -85,8 +63,13 @@ for label in ax2.get_yticklabels():
     label.set_fontsize(8)
 
 ax2.spines["top"].set_visible(False)
-ax2.set_ylim(0, 11000)
+ax2.set_ylim(0, 12000)
+plt.savefig(
+    "PIMMS v1.2\PIMMS Validation Scripts\Mass_profiler_results_scatter_plot.png",
+    dpi=300,
+    transparent=True,
+    bbox_inches="tight",
+)
 
-plt.title("Model Accuracy and Feature Count Comparison", weight="bold", fontsize=10)
 plt.tight_layout()
 plt.show()

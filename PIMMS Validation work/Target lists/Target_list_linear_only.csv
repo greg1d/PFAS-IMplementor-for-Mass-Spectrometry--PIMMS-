@@ -1,4 +1,4 @@
-﻿Molecule List Name,Molecule Name,Molecular Formula,Precursor Adduct,Precursor Charge,PrecursorMz,PrecursorCCS,PrecursorRT,Notes
+﻿Molecule List Name,PrecursorName,PrecursorFormula,PrecursorAdduct,Precursor Charge,PrecursorMz,PrecursorCCS,PrecursorRT,Notes
 PFAS (-) PFSA,PFBS,C'3CHF9O3S,M-H,-1,301.9531,133.6,5.2,heavy
 PFAS (-) PFSA,PFPeS,C5HF11O3S,M-H,-1,348.9398,142.2,7.03,
 PFAS (-) PFSA,PFHxS,C6HF13O3S,M-H,-1,398.9366,150.5,8.38,linear

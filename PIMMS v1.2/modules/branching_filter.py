@@ -106,9 +106,6 @@ def optimal_rt_grouping(group_dfs, rt_tolerance=0.5):
             sub_df = group_df.loc[sub_indices].copy()
             final_groups.append(sub_df)
 
-            print(f"\n[RT Subgroup] {len(sub_df)} peaks (Group {group_idx})")
-            print(sub_df[["m/z", "RT"]].to_string(index=False))
-
             i += len(sub_indices)
     print(final_groups)
     return final_groups

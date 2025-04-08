@@ -1,4 +1,4 @@
-﻿Name,Notes,"Detection Frequency (No blank subtraction, All samples)","Detection Frequency (After Blank Subtraction, NIST Samples only)",Skyline average intensity,Skyline average intensity - post blank subtraction
+﻿Name,Notes,"Detection Frequency (No blank subtraction, All samples)","Detection Frequency (After Blank Subtraction, NIST Samples only)",Skyline average intensity,Skyline average intensity post blank subtraction
 PFBS,heavy,100,0,1516106.641,-260241.8297
 PFPeS,,75,75,1321.118263,1321.118263
 PFHxS,linear,100,100,967256.5703,967256.5703

@@ -41,19 +41,21 @@ from regression_analysis import produce_filtered_df
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/data/Dummy test blank subtracted data.csv"]
+    file_paths = [
+        "PIMMS Validation work/PIMMS data/All Features - No Blank Subtraction.csv"
+    ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
     standards_library_file = (
-        "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        "PIMMS Validation work/Target lists/Target_list_linear_only.csv"
     )
     external_targets_file = (
         "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
 
     # Define control columns
-    control_samples = [f"Blank {i}.d" for i in range(1, 10)]
+    control_samples = [f"Blank {i}.d" for i in range(1, 6)]
 
     # Set tolerances
     mass_error_ppm = 10  # Mass error in ppm
@@ -130,7 +132,11 @@ def main():
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
-
+        # Save the adjusted dataframe after blank subtraction to a new CSV file
+        adjusted_df.to_csv(
+            "PIMMS Validation work/Comparison test output/after_blank_subtraction.csv",
+            index=False,
+        )
         # Apply filters
         print("[INFO] Applying filters to adjusted dataset...")
         try:
