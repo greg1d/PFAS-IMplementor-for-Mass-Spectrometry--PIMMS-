@@ -1,8 +1,12 @@
 import pandas as pd
 
 # === File paths ===
-features_file = r"PIMMS Validation work\PIMMS data\after_blank_subtraction.csv"
-targets_file = r"PIMMS Validation work\Target lists\Target_list_linear_only.csv"
+features_file = (
+    r"PIMMS Validation work\Comparison test output\after_smearing_filter.csv"
+)
+targets_file = (
+    r"PIMMS Validation work\Target lists\Target_list_native_analytes_test.csv"
+)
 skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output_linear.csv"
 
 # === Load data ===
@@ -93,7 +97,7 @@ for idx, target in targets_df.iterrows():
         & (features_df["CCS"] >= ccs_min)
         & (features_df["CCS"] <= ccs_max)
     ].copy()
-
+    print(matches)
     # Consistent Name (Notes)
     molecule_name = str(target["PrecursorName"]).strip()
     molecule_name = " ".join(molecule_name.split())
@@ -328,7 +332,5 @@ final_combined = final_combined[
     [col for col in final_columns if col in final_combined.columns]
 ]
 
-output_path = (
-    r"PIMMS Validation work\Comparison test output\after blank subtraction.csv"
-)
+output_path = r"PIMMS Validation work\Comparison test output\after smearing filter detection native analytes only testing.csv"
 final_combined.to_csv(output_path, index=False)

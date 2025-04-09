@@ -120,10 +120,6 @@ def main():
         adjusted_df, control_mean, control_std = perform_blank_subtraction(
             method, control_df, experimental_df
         )
-        # Save the adjusted dataframe after blank subtraction to a CSV file
-        adjusted_df.to_csv(
-            "PIMMS v1.2/Data_output/adjusted_after_blank_subtraction.csv", index=False
-        )
 
         # Count non-zero rows after blank subtraction
         group_avg, group_std = count_non_zero_rows(adjusted_df)
@@ -150,6 +146,8 @@ def main():
                 f"  Average Non-Zero Rows: {group_avg}\n"
                 f"  Std Dev of Non-Zero Rows: {group_std}"
             )
+            # Save the adjusted dataframe after blank subtraction to a new CSV file
+
         except Exception as e:
             print(f"[ERROR] Filtering failed: {e}")
             sys.exit(1)
@@ -166,7 +164,10 @@ def main():
             rt_tolerance=rt_tolerance,
             ccs_tolerance=ccs_error_percentage,
         )
-
+        adjusted_df.to_csv(
+            "PIMMS Validation work/Comparison test output/after_smearing_filter.csv",
+            index=False,
+        )
         # Count non-zero rows after smearing filter
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
