@@ -1,12 +1,8 @@
 import pandas as pd
 
 # === File paths ===
-features_file = (
-    r"PIMMS Validation work\Comparison test output\after_smearing_filter.csv"
-)
-targets_file = (
-    r"PIMMS Validation work\Target lists\Target_list_native_analytes_test.csv"
-)
+features_file = r"PIMMS Validation work\PIMMS data\after_smearing_filter.csv"
+targets_file = r"PIMMS Validation work\Target lists\Target_list_native_analytes.csv"
 skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output_linear.csv"
 
 # === Load data ===
@@ -231,10 +227,7 @@ final_df = final_df[[col for col in final_columns if col in final_df.columns]]
 
 # === Print rows in final_df with duplicate "Name" values ===
 duplicates = final_df[final_df["Name"].duplicated(keep=False)]
-print(duplicates)
-duplicates.to_csv(
-    r"PIMMS Validation work\Comparison test output\duplicates.csv", index=False
-)
+
 core_info = duplicates[
     ["Name"] + [col for col in core_columns if col != "Name"]
 ].drop_duplicates("Name")
@@ -274,7 +267,6 @@ max_d_values = duplicates.groupby("Name")[d_cols].max()
 
 # === Step 4: Merge best core info + max sample intensity
 merged = pd.concat([core_info, max_d_values], axis=1).reset_index()
-merged.to_csv(r"PIMMS Validation work\Comparison test output\merged.csv", index=False)
 # === Step 5: Add Skyline info
 merged["Skyline Average Intensity"] = merged["Name"].map(skyline_intensity_map)
 merged["Detection Frequency (After Blank Subtraction, NIST Samples only)"] = merged[
@@ -291,17 +283,17 @@ def compute_freq(row):
 
 merged["Detection_Freq_Sample"] = merged.apply(compute_freq, axis=1)
 
-# === Step 7: Compute Accuracy
-merged["Accuracy"] = (
-    merged["Detection_Freq_Sample"]
-    / merged["Detection Frequency (After Blank Subtraction, NIST Samples only)"]
-) * 100
-merged["Accuracy"] = merged["Accuracy"].round(2)
+
 # All rows not in duplicate groups
 non_duplicates = final_df[~final_df["Name"].isin(merged["Name"])].copy()
 
 # Final combined
 final_combined = pd.concat([merged, non_duplicates], ignore_index=True)
+final_combined["Accuracy"] = (
+    final_combined["Detection_Freq_Sample"]
+    / final_combined["Detection Frequency (After Blank Subtraction, NIST Samples only)"]
+) * 100
+final_combined["Accuracy"] = final_combined["Accuracy"].round(2)
 
 # Final column order
 final_columns = (
@@ -319,5 +311,5 @@ final_combined = final_combined[
 ]
 
 # Export
-output_path = r"PIMMS Validation work\Comparison test output\after smearing filter detection native analytes only testing2.csv"
+output_path = r"PIMMS Validation work\Comparison test output\after smearing filter detection native analytes only.csv"
 final_combined.to_csv(output_path, index=False)
