@@ -1,9 +1,10 @@
 import pandas as pd
 
 # === File paths ===
-features_file = r"PIMMS Validation work\PIMMS data\after_smearing_filter.csv"
+features_file = r"PIMMS Validation work\PIMMS data\after_RT_CCS_filter.csv"
 targets_file = r"PIMMS Validation work\Target lists\Target_list_native_analytes.csv"
 skyline_file = r"PIMMS Validation work\Skyline comparison data\Detection_frequency_skyline_output_linear.csv"
+output_path = r"PIMMS Validation work\Comparison test output\after_RT_CCS_filter.csv"
 
 # === Load data ===
 features_df = pd.read_csv(features_file)
@@ -52,7 +53,7 @@ targets_df = targets_df.rename(
         "PrecursorMz": "m/z",
         "PrecursorCCS": "CCS",
         "PrecursorRT": "RT",
-        "Molecule Name": "PrecursorName",
+        "PrecursorName": "PrecursorName",
     }
 )
 
@@ -311,5 +312,4 @@ final_combined = final_combined[
 ]
 
 # Export
-output_path = r"PIMMS Validation work\Comparison test output\after smearing filter detection native analytes only.csv"
 final_combined.to_csv(output_path, index=False)
