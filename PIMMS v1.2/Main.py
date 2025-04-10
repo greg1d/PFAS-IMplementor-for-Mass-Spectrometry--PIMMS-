@@ -75,8 +75,8 @@ def main():
 
     frequency_threshold = 5  # Detection frequency threshold percentage
 
-    rt_filter = True
-    ccs_filter = True
+    rt_filter = False
+    ccs_filter = False
 
     try:
         # Process files and separate data

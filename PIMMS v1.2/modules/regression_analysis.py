@@ -410,15 +410,21 @@ def main():
     library_file = (
         r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
     )
-    adjusted_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    adjusted_path = r"PIMMS Validation work\PIMMS data\after_decay_filter_test.csv"
+
+    # Load adjusted data
     adjusted_df = pd.read_csv(adjusted_path)
-    # Run quantile regression on CCS (doesn't need to return anything for this use case)
 
-    rt_filter = True
-    ccs_filter = True
-    filtered = produce_filtered_df(adjusted_df, library_file, rt_filter, ccs_filter)
+    # Run regression to get quantile equations
+    ccs_eq = run_CCS_regression_analysis(library_file)
+    rt_eq = run_RT_regression_analysis(library_file)
 
-    print("filtered_df shape:", filtered.shape)
+    # Apply individual filters
+    filtered_rt = exclude_rt_values(adjusted_df, rt_eq)
+    filtered_ccs = exclude_ccs_values(adjusted_df, ccs_eq)
+
+    # Plot the triple panel
+    plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq)
 
 
 if __name__ == "__main__":

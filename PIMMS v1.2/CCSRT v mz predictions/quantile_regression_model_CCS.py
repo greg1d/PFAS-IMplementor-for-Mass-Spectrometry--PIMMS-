@@ -55,9 +55,9 @@ def run_kfold_cv(
                 preds[q] = res.predict(X_test)
 
             # Calculate Pinball Loss for each quantile
-            pin5 = pinball_loss(y_test, preds[0.05], 0.05)
+            pin5 = pinball_loss(y_test, preds[0.05], 0.01)
             pin50 = pinball_loss(y_test, preds[0.5], 0.5)
-            pin95 = pinball_loss(y_test, preds[0.95], 0.95)
+            pin95 = pinball_loss(y_test, preds[0.95], 0.99)
             pinball_losses_5.append(pin5)
             pinball_losses_50.append(pin50)
             pinball_losses_95.append(pin95)
@@ -91,8 +91,8 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         for q in quantiles:
             model = QuantReg(df["PrecursorCCS"], X)
             res = model.fit(q=q)
-            preds[q] = res.predict(X)
-
+            bias_correction = -3.0  # Shift down by 5 CCS units, adjust as needed
+            preds[q] = res.predict(X) + bias_correction
         # Sort for smooth plotting
         sort_idx = df["PrecursorMz"].argsort()
         x_sorted = df["PrecursorMz"].values[sort_idx]
@@ -107,15 +107,47 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         coverage = cross_val_results[label]["Coverage"]
         interval_width = cross_val_results[label]["Width"]
 
-        # Plot data and quantile lines
+        # Determine outliers based on bounds
+        inliers_mask = (df["PrecursorCCS"] >= preds[0.05]) & (
+            df["PrecursorCCS"] <= preds[0.95]
+        )
+        outliers_mask = ~inliers_mask
+
+        # Print PrecursorNames of outliers if column exists
+        if "PrecursorName" in df.columns:
+            print(f"\nOutliers for {label} model:")
+            print(df.loc[outliers_mask, "PrecursorName"].to_string(index=False))
+        else:
+            print(f"\nNote: 'PrecursorName' column not found for {label} model.")
+
+        inliers = df[inliers_mask]
+        outliers = df[outliers_mask]
+
+        inliers = df[inliers_mask]
+        outliers = df[~inliers_mask]
+
+        # Plot inliers in gray
         ax.scatter(
-            df["PrecursorMz"],
-            df["PrecursorCCS"],
+            inliers["PrecursorMz"],
+            inliers["PrecursorCCS"],
             color="gray",
             alpha=0.3,
             s=15,
-            label="Library Features",
+            label="Within Bounds",
         )
+
+        # Plot outliers in red
+        ax.scatter(
+            outliers["PrecursorMz"],
+            outliers["PrecursorCCS"],
+            color="red",
+            alpha=0.5,
+            edgecolors="k",
+            linewidths=0.4,
+            s=25,
+            label="Outside Bounds",
+        )
+
         ax.plot(x_sorted, q50_sorted, color="black", label="Median (50%)")
         ax.plot(
             x_sorted, q5_sorted, linestyle="--", color="red", label="5th Percentile"
@@ -182,6 +214,7 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         text.set_fontweight("bold")
         text.set_fontfamily("Arial")
     plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
 
 
 def run_CCS_regression_analysis(library_file):
@@ -211,3 +244,32 @@ def run_CCS_regression_analysis(library_file):
         "q95_intercept": coef_95["Intercept"],
         "q95_slope": coef_95["log_mz"],
     }
+
+
+def run_analysis(library_file):
+    # Load data
+    df = pd.read_csv(library_file)
+    df = df[["PrecursorName", "PrecursorMz", "PrecursorCCS"]].dropna()
+    df["log_mz"] = np.log(df["PrecursorMz"])
+
+    # Run KFold cross-validation
+    cross_val_results = run_kfold_cv(df)
+
+    # Print the results
+    for model_name, metrics in cross_val_results.items():
+        print(f"\n{model_name} Model Cross-Validation Results:")
+        for metric, value in metrics.items():
+            print(f"  {metric}: {value:.3f}")
+
+    # Plot the results
+    plot_results(df, cross_val_results)
+
+
+if __name__ == "__main__":
+    # File path for the dataset
+    library_file = (
+        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
+    )
+
+    # Run the analysis
+    run_analysis(library_file)
