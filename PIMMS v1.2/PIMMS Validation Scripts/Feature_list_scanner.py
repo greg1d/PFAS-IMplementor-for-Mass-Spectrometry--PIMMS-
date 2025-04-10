@@ -87,7 +87,6 @@ for idx, target in targets_df.iterrows():
         & (features_df["CCS"] >= ccs_min)
         & (features_df["CCS"] <= ccs_max)
     ].copy()
-    print(matches)
     # Consistent Name (Notes)
     molecule_name = str(target["PrecursorName"]).strip()
     molecule_name = " ".join(molecule_name.split())
@@ -229,11 +228,13 @@ final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
 # === Subset only the selected columns ===
 final_df = final_df[[col for col in final_columns if col in final_df.columns]]
 
-# need to deconvolute here and then do the rest of the detection frequency calculation
-print(final_df)
-final_df.to_csv("final_df.csv")
+
 # === Print rows in final_df with duplicate "Name" values ===
 duplicates = final_df[final_df["Name"].duplicated(keep=False)]
+print(duplicates)
+duplicates.to_csv(
+    r"PIMMS Validation work\Comparison test output\duplicates.csv", index=False
+)
 core_info = duplicates[
     ["Name"] + [col for col in core_columns if col != "Name"]
 ].drop_duplicates("Name")
@@ -244,11 +245,15 @@ subset = duplicates[["Name"] + d_cols]
 max_d_values = duplicates[["Name"] + d_cols].groupby("Name", as_index=False).max()
 
 merged = pd.merge(core_info, max_d_values, on="Name", how="left")
+# === Step 1: Get duplicates
+duplicates = final_df[final_df["Name"].duplicated(keep=False)].copy()
 
+# === Step 2: Get core info row with lowest mass error per Name
+duplicates["Abs_Mass_Error"] = duplicates["Mass Error (ppm)"].abs()
+idx_best_core = duplicates.groupby("Name")["Abs_Mass_Error"].idxmin()
+core_info = duplicates.loc[idx_best_core].copy()
 
-duplicates = final_df[final_df["Name"].duplicated(keep=False)]
-
-# Core columns for info
+# Columns we want to preserve from the best match
 core_columns = [
     "Name",
     "Feature List Row ID",
@@ -259,71 +264,60 @@ core_columns = [
     "CCS Error (%)",
     "Feature List m/z",
     "Mass Error (ppm)",
-    "Detection_Freq_Sample",
-    "Detection Frequency (After Blank Subtraction, NIST Samples only)",
-    "Skyline Average Intensity",  # <-- Make sure it's here
 ]
 
-#  Extract unique core info per duplicate group
-core_info = duplicates[
-    ["Name"] + [col for col in core_columns if col != "Name"]
-].drop_duplicates("Name")
+core_info = core_info[core_columns].set_index("Name")
 
-# Get all .d columns
+# === Step 3: Get max intensity from .d columns per Name
 d_cols = [col for col in final_df.columns if ".d" in col]
-max_d_values = duplicates[["Name"] + d_cols].groupby("Name", as_index=False).max()
+max_d_values = duplicates.groupby("Name")[d_cols].max()
 
-# Merge core info + max .d values
-merged = pd.merge(core_info, max_d_values, on="Name", how="left")
-
-# Identify names of duplicate groups
-duplicate_names = merged["Name"].unique()
-
-# Get all other rows that aren't part of the duplicates
-non_duplicates = final_df[~final_df["Name"].isin(duplicate_names)].copy()
-
-
-# === Function to ensure all column names are unique before merging ===
-def deduplicate_columns(columns):
-    seen = {}
-    new_cols = []
-    for col in columns:
-        if col not in seen:
-            seen[col] = 1
-            new_cols.append(col)
-        else:
-            seen[col] += 1
-            new_cols.append(f"{col}.{seen[col]}")
-    return new_cols
+# === Step 4: Merge best core info + max sample intensity
+merged = pd.concat([core_info, max_d_values], axis=1).reset_index()
+merged.to_csv(r"PIMMS Validation work\Comparison test output\merged.csv", index=False)
+# === Step 5: Add Skyline info
+merged["Skyline Average Intensity"] = merged["Name"].map(skyline_intensity_map)
+merged["Detection Frequency (After Blank Subtraction, NIST Samples only)"] = merged[
+    "Name"
+].map(skyline_freq_sample_map)
 
 
-# Deduplicate column names in both DataFrames
-merged.columns = deduplicate_columns(merged.columns)
-non_duplicates.columns = deduplicate_columns(non_duplicates.columns)
+# === Step 6: Calculate Detection Frequency based on max intensities
+def compute_freq(row):
+    detected = (row[d_cols] > 0.001).sum()
+    total = len(d_cols)
+    return (detected / total) * 100 if total > 0 else None
 
 
-# Merge deduplicated + non-duplicate data
+merged["Detection_Freq_Sample"] = merged.apply(compute_freq, axis=1)
+
+# === Step 7: Compute Accuracy
+merged["Accuracy"] = (
+    merged["Detection_Freq_Sample"]
+    / merged["Detection Frequency (After Blank Subtraction, NIST Samples only)"]
+) * 100
+merged["Accuracy"] = merged["Accuracy"].round(2)
+# All rows not in duplicate groups
+non_duplicates = final_df[~final_df["Name"].isin(merged["Name"])].copy()
+
+# Final combined
 final_combined = pd.concat([merged, non_duplicates], ignore_index=True)
 
-final_combined["Accuracy"] = (
-    final_combined["Detection_Freq_Sample"]
-    / final_combined["Detection Frequency (After Blank Subtraction, NIST Samples only)"]
-) * 100
-
-final_combined["Accuracy"] = final_combined["Accuracy"].round(2)
-
-cols = final_combined.columns.tolist()
-if "Skyline Average Intensity" in cols and "Accuracy" in cols:
-    idx = cols.index("Skyline Average Intensity")
-    cols.insert(idx, cols.pop(cols.index("Accuracy")))
-    final_combined = final_combined[cols]
-
-
-# Optional: reorder final columns
-final_columns = core_columns + ["Accuracy", "Skyline Average Intensity"] + d_cols
+# Final column order
+final_columns = (
+    core_columns
+    + [
+        "Detection_Freq_Sample",
+        "Detection Frequency (After Blank Subtraction, NIST Samples only)",
+        "Accuracy",
+        "Skyline Average Intensity",
+    ]
+    + d_cols
+)
 final_combined = final_combined[
     [col for col in final_columns if col in final_combined.columns]
 ]
 
+# Export
 output_path = r"PIMMS Validation work\Comparison test output\after smearing filter detection native analytes only testing.csv"
 final_combined.to_csv(output_path, index=False)
