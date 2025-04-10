@@ -114,11 +114,6 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         outliers_mask = ~inliers_mask
 
         # Print PrecursorNames of outliers if column exists
-        if "PrecursorName" in df.columns:
-            print(f"\nOutliers for {label} model:")
-            print(df.loc[outliers_mask, "PrecursorName"].to_string(index=False))
-        else:
-            print(f"\nNote: 'PrecursorName' column not found for {label} model.")
 
         inliers = df[inliers_mask]
         outliers = df[outliers_mask]
@@ -234,14 +229,30 @@ def run_CCS_regression_analysis(library_file):
     coef_5 = model_5.params
     coef_95 = model_95.params
 
+    # === Bias correction (e.g., shift curve downward) ===
+    bias_correction = -5.0  # adjust as needed
+
+    # Apply correction to intercepts
+    q05_intercept_corrected = coef_5["Intercept"] + bias_correction
+    q95_intercept_corrected = coef_95["Intercept"] + bias_correction
+
+    # Optional: print equation for verification
+    print("Adjusted CCS regression equations:")
+    print(
+        f"5th percentile: y = {coef_5['log_mz']:.4f} * log(m/z) + {q05_intercept_corrected:.4f}"
+    )
+    print(
+        f"95th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {q95_intercept_corrected:.4f}"
+    )
+
     # Plot the results
     plot_results(df, cross_val_results)
 
-    # Return coefficients for use elsewhere
+    # Return bias-adjusted coefficients
     return {
-        "q05_intercept": coef_5["Intercept"],
+        "q05_intercept": q05_intercept_corrected,
         "q05_slope": coef_5["log_mz"],
-        "q95_intercept": coef_95["Intercept"],
+        "q95_intercept": q95_intercept_corrected,
         "q95_slope": coef_95["log_mz"],
     }
 

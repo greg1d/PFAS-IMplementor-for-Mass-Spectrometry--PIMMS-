@@ -56,6 +56,7 @@ def exclude_ccs_values(adjusted_df, CCS_eq):
 
     q05 = CCS_eq["q05_slope"] * log_mz + CCS_eq["q05_intercept"]
     q95 = CCS_eq["q95_slope"] * log_mz + CCS_eq["q95_intercept"]
+
     filtered = adjusted_df[
         (adjusted_df["CCS"] >= q05) & (adjusted_df["CCS"] <= q95)
     ].copy()
@@ -158,6 +159,7 @@ def plot_filtered_ccs(
     # Prepare for line plotting
     mz_sorted = np.sort(adjusted_df["m/z"].values)
     ln_mz_sorted = np.log(mz_sorted)
+
     line_q05 = ccs_eq["q05_slope"] * ln_mz_sorted + ccs_eq["q05_intercept"]
     line_q95 = ccs_eq["q95_slope"] * ln_mz_sorted + ccs_eq["q95_intercept"]
 
@@ -234,6 +236,7 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
     rt_q95_line = rt_eq["q95_slope"] * ln_mz_sorted + rt_eq["q95_intercept"]
 
     # Compute CCS quantile lines
+
     ccs_q05_line = ccs_eq["q05_slope"] * ln_mz_sorted + ccs_eq["q05_intercept"]
     ccs_q95_line = ccs_eq["q95_slope"] * ln_mz_sorted + ccs_eq["q95_intercept"]
 
@@ -268,11 +271,14 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
     # === Panel 2: CCS Filtered ===
     log_mz = np.log(adjusted_df["m/z"])
     ccs_q05 = ccs_eq["q05_slope"] * log_mz + ccs_eq["q05_intercept"]
+
     ccs_q95 = ccs_eq["q95_slope"] * log_mz + ccs_eq["q95_intercept"]
     excluded_ccs = adjusted_df[
         (adjusted_df["CCS"] < ccs_q05) | (adjusted_df["CCS"] > ccs_q95)
     ]
+
     ccs_line_q05 = ccs_eq["q05_slope"] * ln_mz_sorted + ccs_eq["q05_intercept"]
+
     ccs_line_q95 = ccs_eq["q95_slope"] * ln_mz_sorted + ccs_eq["q95_intercept"]
 
     ax = axes[1]
@@ -418,6 +424,13 @@ def main():
     # Run regression to get quantile equations
     ccs_eq = run_CCS_regression_analysis(library_file)
     rt_eq = run_RT_regression_analysis(library_file)
+    print("\n[DEBUG] CCS Regression Equations:")
+    print(
+        f"  q05: y = {ccs_eq['q05_slope']:.4f} * log(m/z) + {ccs_eq['q05_intercept']:.4f}"
+    )
+    print(
+        f"  q95: y = {ccs_eq['q95_slope']:.4f} * log(m/z) + {ccs_eq['q95_intercept']:.4f}"
+    )
 
     # Apply individual filters
     filtered_rt = exclude_rt_values(adjusted_df, rt_eq)
