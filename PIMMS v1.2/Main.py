@@ -1,5 +1,6 @@
 import os
 import sys
+
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
@@ -8,13 +9,23 @@ from blank_subtraction import (  # type: ignore
     process_standards_report_only,
     remove_standards_library,
 )
-from blank_subtraction_workflow import perform_blank_subtraction, process_files  # type: ignore
+from blank_subtraction_workflow import (  # type: ignore
+    perform_blank_subtraction,
+    process_files,
+)
 from branching_filter import (  # type: ignore
     branching_analyze,
     branching_merge,
 )
-
-from crude_filters import apply_mass_filter, apply_min_intensity_filter, apply_rt_filter  # type: ignore
+from crude_filters import (  # type: ignore
+    apply_mass_filter,
+    apply_min_intensity_filter,
+    apply_rt_filter,
+)
+from detection_frequency_filter import detection_frequency_filter  # type: ignore
+from mass_defect_filter import (  # type: ignore
+    mass_defect_filter,
+)  # Importing the mass defect filter module
 from ML_algorithm_density import (  # type: ignore
     fluorinated_density_filter,  # Importing fluorinated density filter
 )
@@ -24,19 +35,17 @@ from monoisotopic_grouper import (  # type: ignore
 from monoisotopic_grouper import (  # type: ignore
     merge_groups_into_adjusted_df as mono_merge,
 )
-from smearing_filter import smearing_filter  # type: ignore # Importing the smearing filter module
-from mass_defect_filter import (  # type: ignore
-    mass_defect_filter,
-)  # Importing the mass defect filter module
-from detection_frequency_filter import detection_frequency_filter  # type: ignore
-from Standard_library_scoring import (  # Import PFAS and External Library matching functions
-    match_pfas_library,
-    match_external_targets,
-    load_pfas_library,
-    load_external_targets_library,
-)
 from post_source_decay_filter import remove_post_source_decay
 from regression_analysis import produce_filtered_df
+from smearing_filter import (
+    smearing_filter,  # type: ignore # Importing the smearing filter module
+)
+from Standard_library_scoring import (  # Import PFAS and External Library matching functions
+    load_external_targets_library,
+    load_pfas_library,
+    match_external_targets,
+    match_pfas_library,
+)
 
 
 def main():
@@ -75,8 +84,8 @@ def main():
 
     frequency_threshold = 5  # Detection frequency threshold percentage
 
-    rt_filter = False
-    ccs_filter = False
+    rt_filter = True
+    ccs_filter = True
 
     try:
         # Process files and separate data
@@ -367,7 +376,12 @@ def main():
     print("[INFO] Applying regression analysis filter...")
     try:
         adjusted_df = produce_filtered_df(
-            adjusted_df, standards_library_file, rt_filter, ccs_filter
+            adjusted_df,
+            standards_library_file,
+            rt_eq,
+            ccs_eq,
+            rt_filter=True,
+            ccs_filter=True,
         )
         adjusted_df.to_csv(
             "PIMMS Validation work/PIMMS data/after_rt_CCS_filter.csv",

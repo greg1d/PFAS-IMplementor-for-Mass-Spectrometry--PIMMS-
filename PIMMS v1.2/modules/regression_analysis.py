@@ -381,12 +381,9 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
             )
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
-def produce_filtered_df(
-    adjusted_df, library_file, rt_eq, ccs_eq, rt_filter=True, ccs_filter=True
-):
+def produce_filtered_df(adjusted_df, library_file, rt_filter, ccs_filter):
     filtered_df = adjusted_df.copy()
     ccs_eq = run_CCS_regression_analysis(library_file)
     rt_eq = run_RT_regression_analysis(library_file)
@@ -407,7 +404,6 @@ def produce_filtered_df(
             filtered_df["CCS"] <= ccs_q95.values
         )
         filtered_df = filtered_df[ccs_mask].copy()
-
     return filtered_df
 
 
@@ -424,20 +420,9 @@ def main():
     # Run regression to get quantile equations
     ccs_eq = run_CCS_regression_analysis(library_file)
     rt_eq = run_RT_regression_analysis(library_file)
-    print("\n[DEBUG] CCS Regression Equations:")
-    print(
-        f"  q05: y = {ccs_eq['q05_slope']:.4f} * log(m/z) + {ccs_eq['q05_intercept']:.4f}"
+    adjusted_df = produce_filtered_df(
+        adjusted_df, library_file, rt_eq, ccs_eq, rt_filter=True, ccs_filter=True
     )
-    print(
-        f"  q95: y = {ccs_eq['q95_slope']:.4f} * log(m/z) + {ccs_eq['q95_intercept']:.4f}"
-    )
-
-    # Apply individual filters
-    filtered_rt = exclude_rt_values(adjusted_df, rt_eq)
-    filtered_ccs = exclude_ccs_values(adjusted_df, ccs_eq)
-
-    # Plot the triple panel
-    plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq)
 
 
 if __name__ == "__main__":
