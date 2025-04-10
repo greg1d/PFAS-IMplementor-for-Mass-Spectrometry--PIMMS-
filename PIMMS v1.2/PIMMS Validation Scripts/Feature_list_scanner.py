@@ -14,8 +14,6 @@ features_df = pd.read_csv(features_file)
 targets_df = pd.read_csv(targets_file)
 skyline_df = pd.read_csv(skyline_file)
 
-print("Skyline columns:", skyline_df.columns.tolist())
-
 
 # === Normalize and build Name (Notes) for Skyline comparison ===
 def build_name_notes(row):
@@ -33,18 +31,10 @@ skyline_df["Name_Notes"] = skyline_df.apply(build_name_notes, axis=1)
 skyline_df.columns = skyline_df.columns.str.strip()
 
 # Print just the two specified columns
-print(
-    skyline_df[
-        [
-            "Detection Frequency (After Blank Subtraction, NIST Samples only)",
-            "Skyline average intensity post blank subtraction",
-        ]
-    ]
-)
+
 
 skyline_names = set(skyline_df["Name_Notes"])
 skyline_df.columns = skyline_df.columns.str.strip()
-print(skyline_df.columns.tolist())
 
 
 skyline_freq_sample_map = dict(
@@ -112,7 +102,6 @@ for idx, target in targets_df.iterrows():
         if notes and notes.lower() != "nan"
         else molecule_name
     )
-
     if not matches.empty:
         # Error metrics
         matches["MassError_ppm"] = (
@@ -165,6 +154,8 @@ for idx, target in targets_df.iterrows():
                 dummy_data[col] = 0
 
         all_matches.append(pd.DataFrame([dummy_data]))
+
+
 # === Post-processing after matching
 if all_matches:
     final_df = pd.concat(all_matches, ignore_index=True)
@@ -203,7 +194,6 @@ final_df = final_df.rename(
         "Skyline average intensity - post blank subtraction": "Skyline Average Intensity",
     }
 )
-
 # === Convert selected detection frequency columns to percentages ===
 for col in [
     "Detection_Freq_Sample",
@@ -239,6 +229,9 @@ final_columns = core_columns + ["Skyline Average Intensity"] + d_cols
 # === Subset only the selected columns ===
 final_df = final_df[[col for col in final_columns if col in final_df.columns]]
 
+# need to deconvolute here and then do the rest of the detection frequency calculation
+print(final_df)
+final_df.to_csv("final_df.csv")
 # === Print rows in final_df with duplicate "Name" values ===
 duplicates = final_df[final_df["Name"].duplicated(keep=False)]
 core_info = duplicates[
@@ -271,7 +264,7 @@ core_columns = [
     "Skyline Average Intensity",  # <-- Make sure it's here
 ]
 
-# Extract unique core info per duplicate group
+#  Extract unique core info per duplicate group
 core_info = duplicates[
     ["Name"] + [col for col in core_columns if col != "Name"]
 ].drop_duplicates("Name")
