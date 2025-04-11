@@ -361,7 +361,7 @@ def main():
     print("[INFO] Applying post filter decay filter...")
     try:
         adjusted_df = remove_post_source_decay(adjusted_df)
-        adjusted_df.to_csv("PIMMS Validation work/PIMMS data/after_decay_filter.csv")
+        adjusted_df.to_csv("PIMMS Validation work/PIMMS data/after_decay_filter 2.csv")
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
@@ -378,10 +378,8 @@ def main():
         adjusted_df = produce_filtered_df(
             adjusted_df,
             standards_library_file,
-            rt_eq,
-            ccs_eq,
-            rt_filter=True,
-            ccs_filter=True,
+            rt_filter,
+            ccs_filter,
         )
         adjusted_df.to_csv(
             "PIMMS Validation work/PIMMS data/after_rt_CCS_filter.csv",

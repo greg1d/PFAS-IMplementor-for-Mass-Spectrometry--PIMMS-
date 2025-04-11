@@ -412,17 +412,23 @@ def main():
     library_file = (
         r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
     )
-    adjusted_path = r"PIMMS Validation work\PIMMS data\after_decay_filter_test.csv"
+    adjusted_path = r"PIMMS Validation work\PIMMS data\after_decay_filter.csv"
 
     # Load adjusted data
     adjusted_df = pd.read_csv(adjusted_path)
 
     # Run regression to get quantile equations
-    ccs_eq = run_CCS_regression_analysis(library_file)
-    rt_eq = run_RT_regression_analysis(library_file)
+
+    rt_filter = True
+    ccs_filter = True
     adjusted_df = produce_filtered_df(
-        adjusted_df, library_file, rt_eq, ccs_eq, rt_filter=True, ccs_filter=True
+        adjusted_df,
+        library_file,
+        rt_filter,
+        ccs_filter,
     )
+
+    print(adjusted_df)
 
 
 if __name__ == "__main__":
