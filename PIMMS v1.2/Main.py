@@ -82,7 +82,7 @@ def main():
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
 
-    frequency_threshold = 5  # Detection frequency threshold percentage
+    frequency_threshold = 30  # Detection frequency threshold percentage
 
     rt_filter = True
     ccs_filter = True

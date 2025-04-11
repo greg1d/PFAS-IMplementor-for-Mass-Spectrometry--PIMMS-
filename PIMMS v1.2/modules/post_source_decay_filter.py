@@ -58,7 +58,7 @@ def remove_post_source_decay(adjusted_df):
                 match_id = match_row["ID"]  # ✅ Store ID instead of index
 
                 # Apply filtering criteria
-                if abs(likely_rt - match_rt) < 0.1 and match_ccs >= likely_ccs * 1.03:
+                if abs(likely_rt - match_rt) < 1 and match_ccs >= likely_ccs * 1.03:
                     # Ensure we remove the feature with the **higher** CCS
                     if match_ccs > likely_ccs:
                         decay_ids.add(match_id)
