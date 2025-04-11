@@ -123,34 +123,28 @@ def unsaturated_chain_elimination(adjusted_df, mass_error_ppm=15):
             (adjusted_df["m/z"] >= lower) & (adjusted_df["m/z"] <= upper)
         ]
         if not matches.empty:
-            print(f"Excluded n={n_C}, theoretical mass={formula_mass:.4f}")
             to_exclude.update(matches.index)
 
     return adjusted_df.drop(index=to_exclude).reset_index(drop=True)
 
 
-def main():
-    # Load test data
-    adjusted_df = pd.read_csv(
-        "PIMMS Validation work/PIMMS data/after_RT_CCS_filter.csv"
-    )
-    library_file = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-    library_df = pd.read_csv(library_file)
-    # Set ppm tolerance for grouping
-    mass_error_ppm = 15  # adjust as needed
+def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
     adjusted_df = prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm)
-    print("Filtered adjusted_df:", adjusted_df.shape)
-    adjusted_df = group_and_eliminate(adjusted_df, mass_error_ppm)  # adjust as needed
-    print("Filtered adjusted_df:", adjusted_df.shape)
-
+    adjusted_df = group_and_eliminate(adjusted_df, mass_error_ppm)
     adjusted_df = unsaturated_chain_elimination(adjusted_df, mass_error_ppm)
-    print("Filtered adjusted_df:", adjusted_df.shape)
-    # Save the filtered DataFrame to a CSV file
-    adjusted_df.to_csv(
-        "PIMMS Validation work/PIMMS data/after_RT_CCS_filter_grouped.csv",
-        index=False,
-    )
+    return adjusted_df
 
 
 if __name__ == "__main__":
-    main()
+    adjusted_df = pd.read_csv(
+        "PIMMS Validation work/PIMMS data/after_RT_CCS_filter.csv"
+    )
+    library_df = pd.read_csv(
+        r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+    )
+    mass_error_ppm = 15
+    adjusted_df = combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm)
+    adjusted_df.to_csv(
+        "PIMMS Validation work/PIMMS data/after_RT_CCS_filter_grouped.csv", index=False
+    )
+    print(adjusted_df)

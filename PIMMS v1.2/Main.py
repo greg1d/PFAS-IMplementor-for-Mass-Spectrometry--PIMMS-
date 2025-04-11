@@ -47,6 +47,8 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
     match_pfas_library,
 )
 
+from single_chromatography import combined_filter_pipeline  #
+
 
 def main():
     # File paths
@@ -82,7 +84,7 @@ def main():
     lower_mass_filter_bound = -0.11
     upper_mass_filter_bound = 0.12
 
-    frequency_threshold = 30  # Detection frequency threshold percentage
+    frequency_threshold = 15  # Detection frequency threshold percentage
 
     rt_filter = True
     ccs_filter = True
@@ -386,6 +388,26 @@ def main():
         )
         adjusted_df.to_csv(
             "PIMMS Validation work/PIMMS data/after_rt_CCS_filter.csv",
+            index=False,
+        )
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying post filter decay filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+    except Exception as e:
+        print(f"[ERROR] Failed to perform regression analysis: {e}")
+        sys.exit(1)
+
+    try:
+        library_file = (
+            r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
+        )
+        library_df = pd.read_csv(library_file)
+        adjusted_df = combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm)
+        adjusted_df.to_csv(
+            "PIMMS Validation work/PIMMS data/after_post_source_decay_and_chromatography_filtering.csv",
             index=False,
         )
         group_avg, group_std = count_non_zero_rows(adjusted_df)
