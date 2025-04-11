@@ -21,7 +21,7 @@ def pinball_loss(y, y_pred, q):
 
 # KFold Cross-validation setup
 def run_kfold_cv(
-    df, quantiles=[0.05, 0.5, 0.95], n_splits=5, shuffle=True, random_state=42
+    df, quantiles=[0.10, 0.5, 0.90], n_splits=5, shuffle=True, random_state=42
 ):
     # Initialize KFold and result storage
     kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
@@ -55,17 +55,17 @@ def run_kfold_cv(
                 preds[q] = res.predict(X_test)
 
             # Calculate Pinball Loss for each quantile
-            pin5 = pinball_loss(y_test, preds[0.05], 0.05)
+            pin5 = pinball_loss(y_test, preds[0.10], 0.10)
             pin50 = pinball_loss(y_test, preds[0.5], 0.5)
-            pin95 = pinball_loss(y_test, preds[0.95], 0.95)
+            pin95 = pinball_loss(y_test, preds[0.90], 0.90)
             pinball_losses_5.append(pin5)
             pinball_losses_50.append(pin50)
             pinball_losses_95.append(pin95)
 
             # Coverage and Width
-            coverage = ((y_test >= preds[0.05]) & (y_test <= preds[0.95])).mean()
+            coverage = ((y_test >= preds[0.10]) & (y_test <= preds[0.90])).mean()
             coverage_list.append(coverage)
-            interval_width = (preds[0.95] - preds[0.05]).mean()
+            interval_width = (preds[0.90] - preds[0.10]).mean()
             width_list.append(interval_width)
 
         # Store the results for each model
@@ -82,7 +82,7 @@ def run_kfold_cv(
 
 
 # Visualization function
-def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
+def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
     fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=True)
 
     for i, (ax, (label, formula)) in enumerate(zip(axes, models.items())):
@@ -96,9 +96,9 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         # Sort for smooth plotting
         sort_idx = df["PrecursorMz"].argsort()
         x_sorted = df["PrecursorMz"].values[sort_idx]
-        q5_sorted = preds[0.05].values[sort_idx]
+        q5_sorted = preds[0.10].values[sort_idx]
         q50_sorted = preds[0.5].values[sort_idx]
-        q95_sorted = preds[0.95].values[sort_idx]
+        q95_sorted = preds[0.90].values[sort_idx]
 
         # Fetch cross-validation results
         pin5 = cross_val_results[label]["Pinball Loss 5%"]
@@ -108,18 +108,19 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         interval_width = cross_val_results[label]["Width"]
 
         # Determine outliers and inliers
-        lower = preds[0.05]
-        upper = preds[0.95]
+        lower = preds[0.10]
+        upper = preds[0.90]
         y = df["PrecursorRT"]
 
         inliers_mask = (y >= lower) & (y <= upper)
         outliers_mask = ~inliers_mask
-
+        print("df cols:", df.columns)
         # Print PrecursorNames of outliers if column exists
         if "PrecursorName" in df.columns:
             outliers = df[outliers_mask]
             print(f"\nOutliers for {label} model:")
-            print(outliers["PrecursorName"].to_string(index=False))
+            for name in outliers["PrecursorName"]:
+                print(f"  - {name}")
 
         # Plot inliers in gray
         ax.scatter(
@@ -215,7 +216,7 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
 def run_RT_regression_analysis(library_file):
     # Load data
     df = pd.read_csv(library_file)
-    df = df[["PrecursorMz", "PrecursorRT"]].dropna()
+    df = df[["PrecursorName", "PrecursorMz", "PrecursorRT"]].dropna()
     df["log_mz"] = np.log(df["PrecursorMz"])
 
     # Run KFold cross-validation
@@ -223,8 +224,8 @@ def run_RT_regression_analysis(library_file):
 
     # Logarithmic Model Equations (5th and 95th Percentiles)
     X = dmatrix("1 + log_mz", df, return_type="dataframe")
-    model_5 = QuantReg(df["PrecursorRT"], X).fit(q=0.05)
-    model_95 = QuantReg(df["PrecursorRT"], X).fit(q=0.95)
+    model_5 = QuantReg(df["PrecursorRT"], X).fit(q=0.10)
+    model_95 = QuantReg(df["PrecursorRT"], X).fit(q=0.90)
 
     coef_5 = model_5.params
     coef_95 = model_95.params
