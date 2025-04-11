@@ -224,8 +224,15 @@ def plot_filtered_ccs(
     plt.tight_layout(rect=[0, 0, 1, 0.93])
 
 
-def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
+def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs):
+    library_file = (
+        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
+    )
     fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=False)
+    ccs_eq = run_CCS_regression_analysis(library_file)
+    print("CCS equation:", ccs_eq)
+    rt_eq = run_RT_regression_analysis(library_file)
+    print("RT equation:", rt_eq)
 
     # Prepare sorted m/z for line plotting
     mz_sorted = np.sort(adjusted_df["m/z"].values)
@@ -381,12 +388,15 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs, rt_eq, ccs_eq):
             )
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
 
 
 def produce_filtered_df(adjusted_df, library_file, rt_filter, ccs_filter):
     filtered_df = adjusted_df.copy()
     ccs_eq = run_CCS_regression_analysis(library_file)
+    print("CCS equation:", ccs_eq)
     rt_eq = run_RT_regression_analysis(library_file)
+    print("RT equation:", rt_eq)
     if rt_filter:
         log_mz = np.log(filtered_df["m/z"])
         rt_q05 = rt_eq["q05_slope"] * log_mz + rt_eq["q05_intercept"]
@@ -417,8 +427,6 @@ def main():
     # Load adjusted data
     adjusted_df = pd.read_csv(adjusted_path)
 
-    # Run regression to get quantile equations
-
     rt_filter = True
     ccs_filter = True
     adjusted_df = produce_filtered_df(
@@ -427,8 +435,6 @@ def main():
         rt_filter,
         ccs_filter,
     )
-
-    print(adjusted_df)
 
 
 if __name__ == "__main__":

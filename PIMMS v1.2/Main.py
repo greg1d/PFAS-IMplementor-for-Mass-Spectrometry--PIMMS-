@@ -375,9 +375,12 @@ def main():
 
     print("[INFO] Applying regression analysis filter...")
     try:
+        library_file = (
+            r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
+        )
         adjusted_df = produce_filtered_df(
             adjusted_df,
-            standards_library_file,
+            library_file,
             rt_filter,
             ccs_filter,
         )

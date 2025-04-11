@@ -100,22 +100,50 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         q50_sorted = preds[0.5].values[sort_idx]
         q95_sorted = preds[0.95].values[sort_idx]
 
-        # Fetch cross-validation results for the current model
+        # Fetch cross-validation results
         pin5 = cross_val_results[label]["Pinball Loss 5%"]
         pin50 = cross_val_results[label]["Pinball Loss 50%"]
         pin95 = cross_val_results[label]["Pinball Loss 95%"]
         coverage = cross_val_results[label]["Coverage"]
         interval_width = cross_val_results[label]["Width"]
 
-        # Plot data and quantile lines
+        # Determine outliers and inliers
+        lower = preds[0.05]
+        upper = preds[0.95]
+        y = df["PrecursorRT"]
+
+        inliers_mask = (y >= lower) & (y <= upper)
+        outliers_mask = ~inliers_mask
+
+        # Print PrecursorNames of outliers if column exists
+        if "PrecursorName" in df.columns:
+            outliers = df[outliers_mask]
+            print(f"\nOutliers for {label} model:")
+            print(outliers["PrecursorName"].to_string(index=False))
+
+        # Plot inliers in gray
         ax.scatter(
-            df["PrecursorMz"],
-            df["PrecursorRT"],
+            df.loc[inliers_mask, "PrecursorMz"],
+            df.loc[inliers_mask, "PrecursorRT"],
             color="gray",
             alpha=0.3,
             s=15,
-            label="Library Features",
+            label="Within Bounds",
         )
+
+        # Plot outliers in red
+        ax.scatter(
+            df.loc[outliers_mask, "PrecursorMz"],
+            df.loc[outliers_mask, "PrecursorRT"],
+            color="red",
+            alpha=0.7,
+            edgecolors="black",
+            linewidths=0.4,
+            s=25,
+            label="Outside Bounds",
+        )
+
+        # Quantile lines
         ax.plot(x_sorted, q50_sorted, color="black", label="Median (50%)")
         ax.plot(
             x_sorted, q5_sorted, linestyle="--", color="red", label="5th Percentile"
@@ -125,7 +153,7 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         )
         ax.fill_between(x_sorted, q5_sorted, q95_sorted, color="red", alpha=0.1)
 
-        # Add metric box with KFold results
+        # Metric box
         metrics_text = (
             f"Pinball Loss:\n"
             f"5% = {pin5:.3f}\n"
@@ -151,20 +179,20 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
 
         ax.set_title(label, fontsize=10, fontweight="bold", fontfamily="Arial")
         ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
-        ax.set_ylim(0, 300)
+        ax.set_ylim(0, 20)
         ax.grid(True)
         ax.tick_params(axis="both", labelsize=9)
-        for label in ax.get_xticklabels() + ax.get_yticklabels():
-            label.set_fontname("Arial")
-            label.set_fontweight("bold")
+        for tick_label in ax.get_xticklabels() + ax.get_yticklabels():
+            tick_label.set_fontname("Arial")
+            tick_label.set_fontweight("bold")
 
         if i == 0:
             ax.set_ylabel(
-                "CCS (Å²)", fontsize=10, fontweight="bold", fontfamily="Arial"
+                "RT (min)", fontsize=10, fontweight="bold", fontfamily="Arial"
             )
 
     handles, labels = axes[1].get_legend_handles_labels()
-    unique = dict(zip(labels, handles))  # Remove duplicates by label
+    unique = dict(zip(labels, handles))
     legend = axes[1].legend(
         unique.values(),
         unique.keys(),
@@ -176,12 +204,12 @@ def plot_results(df, cross_val_results, quantiles=[0.05, 0.5, 0.95]):
         edgecolor="gray",
         framealpha=0.7,
     )
-
-    # Manually style legend text
     for text in legend.get_texts():
         text.set_fontweight("bold")
         text.set_fontfamily("Arial")
+
     plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
 
 
 def run_RT_regression_analysis(library_file):
@@ -211,3 +239,13 @@ def run_RT_regression_analysis(library_file):
         "q95_intercept": coef_95["Intercept"],
         "q95_slope": coef_95["log_mz"],
     }
+
+
+if __name__ == "__main__":
+    # File path for the dataset
+    library_file = (
+        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
+    )
+
+    # Run the analysis
+    run_RT_regression_analysis(library_file)
