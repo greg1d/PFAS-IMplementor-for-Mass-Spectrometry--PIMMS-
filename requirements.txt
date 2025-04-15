@@ -14,3 +14,4 @@ cmocean
 scikit-learn
 plotly
 dash
+patsy

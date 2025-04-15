@@ -47,7 +47,8 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
     match_pfas_library,
 )
 
-from single_chromatography import combined_filter_pipeline  #
+from single_chromatography import combined_filter_pipeline
+from adduct_checker import find_matching_mass_relationships
 
 
 def main():
@@ -418,6 +419,21 @@ def main():
         )
     except Exception as e:
         print(f"[ERROR] Failed to perform regression analysis: {e}")
+        sys.exit(1)
+
+    print("[INFO] Applying post adduct filter...")
+    try:
+        adjusted_df = find_matching_mass_relationships(adjusted_df)
+        adjusted_df.to_csv("PIMMS Validation work/PIMMS data/after_adduct_filter.csv")
+
+        group_avg, group_std = count_non_zero_rows(adjusted_df)
+        print(
+            f"[INFO] After Applying adduct filter:\n"
+            f"  Average Non-Zero Rows: {group_avg}\n"
+            f"  Std Dev of Non-Zero Rows: {group_std}"
+        )
+    except Exception as e:
+        print(f"[ERROR] Failed to perform adduct filtering: {e}")
         sys.exit(1)
 
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"

@@ -1,0 +1,804 @@
+Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),01 A.d.DeMP, 01 B.d.DeMP, 01 C.d.DeMP
+PFHpA (M-H-CO2),PFAS Standards,likely,27194,8.114,17.569,132.62,318.98065,2.66,0.18,N/A,6706.995,0,1130.521406
+FHxSA (M-H),PFAS Standards,likely,5798,9.76,20.341,152.11,397.9506,-5.03,0.1,N/A,33401.37125,0,0
+PFHxS (M-H),PFAS Standards,likely,2005,8.355,20.167,150.85,398.9345,-5.26,0.23,N/A,203206.0655,51908.28548,45639.57548
+PFNA (M-H-CO2),PFAS Standards,likely,3997,10.308,19.725,147.3,418.9704,-7.16,0.19,N/A,56428.82845,6895.278449,6464.478449
+6:2 FTS (M-H),PFAS Standards,likely,22968,9.227,22.575,168.68,426.9638,-9.6,0.33,N/A,3766.095,0,0
+PFHpS (M-H),PFAS Standards,likely,5223,9.404,21.426,159.49,448.9313,-4.68,0.16,N/A,62490.119,20829.899,16702.989
+PFDA (M-H-CO2),PFAS Standards,likely,6650,11.06,20.923,155.57,468.9663,-8.32,0.19,N/A,55778.699,4156.285,6352.629
+PFOS (M-H),PFAS Standards,likely,41,10.343,22.709,168.72,498.9255,-9.42,0.27,N/A,20826528.22,6296815.225,5846595.225
+PFDA (M-H),PFAS Standards,likely,37583,11.066,23.569,175.18,512.9539,-11.89,0.56,N/A,1302.479,0,0
+PFUdA (M-H-CO2),PFAS Standards,likely,1664,11.771,22.109,164.01,518.9633,-7.13,0.4,N/A,369472.1253,64760.48531,56184.76531
+NEtFOSA (M-H),PFAS Standards,likely,31473,11.786,24.076,178.82,525.9723,-9.89,-0.33,N/A,1921.758,0,0
+PFNS (M-H),PFAS Standards,likely,18133,10.9385,23.8035,176.405,548.9203,-12.21,-0.47,N/A,50364.409,13153.199,8529.02
+PFUdA (M-H),PFAS Standards,likely,7352,11.742,24.695,182.67,562.9492,-13.5,-0.1,N/A,45126.449,6910.617,2612.152
+PFDoA (M-H-CO2),PFAS Standards,likely,21354,12.2315,23.365,173.015,568.95835,-9.58,0.88,N/A,47113.539,7536.214,4574.435
+NEtFOSAA (M-H),PFAS Standards,likely,12606,11.757,26.605,197.06,583.9749,-13.87,-0.07,N/A,17127.619,0,0
+PFDS (M-H),PFAS Standards,likely,13846,11.47566667,24.77266667,182.91,598.9175,-10.52,-1.77,N/A,101279.299,17351.939,27809.479
+PFDS (M-H),PFAS Standards,likely,457,11.75,25.212,186.33,598.9181,-9.52,0.06,N/A,1567655.007,485814.5075,435224.1075
+PFDoA (M-H),PFAS Standards,likely,17508,12.303,26.064,192.85,612.9474,-10.28,0.77,N/A,7360.179,0,0
+PFTrDA (M-H-CO2),PFAS Standards,likely,26578,12.7435,24.558,181.485,618.95485,-9.29,1.02,N/A,101780.899,26580.309,28059.559
+PFTrDA (M-H),PFAS Standards,likely,8716,12.818,27.227,200.75,662.943,-11.31,0,N/A,35161.099,0,4073.441
+PFTeDA (M-H-CO2),PFAS Standards,likely,27328,13.287,25.589,188.34,668.9505,-10.31,0.38,N/A,0,2588.317,0
+PFDoS (M-H),PFAS Standards,likely,21117,12.6605,27.5925,203.345,698.9122,-7.44,-0.16,N/A,24274.309,1875.869,2929.577
+"3,3,4,4-Tetrafluoro-1-butanol or 3,3,4,4-Tetrafluoro-2-butanol",External Targets,tentative,15101,2.443,15.781,124.68,145.0297,10.36,N/A,N/A,9983.571,793.2408,0
+"Butanoic acid, 3,3,4,4-tetrafluoro-2,2-dimethyl-",External Targets,tentative,35181,2.943,17.661,137.17,187.0408,10.9,N/A,N/A,1509.212,0,0
+"4-Hexen-3-one, 1,1,2,2-tetrafluoro-5-mercapto- or 5,5,6,6-Tetrafluoro-4-sulfanylhex-3-en-2-one or 5,6,6,6-Tetrafluoro-4-sulfanylhex-3-en-2-one",External Targets,tentative,35721,5.81,17.85,138,201.0005,1.15,N/A,N/A,1460.051,0,0
+"3-(2,2,3,3-Tetrafluoropropoxy)propane-1,2-diol",External Targets,tentative,46011,3.521,18.337,141.58,205.0516,11.09,N/A,N/A,379.6813401,0,0
+"2-Propanol, 2-(chloromethyl)-1,1,1,3,3,3-hexafluoro-",External Targets,tentative,16689,2.688,17.393,133.71,214.9716,5.67,N/A,N/A,6875.31,1482.502,0
+"Ethyl 4,4,5,5-tetrafluoro-3-hydroxypent-2-enoate",External Targets,tentative,45958,4.751,18.101,138.88,215.0326,-5.01,N/A,N/A,0,284.9802131,0
+"3-Hydroxy-3-(1,1,2,2-tetrafluoroethyl)piperazin-2-one",External Targets,tentative,11274,5.6935,17.5405,134.955,215.0428,-9.81,N/A,N/A,1201.318793,0,0
+"Methyl 3-amino-4,4,5,5,5-pentafluoropent-2-enoate",External Targets,tentative,43378,2.977,18.49,141.75,218.0274,12.89,N/A,N/A,0,0,912.2566
+"Methyl 4,4,5,5-tetrafluoro-3,3-dihydroxypentanoate",External Targets,tentative,8812,6.218,18.9195,145.15,219.0286,0.04,N/A,N/A,0,4119.390008,0
+"Methyl 4,4,5,5-tetrafluoro-3,3-dihydroxypentanoate",External Targets,tentative,12751,6.745,18.8985,144.885,219.0286,0.04,N/A,N/A,0,741.0225668,0
+"Butanoic acid, 3,3,4,4-tetrafluoro-2-hydrazino-2-hydroxy-, hydrazide",External Targets,tentative,9128,5.406,19.517,149.91,219.0524,6.13,N/A,N/A,31030.02153,0,0
+"2,2,3,3,4,4,4-Heptafluorobutanimidohydrazide",External Targets,tentative,33018,2.275,20.003,153,226.0197,-10.46,N/A,N/A,0,1735.056,0
+"4,4-Bis(trifluoromethyl)-4,5-dihydro-1H-pyrazole-3-carbonitrile or 5,5-Bis(trifluoromethyl)-4,5-dihydro-1H-pyrazole-4-carbonitrile",External Targets,tentative,12852,2.655,19.424,148.97,230.0135,-10.16,N/A,N/A,16409.709,0,0
+"2,2,3,3,3-Pentafluoro-1-(piperazin-1-yl)propan-1-one",External Targets,tentative,50826,2.354,19.367,147.97,231.0588,11.15,N/A,N/A,0,0,434.7572
+"2-(heptafluoropropyl)-4,5-dihydro-1h-imidazole",External Targets,tentative,11832,4.649,19.356,148.21,237.0239,-12.3,N/A,N/A,19833.639,0,0
+"2-(heptafluoropropyl)-4,5-dihydro-1h-imidazole",External Targets,tentative,5167,5.021,19.8365,151.475,237.02415,-11.24,N/A,N/A,51114.57727,1271.525,765.9727
+"4-Methyl-5-(1,1,2,2-tetrafluoroethoxy)benzene-1,2-diamine",External Targets,tentative,5987,5.406,19.777,151.21,237.0637,-8.21,N/A,N/A,49196.52092,971.960922,1458.100922
+"2,4-Pentanediol, 4-methyl-1,1,1-trifluoro-2-(trifluoromethyl)- or 3,3,4,4,5,5-hexafluoroheptane-2,6-diol",External Targets,tentative,15317,5.373,20.25,154.69,239.0509,-1.33,N/A,N/A,9916.9,487.0741,0
+5-fluoro-2-methyl-6-(pentafluoroethyl)pyrimidin-4(1h)-one,External Targets,tentative,3680,2.287,20.381,155.49,245.0132,-9.39,N/A,N/A,94620.06536,30957.11536,7149.855358
+3-(Heptafluoropropyl)-5-methyl-1H-pyrazole,External Targets,tentative,34426,5.1445,20.1495,153.875,249.02525,-6.29,N/A,N/A,3223.78,0,0
+"(2,2,4,4-Tetrafluoro-2H,4H-1,3-benzodioxin-6-yl)boronic acid or 2-Hydroxy-2-methyl-5,5-bis(trifluoromethyl)oxolan-3-one or 3-(Heptafluoropropyl)-1H-1,2,4-triazol-5-amine",External Targets,tentative,326,2.501,19.819,151.07,251.014,-13.2 or -3.32 or -1.68,N/A,N/A,1603247.447,575533.4468,377768.6468
+6-fluoro-2-(pentafluoroethyl)-1h-benzimidazole,External Targets,tentative,18385,5.041,19.9085,151.925,253.01755,-12,N/A,N/A,8861.26,0,0
+"2-{[2-(Dimethylamino)ethyl]amino}-1,1,1,3,3,3-hexafluoropropan-2-ol",External Targets,tentative,18885,2.4,20.525,156.61,253.0756,-9.89,N/A,N/A,2857.058466,0,0
+"2-(1,1,2,3,3,3-Hexafluoropropoxy)phenol or 2-(HEXAFLUORO-2-HYDROXY-2-PROPYL)PHENOL",External Targets,tentative,10836,4.437,20.527,156.44,259.0223,9.19,N/A,N/A,24290.779,0,0
+2-(4H-Perfluorobutyl)-2-propanol,External Targets,tentative,36783,6.446,20.004,151.93,259.0402,10.58,N/A,N/A,0,0,1367.135
+"1H-Pyrazol-5-ol, 1-phenyl-3-(1,1,2,2-tetrafluoroethyl)- or 2,2,3,3,4,4,5,5-Octafluoro-1,6-hexanediamine",External Targets,tentative,11098,5.495,19.014,144.7,259.0485,-5.77 or -0.75,N/A,N/A,413.9528468,0,0
+6-(Heptafluoropropyl)pyridin-3-amine,External Targets,tentative,17263,5.6795,20.831,158.555,261.02295,-14.81,N/A,N/A,159024.0588,18742.83875,14743.64875
+"4-[(2,2,3,3,3-Pentafluoropropyl)sulfanyl]benzene-1,2-diamine",External Targets,tentative,33197,2.455,20.621,156.54,271.0359,9.3,N/A,N/A,729.9258263,0,0
+"(2E)-4,4,5,5,6,6,7,7,7-Nonafluorohept-2-en-1-ol or 4,4,5,5,6,6,7,7,7-Nonafluorohept-2-en-1-ol or 4-[(1,1,1,3,3,3-Hexafluoro-2-hydroxypropan-2-yl)oxy]phenol",External Targets,tentative,9731,4.085,20.381,154.62,275.0113,-12.85 or -3.96,N/A,N/A,27778.999,0,3147.098
+"1-Amino-3,3,4,4,5,5,6,6,6-nonafluorohexan-2-ol",External Targets,tentative,14850,3.15,20.873,158.54,278.0239,2.2,N/A,N/A,8299.237441,0,0
+"5-(1,1,1,2,3,3,3-Heptafluoropropan-2-yl)pyrimidine-2,4(1H,3H)-dione or AC1LC6EI",External Targets,tentative,13280,6.114,20.453,155.15,278.9969,-14.68,N/A,N/A,12461.04903,0,0
+Nonafluorobutane-1-sulfinic acid,External Targets,tentative,48777,4.001,19.598,148.24,282.9487,2.21,N/A,N/A,0,552.0971,0
+"2-Amino-6,6,7,7,8,8,8-heptafluorooctanoic acid or 2-Methyl-4,4-bis(trifluoromethyl)-1,4-dihydro-2H-3,1-benzoxazine or Ethyl 4,4,5,5,6,6,6-heptafluoronorleucinate",External Targets,tentative,46362,7.218,20.414,154.37,284.0529,0.72 or 4.74,N/A,N/A,0,709.8494,0
+"2-hydroxy-4-(2,2,3,3,3-pentafluoropropoxy)benzoic Acid",External Targets,tentative,536,3.364,21.218,160.59,285.0182,-3.4,N/A,N/A,1304428.387,446966.287,296905.787
+AI 3-18011,External Targets,tentative,16628,8.2095,19.4375,146.915,288.025,-5.14,N/A,N/A,0,0,8417.948
+"N-Ethyl-2,2,3,3,4,4,5,5,5-nonafluoropentanamide or N-Ethyl-2,3,3,4,4,4-hexafluoro-2-(trifluoromethyl)butanamide",External Targets,tentative,21247,6.341,21.019,159.07,290.0226,-2.37,N/A,N/A,4197.345,353.4322,0
+"N-Ethyl-2,2,3,3,4,4,5,5,5-nonafluoropentanamide or N-Ethyl-2,3,3,4,4,4-hexafluoro-2-(trifluoromethyl)butanamide",External Targets,tentative,17790,6.86,20.849,158.06,290.019,-14.78,N/A,N/A,7069.883,0,0
+"5-(Heptafluoropropyl)-6-methylpyrimidine-2,4(1H,3H)-dione",External Targets,tentative,43991,7.035,21.38,162,293.0129,-12.78,N/A,N/A,873.6598,0,0
+"3,3,4,5,5,6,6,7,7,7-Decafluoroheptan-2-ol",External Targets,tentative,51126,5.129,19.723,148.91,295.0144,-14.29,N/A,N/A,0,0,420.1737
+"2,2,3,3,3-Pentafluoro-1-(2,2,3,3,3-pentafluoropropoxy)propan-1-ol or 2,2,3-Trifluoro-3-(heptafluoropropoxy)propan-1-ol",External Targets,tentative,18814,7.611,21.773,164.87,296.9991,4.1,N/A,N/A,6125.998,0,0
+5:1 Fluorotelomer alcohol,External Targets,tentative,19063,4.824,20.562,155.68,298.9936,0.19,N/A,N/A,5917.217,0,0
+EF5,External Targets,tentative,761,3.575333333,21.88466667,165.3333333,301.0338333,-9.03,N/A,N/A,1056755.587,155024.587,110976.887
+"Benzoic acid, 5-amino-2-(2-hydroxy-1,1,1,3,3,3-hexafluoro-2-propyl)-",External Targets,tentative,34629,5.157,17.645,133.13,302.0224,-11.03,N/A,N/A,0,1565.988,0
+"2,2,3,3,4,4,4-Heptafluoro-N'-phenylbutanehydrazide",External Targets,tentative,41899,7.845,21.834,165.19,303.0397,7.66,N/A,N/A,997.943,0,0
+"2,2,3,3-Tetrafluoropropyl 4-(2H-tetrazol-5-yl)benzoate",External Targets,tentative,11336,6.426,21.717,163.93,303.0546,11.69,N/A,N/A,18256.639,737.3891,3017.806
+"4-(2-Bromo-2,3,3,3-tetrafluoropropanamido)butanoic acid",External Targets,tentative,15860,4.099,21.056,159.21,307.9579,9.13,N/A,N/A,9521.119,0,0
+"2,2,3,3,4,5,5,5-octafluoro-4-(trifluoromethyl)pentanoic acid or 2,2,3,4,4,5,5,5-Octafluoro-3-(trifluoromethyl)pentanoic acid or Perfluorohexanoic acid",External Targets,tentative,40261,6.568,21.709,164.03,312.9705,-7.38,N/A,N/A,1104.606,0,0
+"2-(4,4,5,5,6,6,6-heptafluorohexyl)propanedioic Acid or 2-Hydroxy-2-phenyl-5,5-bis(trifluoromethyl)oxolan-3-one",External Targets,tentative,49489,7.826,19.717,149.01,313.0335,5.99 or 9.64,N/A,N/A,508.3945,0,0
+2-Amino-3-(perfluoropropyl)-1-phenyl-3-propanol,External Targets,tentative,46664,8.0162,21.4098,161.134,318.06882,-14.5,N/A,N/A,0,0,7077.134
+6-Methoxy-5-(pentafluoroethyl)naphthalene-1-carboxylic acid,External Targets,tentative,40197,7.739,20.893,157.48,319.0404,1.55,N/A,N/A,0,12.16893232,0
+"2-Ethyl-4,4,4-trifluoro-1-(thiophen-2-yl)-3-(trifluoromethyl)butane-1,3-diol",External Targets,tentative,25536,7.861,22.167,167.31,321.0429,12.34,N/A,N/A,2987.169,0,0
+N-Methyl-4-(nonafluorobutyl)aniline,External Targets,tentative,37110,7.626,21.201,159.7,324.0399,-12.72,N/A,N/A,620.9069,718.6662,0
+"6-[1,2,2,2-Tetrafluoro-1-(trifluoromethyl)ethyl]-2,4(1H,3H)-quinazolinedione",External Targets,tentative,51432,5.977,21.26,159.76,329.0133,-10.17,N/A,N/A,0,0,404.1134
+"2,2-Bis(3-aminophenyl)hexafluoropropane or Benzenamine, 4,4'-[2,2,2-trifluoro-1-(trifluoromethyl)ethylidene]bis-",External Targets,tentative,29854,9.004,22.412,168.61,333.0792,-11.97,N/A,N/A,0,0,1600.749201
+"Malononitrile, (6-(2-hydroxy-3,3,3-trifluoro-2-trifluoromethylpropyl)-2-pyridylmethylene)-",External Targets,tentative,22326,8.05,21.215,159.61,334.0424,1.05,N/A,N/A,290.4394919,0,23.92049192
+"3,3,4,4,5,5,6,6,6-Nonafluoro-2-hydroxy-N,N~2~-dimethylnorleucinamide",External Targets,tentative,48991,8.406,21.938,165.02,335.0408,-11.79,N/A,N/A,402.6621,135.4184,0
+"3-[(3,3,4,4,5,5,6,6,6-Nonafluorohexyl)oxy]propane-1,2-diol",External Targets,tentative,52631,7.933333333,22.18233333,166.7166667,337.053,11.37,N/A,N/A,0,619.9126,0
+"N-Methyl-4-[3,4,4,4-tetrafluoro-3-(trifluoromethyl)butane-1-sulfonyl]butan-1-amine",External Targets,tentative,12933,5.569,22.889,171.94,346.0752,10.06,N/A,N/A,14532.609,0,1588.509
+"Ethyl [1,1,1,3,3,3-hexafluoro-2-(4-fluoroanilino)propan-2-yl]carbamate",External Targets,tentative,15330,9.427666667,22.08933333,165.7666667,347.0587667,-13.91,N/A,N/A,0,10387.519,0
+"(3,3,4,4,5,5,6,6,6-Nonafluorohexyl)di(propan-2-yl)silane",External Targets,tentative,41954,7.658,23.585,176.57,361.1068,7.89,N/A,N/A,0,0,994.674
+Perfluoroheptanamide,External Targets,tentative,42296,5.551,21.85,164.17,361.9832,-6.63,N/A,N/A,973.8526,0,0
+"2,2,3,3,4,4,4-Heptafluoro-N-(4-methoxy-2-nitrophenyl)butanamide or 3-(Nonafluorobutyl)quinoxalin-2(1H)-one",External Targets,tentative,17067,6.737,23.813,178.86,363.0217,-1.17 or 8.71,N/A,N/A,7847.323,0,0
+"2,2-Bis[(2,2,3,3-tetrafluoropropoxy)methyl]propane-1,3-diol",External Targets,tentative,28416,5.714,23.049,173.13,363.0799,-13.51,N/A,N/A,2376.454,0,0
+"4-(1,1,1,2,3,3,3-Heptafluoropropan-2-yl)-3-(methanesulfinyl)-2-methylbenzoic acid",External Targets,tentative,38936,9.441,22.5315,169.03,365.01245,10.05,N/A,N/A,97.82412405,0,115.245924
+"N'-(Benzenesulfonyl)-2,2,3,3,4,4,4-heptafluorobutanimidohydrazide",External Targets,tentative,53454,6.523,21.877,163.73,366.0151,-0.45,N/A,N/A,0,304.1311,0
+"2-{2-[(3,3,4,4,5,5,6,6,6-Nonafluorohexyl)sulfanyl]ethoxy}ethan-1-ol",External Targets,tentative,49048,7.936,22.694,169.82,367.0403,-4.56,N/A,N/A,0,535.3632,0
+"N'-[(2Z)-5,5,6,6,7,7,7-Heptafluoro-4-oxohept-2-en-2-yl]benzohydrazide",External Targets,tentative,38142,9.685,23.039,172.32,371.061,-6.99,N/A,N/A,0,0,1257.536
+"1-(4-Bromophenyl)-4,4,4-trifluoro-2-methyl-3-(trifluoromethyl)butane-1,3-diol",External Targets,tentative,43729,6.679,19.11,143.41,378.9766,-2.06,N/A,N/A,890.1803,0,0
+"2,2,3,3,4,4,4-Heptafluoro-N-[(4-sulfamoylphenyl)methyl]butanamide",External Targets,tentative,52308,9.918,21.511,161.34,381.0206,14.88,N/A,N/A,361.3129,0,0
+"1,1,1,7,7,7-hexafluoro-4-methylidene-2,6-bis(trifluoromethyl)heptane-2,6-diol",External Targets,tentative,52560,7.059,23.647,176.6,387.0316,14.5,N/A,N/A,0,0,347.5971
+"2-[(2,2,3,3,4,4,5,5,6,6,7,7,7-Tridecafluoroheptyl)oxy]ethan-1-ol or 4,4,5,5,6,6,7,7,8,8,9,9,9-tridecafluorononane-1,2-diol",External Targets,tentative,54535,8.884,21.426,159.97,393.0199,8.48,N/A,N/A,0,232.2995,0
+8H-Perfluorooctanoic acid,External Targets,tentative,48737,7.494,19.626,147.06,394.9721,-9.48,N/A,N/A,555.0951,0,0
+"2-[(4-Methoxypyridin-2-yl)methanesulfinyl]-6-(1,1,2,2-tetrafluoroethoxy)-1H-benzimidazole or 3,3,4,4,5,5,6,6,7,7,8,8,8-Tridecafluoro-N-(prop-2-en-1-yl)octan-1-amine",External Targets,tentative,55173,9.002,23.403,174.57,402.0514,-6.7 or -4.69,N/A,N/A,0,0,163.2658
+"3-methyl-4-(2,2,3,3,4,4,5,5,5-nonafluoropentyl)cyclopentane-1,1-dicarboxylic Acid",External Targets,tentative,49195,10.267,22.837,170.34,403.0541,-13.97,N/A,N/A,0,0,526.1541
+"Butanamide, N-(2-bromo-4-nitrophenyl)-2,2,3,3,4,4,4-heptafluoro- or Propanamide, N-(2-bromo-4-nitrophenyl)-2,3,3,3-tetrafluoro-2-(trifluoromethyl)-",External Targets,tentative,7891,10.101,24.828,185.26,410.9172,-11.86,N/A,N/A,36818.249,5347.166,5441.984
+Perfluorooctanamidine,External Targets,tentative,48891,9.7895,21.4545,160.51,410.9928,-13.6,N/A,N/A,544.4223,0,0
+"2-Propanone, hexafluoro-, 2-(2,6-dinitro-4-(trifluoromethyl)phenyl)hydrazone",External Targets,tentative,49941,9.825,20.9055,156.395,412.9956,4.41,N/A,N/A,482.9262,0,0
+"2-Propanone, hexafluoro-, 2-(2,6-dinitro-4-(trifluoromethyl)phenyl)hydrazone",External Targets,tentative,43508,10.17,21.214,158.7,412.992,-4.31,N/A,N/A,903.7329,0,0
+"3,3,4,4,5,5,6,6,7,7,8,8,9,9,9-Pentadecafluorononan-1-ol or 3,3,4,4,5,5,6,6,7,8,8,8-Dodecafluoro-7-(trifluoromethyl)octan-1-ol or 7:2 sFluorotelomer alcohol",External Targets,tentative,49610,9.366,21.164,158.33,413.0059,7.49,N/A,N/A,501.5575,0,0
+"2-(Tridecafluorohexyl)-5,6-dihydro-2H-pyran-2-ol",External Targets,tentative,40650,10.2125,22.31,166.525,417.0127,-9.27,N/A,N/A,336.2753,1080.072,0
+"2-(Tridecafluorohexyl)-5,6-dihydro-2H-pyran-2-ol",External Targets,tentative,45783,10.015,22.717,169.56,417.0223,13.75,N/A,N/A,0,333.8408874,0
+"5,5,6,6,7,7,8,8,9,9,10,10,10-Tridecafluoro-2-hydroxydecanoic acid",External Targets,tentative,52581,9.265,21.422,160.15,421.0069,-10.88,N/A,N/A,346.8756,0,0
+"5,5,6,6,7,7,8,8,9,9,10,10,10-Tridecafluoro-2-hydroxydecanoic acid",External Targets,tentative,31003,10.094,21.922,163.88,421.0062,-12.54,N/A,N/A,746.2142609,0,0
+"2,2,3,3,4,4,5,5,6,6,7,7-dodecafluoro-N-pyridin-2-ylheptanamide or 5,5,6,6,7,7,8,8,9,9,10,10,10-Tridecafluoro-2-hydroxydecanoic acid",External Targets,tentative,54348,8.865,21.138,158.04,421.0156,-14.18 or 9.79,N/A,N/A,246.2296,0,0
+"2,2-bis(3-nitro-4-hydroxyphenyl)hexafluoropropane or 4,4'-(1,1,2,2,3,3-Hexafluoropropane-1,3-diyl)bis(2-nitrophenol) or Benzamide, 2,6-difluoro-N-(((2-fluoro-4-((1,1,2,2-tetrafluoroethyl)thio)phenyl)amino)carbonyl)-",External Targets,tentative,34993,9.919,22.484,168.02,425.0158,-13.12 or -9.92,N/A,N/A,180.0191934,0,0
+"3-[5'-fluoro-2'-(2,2,3,3,3-pentafluoropropoxy)biphenyl-3-yl]-1H-1,2,4-triazole-5-carboxamide",External Targets,tentative,16089,9.449,23.791,177.4,429.0751,-9.47,N/A,N/A,1448.482494,0,3761.087494
+5-(Pentadecafluoroheptyl)-1H-imidazole,External Targets,tentative,43104,10.069,21.389,159.75,434.9993,2.09,N/A,N/A,927.6105,0,0
+"1,2-bis(Heptafluorobutyryl)hydrazine hydrazone",External Targets,tentative,45000,10.375,22.695,169.45,437.0029,-13.67,N/A,N/A,799.5957,0,0
+"1,2-bis(Heptafluorobutyryl)hydrazine hydrazone",External Targets,tentative,49778,10.159,23.015,171.83,437.011,4.86,N/A,N/A,492.5412,0,0
+"1-Propanol, 3-[(3,3,4,4,5,5,6,6,7,7,8,8,8-tridecafluorooctyl)thio]-",External Targets,tentative,44441,10.429,22.734,169.735,437.01935,-12.98,N/A,N/A,517.5943,0,0
+"2-Chloro-N-{[4-(1,1,1,3,3,3-hexafluoro-2-hydroxypropan-2-yl)phenyl]carbamoyl}benzamide",External Targets,tentative,48178,10.573,22.607,168.77,439.0289,-0.13,N/A,N/A,590.8474,0,0
+"Ethanol, 2-[(2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-pentadecafluorooctyl)oxy]-",External Targets,tentative,53537,10.794,22.082,164.81,443.0079,-12.35,N/A,N/A,299.2398,0,0
+"1H,1H-Perfluoro(3,5,5-trimethylhexan-1-ol) or 8:1 Fluorotelomer alcohol",External Targets,tentative,54223,9.614,22.294,166.33,448.987,6.76,N/A,N/A,255.8506,0,0
+"3-(2-Chloroethyl)-1,1,1,7,7,7-hexafluoro-2,6-dihydroxy-2,6-bis(trifluoromethyl)heptan-4-one or N-[(5-bromo-2-propan-2-yloxyphenyl)methylideneamino]-2,2,3,3,4,4,4-heptafluorobutanamide",External Targets,tentative,52645,9.56,22.682,169.2,450.9939,-8.16 or 9.18,N/A,N/A,344.1959,0,0
+"2,6-Difluoro-N-((2-fluoro-4-(1,1,2,2-tetrafluoroethylsulfonyl)phenyl)carbamoyl)benzamide or B-(3,5-bis(Perfluoro-1-methylethyl)phenyl)boronic acid",External Targets,tentative,50242,10.504,22.5455,167.82,457.0108,2.09 or 4.76,N/A,N/A,33.51144854,0,550.3467
+"3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10-Hexadecafluoro-2-methyldecan-2-ol",External Targets,tentative,51965,9.283,23.886,178.07,459.0181,-14.35,N/A,N/A,376.909,0,0
+"1H,1H,10H,10H-Perfluorodecane-1,10-diol",External Targets,tentative,46061,10.549,22.484,167.62,461.0104,13.99,N/A,N/A,729.4004,0,0
+6:2 Fluorotelomer sulfinyl propanoic acid,External Targets,tentative,51864,10.462,23.017,171.51,467.0056,13.7,N/A,N/A,382.1605,0,0
+"N-(3-Aminopropyl)-2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-pentadecafluorooctanamide",External Targets,tentative,51894,10.598,25.729,190.98,469.034,-13.34,N/A,N/A,0,380.1837,0
+"3,3,4,4,5,5,6,6,7,7,8,8,8-Tridecafluoro-1-(phenylsulfanyl)octan-2-ol or 4-[(3,3,4,4,5,5,6,6,7,7,8,8,8-Tridecafluorooctyl)sulfanyl]phenol",External Targets,tentative,46228,9.928,21.655,161.36,471.0051,-9.07,N/A,N/A,718.4859,0,0
+"3,3,4,4,5,5,6,6,7,7,8,8,8-Tridecafluoro-1-(phenylsulfanyl)octan-2-ol or 4-[(3,3,4,4,5,5,6,6,7,7,8,8,8-Tridecafluorooctyl)sulfanyl]phenol",External Targets,tentative,30449,9.89,22.951,170.98,471.0061,-6.95,N/A,N/A,409.1102224,0,0
+"9,9,10,10,11,11,12,12,12-Nonafluoro-7-iodododecan-1-ol",External Targets,tentative,39384,9.93,22.279,165.97,473.0054,5.22,N/A,N/A,1164.452,0,0
+"1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8-hexadecafluorooctane-1-sulfonic acid",External Targets,tentative,44290,9.996,22.195,165.27,480.9339,-11.93,N/A,N/A,851.105,0,0
+"4,4'-(1,1,1,3,3,3-Hexafluoropropane-2,2-diyl)bis(2-nitrobenzoic acid)",External Targets,tentative,50251,9.406,23.226,172.92,481.0157,9.35,N/A,N/A,464.7897,0,0
+"1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-heptadecafluorooctane-1-sulfinic Acid",External Targets,tentative,23466,10.61,22.507,167.57,482.9313,-8.28,N/A,N/A,3596.428,0,0
+4-(Heptadecafluorooctyl)-1H-pyrazole or 5-(Heptadecafluorooctyl)-1H-imidazole,External Targets,tentative,35382,9.811,22.702,168.99,485.0014,12.79,N/A,N/A,1492.515,0,0
+"Butanamide, N-(4'-(acetylamino)-3,3'-dichloro(1,1'-biphenyl)-4-yl)-2,2,3,3,4,4,4-heptafluoro-",External Targets,tentative,48302,10.459,23.617,175.75,488.9997,-3.27,N/A,N/A,582.431,0,0
+"1-(Perfluorofluorooctyl)propane-2,3-diol",External Targets,tentative,51780,10.003,23.155,172.28,493.0119,3.49,N/A,N/A,386.5553,0,0
+10-H-Perfluorodecanoic acid,External Targets,tentative,4966,9.61,21.408,159.09,494.965,-9,N/A,N/A,14346.11751,0,0
+4-(Pentadecafluoroheptyl)cyclohexane-1-carboxylic acid,External Targets,tentative,52041,9.752,23.042,171.43,495.0381,-13.28,N/A,N/A,373.6923,0,0
+Perfluorooctanesulfonamide,External Targets,tentative,13312,11.3485,22.521,167.24,497.9425,-7.43,N/A,N/A,39282.639,1889.26,3214.737
+"1,1,2,2,3,3,4,4,5,6,6,7,7,7-tetradecafluoro-5-(trifluoromethyl)heptane-1-sulfonic acid or 1,1,2,2,3,3,4,5,5,6,6,7,7,7-tetradecafluoro-4-(trifluoromethyl)heptane-1-sulfonic acid or 1,1,2,2,3,3,5,5,6,6,6-undecafluoro-4,4-bis(trifluoromethyl)hexane-1-sulfonic acid or 1,1,2,2,3,4,4,5,5,6,6,7,7,7-tetradecafluoro-3-(trifluoromethyl)heptane-1-sulfonic acid or 1,1,2,3,3,4,4,5,5,6,6,7,7,7-tetradecafluoro-2-(trifluoromethyl)heptane-1-sulfonic acid or Heptadecafluorooctane-2-sulfonic acid or IsoPFOS or Perfluorooctanesulfonic acid",External Targets,tentative,20526,9.875666667,22.062,164.02,498.9248667,-10.72,N/A,N/A,1063265.397,291015.9974,271562.0974
+"3-(heptadecafluorooctyl)-5-methyl-1H-pyrazole or N,N'-1,3-Phenylenebis(perfluorobutanamide) or N,N'-1,4-Phenylenebis(perfluorobutanamide)",External Targets,tentative,52563,10.489,23.311,173.38,499.0153,4.02 or 8.92,N/A,N/A,347.5039,0,0
+4-[(Pentadecafluoroheptyl)oxy]benzoic acid,External Targets,tentative,49935,9.7,23.639,175.76,504.9954,5.47,N/A,N/A,483.4476,0,0
+"3-(Heptadecafluorooctyl)oxan-2-ol or 4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,11-Heptadecafluoro-1-(vinyloxy)undecan-2-ol",External Targets,tentative,48633,9.199,23.281,172.98,519.0221,-7.18,N/A,N/A,561.044,0,0
+(Perfluorooctyl)phenylmethanol or [4-(Heptadecafluorooctyl)phenyl]methanol,External Targets,tentative,37764,9.468,23.932,177.75,525.0189,6.93,N/A,N/A,1288.008,0,0
+"12,12,13,13,14,14,15,15,15-Nonafluoro-10-iodopentadecanoic acid",External Targets,tentative,42376,9.363,23.952,177.87,529.0302,1.98,N/A,N/A,969.3279,0,0
+"4-chloro-3-(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-heptadecafluorooctyl)-5-methyl-1H-pyrazole",External Targets,tentative,48234,9.091,26.996,199.69,532.9778,11.12,N/A,N/A,0,0,585.878
+"4-[(Heptadecafluorooctyl)oxy]benzene-1,3-diamine",External Targets,tentative,49821,9.589,23.834,176.9,541.0291,14.21,N/A,N/A,490.4544,0,0
+"1-Dodecanol, 7,7,8,8,9,9,10,10,11,11,12,12,12-tridecafluoro-5-iodo- or 11-H-Perfluoroundecanoic acid",External Targets,tentative,14081,10.421,22.32,165.31,544.9616,-8.56 or -6.7,N/A,N/A,3728.971477,191.6124766,1494.463477
+"(3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,10-Heptadecafluorodecyl)propanedioic acid",External Targets,tentative,31843,9.477,23.631,175.13,549.0052,9.46,N/A,N/A,116.8975916,0,0
+N-Ethyl-N-[2-(phosphonooxy)ethyl]perfluorohexanesulfonamide,External Targets,tentative,45036,11.976,27.815,205.57,549.9737,-4.97,N/A,N/A,0,0,796.0832
+"4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,11-Heptadecafluoro-2-hydroxyundecyl 2-methylprop-2-enoate or 5-(Tridecafluorohexyl)uridine",External Targets,tentative,42933,9.743,24.259,179.57,561.0322,-7.47 or -2.62,N/A,N/A,491.2164,446.4889,0
+"1-(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-Heptadecafluorooctane-1-sulfonyl)piperazine or 2-{1,2,2,2-Tetrafluoro-1-[1,1,2,3,3,3-hexafluoro-2-(heptafluoropropoxy)propoxy]ethyl}-1H-benzimidazole",External Targets,tentative,52960,9.716,23.304,172.78,567.0012,-5.02 or 0.92,N/A,N/A,329.7541,0,0
+"4-[(3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,10-Heptadecafluorodecyl)oxy]benzoic acid or Perfluorooctane sulfonamido amine",External Targets,tentative,51736,10.172,24.369,180.54,583.0288,-11.23 or 13.82,N/A,N/A,388.6296,0,0
+12-H-Perfluorododecanoic acid,External Targets,tentative,11180,11.122,23.199,171.59,594.9569,-10.37,N/A,N/A,1102.739426,0,0
+"2-Hydroxyethyl 4-[(1,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,9-heptadecafluoronon-1-en-1-yl)oxy]benzoate",External Targets,tentative,46692,9.998,25.419,188.1,611.0224,11.03,N/A,N/A,688.9408,0,0
+Perfluoroundecanesulfonic acid,External Targets,tentative,52236,12.2635,26.4425,194.725,648.9198,-1.28,N/A,N/A,0,0,1356.523
+8:2 Fluorotelomer sulfonamide betaine,External Targets,tentative,49318,13.156,29.293,215.54,669.0745,3.55,N/A,N/A,0,0,518.3027
+15-H-Perfluoropentadecanoic acid,External Targets,tentative,24011,13.489,25.931,190.55,744.9516,-2.53,N/A,N/A,0,0,92.43095272
+16-H-Perfluorohexadecanoic acid,External Targets,tentative,23739,13.6015,26.8025,196.97,794.94125,-11.38,N/A,N/A,902.3274257,0,0
+Perfluorostearic acid,External Targets,tentative,13022,14.303,30.874,225.93,912.9447,11.19,N/A,N/A,0,0,9005.159443
+No Match,None,unmatched,52689,2.705,12.697,102.15,116.9749,,,,0,0,342.122
+No Match,None,unmatched,52661,2.621,10.765,86.67,116.9787,,,,0,0,343.6301
+No Match,None,unmatched,52987,2.805,14.494,115.91,123.9053,,,,0,0,328.8011
+No Match,None,unmatched,49750,2.71,12.1495,97.09,125.9029,,,,0,0,754.2125
+No Match,None,unmatched,53883,3.039,12.16,97.03,127.8977,,,,0,0,280.8356
+No Match,None,unmatched,17668,3.548,15.699,125.26,130.0678,,,,4730.398132,480.8911315,0
+No Match,None,unmatched,9272,2.262,12.22,97.18,132.9132,,,,0,0,34811.709
+No Match,None,unmatched,37169,2.263,15.187,121.02,134.0078,,,,1334.66,0,0
+No Match,None,unmatched,51332,2.077,15.296,121.88,134.0382,,,,410.3028,0,0
+No Match,None,unmatched,36011,2.366,12.236,97.18,134.9384,,,,0,0,1433.237
+No Match,None,unmatched,40350,2.822,12.24,97.22,134.9384,,,,0,0,1098.31
+No Match,None,unmatched,52431,3.013,12.202,96.91,134.9408,,,,0,0,354.1683
+No Match,None,unmatched,47912,2.162,15.811,125.44,135.0502,,,,0,0,608.6625
+No Match,None,unmatched,24789,2.932,15.272,121.53,136.0159,,,,103.8074592,0,0
+No Match,None,unmatched,27917,2.007,12.192,96.71,136.8938,,,,0,0,2473.186
+No Match,None,unmatched,39073,3.6185,12.2405,97.1,136.8965,,,,0,0,2029.512
+No Match,None,unmatched,14561,2.47875,15.12725,120.0625,137.025725,,,,5158.561,3232.84,3524.537
+No Match,None,unmatched,23473,2.9535,15.189,120.73,137.02525,,,,2275.187528,0,513.8946281
+No Match,None,unmatched,22415,2.649,15.308,121.67,137.02515,,,,3014.89463,0,186.7022301
+No Match,None,unmatched,20994,3.298,16.156,128,137.0644,,,,0,440.5105,4235.275
+No Match,None,unmatched,26677,2.399,15.863,125.77,139.0413,,,,1920.902,802.5152,0
+No Match,None,unmatched,19303,2.975,15.8425,125.825,139.0411,,,,5742.592,0,0
+No Match,None,unmatched,48752,3.381,15.332,121.21,141.0145,,,,0,0,554.0667
+No Match,None,unmatched,52793,3.663,13.895,109.89,141.0164,,,,0,0,337.2071
+No Match,None,unmatched,29244,3.979,10.5115,83.285,141.0197,,,,923.9153,848.4596,1299.715
+No Match,None,unmatched,37257,3.992,11.77,93.19,141.01975,,,,0,535.8095,0
+No Match,None,unmatched,13673,2.111,15.9785,126.49,141.0569,,,,36253.399,15385.729,4577.114
+No Match,None,unmatched,16340,3.836,16.101,127.42,142.0312,,,,6852.409,0,1957.978
+No Match,None,unmatched,34530,3.853,16.089,127.1,142.0356,,,,0,1575.872,0
+No Match,None,unmatched,26173,4.099,15.085,119.56,142.9914,,,,2831.804,0,0
+No Match,None,unmatched,44338,2.568,15.792,124.66,145.0308,,,,16503.489,847.8364,0
+No Match,None,unmatched,16906,3.271666667,15.80966667,124.87,145.0315,,,,6949.376588,0,0
+No Match,None,unmatched,46859,2.5035,15.7685,124.355,145.0333,,,,0,678.5638,0
+No Match,None,unmatched,39162,2.69,16.4455,129.99,145.06635,,,,20716.539,5338.368,3031.206
+No Match,None,unmatched,31828,2.72,16.619,131.51,145.0665,,,,1877.126,0,0
+No Match,None,unmatched,50755,2.113,10.002,79.33,145.0864,,,,438.3695,0,0
+No Match,None,unmatched,51960,2.757,16.289,128.31,147.0498,,,,0,377.0165,0
+No Match,None,unmatched,12341,2.408,15.816,124.69,149.0251,,,,14473.049,3503.135,0
+No Match,None,unmatched,30828,3.626,15.955,125.94,150.0344,,,,125.6159346,0,0
+No Match,None,unmatched,48008,2.091,16.042,126.1,151.0457,,,,0,0,602.2
+No Match,None,unmatched,7832,2.768,16.897,132.89,152.0725,,,,39244.149,6263.046,2757.657
+No Match,None,unmatched,18829,2.323,16.526,129.86,155.0289,,,,4525.077,1585.728,0
+No Match,None,unmatched,24347,2.206,16.67166667,131.2366667,155.0724,,,,3309.478,0,0
+No Match,None,unmatched,34223,2.82,16.692,131.28,155.0725,,,,1401.549,0,398.3167
+No Match,None,unmatched,33513,3.385,16.342,128.13,156.0473,,,,0,1681.535,0
+No Match,None,unmatched,18341,2.961333333,16.959,133.3566667,157.0662333,,,,6527.791,0,0
+No Match,None,unmatched,25286,3.5745,16.905,132.94,157.06615,,,,3057.273,0,0
+No Match,None,unmatched,35068,2.529,16.889,132.81,157.0688,,,,1521.47,0,0
+No Match,None,unmatched,17196,4.336,16.539,130.01,158.0616,,,,7694.938,0,0
+No Match,None,unmatched,47518,2.575,16.639,130.26,159.0505,,,,0,0,635.3939
+No Match,None,unmatched,7085,2.822,17.297,135.56,159.0831,,,,53245.809,4490.631,1297.765
+No Match,None,unmatched,5458,3.33,17.33,135.81,159.0827,,,,71633.719,15133.559,6395.194
+No Match,None,unmatched,31234,2.737,17.283,135.29,159.0846,,,,0,715.4262,1237.729
+No Match,None,unmatched,32056,2.957,17.52,137.14,159.1012,,,,0,1847.824,0
+No Match,None,unmatched,10792,3.1,17.339,135.88,159.1028,,,,17667.049,5578.386,1290.345
+No Match,None,unmatched,33935,2.867714286,17.61485714,137.8742857,161.0991857,,,,59266.389,12053.119,12944.439
+No Match,None,unmatched,35515,3.611,17.55975,137.46,161.09865,,,,50391.249,3502.162,1780.176
+No Match,None,unmatched,44498,3.772,17.519,137,161.1017,,,,0,0,836.646
+No Match,None,unmatched,32615,4.219,16.983,133.24,162.0676,,,,1779.854,0,0
+No Match,None,unmatched,16525,4.11,17.572,137.84,162.0933,,,,8554.158,0,0
+No Match,None,unmatched,45671,3.669,16.65,130.11,163.045,,,,0,0,754.8327
+No Match,None,unmatched,49370,4.249,16.48,129.25,163.0429,,,,515.5755,0,0
+No Match,None,unmatched,7590,5.093,16.677,130.42,164.0493,,,,37031.189,13201.629,1190.389
+No Match,None,unmatched,49977,3.729,16.001,124.95,164.9818,,,,0,0,480.7798
+No Match,None,unmatched,41563,3.701,17.079,133.75,166.0582,,,,1017.843,0,0
+No Match,None,unmatched,31114,4.165,17.083,133.78,166.0647,,,,1967.904,0,0
+No Match,None,unmatched,2454,2.414,17.347,135.55,167.0402,,,,152603.2561,0,0
+No Match,None,unmatched,10798,2.3278,17.3096,135.334,167.07224,,,,68979.389,3369.559203,11925.419
+No Match,None,unmatched,10158,2.9635,17.36325,135.6375,167.07305,,,,42858.83182,12113.34182,7080.488163
+No Match,None,unmatched,31540,2.991,17.412,135.8,167.074,,,,0,0,1682.536
+No Match,None,unmatched,52161,4.041,17.327,135.51,169.0667,,,,368.2502,0,0
+No Match,None,unmatched,33285,5.004,17.442,136.41,169.0681,,,,1705.572,0,0
+No Match,None,unmatched,8338,2.577,16.931,132,171.0234,,,,33549.359,7793.249,1602.087
+No Match,None,unmatched,48767,4.56,17.03,133.09,171.0472,,,,552.9095,0,0
+No Match,None,unmatched,7305,2.283,17.654,137.7,171.0683,,,,39170.069,16184.329,0
+No Match,None,unmatched,16196,3.881,17.735,138.57,171.0832,,,,9016.739,0,0
+No Match,None,unmatched,46216,4.8445,17.764,138.8,171.08365,,,,718.9569,0,0
+No Match,None,unmatched,3286,2.458666667,18.03133333,140.63,171.1039333,,,,157246.099,59484.809,8954.38
+No Match,None,unmatched,6977,3.026,18.071,141.19,171.103,,,,38166.12892,0,0
+No Match,None,unmatched,8359,2.5765,18.0175,140.36,171.1045,,,,95202.899,56818.649,17701.909
+No Match,None,unmatched,10137,3.122,18.097,141.14,171.1043,,,,17419.879,10775.659,0
+No Match,None,unmatched,43511,2.625,17.901,139.37,171.1077,,,,0,0,903.5412
+No Match,None,unmatched,20161,3.74,16.651,129.97,172.04125,,,,32690.969,3731.207,0
+No Match,None,unmatched,44284,4.097,16.961,132.44,172.9924,,,,851.4936,0,0
+No Match,None,unmatched,48420,2.302,16.946,131.85,172.9953,,,,0,575.4249,0
+No Match,None,unmatched,34440,3.316,16.621,129.79,173.0271,,,,1584.194,0,0
+No Match,None,unmatched,15664,2.837,17.492,136.33,173.0649,,,,8216.757,1604.671,0
+No Match,None,unmatched,370,3.4945,16.932,132.005,174.0565,,,,1993726.999,703749.099,614761.799
+No Match,None,unmatched,10560,4.107,16.914,131.71,174.0583,,,,17566.179,5479.575,2669.722
+No Match,None,unmatched,54138,5.001,17.19,134.11,175.0434,,,,261.7827,0,0
+No Match,None,unmatched,10804,2.954,17.747,138.04,175.07965,,,,22429.449,225.9594,722.1222
+No Match,None,unmatched,3158,2.1715,18.2145,141.745,175.09875,,,,144970.099,48629.119,20014.199
+No Match,None,unmatched,36317,4.012,17.704,138.06,176.0484,,,,1408.101,0,0
+No Match,None,unmatched,23997,3.68,17.568,136.94,177.0596,,,,3414.842,0,0
+No Match,None,unmatched,35786,4.025,18.221,141.52,177.0963,,,,0,1454.765,0
+No Match,None,unmatched,23172,3.755,17.44,135.85,179.0369,,,,3700.865,0,0
+No Match,None,unmatched,48295,2.235,18.287,141.92,179.1115,,,,0,582.9087,0
+No Match,None,unmatched,4645,2.682333333,18.23266667,141.64,180.1046,,,,82870.249,19666.709,18895.029
+No Match,None,unmatched,9909,3.869,18.178,141.47,181.0547,,,,9802.458623,0,0
+No Match,None,unmatched,47960,2.356,13.799,107.5,181.0852,,,,605.6785,0,0
+No Match,None,unmatched,54342,4.149,16.95,131.9,182.0435,,,,246.7513,0,0
+No Match,None,unmatched,42532,2.225,17.639,137.19,183.0138,,,,959.3759,0,0
+No Match,None,unmatched,4057,5.733,17.713,137.52,183.0465,,,,111633.3206,0,0
+No Match,None,unmatched,9182,2.227666667,17.738,137.8766667,183.0667,,,,49518.019,20926.629,0
+No Match,None,unmatched,30913,2.181,17.755,137.6,183.0704,,,,0,0,1993.389
+No Match,None,unmatched,38562,4.589,18.275,142.07,184.078,,,,1223.796,0,0
+No Match,None,unmatched,38636,4.515,17.84,138.65,185.0614,,,,312.0193759,0,0
+No Match,None,unmatched,15518,3.295,18.456,143.42,185.0838,,,,10066.609,0,0
+No Match,None,unmatched,33870,2.035,17.196,133.33,187.0184,,,,1434.222,207.033,0
+No Match,None,unmatched,45424,4.9415,17.391,134.91,187.0515,,,,134014.699,26687.079,21069.089
+No Match,None,unmatched,14465,4.382,17.654,137.11,187.0523,,,,12157.789,0,0
+No Match,None,unmatched,25520,2.318,17.628,136.43,187.0618,,,,0,0,2991.443
+No Match,None,unmatched,53603,5.29,18.129,140.79,187.0886,,,,295.5578,0,0
+No Match,None,unmatched,7163,2.9245,18.1825,140.95,187.09665,,,,57240.169,1583.433,0
+No Match,None,unmatched,1843,2.01,18.632,144.42,187.0981,,,,324478.099,109065.199,0
+No Match,None,unmatched,14540,2.1165,18.113,140.29,187.0993,,,,83530.949,21019.119,1584.689
+No Match,None,unmatched,5872,2.651,18.109,140.345,187.09885,,,,78318.129,25298.779,13153.669
+No Match,None,unmatched,6207,2.258,18.7285,145.26,187.0994,,,,57988.409,0,15226.119
+No Match,None,unmatched,1443,3.7906,17.032,132.048,188.03564,,,,334969.799,131812.099,128691.799
+No Match,None,unmatched,41728,4.319,17.011,132.09,188.0374,,,,1007.317,0,0
+No Match,None,unmatched,43040,2.031,18.427,142.54,188.0924,,,,0,0,931.2076
+No Match,None,unmatched,39163,2.156,16.087,124.9,188.9619,,,,1179.613,0,0
+No Match,None,unmatched,14953,2.27,16.012,124.02,188.9955,,,,0,7612.339807,2488.316807
+No Match,None,unmatched,46162,4.155,16.668,129.16,189.0221,,,,432.0693,290.9221,0
+No Match,None,unmatched,15604,4.009,18.649,144.71,189.0597,,,,9927.232,0,0
+No Match,None,unmatched,13474,2.145666667,18.792,145.6466667,189.1126,,,,26735.539,3632.569,0
+No Match,None,unmatched,31474,2.511,15.759,122.06,190.9946,,,,0,1316.261277,0
+No Match,None,unmatched,11762,3.312,17.974,139.4,191.07,,,,19558.74712,0,0
+No Match,None,unmatched,8337,4.08,18.304,141.78,191.0724,,,,19449.55733,0,0
+No Match,None,unmatched,14935,2.289,18.568,143.69,192.0689,,,,7632.855,0,3471.318
+No Match,None,unmatched,49358,4.693,18.465,143.1,193.0476,,,,516.098,0,0
+No Match,None,unmatched,15825,2.248,17.747,137.395,193.0519,,,,5161.37675,0,0
+No Match,None,unmatched,26948,5.971,16.644,128.96,194.9177,,,,2660.803,0,0
+No Match,None,unmatched,11033,2.26625,18.20325,140.6725,195.067925,,,,25663.06099,3378.674995,3821.953
+No Match,None,unmatched,5216,3.022,18.15725,140.3625,195.06835,,,,28112.509,1728.498,915.9427
+No Match,None,unmatched,52676,5.11,17.804,137.81,197.0433,,,,342.7498,0,0
+No Match,None,unmatched,23356,2.778,16.173,125.16,198.9404,,,,3628.495,0,0
+No Match,None,unmatched,51820,3.856,13.906,107.68,199.0108,,,,383.9796,0,0
+No Match,None,unmatched,50016,4.039,18.21,140.86,199.0762,,,,478.0168,0,0
+No Match,None,unmatched,54201,4.738,18.627,144.08,199.0765,,,,257.9882,0,0
+No Match,None,unmatched,47486,2.503,18.145,140.11,199.0841,,,,0,0,390.7988
+No Match,None,unmatched,42800,2.262,18.225,140.48,199.0998,,,,0,0,944.6632
+No Match,None,unmatched,24300,2.9,18.538,143.13,199.0988,,,,2162.241,1161.124,0
+No Match,None,unmatched,4273,2.191333333,18.69166667,144.3733333,199.0986,,,,92417.599,36271.929,7561.456
+No Match,None,unmatched,7339,2.603,18.771,145.18,199.0979,,,,54820.049,0,0
+No Match,None,unmatched,16829,3.387,18.496,142.77,200.0531,,,,6023.384,2136.028,0
+No Match,None,unmatched,52305,3.378,18.521,143.21,200.0753,,,,361.4177,0,0
+No Match,None,unmatched,45641,5.429,17.629,136.3,200.946,,,,756.9976,0,0
+No Match,None,unmatched,18856,3.828,17.844,137.96,200.9808,,,,6090.411,0,0
+No Match,None,unmatched,25829,2.835,18.329,141.44,201.0599,,,,0,2626.724,0
+No Match,None,unmatched,36550,3.1355,18.2375,140.735,201.06865,,,,725.9278,0,0
+No Match,None,unmatched,20252,2.449,18.136,140.075,201.0778,,,,4048.814,0,0
+No Match,None,unmatched,8183,2.26,19.121,147.27,201.0787,,,,0,21279.629,23180.679
+No Match,None,unmatched,43081,5.188,17.255,132.9,202.0386,,,,0,928.8607,0
+No Match,None,unmatched,50648,5.374,17.425,134.64,202.9952,,,,443.8763,0,0
+No Match,None,unmatched,13519,2.8835,19.146,147.505,203.10765,,,,13621.309,0,0
+No Match,None,unmatched,18751,3.5725,17.4095,134.485,204.03165,,,,6171.802,0,0
+No Match,None,unmatched,44324,5.274,16.871,130.3,204.9474,,,,848.3774,0,0
+No Match,None,unmatched,13753,2.578,17.378,133.96,205.0164,,,,8951.194,4867.2,0
+No Match,None,unmatched,18762,2.91,18.602,143.63,205.0533,,,,3685.977843,0,0
+No Match,None,unmatched,15142,4.702,18.887,145.82,205.055,,,,10716.159,0,0
+No Match,None,unmatched,13340,3.5735,18.7105,144.25,206.08395,,,,15000.709,1979.155,453.8604
+No Match,None,unmatched,26484,2.162,18.994,146.6,206.089,,,,2759.993,0,0
+No Match,None,unmatched,45738,3.121,18.24,140.76,206.9809,,,,750.5225,0,0
+No Match,None,unmatched,12764,5.827,19.065,147.1,207.06915,,,,16648.259,0,0
+No Match,None,unmatched,53750,4.108,18.973,145.79,209.087,,,,0,0,287.4708
+No Match,None,unmatched,34962,5.646,17.063,131.6,209.9038,,,,1530.541,0,0
+No Match,None,unmatched,51738,3.562,18.036,139.03,211.0348,,,,388.4713,0,0
+No Match,None,unmatched,47434,5.894,19.577,150.33,211.1193,,,,0,640.7366,0
+No Match,None,unmatched,50906,2.471,18.228,140.47,211.9195,,,,431.4598,0,0
+No Match,None,unmatched,49030,2.472,15.692,120.55,211.9997,,,,0,536.4026,0
+No Match,None,unmatched,132,2.595,18.214,140.235,212.00355,,,,6178449.754,2614177.754,1986397.754
+No Match,None,unmatched,35311,2.447,19.013,145.98,212.0038,,,,0,0,1499.557
+No Match,None,unmatched,13540,2.466,19.455,149.54,212.0042,,,,9737.858,2968.367,1689.913
+No Match,None,unmatched,45312,2.479,15.579,120.12,212.0084,,,,777.8456,0,0
+No Match,None,unmatched,29101,6.461,19.027,146.6,212.07,,,,2257.96,0,0
+No Match,None,unmatched,42106,2.455,18.211,140.26,214.092,,,,986.0751,0,0
+No Match,None,unmatched,2778,2.581,18.204,139.84,215.0109,,,,144970.299,71170.839,41466.589
+No Match,None,unmatched,52055,5.206,18.162,139.85,215.0286,,,,373.081,0,0
+No Match,None,unmatched,43496,4.604,18.152,139.77,215.0409,,,,904.5396,0,0
+No Match,None,unmatched,20256,4.290666667,18.94033333,145.8166667,215.0384667,,,,6182.638,0,0
+No Match,None,unmatched,15897,3.8905,19.537,150.22,215.0398,,,,82033.109,2316.306,1852.771
+No Match,None,unmatched,50432,2.009,19.174,147.175,215.0934,,,,14206.959,1616.619,3671.779
+No Match,None,unmatched,8547,6.345,19.598,150.68,215.1099,,,,29228.9377,0,303.1247021
+No Match,None,unmatched,10594,2.142,18.896,145.44,216.0337,,,,22580.78892,0,0
+No Match,None,unmatched,13353,5.1465,17.601,135.1,216.03985,,,,0,0,7015.191248
+No Match,None,unmatched,52988,6.345,18.162,139.31,216.0533,,,,0,328.798,0
+No Match,None,unmatched,12591,5.096,19.353,148.95,216.0669,,,,17182.179,0,0
+No Match,None,unmatched,14476,6.636,17.653,135.38,217.0503,,,,0,12119.029,0
+No Match,None,unmatched,19910,3.198666667,19.56666667,150.2433333,217.0883,,,,0,0,1501.638
+No Match,None,unmatched,13060,3.62,19.674,151.36,217.0874,,,,15716.089,0,0
+No Match,None,unmatched,53397,6.132,19.23,147.44,217.0907,,,,0,307.7662,0
+No Match,None,unmatched,38876,2.056,19.247,147.57,217.1089,,,,0,956.6086,244.6079
+No Match,None,unmatched,47422,5.979,15.559,119.35,218.0347,,,,0,0,641.8269
+No Match,None,unmatched,22323,3.386,18.812,144.72,218.0631,,,,4035.802,0,0
+No Match,None,unmatched,16987,6.138,17.727,135.88,219.0472,,,,0,0,7958.436
+No Match,None,unmatched,20649,5.743,17.693,135.74,220.036,,,,0,1417.286847,0
+No Match,None,unmatched,49035,4.996,18.752,144.18,220.0456,,,,535.9137,0,0
+No Match,None,unmatched,53866,6.802,17.594,134.83,220.0622,,,,0,0,281.2337
+No Match,None,unmatched,7526,3.209,18.942,145.34,221.049,,,,32346.47169,6038.801685,2638.277685
+No Match,None,unmatched,29810,2.534,19.336,148.62,221.0475,,,,2146.204,0,0
+No Match,None,unmatched,13524,6.842,17.107,131.2,221.9561,,,,10932.469,2251.321,1257.279
+No Match,None,unmatched,20138,2.319333333,19.85566667,152.3566667,222.0813667,,,,997007.799,162150.199,107961.499
+No Match,None,unmatched,7725,3.754,18.9365,145.405,223.0074,,,,38157.04092,0,0
+No Match,None,unmatched,13355,2.592,19.679,150.64,223.1037,,,,0,8849.467,6105.793
+No Match,None,unmatched,7076,2.315,19.909,152.765,224.07995,,,,59144.679,0,7068.346
+No Match,None,unmatched,16286,2.595666667,19.18,147.2766667,225.0766333,,,,8895.962,0,0
+No Match,None,unmatched,14966,3.059666667,19.315,148.1366667,225.0804,,,,181658.799,20127.459,0
+No Match,None,unmatched,4833,3.630333333,19.27233333,147.6666667,225.0800667,,,,73840.98545,5954.269,0
+No Match,None,unmatched,7943,2.158,19.532,149.62,225.0796,,,,32941.889,13273.419,751.0658
+No Match,None,unmatched,3076,3.186,19.559,150.005,225.0808,,,,164090.6186,0,0
+No Match,None,unmatched,20235,2.248,19.949,152.75,225.8986,,,,0,0,1674.776284
+No Match,None,unmatched,23950,2.274,19.89,152.14,226.0417,,,,0,3432.01,0
+No Match,None,unmatched,17235,4.282,19.663,150.67,226.0547,,,,7232.475,421.1599,0
+No Match,None,unmatched,42813,5.645,17.824,136.84,226.927,,,,943.8973,0,0
+No Match,None,unmatched,8875,2.023,19.813,151.78,227.0934,,,,36721.619,1360.578,0
+No Match,None,unmatched,14609,2.634,19.436,148.9,227.0939,,,,11439.669,0,0
+No Match,None,unmatched,14245,2.178,19.24,147.14,227.1108,,,,0,9186.754,3446.37
+No Match,None,unmatched,53394,2.0645,18.784,144.145,228.00935,,,,1523.629,0,0
+No Match,None,unmatched,20657,3.339,19.587,150.02,228.0352,,,,4396.677,454.6378,0
+No Match,None,unmatched,44108,2.027,19.178,146.63,228.0925,,,,0,0,865.0516
+No Match,None,unmatched,24894,3.566,19.99,153.36,228.112,,,,3159.274,0,0
+No Match,None,unmatched,35097,3.553,19.908,152.2,228.117,,,,0,1518.036,0
+No Match,None,unmatched,22153,4.395,19.77,151.65,229.0548,,,,4114.212,0,0
+No Match,None,unmatched,54196,4.0455,19.943,152.565,229.06615,,,,7609.326,1249.455,258.2395
+No Match,None,unmatched,17143,2.028,19.185,146.65,229.0912,,,,0,0,7747.767
+No Match,None,unmatched,36189,2.975,19.262,147.76,229.1074,,,,1419.129,0,0
+No Match,None,unmatched,11397,2.989,19.744,151.18,229.108,,,,21239.689,0,522.4624
+No Match,None,unmatched,51905,2.298,18.927,144.65,230.0478,,,,0,0,379.7396
+No Match,None,unmatched,3106,3.104,19.79,151.585,230.0503,,,,188885.499,24760.109,6275.335
+No Match,None,unmatched,22462,4.421666667,18.338,140.1666667,230.0565333,,,,0,0,11938.869
+No Match,None,unmatched,4233,5.055,19.049,145.76,230.0575,,,,105861.999,15509.049,16826.789
+No Match,None,unmatched,4048,2.373,19.153,146.52,230.9912,,,,111866.399,19202.629,17085.799
+No Match,None,unmatched,2956,2.073,19.773,151.39,231.0336,,,,144185.4408,35951.10076,26691.74076
+No Match,None,unmatched,15608,2.767,18.799,144.12,232.0275,,,,9920.684,0,0
+No Match,None,unmatched,2589,2.79,19.783,151.37,232.0294,,,,157571.6956,54646.78564,38118.06564
+No Match,None,unmatched,42425,3.51,19.946,152.85,233.0504,,,,966.2332,0,0
+No Match,None,unmatched,18285,3.056333333,19.97266667,152.9633333,233.0822333,,,,24578.129,0,0
+No Match,None,unmatched,11473,3.7925,20.0325,153.515,233.08295,,,,21399.699,0,0
+No Match,None,unmatched,18935,2.77,19.747,151.03,234.0278,,,,4609.608,1420.582,0
+No Match,None,unmatched,19578,6.393,19.739,150.98,234.0899,,,,2036.448668,0,0
+No Match,None,unmatched,32912,2.327,16.583,127.1,234.9088,,,,1747.388,0,0
+No Match,None,unmatched,2750,3.017,19.938,152.36,235.0738,,,,184408.299,41742.879,34425.539
+No Match,None,unmatched,50145,4.518,18.518,141.35,235.9848,,,,0,470.9294,0
+No Match,None,unmatched,14914,2.354,19.473,149.1,237.0541,,,,11133.799,0,0
+No Match,None,unmatched,54461,2.412,19.885,151.71,237.0846,,,,0,0,237.7405
+No Match,None,unmatched,15534,3.423,17.568,134.3,237.9518,,,,8989.212,1052.446,0
+No Match,None,unmatched,6302,2.556,19.095,145.84,238.0187,,,,52465.719,12293.949,8084.405
+No Match,None,unmatched,11309,4.7165,20.2945,155.205,238.0556,,,,19707.609,0,2426.03
+No Match,None,unmatched,16584,4.112,18.511,141.7,238.9591,,,,8477.604,0,0
+No Match,None,unmatched,27824,3.395,19.316,147.84,239.0561,,,,2489.495,0,0
+No Match,None,unmatched,34107,2.6975,19.6745,150.13,239.06055,,,,46071.979,2133.665,3314.141
+No Match,None,unmatched,7813,2.457,20.242,154.63,239.0603,,,,38269.999,10255.279,0
+No Match,None,unmatched,33587,2.215,20.043,152.84,239.0973,,,,0,0,1671.631
+No Match,None,unmatched,47077,3.394,17.542,133.8,239.9538,,,,0,0,664.3244
+No Match,None,unmatched,2148,2.04,18.902,144.43,239.9971,,,,67216.99952,0,0
+No Match,None,unmatched,22630,2.227,19.71,150.81,240.0343,,,,3890.871,0,0
+No Match,None,unmatched,19504,3.095,20.397,155.99,241.9912,,,,5596.9,0,0
+No Match,None,unmatched,11434,2.616,19.973,152.75,242.05,,,,21609.129,0,0
+No Match,None,unmatched,38520,6.485,20.475,156,243.1052,,,,0,0,1226.789
+No Match,None,unmatched,15912,4.924,19.927,152.33,244.008,,,,9436.709,0,0
+No Match,None,unmatched,39875,7.241,17.174,130.89,244.0236,,,,0,0,1131.123
+No Match,None,unmatched,26906,5.373,18.929,144.22,244.0313,,,,0,0,2671.453
+No Match,None,unmatched,11491,2.014,20.159,153.83,244.1071,,,,17511.089,3792.081,0
+No Match,None,unmatched,16914,4.095,18.339,139.96,245.0255,,,,0,0,5778.695485
+No Match,None,unmatched,28207,2.189,19.504,149.08,245.058,,,,2414.916,0,0
+No Match,None,unmatched,16366,3.833,20.183,154.25,245.0899,,,,8774.342,0,0
+No Match,None,unmatched,45721,3.82,20.191,153.78,245.0959,,,,0,751.5578,0
+No Match,None,unmatched,5460,2.13,20.1555,153.73,245.10225,,,,60594.099,32508.699,7479.139
+No Match,None,unmatched,18657,2.553,20.273,154.67,245.1037,,,,0,2242.313,0
+No Match,None,unmatched,28097,2.527,19.717,150.67,246.0055,,,,2437.345,0,0
+No Match,None,unmatched,16365,7.351,18.484,141.03,246.028,,,,1158.881814,0,0
+No Match,None,unmatched,4170,2.387,20.41,155.55,247.029,,,,92750.729,31956.779,16966.069
+No Match,None,unmatched,52275,4.537,20.638,157.1,247.1031,,,,0,0,362.9808
+No Match,None,unmatched,22191,4.846,20.035,153,249.0324,,,,4099.15,0,0
+No Match,None,unmatched,47013,3.369,20.402,155.25,249.0879,,,,0,668.5558,0
+No Match,None,unmatched,52868,3.631,20.338,154.76,249.112,,,,0,0,334.6354
+No Match,None,unmatched,46319,3.261,20.539,156.28,249.1167,,,,0,0,713.0276
+No Match,None,unmatched,34371,3.13225,20.62075,157.29,250.07685,,,,14215.579,404.5742,0
+No Match,None,unmatched,7648,3.695333333,20.59833333,157.04,250.0766,,,,191735.199,19585.049,6012.495
+No Match,None,unmatched,14928,7.525,18.456,140.59,251.0077,,,,0,1175.851748,0
+No Match,None,unmatched,8293,2.105,20.5895,156.975,251.09295,,,,30869.739,11563.829,4016.707
+No Match,None,unmatched,15480,2.841,20.3845,155.28,251.0942,,,,33850.079,3588.581,388.119
+No Match,None,unmatched,14371,6.206,18.349,139.84,251.9673,,,,11820.109,532.6292,0
+No Match,None,unmatched,20732,2.763,20.635,157.47,252.035,,,,4812.127,0,0
+No Match,None,unmatched,149,4.689,20.773,158.16,252.0712,,,,5961422.999,2039609.999,1825046.999
+No Match,None,unmatched,43854,3.156,18.265,139.41,252.9004,,,,882.1366,0,0
+No Match,None,unmatched,14834,6.71675,18.443,140.57,252.998775,,,,4403.5363,0,0
+No Match,None,unmatched,1623,2.054,20.13,153.33,253.0612,,,,247189.9473,43534.34735,38860.01735
+No Match,None,unmatched,19374,2.301666667,19.96566667,152.3533333,253.0719667,,,,10735.909,0,0
+No Match,None,unmatched,11080,6.8395,20.3325,154.96,253.0839,,,,23196.039,5836.303,4506.433
+No Match,None,unmatched,48567,6.792,20.388,155.01,253.089,,,,0,565.2171,0
+No Match,None,unmatched,48747,3.46,20.824,158.32,253.1159,,,,0,352.7293,201.6555
+No Match,None,unmatched,52045,6.202,18.274,138.96,253.9659,,,,0,0,373.6332
+No Match,None,unmatched,49391,7.577,18.251,138.79,254.0018,,,,0,514.2305,0
+No Match,None,unmatched,3245,2.927,20.558,156.46,254.05,,,,123593.899,47531.509,34092.939
+No Match,None,unmatched,10210,5.49,19.346,147.24,254.9294,,,,23995.559,3351.809,408.4732
+No Match,None,unmatched,28751,2.4315,20.2575,154.28,255.0875,,,,5440.791577,0,352.7287
+No Match,None,unmatched,36634,2.701,20.059,152.46,255.0914,,,,0,1378.15,0
+No Match,None,unmatched,27101,3.357,20.756,157.74,255.0947,,,,0,1529.515,1103.818
+No Match,None,unmatched,18777,5.315,20.455,155.99,256.0412,,,,6151.426,0,0
+No Match,None,unmatched,6669,3.3155,20.6825,157.39,256.0664,,,,56169.519,7488.954,2264.412
+No Match,None,unmatched,10272,2.034,20.727,157.68,256.0778,,,,11302.229,5604.665,10457.959
+No Match,None,unmatched,9779,2.794,20.575,156.35,256.1077,,,,0,30661.619,0
+No Match,None,unmatched,49673,5.544,19.437,147.69,256.928,,,,0,497.4215,0
+No Match,None,unmatched,12292,5.168,20.612,156.96,257.0824,,,,10765.61218,0,0
+No Match,None,unmatched,1784,2.25,20.472,155.5933333,257.1044667,,,,246028.799,124764.599,79182.189
+No Match,None,unmatched,23798,7.072,18.476,140.38,258.0433,,,,0,1712.519,1762.913
+No Match,None,unmatched,42424,7.664,19.153,146.03,258.0435,,,,966.2632,0,0
+No Match,None,unmatched,54681,3.131,18.578,141.65,258.0809,,,,221.161,0,0
+No Match,None,unmatched,31133,3.294,20.672,157.57,258.0805,,,,1965.732,0,0
+No Match,None,unmatched,5250,2.679,18.574,141.27,258.962,,,,66274.019,23040.209,10071.979
+No Match,None,unmatched,9230,3.393,20.96,159.35,259.1167,,,,10435.279,11899.389,12793.719
+No Match,None,unmatched,16411,2.614,19.939,151.94,260.0068,,,,8710.162,0,0
+No Match,None,unmatched,34961,7.502,21,159.45,260.0792,,,,0,0,1530.85
+No Match,None,unmatched,10088,2.067,20.382,155.28,261.0733,,,,26171.47833,0,0
+No Match,None,unmatched,8559,3.013,20.52,155.96,261.071,,,,34936.499,3935.292,1945.892
+No Match,None,unmatched,5928,2.067,20.222,153.71,261.0957,,,,39556.699,28964.629,12222.869
+No Match,None,unmatched,50919,5.501,20.828,158.11,261.1146,,,,0,0,430.4858
+No Match,None,unmatched,47961,6.062,19.82,150.45,262.0456,,,,0,605.6617,0
+No Match,None,unmatched,36267,7.467,20.022,152.34,262.0563,,,,327.2665231,0,0
+No Match,None,unmatched,54550,5.757,19.713,149.65,262.0656,,,,0,231.2258,0
+No Match,None,unmatched,25204,6.768,19.103,145.02,262.087,,,,0,0,3073.401
+No Match,None,unmatched,1747,5.731,20.555,156.27,263.0025,,,,277101.0168,12197.33683,0
+No Match,None,unmatched,32350,6.154,20.423,155.27,263.0507,,,,0,0,1285.899
+No Match,None,unmatched,35391,2.68,20.972,159.12,264.097,,,,0,1491.999,0
+No Match,None,unmatched,11936,2.078,20.404,155.34,265.0744,,,,8215.305307,0,0
+No Match,None,unmatched,39413,7.4,18.334,139.1,266.0091,,,,0,0,1162.791
+No Match,None,unmatched,6807,2.471,20.524,155.95,268.0652333,,,,66225.18168,13667.53168,11243.18168
+No Match,None,unmatched,9043,4.173,19.956,151.47,268.9704,,,,29760.479,6318.923,568.5818
+No Match,None,unmatched,22100,3.423,20.811,158.32,268.9691,,,,4133.253,0,0
+No Match,None,unmatched,36960,2.497,20.508,156.01,269.0226,,,,1352.283,0,0
+No Match,None,unmatched,23178,3.109,21.203,161.29,269.0611,,,,3698.429,0,0
+No Match,None,unmatched,25652,2.592,20.821,158.02,269.1032,,,,0,1181.616871,0
+No Match,None,unmatched,48736,4.802,21.263,161.17,269.1196,,,,0,0,555.0953
+No Match,None,unmatched,48442,2.986,20.062,152.07,269.962,,,,0,0,573.7879
+No Match,None,unmatched,37641,7.095,21.158,160.92,270.0539,,,,1297.587,0,0
+No Match,None,unmatched,8616,2.396,20.795,157.88,270.0808,,,,27932.449,12372.089,0
+No Match,None,unmatched,33255,4.67,19.388,147.47,270.9258,,,,1708.812,0,0
+No Match,None,unmatched,18584,3.694,21.209,161.28,271.0733,,,,6320.136,0,0
+No Match,None,unmatched,22844,2.35,20.753,157.79,272.0946,,,,3804.056,0,0
+No Match,None,unmatched,10362,4.118,20.341,154.28,273.0144,,,,20825.579,4307.324,1608.024
+No Match,None,unmatched,3988,6.38,20.899,158.6,273.0228,,,,29828.5185,0,0
+No Match,None,unmatched,7357,5.992,21.028,159.66,273.078,,,,14581.31939,0,0
+No Match,None,unmatched,44082,3.403,20.858,158,273.0855,,,,0,866.7331,0
+No Match,None,unmatched,32961,4.457,21.296,161.31,273.1194,,,,0,1742.58,0
+No Match,None,unmatched,5209,3.347,20.677,156.8,274.0231,,,,86642.549,6642.42,7110.711
+No Match,None,unmatched,33491,7.751,19.864,150.57,274.06245,,,,0,0,1683.427
+No Match,None,unmatched,4840,2.5885,21.13,160.59,274.0749,,,,114048.899,0,0
+No Match,None,unmatched,24794,5.01,21.342,162.2,274.114,,,,3187.813,0,0
+No Match,None,unmatched,10227,5.551,21.366,162.35,275.0955,,,,27663.119,0,0
+No Match,None,unmatched,48084,5.524,21.245,160.87,275.1042,,,,0,0,596.8725
+No Match,None,unmatched,15281,3.2495,21.032,159.355,275.1107,,,,0,63098.73442,13813.87442
+No Match,None,unmatched,9020,7.355,19.90125,150.975,276.053375,,,,15528.79345,769.9660798,0
+No Match,None,unmatched,8287,8.01,18.5455,140.73,277.00235,,,,331.3139022,0,0
+No Match,None,unmatched,4483,6.6845,21.2655,161.305,277.019,,,,64734.07769,0,0
+No Match,None,unmatched,11187,5.578,21.122,160.45,277.0829,,,,22705.709,0,0
+No Match,None,unmatched,10103,6.036,18.547,140.67,277.998,,,,0,0,17500.26787
+No Match,None,unmatched,9111,4.9125,21.0105,159.11,278.05,,,,27108.769,5151.541,3858.039
+No Match,None,unmatched,23312,3.688,21.11,160.34,278.0721,,,,3644.321,0,0
+No Match,None,unmatched,34820,5.718,19.814,150.25,278.99605,,,,0,111.9170389,0
+No Match,None,unmatched,2870,2.921,21.042,159.51,279.091,,,,72846.17916,0,0
+No Match,None,unmatched,40681,4.452,19.792,149.77,280.0371,,,,0,1078.366,0
+No Match,None,unmatched,16544,4.309,21.515,163.06,280.067,,,,7852.814,676.9258,0
+No Match,None,unmatched,31588,3.366,21.362,161.62,280.1059,,,,0,1023.158,883.3681
+No Match,None,unmatched,8114,6.792333333,19.87133333,150.8033333,281.0300667,,,,5812.98,0,0
+No Match,None,unmatched,5691,2.781333333,21.16833333,160.46,281.1056333,,,,84215.71458,15343.89187,0
+No Match,None,unmatched,52008,4.217,21.297,161.11,281.1115,,,,0,374.7666,0
+No Match,None,unmatched,9639,4.03,21.446,162.585,282.10245,,,,31602.839,5806.417,7194.43
+No Match,None,unmatched,40462,3.945,21.437,162.11,283.1186,,,,0,1091.562,0
+No Match,None,unmatched,20289,4.081,21.617,163.66,283.1199,,,,0,1993.987474,0
+No Match,None,unmatched,24215,2.813,21.212,160.36,285.1084,,,,0,2633.377,0
+No Match,None,unmatched,47096,6.677,21.198,160.77,287.0017,,,,663.2208,0,0
+No Match,None,unmatched,23021,2.838,21.189,160.71,287.0474,,,,3750.08,0,0
+No Match,None,unmatched,55214,7.988,21.419,161.87,287.0577,,,,0,148.8538,0
+No Match,None,unmatched,38384,8.064,21.721,164.72,287.0977,,,,1238.727,0,0
+No Match,None,unmatched,55250,6.685,19.813,149.75,288.0509,,,,0,123.1059,0
+No Match,None,unmatched,50366,7.637,18.944,143.19,288.0781,,,,0,0,458.776
+No Match,None,unmatched,23795,3.264,21.6565,164.02,288.0913,,,,12696.519,4346.4,2664.792
+No Match,None,unmatched,21284,6.242,18.862,142.55,289.035,,,,0,4532.604,0
+No Match,None,unmatched,11798,6.451,21.293,161.28,289.1125,,,,2815.515537,0,0
+No Match,None,unmatched,49611,6.674,20.456,155.09,290.0549,,,,501.5257,0,0
+No Match,None,unmatched,53863,8.435,19.354,146.74,291.02,,,,281.5429,0,0
+No Match,None,unmatched,19648,5.882,20.805,157.7,291.0532,,,,5506.191,0,0
+No Match,None,unmatched,37357,4.939,21.203,160.71,291.0788,,,,1320.191,0,0
+No Match,None,unmatched,23333,3.9,21.585,163.58,292.0856,,,,3635.942,0,0
+No Match,None,unmatched,19248,7.937,19.471,147.23,293.011,,,,2504.422643,2583.252643,0
+No Match,None,unmatched,54986,3.201,21.112,159.41,293.0768,,,,0,193.2246,0
+No Match,None,unmatched,50433,3.304,21.516,162.46,293.0999,,,,0,455.3424,0
+No Match,None,unmatched,33143,3.868,21.763,164.6,293.1063,,,,0,0,472.5409336
+No Match,None,unmatched,32940,8.275,20.657,156.24,294.0483,,,,974.8363,770.2303,0
+No Match,None,unmatched,26393,3.0895,21.77,164.315,295.11765,,,,0,2781.724,0
+No Match,None,unmatched,15690,3.408,21.952,166.055,296.061,,,,22492.129,4581.272,2707.086
+No Match,None,unmatched,46248,4.3565,20.183,152.82,298.92935,,,,716.9997,0,0
+No Match,None,unmatched,27071,6.385,20.546,155.56,298.9756,,,,2638.731,0,0
+No Match,None,unmatched,25153,5.326,21.792,164.97,299.0402,,,,3090.24,0,0
+No Match,None,unmatched,48109,7.953,20.07,151.43,299.0648,,,,0,595.2436,0
+No Match,None,unmatched,28309,7.961,21.544,163.1,299.073,,,,2396.395,0,0
+No Match,None,unmatched,36791,3.631,21.966,165.69,299.1104,,,,0,0,1366.415
+No Match,None,unmatched,24452,6.708,20.189,152.31,300.0599,,,,0,3279.846,0
+No Match,None,unmatched,28376,6.378,20.579,155.75,301.9746,,,,2384.553,0,0
+No Match,None,unmatched,50729,5.117,17.701,134.02,302.0949,,,,439.908,0,0
+No Match,None,unmatched,36542,4.101,21.61,163.51,303.0979,,,,1387.084,0,0
+No Match,None,unmatched,15889,4.231,21.625,163.23,303.1043,,,,6797.795,2161.706,513.4071
+No Match,None,unmatched,24201,5.126,17.657,133.275,303.9515,,,,0,0,3349.628
+No Match,None,unmatched,25482,6.42,20.575,155.1,304.9773,,,,0,1771.047,1232.397
+No Match,None,unmatched,15280,4.44,21.7165,163.825,305.08015,,,,7738.134,2726.238,0
+No Match,None,unmatched,13138,4.082,22.041,166.32,305.1115,,,,10606.249,4257.376,654.1891
+No Match,None,unmatched,9472,8.251,20.672,156.36,306.0395,,,,8112.954748,0,0
+No Match,None,unmatched,4328,8.391,20.596,155.79,306.0441,,,,134159.199,0,0
+No Match,None,unmatched,14857,3.533,22.127,167.04,306.0859,,,,9397.563,1879.023,0
+No Match,None,unmatched,25783,8.131,21.987,166.26,307.0279,,,,2927.485,0,0
+No Match,None,unmatched,48527,7.669,20.565,155.47,310.0206,,,,567.9137,0,0
+No Match,None,unmatched,45065,5.117,22.155,167.41,312.1187,,,,793.9244,0,0
+No Match,None,unmatched,18610,6.4315,22.4175,168.93,314.11375,,,,15467.44455,0,6302.302
+No Match,None,unmatched,51507,7.346,21.112,158.92,315.0723,,,,0,0,399.8851
+No Match,None,unmatched,50227,8.257,21.045,158.96,316.0639,,,,466.7409,0,0
+No Match,None,unmatched,27358,8.596,21.026,158.63,316.0676,,,,199.636506,0,787.468206
+No Match,None,unmatched,46165,6.241,21.029,158.26,317.0601,,,,0,0,722.7216
+No Match,None,unmatched,5336,4.418,21.946,165.43,317.0819,,,,55839.2578,25943.2778,10583.1678
+No Match,None,unmatched,15378,7.174,21.423,161.36,318.0686,,,,0,0,2487.614835
+No Match,None,unmatched,12257,8.734,21.465,161.665,320.05905,,,,0,0,968.4334939
+No Match,None,unmatched,21421,7.869,21.497,161.71,320.0631,,,,0,0,4461.493
+No Match,None,unmatched,49868,8.506,20.174,151.77,321.0105,,,,0,0,487.7883
+No Match,None,unmatched,13031,8.1335,21.1235,159.295,321.0083,,,,0,14833.54831,0
+No Match,None,unmatched,30343,8.694333333,21.14833333,159.4733333,321.0089,,,,2074.447,2088.80624,0
+No Match,None,unmatched,48394,4.056,22.69,170.64,321.1101,,,,0,0,577.2314
+No Match,None,unmatched,23379,4.174,21.513,162.36,321.9749,,,,3622.561,0,0
+No Match,None,unmatched,16423,4.415,21.746,164.12,322.0533,,,,7869.264773,0,0
+No Match,None,unmatched,54769,8.947,21.299,160.19,322.0662,,,,0,0,214.1394
+No Match,None,unmatched,43400,4.209,21.876,164.52,322.0774,,,,0,0,911.2269
+No Match,None,unmatched,53823,8.148,17.551,132.06,323.0017,,,,0,0,283.6839
+No Match,None,unmatched,17471,7.663,22.717,171.4,323.0635,,,,7391.335,0,0
+No Match,None,unmatched,47052,4.261,21.717,163.3,323.0696,,,,0,665.9883,0
+No Match,None,unmatched,48315,7.661,21.371,161.24,325.0318,,,,581.3595,0,0
+No Match,None,unmatched,44953,6.526,22.403,168.94,328.1067,,,,803.2067,0,0
+No Match,None,unmatched,11898,8.545,21.264,159.96,330.0456,,,,0,0,9856.119964
+No Match,None,unmatched,8550,9.136,21.318,160.46,330.0452,,,,0,0,6479.636973
+No Match,None,unmatched,51544,6.83,22.09,165.92,332.0886,,,,0,0,397.8678
+No Match,None,unmatched,15652,8.145,21.29,160.2,333.0323,,,,0,6391.032812,0
+No Match,None,unmatched,16682,7.494,21.353,160.95,333.0356,,,,8363.752,0,0
+No Match,None,unmatched,41912,8.279,22.098,166.54,333.0372,,,,997.3409,0,0
+No Match,None,unmatched,15328,4.429,22.424,168.7,333.09265,,,,1374.636,10388.309,0
+No Match,None,unmatched,51239,8.22,21.816,164.1,335.0228,,,,0,0,31.7858207
+No Match,None,unmatched,14217,4.592,22.211,167.36,335.0847,,,,12689.929,0,0
+No Match,None,unmatched,24147,4.591,22.762,171.5,335.0823,,,,3369.749,0,0
+No Match,None,unmatched,50118,8.8435,20.706,155.85,336.01975,,,,825.9815,918.104,253.8249
+No Match,None,unmatched,10215,5.098,23.022,173.13,336.0892,,,,24144.319,3565.412,0
+No Match,None,unmatched,25555,8.861666667,21.85566667,164.3766667,337.0171667,,,,421.9065005,619.5660005,773.8610005
+No Match,None,unmatched,52677,9.059,22.346,167.75,337.0601,,,,0,0,342.6762
+No Match,None,unmatched,10754,4.8675,22.9665,172.8,339.049,,,,23615.129,1098.087,0
+No Match,None,unmatched,36505,6.4,22.554,169.82,341.1047,,,,1390.248,0,0
+No Match,None,unmatched,45411,5.3995,23.2305,174.59,341.11545,,,,12192.359,0,0
+No Match,None,unmatched,23789,4.464333333,23.13733333,173.62,343.1184333,,,,7951.291,15426.389,21668.509
+No Match,None,unmatched,53541,5.354,23.058,172.93,344.1197,,,,0,0,299.2044
+No Match,None,unmatched,32407,8.789,21.131,159.06,344.8982,,,,1806.217,0,0
+No Match,None,unmatched,16004,7.175,22.084,165.86,345.0617,,,,0,1670.543907,529.778907
+No Match,None,unmatched,29355,8.441,19.113,143.87,347.9501,,,,2217.245,0,0
+No Match,None,unmatched,11856,5.624,23.22,174.37,349.0866,,,,19096.009,620.9533,0
+No Match,None,unmatched,40378,7.068,22.496,169.2,350.9903,,,,1096.64,0,0
+No Match,None,unmatched,26670,5.369,22.994,172.94,351.0712,,,,2724.882,0,0
+No Match,None,unmatched,33619,8.996,21.638,162.75,352.0307,,,,460.525599,0,0
+No Match,None,unmatched,55198,9.044,22.946,172.45,358.0531,,,,154.7002,0,0
+No Match,None,unmatched,12568,7.5405,23.55,176.825,358.10895,,,,48017.869,11447.669,0
+No Match,None,unmatched,54668,8.579,21.781,163.13,359.045,,,,0,222.0799,0
+No Match,None,unmatched,53467,9.134,22.562,168.96,359.044,,,,0,0,303.4883
+No Match,None,unmatched,22006,5.805,23.106,173.64,359.09,,,,4177.438,0,0
+No Match,None,unmatched,45565,9.002,22.844,171.05,360.0714,,,,0,396.1669,366.1242
+No Match,None,unmatched,34783,5.224,23.76,177.9,360.089,,,,0,1549.24,0
+No Match,None,unmatched,35047,8.583,22.99,172.32,363.0687,,,,0,75.0125199,0
+No Match,None,unmatched,43987,9.259,22.917,171.63,363.06895,,,,0,873.7651,0
+No Match,None,unmatched,6932,5.606,23.826,178.54,363.1036,,,,38530.929,20996.949,1999.831
+No Match,None,unmatched,15337,6.208,23.889,178.78,364.101,,,,0,10369.989,0
+No Match,None,unmatched,54124,5.435,22.461,168.11,364.9509,,,,0,262.9319,0
+No Match,None,unmatched,17957,8.668,22.565,169.08,365.01465,,,,0,0,552.5913
+No Match,None,unmatched,22926,8.6755,22.5555,169.08,365.0165,,,,611.4095,0,996.1349
+No Match,None,unmatched,43362,9.623,22.675,169.71,365.0223,,,,0,0,912.7913
+No Match,None,unmatched,7831,8.466,23.281,174.4,366.9005,,,,37731.919,5885.516,4661.278
+No Match,None,unmatched,871,9.151,23.009,172.37,366.8995,,,,731158.899,182988.399,183242.999
+No Match,None,unmatched,17434,5.186,23.956,179.86,367.0903,,,,7439.32,0,0
+No Match,None,unmatched,7944,8.463,23.276,174.33,368.8973,,,,35638.369,6652.166,4672.894
+No Match,None,unmatched,47330,8.426,22.535,168.59,369.0367,,,,0,0,646.6548
+No Match,None,unmatched,37290,9.058,23,172.05,369.9014,,,,0,0,1326.214
+No Match,None,unmatched,48497,7.826,22.285,166.67,373.0476,,,,0,0,570.1771
+No Match,None,unmatched,54345,9.806,22.355,167.19,373.0715,,,,0,246.3753,0
+No Match,None,unmatched,37144,9.353,22.532,168.66,374.061,,,,0,0,826.4704423
+No Match,None,unmatched,18704,9.38,24.226,181.72,376.919,,,,6224.77,0,0
+No Match,None,unmatched,36039,9.374,24.089,180.66,378.916,,,,1430.755,0,0
+No Match,None,unmatched,52094,7.203,24.212,180.94,379.1126,,,,0,371.4656,0
+No Match,None,unmatched,54477,8.254,23.294,174.08,380.0381,,,,0,0,236.3553
+No Match,None,unmatched,25502,10.005,23.919,179.36,380.913,,,,2998.356,0,0
+No Match,None,unmatched,49650,8.742,20.531,154.01,380.9818,,,,498.8684,0,0
+No Match,None,unmatched,54156,9.119,21.983,164.87,381.0274,,,,260.7311,0,0
+No Match,None,unmatched,31774,9.385,23.983,179.8,382.9133,,,,1885.256,0,0
+No Match,None,unmatched,28789,9.999,23.942,179.49,382.9099,,,,2313.719,0,0
+No Match,None,unmatched,45567,6.377,24.04,180.21,384.1172,,,,762.0364,0,0
+No Match,None,unmatched,42687,6.404,23.543,175.86,385.1152,,,,0,513.881,436.7755
+No Match,None,unmatched,51980,8.812,23.273,173.83,386.07,,,,0,0,375.9512
+No Match,None,unmatched,52073,8.703,22.821,170.43,388.0476,,,,0,372.1711,0
+No Match,None,unmatched,43681,9.477,20.225,151.59,390.9838,,,,470.4124481,0,0
+No Match,None,unmatched,43221,9.379,21.159,158.57,390.9926,,,,920.186,0,0
+No Match,None,unmatched,29969,7.593,24.625,184.46,392.0997,,,,2124.968,0,0
+No Match,None,unmatched,15501,9.312,18.975,142.22,392.9725,,,,3717.714418,0,0
+No Match,None,unmatched,47926,8.987,19.573,146.69,392.9706,,,,608.0516,0,0
+No Match,None,unmatched,37197,9.498,21.221,159,392.9997,,,,1332.351,0,0
+No Match,None,unmatched,49538,8.839,24.379,182.54,397.0697,,,,505.5913,0,0
+No Match,None,unmatched,51419,6.376,24.579,184.04,397.1117,,,,404.4144,0,0
+No Match,None,unmatched,34455,9.955,22.882,170.835,399.05285,,,,0,0,1054.717
+No Match,None,unmatched,45110,9.735,20.311,152.12,399.9481,,,,790.6144,0,0
+No Match,None,unmatched,10994,8.801,22.16925,165.88,400.049675,,,,3454.684,0,0
+No Match,None,unmatched,17456,9.56,22.19,165.86,400.0499,,,,4101.367,0,3310.017
+No Match,None,unmatched,40544,9.445,21.032,157.49,400.9887,,,,1086.248,0,0
+No Match,None,unmatched,51450,8.137,22.771,170.48,401.0413,,,,403.1399,0,0
+No Match,None,unmatched,31775,7.597,22.83,170.61,401.0472,,,,486.6034,1398.481,0
+No Match,None,unmatched,32625,9.006,22.94,171.13,401.0494,,,,0,1778.897,0
+No Match,None,unmatched,43866,9.711,23.907,178.54,401.0633,,,,0,0,188.8320903
+No Match,None,unmatched,32079,7.5265,24.8175,185.36,402.11595,,,,17338.559,4189.416,921.6855
+No Match,None,unmatched,52371,8.73,22.844,170.38,404.0419,,,,0,358.1087,0
+No Match,None,unmatched,38925,7.609,24.843,185.9,404.1066,,,,1197.02,0,0
+No Match,None,unmatched,55193,8.829,22.711,169.36,406.0342,,,,0,156.4865,0
+No Match,None,unmatched,33926,7.074,24.923,186.14,406.1065,,,,969.8849,665.9782,0
+No Match,None,unmatched,8056,10.121,24.8435,185.29,408.92165,,,,36898.089,2354.708,7188.987
+No Match,None,unmatched,52933,7.031,24.941,186.56,409.1062,,,,331.3276,0,0
+No Match,None,unmatched,51804,7.09,24.731,184.97,410.9836,,,,385.0285,0,0
+No Match,None,unmatched,14116,8.659,24.343,182.06,411.9483,,,,12937.349,0,0
+No Match,None,unmatched,16261,10.097,24.878,186.04,412.9117,,,,8932.965,0,0
+No Match,None,unmatched,53995,10.338,21.861,162.95,413.0268,,,,0,0,272.1045
+No Match,None,unmatched,23796,8.656,24.445,182.79,413.9486,,,,3476.404,0,0
+No Match,None,unmatched,12830,9.499,22.888,170.86,415.0561,,,,11963.479,0,4500.456
+No Match,None,unmatched,21304,10.022,23.886,178.18,415.0614,,,,610.7727,987.1375,2923.818
+No Match,None,unmatched,50444,9.293,22.718,169.27,417.0024,,,,0,0,454.6789
+No Match,None,unmatched,21360,10.287,22.757,169.91,417.0048,,,,489.1934708,0,0
+No Match,None,unmatched,43553,9.831,22.756,169.7,417.0092,,,,382.7135,673.6199,0
+No Match,None,unmatched,49414,9.551,21.626,161.7,419.0051,,,,513.1443,0,0
+No Match,None,unmatched,53842,9.595,21.736,162.51,419.0149,,,,282.4208,0,0
+No Match,None,unmatched,33081,9.923,23.612,176.04,419.0432,,,,0,37.58360782,294.5199078
+No Match,None,unmatched,52368,10.345,23.898,178.56,425.0416,,,,358.1458,0,0
+No Match,None,unmatched,24846,8.362,25.051,187.13,427.0855,,,,3171.197,0,0
+No Match,None,unmatched,33171,9.246,22.555,167.9,429.9781,,,,0,0,1717.78
+No Match,None,unmatched,24107,10.511,23.698,176.69,430.0737,,,,0,0,86.48171478
+No Match,None,unmatched,15871,10.344,23.667,176.36,430.0759,,,,727.9904,983.7885,7788.264
+No Match,None,unmatched,31642,9.577,20.689,154.02,431.9787,,,,0,1412.249,488.6863
+No Match,None,unmatched,39994,9.9445,22.64,169.085,433.00985,,,,97.13393434,0,0
+No Match,None,unmatched,52603,10.344,21.358,159.51,434.9828,,,,346.3151,0,0
+No Match,None,unmatched,43816,9.721,22.597,168.74,435.007,,,,883.7749,0,0
+No Match,None,unmatched,37127,9.95,24.786,184.67,439.0698,,,,0,0,1167.994763
+No Match,None,unmatched,37885,7.535,23.486,175.29,440.8911,,,,1278.948,0,0
+No Match,None,unmatched,15275,7.97,21.821,162.89,440.9542,,,,10470.209,0,0
+No Match,None,unmatched,54719,9.701,22.279,166.015,441.0048,,,,1001.655,217.7082,0
+No Match,None,unmatched,42336,10.321,24.641,183.23,443.0613,,,,0,0,971.7661
+No Match,None,unmatched,51744,10.82,24.367,181.17,445.0729,,,,0,0,387.9193
+No Match,None,unmatched,55057,9.096,22.702,169.38,446.9847,,,,186.0583,0,0
+No Match,None,unmatched,46366,10.3135,22.1235,165.085,447.00225,,,,1286.943,0,0
+No Match,None,unmatched,53622,9.951,23.314,173.28,451.0456,,,,0,294.9242,0
+No Match,None,unmatched,51120,10.161,22.162,165.3,453.0281,,,,420.2982,0,0
+No Match,None,unmatched,47896,10.124,23.187,172.93,453.0225,,,,609.7572,0,0
+No Match,None,unmatched,50284,9.996666667,25.61833333,190.3766667,454.0806333,,,,0,0,2942.357
+No Match,None,unmatched,52395,10.372,22.251,165.94,455.0198,,,,356.5361,0,0
+No Match,None,unmatched,53607,9.793,23.236,173.27,455.0255,,,,295.4916,0,0
+No Match,None,unmatched,51598,9.368,22.598,168.51,457.0196,,,,395.2146,0,0
+No Match,None,unmatched,48176,10.003,22.742,169.57,457.01725,,,,1505.753,0,0
+No Match,None,unmatched,47562,8.086,25.539,189.72,457.0573,,,,0,632.2651,0
+No Match,None,unmatched,53779,9.434,23.078,172.05,459.0104,,,,285.8424,0,0
+No Match,None,unmatched,52601,10.49,26.521,196.86,468.1005,,,,0,346.336,0
+No Match,None,unmatched,46596,10.027,21.612,161.05,469.0074,,,,80.4969876,0,0
+No Match,None,unmatched,49312,9.707,22.236,165.67,470.9874,,,,518.7481,0,0
+No Match,None,unmatched,54807,7.685,24.97,185.3,474.9404,,,,0,0,210.3835
+No Match,None,unmatched,52205,9.697,22.463,167.28,478.9885,,,,366.1941,0,0
+No Match,None,unmatched,44057,9.42,23.491,174.8,491.0035,,,,868.4479,0,0
+No Match,None,unmatched,47317,9.904,26.03,192.95,492.9898,,,,0,647.7354,0
+No Match,None,unmatched,43739,8.935,23.143,172.17,495.006,,,,44.90657163,0,0
+No Match,None,unmatched,44662,10.302,22.661,167.99,496.013,,,,0,825.3276,0
+No Match,None,unmatched,38277,10.317,22.693,168.23,496.1176,,,,0,1246.733,0
+No Match,None,unmatched,48915,10.309,22.758,169.3,496.8929,,,,543.3226,0,0
+No Match,None,unmatched,53186,9.767,23.493,174.75,497.0177,,,,319.0797,0,0
+No Match,None,unmatched,52629,10.091,23.487,174.67,501.0031,,,,345.0904,0,0
+No Match,None,unmatched,40973,9.5195,23.678,176.065,503.00905,,,,590.0299,0,0
+No Match,None,unmatched,54565,9.778,24,178.46,503.018,,,,229.6232,0,0
+No Match,None,unmatched,52844,9.833,23.422,174.15,505.0175,,,,335.6541,0,0
+No Match,None,unmatched,47406,9.687,23.809,177.01,507.0169,,,,642.9042,0,0
+No Match,None,unmatched,14448,11.594,22.891,170.19,507.9631,,,,12184.079,0,0
+No Match,None,unmatched,45481,11.168,26.705,198.47,508.981,,,,767.1277,0,0
+No Match,None,unmatched,51740,10.425,22.438,166.82,509.0029,,,,388.2316,0,0
+No Match,None,unmatched,52422,10.045,23.84,177.21,509.0068,,,,354.9226,0,0
+No Match,None,unmatched,54422,8.76,26.279,194.55,516.9563,,,,0,240.9351,0
+No Match,None,unmatched,41164,9.179,23.099,171.66,517.0056,,,,587.6831683,0,0
+No Match,None,unmatched,43696,10.816,23.621,175.47,522.941,,,,892.1275,0,0
+No Match,None,unmatched,52856,8.798,25.926,191.88,522.9492,,,,0,335.1205,0
+No Match,None,unmatched,52304,9.649,23.424,173.97,526.9904,,,,361.4206,0,0
+No Match,None,unmatched,52051,10.989,25.088,186.3,527.9609,,,,373.2175,0,0
+No Match,None,unmatched,51048,10.999,25.098,186.35,530.1022,,,,423.4824,0,0
+No Match,None,unmatched,43546,8.5925,26.9915,199.825,532.98285,,,,340.131,0,901.5947
+No Match,None,unmatched,51150,11.639,27.007,199.76,532.9896,,,,0,0,418.2877
+No Match,None,unmatched,52207,9.137,23.907,177.5,533.0156,,,,366.1345,0,0
+No Match,None,unmatched,50815,9.578,23.517,174.6,535.01,,,,98.95141448,0,0
+No Match,None,unmatched,44014,11.508,26.881,199.51,536.0301,,,,871.6375,0,0
+No Match,None,unmatched,54052,10.64,22.939,169.71,537.0276,,,,0,0,268.2334
+No Match,None,unmatched,51976,11.952,27.708,204.88,538.9675,,,,0,0,376.307
+No Match,None,unmatched,24122,10.073,24.321,180.51,540.9435,,,,3375.349,0,0
+No Match,None,unmatched,24238,10.994,24.806,184.1,540.9362,,,,3342.603,0,0
+No Match,None,unmatched,20133,10.851,23.859,176.76,542.9259,,,,3707.39,1468.526,0
+No Match,None,unmatched,53202,10.547,24.063,178.58,543.0287,,,,318.0294,0,0
+No Match,None,unmatched,54605,10.079,24.803,184.06,543.034,,,,226.3951,0,0
+No Match,None,unmatched,47910,9.691,25.304,187.75,545.0175,,,,608.7107,0,0
+No Match,None,unmatched,35694,9.63,24.003,178.1,547.0357,,,,1462.06,0,0
+No Match,None,unmatched,36547,9.591,24.799,183.975,549.0251,,,,622.6072,0,0
+No Match,None,unmatched,34803,9.151333333,23.562,174.8066667,551.0207333,,,,758.9074081,0,0
+No Match,None,unmatched,30183,9.805,23.956,177.57,551.0285,,,,215.459384,0,0
+No Match,None,unmatched,50650,9.277,24.751,183.58,555.0208,,,,97.50104854,0,0
+No Match,None,unmatched,54646,10.361,24.222,179.64,557.0022,,,,223.4688,0,0
+No Match,None,unmatched,46053,9.479,24.261,179.935,557.0199,,,,729.9193,0,0
+No Match,None,unmatched,41633,9.74,24.646,182.78,557.0414,,,,1013.9,0,0
+No Match,None,unmatched,21090,11.987,28.158,208.03,557.9758,,,,0,4630.132,0
+No Match,None,unmatched,42843,9.493,23.898,177.23,558.9953,,,,942.5725,0,0
+No Match,None,unmatched,34146,9.191,24.198,179.445,559.01925,,,,638.0529912,0,0
+No Match,None,unmatched,45475,9.55,24.88,184.495,559.02065,,,,767.6327,0,0
+No Match,None,unmatched,54385,9.439,24.761,183.62,559.0553,,,,243.5398,0,0
+No Match,None,unmatched,41748,9.180333333,24.239,179.6733333,561.0247,,,,280.3257068,0,0
+No Match,None,unmatched,33947,9.928,24.036,178.03,561.0235,,,,543.5952427,0,0
+No Match,None,unmatched,49653,9.314,24.715,183.26,561.0553,,,,498.7027,0,0
+No Match,None,unmatched,52761,9.06,24.89,184.54,563.0237,,,,338.419,0,0
+No Match,None,unmatched,28428,11.206,24.606,182.42,564.9107,,,,2374.805,0,0
+No Match,None,unmatched,41171,9.623,24.219,179.25,565.0453,,,,647.4622,396.1236,0
+No Match,None,unmatched,25849,9.388,23.745,175.82,569.015,,,,901.8963954,0,0
+No Match,None,unmatched,29847,9.352,24.666,182.81,573.0251,,,,1126.628671,0,0
+No Match,None,unmatched,17037,11.988,28.394,209.62,574.9862,,,,0,7888.696,0
+No Match,None,unmatched,18129,10.397,25.13,186.21,575.9157,,,,6708.338,0,0
+No Match,None,unmatched,11654,11.979,28.366,209.41,575.9837,,,,0,6868.253,13688.449
+No Match,None,unmatched,10401,11.976,28.399,209.65,576.9833,,,,0,12641.679,13887.699
+No Match,None,unmatched,43100,9.391,24.382,180.675,577.02435,,,,927.7257,0,0
+No Match,None,unmatched,52620,10.225,24.501,181.56,577.0238,,,,345.3785,0,0
+No Match,None,unmatched,25724,9.497,24.426,180.68,577.0308,,,,1360.332,1584.14,0
+No Match,None,unmatched,37969,9.563,24.931,184.74,577.0364,,,,1273.615,0,0
+No Match,None,unmatched,54390,9.645,24.477,181.29,589.0284,,,,243.0709,0,0
+No Match,None,unmatched,38737,9.779,25.182,186.18,589.0314,,,,508.4809,702.821,0
+No Match,None,unmatched,45259,9.712,25.081,185.42,591.0288,,,,0,0,70.07176539
+No Match,None,unmatched,51869,9.867,24.962,184.18,597.0348,,,,0,381.7772,0
+No Match,None,unmatched,29091,10.704,25.891,191.18,621.9242,,,,1911.696,347.3791,0
+No Match,None,unmatched,49360,10.883,26.6045,196.78,621.92045,,,,1944.345,0,0
+No Match,None,unmatched,44231,11.422,27.85,205.88,635.9345,,,,855.8708,0,0
+No Match,None,unmatched,39713,12.145,26.277,194.19,648.9077,,,,10263.439,0,0
+No Match,None,unmatched,6925,11.70566667,28.27466667,208.51,649.9533667,,,,131086.899,27945.369,18017.799
+No Match,None,unmatched,50021,12.685,25.853,190.77,700.9635,,,,477.6776,0,0
+No Match,None,unmatched,43622,13.261,28.548,210.54,712.9297,,,,896.4982,0,0
+No Match,None,unmatched,53661,13.258,27.61,203.3,780.9792,,,,292.4073,0,0
+No Match,None,unmatched,35299,13.103,26.802,197.3,795.0626,,,,1500.391,0,0
+No Match,None,unmatched,53264,14.337,31.264,228.9,881.95,,,,0,314.4638,0
+No Match,None,unmatched,36282,14.751,30.468,223.08,995.9355,,,,0,0,840.2883566
+No Match,None,unmatched,51044,15.299,32.223,235.2,1094.9432,,,,0,423.5941,0
