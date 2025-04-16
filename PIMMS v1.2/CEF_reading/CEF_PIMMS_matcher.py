@@ -1,7 +1,8 @@
-import pandas as pd
-import os
 import glob
+import os
 import xml.etree.ElementTree as ET
+
+import pandas as pd
 
 
 def get_cef_sample_names(cef_folder):
@@ -163,7 +164,7 @@ def print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path):
 
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv"
+    pimms_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
 
     sample_names = get_cef_sample_names(cef_folder)
 
