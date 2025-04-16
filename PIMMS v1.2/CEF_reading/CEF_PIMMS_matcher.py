@@ -115,7 +115,7 @@ def process_sample_matches(sample_names, pimms_file_path):
     return all_filtered
 
 
-def print_sample_report(sample_name, pimms_file_path):
+def print_PIMMS_report(sample_name, pimms_file_path):
     """
     Extracts and prints the filtered PIMMS report for a given sample.
     Only rows where sample intensity > 0 are included.
@@ -163,10 +163,14 @@ def print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path):
 
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    pimms_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv"
 
     sample_names = get_cef_sample_names(cef_folder)
-    print(f"[INFO] Found {len(sample_names)} .cef files.")
-    print(sample_names)
+
     for sample_name in sample_names:
         print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path)
+        print_PIMMS_report(sample_name, pimms_file_path)  # this prints it already
+
+
+if __name__ == "__main__":
+    main()
