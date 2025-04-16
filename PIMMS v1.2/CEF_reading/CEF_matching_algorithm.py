@@ -6,6 +6,8 @@ from CEF_PIMMS_matcher import (
 )
 import pandas as pd
 import bisect
+import xml.etree.ElementTree as ET
+import os
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm):
@@ -85,7 +87,7 @@ def match_PIMMS_to_CEF(
             print(f"[SKIP] No valid data for {sample}")
             continue
 
-        # Rename RTs before matching
+        # Rename RT columns
         pimms_df = pimms_df.rename(columns={"RT": "RT_PIMMS"})
         cef_df = cef_df.rename(columns={"RT": "RT_CEF"})
 
@@ -106,7 +108,6 @@ def match_PIMMS_to_CEF(
         for _, row in ccs_filtered.iterrows():
             rt_pimms = row.get("RT_PIMMS")
             rt_cef = row.get("RT_CEF")
-
             if pd.notna(rt_pimms) and pd.notna(rt_cef):
                 rt_diff = abs(rt_pimms - rt_cef)
                 if rt_diff <= rt_tolerance:
@@ -117,10 +118,29 @@ def match_PIMMS_to_CEF(
             print(f"[INFO] No RT matches within ±{rt_tolerance} min for {sample}")
             continue
 
-        final_df = pd.DataFrame(rt_filtered)
+        rt_df = pd.DataFrame(rt_filtered)
+
+        # Step 4: Intensity match
+        intensity_matched = []
+        for _, row in rt_df.iterrows():
+            pimms_intensity = row[sample]
+            cef_intensity = row.get("Peak_intensity")
+
+            if pd.notna(pimms_intensity) and pd.notna(cef_intensity):
+                pimms_rounded = round(pimms_intensity)  # <-- force integer rounding
+                cef_rounded = round(cef_intensity)
+
+                # Optional debug output
+                print(f"[DEBUG] PIMMS intensity: {pimms_intensity} → {pimms_rounded}")
+                print(f"[DEBUG] CEF intensity: {cef_intensity} → {cef_rounded}")
+
+                if pimms_rounded == cef_rounded:
+                    intensity_matched.append(row)
+
+        final_df = pd.DataFrame(intensity_matched)
 
         print(
-            f"\n=== Final Matches for {sample} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS, ±{rt_tolerance} min RT) ==="
+            f"\n=== Final Matches for {sample} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS, ±{rt_tolerance} min RT, exact intensity match) ==="
         )
         print(
             final_df[
@@ -134,6 +154,9 @@ def match_PIMMS_to_CEF(
                     "RT_PIMMS",
                     "RT_CEF",
                     "RT_diff",
+                    "Peak_intensity",
+                    sample,
+                    "Compound",
                 ]
             ].to_string(index=False)
         )
@@ -143,7 +166,84 @@ def match_PIMMS_to_CEF(
     return results
 
 
-if __name__ == "__main__":
+def compound_lookup(sample_name, cef_folder, compound_id):
+    """
+    Looks up and prints all peak-level information for a given compound ID
+    in the CEF file corresponding to the sample.
+    """
+    cef_file = os.path.join(cef_folder, sample_name + ".cef")
+    if not os.path.exists(cef_file):
+        print(f"[ERROR] CEF file not found for sample: {sample_name}")
+        return
+
+    tree = ET.parse(cef_file)
+    root = tree.getroot()
+
+    all_peaks = []
+    compound_index = 1
+
+    for compound in root.findall(".//Compound"):
+        if compound_index != compound_id:
+            compound_index += 1
+            continue
+
+        loc = compound.find("Location")
+        if loc is None:
+            print(f"[WARN] Compound {compound_id} has no location tag.")
+            return
+
+        rt = float(loc.attrib.get("rt", "nan"))
+        dt = float(loc.attrib.get("dt", "nan"))
+        ccs = float(loc.attrib.get("ccs", "nan"))
+
+        peaks = compound.findall(".//MSPeaks/p")
+        peak_mzs = [float(p.attrib.get("x", "nan")) for p in peaks]
+        min_peak_mz = min(peak_mzs) if peak_mzs else float("nan")
+
+        for peak in peaks:
+            peak_data = {
+                "Compound": compound_index,
+                "RT": rt,
+                "DT": dt,
+                "CCS": ccs,
+                "Peak_mz": float(peak.attrib.get("x", "nan")),
+                "m/z": min_peak_mz,
+                "Peak_intensity": float(peak.attrib.get("y", "nan")),
+            }
+            all_peaks.append(peak_data)
+
+        break  # Stop after finding the compound
+
+    if not all_peaks:
+        print(f"[INFO] No peaks found for Compound {compound_id} in {sample_name}")
+        return
+
+    peaks_df = pd.DataFrame(all_peaks)
+    print(f"\n=== Peak Details for Compound {compound_id} in Sample {sample_name} ===")
+    print(peaks_df.to_string(index=False))
+    return peaks_df
+
+
+def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv"
-    match_PIMMS_to_CEF(cef_folder, pimms_file)
+    pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    mass_error_ppm = 10
+    ccs_tolerance = 2.0
+    rt_tolerance = 1.0
+
+    matches = match_PIMMS_to_CEF(
+        cef_folder=cef_folder,
+        pimms_file=pimms_file,
+        mass_error_ppm=mass_error_ppm,
+        ccs_tolerance=ccs_tolerance,
+        rt_tolerance=rt_tolerance,
+    )
+
+    for sample_name, match_df in matches:
+        print(f"\n>>> Showing compound peak info for sample: {sample_name}")
+        for compound_id in match_df["Compound"].unique():
+            compound_lookup(sample_name, cef_folder, int(compound_id))
+
+
+if __name__ == "__main__":
+    main()
