@@ -1,2 +1,2 @@
 Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),NIST SRM-1957 10.d.DeMP, 149 B2 16631.d.DeMP, 220 B3 16562.d.DeMP
-PFPeS (M-H),PFAS Standards,likely,6,0.592,19.322,146.675,233.04235,-6.88,0.03,N/A,750.999,0,2023.999
+PFOA,PFAS Standards,likely,6,9.453,18.63505554,139.4460622,369.97671,-6.88,0.03,N/A,750.999,0,2023.999
