@@ -72,7 +72,9 @@ def filter_by_ccs_tolerance(mz_matched_df, ccs_tolerance_percent=2.0):
     return pd.DataFrame(filtered)
 
 
-def match_PIMMS_to_CEF(cef_folder, pimms_file, mass_error_ppm=10, ccs_tolerance=2.0):
+def match_PIMMS_to_CEF(
+    cef_folder, pimms_file, mass_error_ppm=10, ccs_tolerance=2.0, rt_tolerance=1.0
+):
     results = []
 
     for sample in get_cef_sample_names(cef_folder):
@@ -83,21 +85,45 @@ def match_PIMMS_to_CEF(cef_folder, pimms_file, mass_error_ppm=10, ccs_tolerance=
             print(f"[SKIP] No valid data for {sample}")
             continue
 
+        # Rename RTs before matching
+        pimms_df = pimms_df.rename(columns={"RT": "RT_PIMMS"})
+        cef_df = cef_df.rename(columns={"RT": "RT_CEF"})
+
+        # Step 1: m/z match
         mz_matches = match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm)
         if mz_matches.empty:
             print(f"[INFO] No m/z matches for {sample}")
             continue
 
+        # Step 2: CCS match
         ccs_filtered = filter_by_ccs_tolerance(mz_matches, ccs_tolerance)
         if ccs_filtered.empty:
             print(f"[INFO] No CCS matches within {ccs_tolerance}% for {sample}")
             continue
 
+        # Step 3: RT match
+        rt_filtered = []
+        for _, row in ccs_filtered.iterrows():
+            rt_pimms = row.get("RT_PIMMS")
+            rt_cef = row.get("RT_CEF")
+
+            if pd.notna(rt_pimms) and pd.notna(rt_cef):
+                rt_diff = abs(rt_pimms - rt_cef)
+                if rt_diff <= rt_tolerance:
+                    row["RT_diff"] = rt_diff
+                    rt_filtered.append(row)
+
+        if not rt_filtered:
+            print(f"[INFO] No RT matches within ±{rt_tolerance} min for {sample}")
+            continue
+
+        final_df = pd.DataFrame(rt_filtered)
+
         print(
-            f"\n=== Final Matches for {sample} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS) ==="
+            f"\n=== Final Matches for {sample} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS, ±{rt_tolerance} min RT) ==="
         )
         print(
-            ccs_filtered[
+            final_df[
                 [
                     "PIMMS_m/z",
                     "CEF_Peak_mz",
@@ -105,11 +131,14 @@ def match_PIMMS_to_CEF(cef_folder, pimms_file, mass_error_ppm=10, ccs_tolerance=
                     "CCS_PIMMS",
                     "CCS_CEF",
                     "CCS_percent_diff",
+                    "RT_PIMMS",
+                    "RT_CEF",
+                    "RT_diff",
                 ]
             ].to_string(index=False)
         )
 
-        results.append((sample, ccs_filtered))
+        results.append((sample, final_df))
 
     return results
 
