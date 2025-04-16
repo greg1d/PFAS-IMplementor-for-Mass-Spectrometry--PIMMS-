@@ -14,10 +14,6 @@ def find_similar_peaks(array, target_mass, mass_error_ppm):
     lower_bound = target_mass - mass_bound
     upper_bound = target_mass + mass_bound
 
-    print(
-        f"Searching for: {target_mass:.6f} ± {mass_bound:.6f} ppm → bounds: [{lower_bound:.6f}, {upper_bound:.6f}]"
-    )
-
     j_start = bisect.bisect_left(array, lower_bound)
     j_end = bisect.bisect_right(array, upper_bound)
     return array[j_start:j_end]

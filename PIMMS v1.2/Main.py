@@ -436,6 +436,7 @@ def main():
     except Exception as e:
         print(f"[ERROR] Failed to perform adduct filtering: {e}")
         sys.exit(1)
+    print("[INFO] Applying neutral loss filter...")
 
     try:
         adjusted_df = find_neutral_loss_matches(adjusted_df)
@@ -445,7 +446,7 @@ def main():
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
-            f"[INFO] After Applying adduct filter:\n"
+            f"[INFO] After Applying neutral loss filter:\n"
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )

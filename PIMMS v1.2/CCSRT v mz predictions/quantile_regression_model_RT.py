@@ -114,13 +114,6 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
 
         inliers_mask = (y >= lower) & (y <= upper)
         outliers_mask = ~inliers_mask
-        print("df cols:", df.columns)
-        # Print PrecursorNames of outliers if column exists
-        if "PrecursorName" in df.columns:
-            outliers = df[outliers_mask]
-            print(f"\nOutliers for {label} model:")
-            for name in outliers["PrecursorName"]:
-                print(f"  - {name}")
 
         # Plot inliers in gray
         ax.scatter(
@@ -210,7 +203,6 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
         text.set_fontfamily("Arial")
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
 def run_RT_regression_analysis(library_file):

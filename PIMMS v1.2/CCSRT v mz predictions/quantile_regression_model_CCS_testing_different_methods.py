@@ -113,13 +113,6 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
         )
         outliers_mask = ~inliers_mask
 
-        # Print PrecursorNames of outliers if column exists
-        if "PrecursorName" in df.columns:
-            print(f"\nOutliers for {label} model:")
-            print(df.loc[outliers_mask, "PrecursorName"].to_string(index=False))
-        else:
-            print(f"\nNote: 'PrecursorName' column not found for {label} model.")
-
         inliers = df[inliers_mask]
         outliers = df[outliers_mask]
         outliers_mask = ~inliers_mask

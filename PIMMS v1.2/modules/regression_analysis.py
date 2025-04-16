@@ -388,7 +388,6 @@ def plot_triple_panel(adjusted_df, filtered_rt, filtered_ccs):
             )
 
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
 def produce_filtered_df(adjusted_df, library_file, rt_filter, ccs_filter):

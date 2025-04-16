@@ -114,11 +114,6 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
         outliers_mask = ~inliers_mask
 
         # Print PrecursorNames of outliers if column exists
-        if "PrecursorName" in df.columns:
-            print(f"\nOutliers for {label} model:")
-            print(df.loc[outliers_mask, "PrecursorName"].to_string(index=False))
-        else:
-            print(f"\nNote: 'PrecursorName' column not found for {label} model.")
 
         inliers = df[inliers_mask]
         outliers = df[outliers_mask]
@@ -220,7 +215,6 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
         text.set_fontweight("bold")
         text.set_fontfamily("Arial")
     plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 
 def run_CCS_regression_analysis(library_file):
