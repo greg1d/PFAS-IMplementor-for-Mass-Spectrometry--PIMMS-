@@ -72,53 +72,49 @@ def filter_by_ccs_tolerance(mz_matched_df, ccs_tolerance_percent=2.0):
     return pd.DataFrame(filtered)
 
 
-def main():
-    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv"
-    mass_error_ppm = 10
-    ccs_tolerance = 2.0  # 2%
+def match_PIMMS_to_CEF(cef_folder, pimms_file, mass_error_ppm=10, ccs_tolerance=2.0):
+    results = []
 
-    sample_names = get_cef_sample_names(cef_folder)
-    print(f"[INFO] Found {len(sample_names)} .cef files.")
+    for sample in get_cef_sample_names(cef_folder):
+        pimms_df = extract_filtered_sample_data(sample, pimms_file)
+        cef_df = parse_cef_file(get_cef_path(sample, cef_folder))
 
-    for sample_name in sample_names:
-        pimms_df = extract_filtered_sample_data(sample_name, pimms_file_path)
-        cef_path = get_cef_path(sample_name, cef_folder)
-        cef_df = parse_cef_file(cef_path)
+        if pimms_df.empty or cef_df.empty:
+            print(f"[SKIP] No valid data for {sample}")
+            continue
 
-        if pimms_df is not None and not pimms_df.empty and not cef_df.empty:
-            # Step 1: Match by m/z
-            match_mz_df = match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm)
+        mz_matches = match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm)
+        if mz_matches.empty:
+            print(f"[INFO] No m/z matches for {sample}")
+            continue
 
-            if match_mz_df.empty:
-                print(f"\n[INFO] No m/z matches for {sample_name}")
-                continue
+        ccs_filtered = filter_by_ccs_tolerance(mz_matches, ccs_tolerance)
+        if ccs_filtered.empty:
+            print(f"[INFO] No CCS matches within {ccs_tolerance}% for {sample}")
+            continue
 
-            # Step 2: Filter m/z matches by CCS
-            match_ccs_df = filter_by_ccs_tolerance(match_mz_df, ccs_tolerance)
+        print(
+            f"\n=== Final Matches for {sample} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS) ==="
+        )
+        print(
+            ccs_filtered[
+                [
+                    "PIMMS_m/z",
+                    "CEF_Peak_mz",
+                    "ppm_error",
+                    "CCS_PIMMS",
+                    "CCS_CEF",
+                    "CCS_percent_diff",
+                ]
+            ].to_string(index=False)
+        )
 
-            print(
-                f"\n=== Final Matches for {sample_name} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS) ==="
-            )
-            if not match_ccs_df.empty:
-                print(
-                    match_ccs_df[
-                        [
-                            "PIMMS_m/z",
-                            "CEF_Peak_mz",
-                            "ppm_error",
-                            "CCS_PIMMS",
-                            "CCS_CEF",
-                            "CCS_percent_diff",
-                        ]
-                    ].to_string(index=False)
-                )
-            else:
-                print("No CCS matches found within tolerance.")
+        results.append((sample, ccs_filtered))
 
-        else:
-            print(f"[SKIP] No valid data for sample: {sample_name}")
+    return results
 
 
 if __name__ == "__main__":
-    main()
+    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
+    pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv"
+    match_PIMMS_to_CEF(cef_folder, pimms_file)
