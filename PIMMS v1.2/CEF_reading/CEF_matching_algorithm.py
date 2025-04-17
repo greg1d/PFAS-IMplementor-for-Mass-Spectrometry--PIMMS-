@@ -94,7 +94,6 @@ def match_PIMMS_to_CEF(
         # Step 1: m/z match
         mz_matches = match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm)
         if mz_matches.empty:
-            print(f"[INFO] No m/z matches for {sample}")
             continue
 
         # Step 2: CCS match
@@ -130,36 +129,27 @@ def match_PIMMS_to_CEF(
                 pimms_rounded = round(pimms_intensity)  # <-- force integer rounding
                 cef_rounded = round(cef_intensity)
 
-                # Optional debug output
-                print(f"[DEBUG] PIMMS intensity: {pimms_intensity} → {pimms_rounded}")
-                print(f"[DEBUG] CEF intensity: {cef_intensity} → {cef_rounded}")
-
                 if pimms_rounded == cef_rounded:
                     intensity_matched.append(row)
 
         final_df = pd.DataFrame(intensity_matched)
 
-        print(
-            f"\n=== Final Matches for {sample} (±{mass_error_ppm} ppm, ±{ccs_tolerance}% CCS, ±{rt_tolerance} min RT, exact intensity match) ==="
-        )
-        print(
-            final_df[
-                [
-                    "PIMMS_m/z",
-                    "CEF_Peak_mz",
-                    "ppm_error",
-                    "CCS_PIMMS",
-                    "CCS_CEF",
-                    "CCS_percent_diff",
-                    "RT_PIMMS",
-                    "RT_CEF",
-                    "RT_diff",
-                    "Peak_intensity",
-                    sample,
-                    "Compound",
-                ]
-            ].to_string(index=False)
-        )
+        final_df[
+            [
+                "PIMMS_m/z",
+                "CEF_Peak_mz",
+                "ppm_error",
+                "CCS_PIMMS",
+                "CCS_CEF",
+                "CCS_percent_diff",
+                "RT_PIMMS",
+                "RT_CEF",
+                "RT_diff",
+                "Peak_intensity",
+                sample,
+                "Compound",
+            ]
+        ].to_string(index=False)
 
         results.append((sample, final_df))
 
@@ -219,8 +209,7 @@ def compound_lookup(sample_name, cef_folder, compound_id):
         return
 
     peaks_df = pd.DataFrame(all_peaks)
-    print(f"\n=== Peak Details for Compound {compound_id} in Sample {sample_name} ===")
-    print(peaks_df.to_string(index=False))
+
     return peaks_df
 
 
@@ -240,7 +229,6 @@ def main():
     )
 
     for sample_name, match_df in matches:
-        print(f"\n>>> Showing compound peak info for sample: {sample_name}")
         for compound_id in match_df["Compound"].unique():
             compound_lookup(sample_name, cef_folder, int(compound_id))
 
