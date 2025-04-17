@@ -121,3 +121,4 @@ fig.update_layout(
 
 # Show the figure
 fig.show()
+fig.write_image("sankey_filtering_performance.png")
