@@ -24,15 +24,6 @@ def FC_prediction(kaufman_df):
     stdev_matrix = raw_stdev.iloc[1:, 1:].astype(float).values
 
     # Convert matrix index to Excel coordinate (e.g., B2, C5)
-    def index_to_excel(row, col):
-        def col_to_excel(c):
-            name = ""
-            while c >= 0:
-                name = chr(c % 26 + ord("A")) + name
-                c = c // 26 - 1
-            return name
-
-        return f"{col_to_excel(col + 1)}{row + 2}"
 
     # Find closest valid average within a radius
     def find_closest_valid_with_excel(m_val, md_val):
@@ -55,18 +46,15 @@ def FC_prediction(kaufman_df):
 
         val = mean_matrix[i, j]
         stdev_val = stdev_matrix[i, j]
-        excel_coord = index_to_excel(i, j)
 
-        return val, stdev_val, excel_coord
+        return val, stdev_val
 
     # Apply function row-wise to DataFrame
-    kaufman_df[["Predicted_F_per_C", "Predicted_F_per_C_StDev", "Excel_Coordinate"]] = (
-        kaufman_df.apply(
-            lambda row: pd.Series(
-                find_closest_valid_with_excel(row["m_over_C"], row["md_over_C"])
-            ),
-            axis=1,
-        )
+    kaufman_df[["Predicted_F_per_C", "Predicted_F_per_C_StDev"]] = kaufman_df.apply(
+        lambda row: pd.Series(
+            find_closest_valid_with_excel(row["m_over_C"], row["md_over_C"])
+        ),
+        axis=1,
     )
 
     return kaufman_df
