@@ -1,45 +1,95 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
-# === File path ===
-file_path = r"PIMMS v1.2\CEF_reading\Kaufman_density_plot_test.csv"
-
-# === Load raw data (no headers) ===
+# === Load Kaufman plot data ===
+file_path = r"PIMMS v1.2\CEF_reading\Kaufman_density_plot.csv"
 raw_df = pd.read_csv(file_path, header=None)
 
-# === Extract axis labels ===
-m_over_C = raw_df.iloc[0, 1:].astype(float).values  # X-axis
-md_over_C = raw_df.iloc[1:, 0].astype(float).values  # Y-axis
+# Extract axes
+m_over_C = raw_df.iloc[0, 1:].astype(float).values
+md_over_C = raw_df.iloc[1:, 0].astype(float).values
+values_matrix = raw_df.iloc[1:, 1:].apply(pd.to_numeric, errors="coerce").values
 
-# === Extract values matrix ===
-values_matrix = raw_df.iloc[1:, 1:].astype(float).values
-
-# === Flatten into long format dataframe ===
+# Build long-format DataFrame
 points = []
-for i, y_val in enumerate(md_over_C):
-    for j, x_val in enumerate(m_over_C):
-        score = values_matrix[i, j]
-        label = "PFAS" if score >= 1.5 else "OC"
-        points.append({"m/C": x_val, "MD/C": y_val, "Class": label})
+for i, y in enumerate(md_over_C):
+    for j, x in enumerate(m_over_C):
+        val = values_matrix[i, j]
+        if np.isnan(val):
+            label = "NA"
+        elif val >= 1.5:
+            label = "PFAS"
+        else:
+            label = "OC"
+        points.append({"m/C": x, "MD/C": y, "Score": val, "Class": label})
 
-df_long = pd.DataFrame(points)
+df = pd.DataFrame(points)
 
-# === Plotting ===
-colors = {"PFAS": "dodgerblue", "OC": "darkorange"}
-plt.figure(figsize=(7, 5))
+# === Split by class ===
+pfas = df[df["Class"] == "PFAS"]
+ocs = df[df["Class"] == "OC"]
+nas = df[df["Class"] == "NA"]
 
-for label, group in df_long.groupby("Class"):
-    plt.scatter(group["m/C"], group["MD/C"], label=label, color=colors[label], s=20)
+# === Plot Setup ===
+plt.figure(figsize=(5, 5))
+ax = plt.gca()
 
-# Autoscale x/y limits
-plt.xlim(df_long["m/C"].min(), df_long["m/C"].max())
-plt.ylim(df_long["MD/C"].min(), df_long["MD/C"].max())
+# Plot OC and PFAS as translucent diamonds
+sns.scatterplot(
+    data=ocs,
+    x="m/C",
+    y="MD/C",
+    color="blue",  # red
+    edgecolor=None,
+    label="OC",
+    s=30,
+    alpha=0.5,
+    marker="o",
+)
+sns.scatterplot(
+    data=pfas,
+    x="m/C",
+    y="MD/C",
+    color="red",  # green
+    edgecolor=None,
+    label="PFAS",
+    s=30,
+    alpha=0.5,
+    marker="o",
+)
 
-plt.axvline(1.5, color="gray", linestyle="--", linewidth=1, label="Threshold: 1.5")
-plt.xlabel("m / C", fontsize=12, fontweight="bold")
-plt.ylabel("md / C", fontsize=12, fontweight="bold")
-plt.title("Kaufman Plot: m/C vs MD/C", fontsize=14)
-plt.legend()
-plt.grid(True, linestyle="--", alpha=0.5)
+# Plot NA as white hollow diamonds
+plt.scatter(
+    nas["m/C"],
+    nas["MD/C"],
+    color="white",
+    edgecolor="white",
+    s=0,
+    marker="o",
+    label="Missing (NA)",
+)
+
+# Plot 90% KDE contour for PFAS
+sns.kdeplot(
+    data=pfas,
+    x="m/C",
+    y="MD/C",
+    levels=[0.10, 1.0],
+    color="red",
+    fill=True,
+    alpha=0.4,
+    linewidth=0,
+)
+
+
+# === Style the plot ===
+plt.xlabel("m / C", fontsize=10, fontweight="bold")
+plt.ylabel("md / C", fontsize=10, fontweight="bold")
+plt.xticks(fontsize=9)
+plt.yticks(fontsize=9)
+plt.grid(False)
+plt.legend(frameon=False, fontsize=9)
 plt.tight_layout()
 plt.show()
