@@ -43,8 +43,11 @@ def show_multi_peak_compound_matches(matches, cef_folder):
 
 def compute_kaufman_constants(multi_peak_df):
     """
-    Computes Kaufman C = (I2 / I1) * (1 / 0.011145) for multi-peak compounds,
-    grouped by SampleName + Compound.
+    Computes Kaufman C = (I2 / I1) * (1 / 0.011145) and derived metrics:
+    - m / C
+    - md / C (mass defect / C)
+
+    Returns a DataFrame with all computed metrics per compound per sample.
     """
     kaufman_data = []
 
@@ -61,9 +64,10 @@ def compute_kaufman_constants(multi_peak_df):
         mz2 = sorted_group.loc[1, "Peak_mz"]
 
         if intensity1 == 0:
-            continue
+            continue  # Avoid division by zero
 
         kaufman_C = (intensity2 / intensity1) * (1 / 0.011145)
+        mass_defect = mz1 - round(mz1)
 
         kaufman_data.append(
             {
@@ -74,6 +78,9 @@ def compute_kaufman_constants(multi_peak_df):
                 "Peak_mz_2": mz2,
                 "Intensity_2": intensity2,
                 "Kaufman_C": kaufman_C,
+                "m_over_C": mz1 / kaufman_C,
+                "mass_defect": mass_defect,
+                "md_over_C": mass_defect / kaufman_C,
             }
         )
 
