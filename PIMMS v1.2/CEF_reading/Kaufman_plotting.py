@@ -1,6 +1,7 @@
 from CEF_matching_algorithm import match_PIMMS_to_CEF, compound_lookup, parse_cef_file
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def extract_multi_peak_compounds(cef_df):
@@ -87,6 +88,35 @@ def compute_kaufman_constants(multi_peak_df):
     return pd.DataFrame(kaufman_data)
 
 
+def plot_kaufman_scatter(kaufman_df):
+    """
+    Plots an XY scatter plot of md/C (mass defect over C) vs. m/C.
+    """
+    if kaufman_df.empty:
+        print("[INFO] No Kaufman data to plot.")
+        return
+
+    plt.figure(figsize=(7, 5))
+    plt.scatter(
+        kaufman_df["m_over_C"],
+        kaufman_df["md_over_C"],
+        color="darkblue",
+        edgecolor="black",
+        s=50,
+        alpha=0.8,
+    )
+
+    plt.axhline(0, color="gray", linestyle="--", linewidth=1)
+    plt.axvline(0, color="gray", linestyle="--", linewidth=1)
+
+    plt.xlabel("m / C", fontsize=12, fontweight="bold")
+    plt.ylabel("md / C", fontsize=12, fontweight="bold")
+    plt.title("Kaufman Plot: Mass Defect / C vs. m / C", fontsize=14)
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
@@ -98,6 +128,9 @@ def main():
         kaufman_df = compute_kaufman_constants(multi_peak_df)
         print("\n=== Kaufman Plot Constants ===")
         print(kaufman_df.to_string(index=False))
+
+        # Plot the Kaufman scatter plot
+        plot_kaufman_scatter(kaufman_df)
     else:
         print("\n[INFO] No multi-peak compound matches to compute Kaufman constants.")
 
