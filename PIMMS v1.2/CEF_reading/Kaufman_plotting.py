@@ -193,7 +193,7 @@ def main():
         return pd.DataFrame()
 
     kaufman_df = compute_kaufman_constants(multi_peak_df)
-    print
+    plot_kaufman_scatter(kaufman_df, boundary_path)
 
 
 if __name__ == "__main__":
