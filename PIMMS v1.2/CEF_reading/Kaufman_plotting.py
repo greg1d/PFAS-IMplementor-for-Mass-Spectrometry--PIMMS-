@@ -193,7 +193,7 @@ def main():
         return pd.DataFrame()
 
     kaufman_df = compute_kaufman_constants(multi_peak_df)
-    print(kaufman_df)
+    print
 
 
 if __name__ == "__main__":
