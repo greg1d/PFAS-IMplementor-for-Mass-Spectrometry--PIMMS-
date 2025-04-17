@@ -2,7 +2,6 @@ from CEF_matching_algorithm import match_PIMMS_to_CEF
 import pandas as pd
 from Kaufman_plotting import compute_kaufman_constants, show_multi_peak_compound_matches
 import matplotlib.pyplot as plt
-from matplotlib.path import Path
 import numpy as np
 import matplotlib.colors as mcolors
 
@@ -21,7 +20,7 @@ def compute_mCm_alignment(df):
     md_cf2 = -0.00319
 
     df = df.copy()
-    m = df["Peak_mz_1"]
+    m = 4.23e-4
     m_over_C = df["m_over_C"]
     md_over_C = df["md_over_C"]
 
@@ -44,11 +43,11 @@ def compute_MDCm_alignment(df):
     md_cf2 = -0.00319
 
     df = df.copy()
-    m = df["Peak_mz_1"]
+    m = 4.23e-4
     m_over_C = df["m_over_C"]
     md_over_C = df["md_over_C"]
 
-    df["m_over_Cm"] = (m_over_C - m_cf2) * np.sin(m) + (md_over_C - md_cf2) * np.cos(m)
+    df["md_over_Cm"] = (m_over_C - m_cf2) * np.sin(m) + (md_over_C - md_cf2) * np.cos(m)
 
     return df
 
@@ -65,11 +64,11 @@ def cf2_prioritization(df):
     """
     lambda_val = 3000  # Fixed scaling factor
     df = df.copy()
-    df["r_CF2"] = np.sqrt((df["m_over_Cm"] / lambda_val) ** 2 + df["md_over_C"] ** 2)
+    df["r_CF2"] = np.sqrt((df["m_over_Cm"] / lambda_val) ** 2 + df["md_over_Cm"] ** 2)
     return df
 
 
-def plot_kaufman_scatter_colored(kaufman_df, boundary_path):
+def plot_kaufman_scatter_colored(kaufman_df):
     """
     Plot Kaufman scatter colored by r_CF2 with exact color range matching reference.
     """
@@ -94,8 +93,8 @@ def plot_kaufman_scatter_colored(kaufman_df, boundary_path):
     # Plot
     plt.figure(figsize=(7, 5))
     scatter = plt.scatter(
-        kaufman_df["m_over_C"],
-        kaufman_df["md_over_C"],
+        kaufman_df["m_over_Cm"],
+        kaufman_df["md_over_Cm"],
         c=kaufman_df["r_CF2"],
         cmap=custom_cmap,
         norm=norm,
@@ -104,19 +103,11 @@ def plot_kaufman_scatter_colored(kaufman_df, boundary_path):
         alpha=0.9,
     )
 
-    # Overlay PFAS KDE boundary
-    boundary_df = pd.read_csv(boundary_path)
-    contour = Path(boundary_df[["m/C", "MD/C"]].values)
-    x, y = contour.vertices[:, 0], contour.vertices[:, 1]
-    plt.plot(
-        x, y, linestyle="--", linewidth=2, color="black", label="PFAS KDE Boundary"
-    )
-
     # Axes and labels
     plt.axhline(0, color="gray", linestyle="--", linewidth=1)
     plt.axvline(0, color="gray", linestyle="--", linewidth=1)
-    plt.xlabel("m / C", fontsize=12, fontweight="bold")
-    plt.ylabel("md / C", fontsize=12, fontweight="bold")
+    plt.xlabel("m/Cm", fontsize=12, fontweight="bold")
+    plt.ylabel("MD/Cm", fontsize=12, fontweight="bold")
     plt.title("Kaufman Plot Colored by $r_{CF_2}$", fontsize=14)
 
     # Colorbar
@@ -125,7 +116,6 @@ def plot_kaufman_scatter_colored(kaufman_df, boundary_path):
     cbar.set_ticks([0.01, 0.02, 0.03, 0.04, 0.05])
 
     plt.grid(True, linestyle="--", alpha=0.5)
-    plt.legend()
     plt.tight_layout()
     plt.show()
 
@@ -144,9 +134,8 @@ def main():
     kaufman_df = compute_mCm_alignment(kaufman_df)
     kaufman_df = compute_MDCm_alignment(kaufman_df)
     kaufman_df = cf2_prioritization(kaufman_df)
-
-    boundary_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
-    plot_kaufman_scatter_colored(kaufman_df, boundary_path)
+    print(kaufman_df.head())
+    plot_kaufman_scatter_colored(kaufman_df)
 
 
 if __name__ == "__main__":
