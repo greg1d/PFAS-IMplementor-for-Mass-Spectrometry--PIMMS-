@@ -10,86 +10,51 @@ raw_df = pd.read_csv(file_path, header=None)
 # Extract axes
 m_over_C = raw_df.iloc[0, 1:].astype(float).values
 md_over_C = raw_df.iloc[1:, 0].astype(float).values
-values_matrix = raw_df.iloc[1:, 1:].apply(pd.to_numeric, errors="coerce").values
+values_matrix = raw_df.iloc[1:, 1:].astype(float).values
 
-# Build long-format DataFrame
+# Create long-format DataFrame
 points = []
 for i, y in enumerate(md_over_C):
     for j, x in enumerate(m_over_C):
         val = values_matrix[i, j]
         if np.isnan(val):
-            label = "NA"
-        elif val >= 1.5:
-            label = "PFAS"
-        else:
-            label = "OC"
+            continue
+        label = "PFAS" if val >= 1.5 else "OC"
         points.append({"m/C": x, "MD/C": y, "Score": val, "Class": label})
 
 df = pd.DataFrame(points)
-
-# === Split by class ===
 pfas = df[df["Class"] == "PFAS"]
-ocs = df[df["Class"] == "OC"]
-nas = df[df["Class"] == "NA"]
 
-# === Plot Setup ===
-plt.figure(figsize=(5, 5))
-ax = plt.gca()
+# === Plot and Extract KDE Boundary ===
+fig, ax = plt.subplots(figsize=(8, 6))
 
-# Plot OC and PFAS as translucent diamonds
-sns.scatterplot(
-    data=ocs,
-    x="m/C",
-    y="MD/C",
-    color="blue",  # red
-    edgecolor=None,
-    label="OC",
-    s=30,
-    alpha=0.5,
-    marker="o",
-)
-sns.scatterplot(
+kde = sns.kdeplot(
     data=pfas,
     x="m/C",
     y="MD/C",
-    color="red",  # green
-    edgecolor=None,
-    label="PFAS",
-    s=30,
-    alpha=0.5,
-    marker="o",
+    levels=[0.10],
+    fill=False,
+    linewidth=2,
+    linestyles="--",
+    color="blue",
+    ax=ax,
 )
 
-# Plot NA as white hollow diamonds
-plt.scatter(
-    nas["m/C"],
-    nas["MD/C"],
-    color="white",
-    edgecolor="white",
-    s=0,
-    marker="o",
-    label="Missing (NA)",
-)
+# === Extract Contour Coordinates ===
+contour_path = None
+for collection in kde.collections:
+    if collection.get_paths():
+        # Assume the first path is the 90% contour
+        contour_path = collection.get_paths()[0]
+        break
 
-# Plot 90% KDE contour for PFAS
-sns.kdeplot(
-    data=pfas,
-    x="m/C",
-    y="MD/C",
-    levels=[0.10, 1.0],
-    color="red",
-    fill=True,
-    alpha=0.4,
-    linewidth=0,
-)
+if contour_path:
+    vertices = contour_path.vertices
+    contour_df = pd.DataFrame(vertices, columns=["m/C", "MD/C"])
 
-
-# === Style the plot ===
-plt.xlabel("m / C", fontsize=10, fontweight="bold")
-plt.ylabel("md / C", fontsize=10, fontweight="bold")
-plt.xticks(fontsize=9)
-plt.yticks(fontsize=9)
-plt.grid(False)
-plt.legend(frameon=False, fontsize=9)
-plt.tight_layout()
-plt.show()
+    # Save to CSV
+    output_csv = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
+    contour_df.to_csv(output_csv, index=False)
+    print(f"[INFO] 90% KDE boundary exported to: {output_csv}")
+else:
+    print("[ERROR] No contour path found.")
