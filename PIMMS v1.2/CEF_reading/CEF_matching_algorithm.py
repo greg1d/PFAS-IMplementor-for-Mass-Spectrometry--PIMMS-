@@ -94,6 +94,7 @@ def match_PIMMS_to_CEF(
         # Step 1: m/z match
         mz_matches = match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm)
         if mz_matches.empty:
+            print(f"[INFO] No m/z matches for {sample}")
             continue
 
         # Step 2: CCS match
@@ -209,7 +210,8 @@ def compound_lookup(sample_name, cef_folder, compound_id):
         return
 
     peaks_df = pd.DataFrame(all_peaks)
-
+    print(f"\n=== Peak Details for Compound {compound_id} in Sample {sample_name} ===")
+    print(peaks_df.to_string(index=False))
     return peaks_df
 
 
@@ -229,6 +231,7 @@ def main():
     )
 
     for sample_name, match_df in matches:
+        print(f"\n>>> Showing compound peak info for sample: {sample_name}")
         for compound_id in match_df["Compound"].unique():
             compound_lookup(sample_name, cef_folder, int(compound_id))
 
