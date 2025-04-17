@@ -20,7 +20,6 @@ def show_multi_peak_compound_matches(matches, cef_folder):
     all_multi_peaks = []
 
     for sample_name, match_df in matches:
-        print(f"\n>>> Showing compound peak info for sample: {sample_name}")
         cef_path = os.path.join(cef_folder, f"{sample_name}.cef")
         cef_df = parse_cef_file(cef_path)
 
@@ -154,32 +153,47 @@ def is_point_in_kde_boundary(kaufman_df, contour_path):
     return kaufman_df
 
 
+def classify_points(matches, cef_folder, boundary_path):
+    """
+    Filters multi-peak compounds, computes Kaufman constants, plots scatter with contour overlay,
+    and classifies points using a KDE boundary.
+
+    Parameters:
+        matches (list): Output from match_PIMMS_to_CEF containing (sample, match_df)
+        cef_folder (str): Path to folder containing CEF files
+        boundary_path (str): Path to CSV file containing the KDE boundary
+
+    Returns:
+        pd.DataFrame: Kaufman dataframe with classification results
+    """
+    multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
+    if multi_peak_df.empty:
+        print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
+        return pd.DataFrame()
+
+    kaufman_df = compute_kaufman_constants(multi_peak_df)
+    plot_kaufman_scatter(kaufman_df, boundary_path)
+
+    boundary_df = pd.read_csv(boundary_path)
+    contour = Path(boundary_df[["m/C", "MD/C"]].values)
+    classified_df = is_point_in_kde_boundary(kaufman_df, contour)
+
+    return classified_df
+
+
 def main():
-    # === Paths ===
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
-    boundary_csv_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
+    boundary_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
 
-    # === Run matching and extract multi-peak compounds ===
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
-
     if multi_peak_df.empty:
-        print("\n[INFO] No multi-peak compound matches to compute Kaufman constants.")
-        return
+        print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
+        return pd.DataFrame()
 
-    # === Compute Kaufman Constants ===
     kaufman_df = compute_kaufman_constants(multi_peak_df)
-
-    # === Plot Kaufman scatter ===
-    plot_kaufman_scatter(kaufman_df, boundary_csv_path)
-
-    # === Classify Kaufman points using KDE boundary ===
-    boundary_df = pd.read_csv(boundary_csv_path)
-    contour_path = Path(boundary_df[["m/C", "MD/C"]].values)
-    classified_df = is_point_in_kde_boundary(kaufman_df, contour_path)
-    print("\n=== Kaufman Points Classification ===")
-    print(classified_df)
+    print(kaufman_df)
 
 
 if __name__ == "__main__":
