@@ -2,6 +2,7 @@ from Kaufman_plotting import show_multi_peak_compound_matches
 from CEF_matching_algorithm import match_PIMMS_to_CEF
 import pandas as pd
 import re
+import time
 
 
 def label_isotopic_peaks(df):
@@ -200,26 +201,55 @@ def heavy_halogen_hunter(isotope_df):
 
 
 def main():
+    start_all = time.time()
+
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     file_path = r"PIMMS v1.2\CEF_reading\data\Isotopic modelling values (NIST).txt"
     csv_path = r"PIMMS v1.2\CEF_reading\data\Atomic numbers for elements.csv"
 
+    t0 = time.time()
     data = read_isotope_data(file_path)
-    isotope_data = parse_isotope_data(data)
-    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+    print(f"[TIMER] Reading isotope data: {time.time() - t0:.2f} s")
 
+    t1 = time.time()
+    isotope_data = parse_isotope_data(data)
+    print(f"[TIMER] Parsing isotope data: {time.time() - t1:.2f} s")
+
+    t2 = time.time()
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
+    print(f"[TIMER] Adding elemental symbols: {time.time() - t2:.2f} s")
+
+    t3 = time.time()
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
+    print(f"[TIMER] match_PIMMS_to_CEF: {time.time() - t3:.2f} s")
+
+    t4 = time.time()
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
+    print(f"[TIMER] show_multi_peak_compound_matches: {time.time() - t4:.2f} s")
+
     if multi_peak_df.empty:
         print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
         return pd.DataFrame()
 
+    t5 = time.time()
     labeled_df = label_isotopic_peaks(multi_peak_df)
+    print(f"[TIMER] Labeling isotopic peaks: {time.time() - t5:.2f} s")
+
+    t6 = time.time()
     labeled_df = normalize_isotopic_intensity(labeled_df)
-    print(labeled_df)
+    print(f"[TIMER] Normalizing isotopic intensities: {time.time() - t6:.2f} s")
+
+    t7 = time.time()
     halogen_isotopes = heavy_halogen_hunter(isotope_data)
+    print(f"[TIMER] Identifying Br/Cl isotopes: {time.time() - t7:.2f} s")
+
+    print("\n[INFO] === Final labeled DataFrame Preview ===")
+    print(labeled_df.head())
+    print("\n[INFO] === Halogen Reference Isotopes ===")
     print(halogen_isotopes)
+
+    print(f"\n[TOTAL TIME] Script completed in {time.time() - start_all:.2f} seconds.")
 
 
 if __name__ == "__main__":
