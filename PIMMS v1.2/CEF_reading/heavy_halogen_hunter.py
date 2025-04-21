@@ -1,6 +1,7 @@
 from Kaufman_plotting import show_multi_peak_compound_matches
 from CEF_matching_algorithm import match_PIMMS_to_CEF
 import pandas as pd
+import re
 
 
 def label_isotopic_peaks(df):
@@ -31,19 +32,151 @@ def label_isotopic_peaks(df):
     return df
 
 
+def normalize_isotopic_intensity(df):
+    """
+    Normalizes Peak_intensity in each (SampleName, Compound) group by the intensity of the M peak (maximum).
+
+    Parameters:
+        df (pd.DataFrame): Must contain 'SampleName', 'Compound', and 'Peak_intensity'
+
+    Returns:
+        pd.DataFrame: Original dataframe with an additional 'Normalized_Intensity' column
+    """
+    if not {"SampleName", "Compound", "Peak_intensity"}.issubset(df.columns):
+        raise ValueError(
+            "Input DataFrame must contain 'SampleName', 'Compound', and 'Peak_intensity' columns."
+        )
+
+    df = df.copy()
+    df["Normalized_Intensity"] = df.groupby(["SampleName", "Compound"])[
+        "Peak_intensity"
+    ].transform(lambda x: x / x.max() if x.max() != 0 else 0)
+
+    return df
+
+
+"""
+# Citations
+
+- [DOI: 10.1351/PAC-REP-10-06-02](https://doi.org/10.1351/PAC-REP-10-06-02)
+- J. S. Coursey, D. J. Schwab, J. J. Tsai, and R. A. Dragoset
+- NIST Physical Measurement Laboratory
+- [IOP Science Article](https://iopscience.iop.org/article/10.1088/1674-1137/36/12/003)
+- [CIAAW Atomic Weights](https://www.ciaaw.org/atomic-weights.htm)
+"""
+
+
+def read_isotope_data(file_path):
+    """Read the isotope data from the given file path."""
+    with open(file_path, "r") as file:
+        data = file.read()
+    return data
+
+
+def parse_isotope_data(data):
+    """Parse the isotope data from the given string."""
+    # Define regex patterns for each field
+    patterns = {
+        "Atomic Number": re.compile(r"Atomic Number = (\d+)"),
+        "Atomic Symbol": re.compile(r"Atomic Symbol = (\w+)"),
+        "Mass Number": re.compile(r"Mass Number = (\d+)"),
+        "Relative Atomic Mass": re.compile(r"Relative Atomic Mass = ([\d.]+)"),
+        "Isotopic Composition": re.compile(r"Isotopic Composition = ([\d.]+)"),
+        "Standard Atomic Weight": re.compile(r"Standard Atomic Weight = ([\d.,\[\]]+)"),
+        "Notes": re.compile(r"Notes = (\w*)"),
+    }
+
+    # Initialize lists to store the parsed data
+    data_dict = {key: [] for key in patterns.keys()}
+
+    # Split the data into lines
+    lines = data.split("\n")
+
+    # Process the lines in chunks corresponding to each data point
+    chunk_size = 8  # Each data point is composed of 7 lines followed by a blank line
+    for i in range(0, len(lines), chunk_size):
+        chunk = lines[i : i + chunk_size]
+        for key, pattern in patterns.items():
+            for line in chunk:
+                if line.strip() == "":
+                    continue  # Skip blank lines
+                match = pattern.search(line)
+                if match:
+                    value = match.group(1)
+                    if key in ["Relative Atomic Mass", "Isotopic Composition"]:
+                        value = re.sub(
+                            r"\(.*\)", "", value
+                        ).strip()  # Remove values in parentheses
+                    if key == "Isotopic Composition" and value == "":
+                        value = None  # Treat empty isotopic composition as None
+                    data_dict[key].append(value)
+                    break
+            else:
+                data_dict[key].append(None)  # Append None if no match is found
+
+    # Debug: Print the parsed data dictionary
+
+    # Create a DataFrame from the parsed data
+    df = pd.DataFrame(data_dict)
+
+    # Exclude rows with empty Isotopic Composition
+    df = df[df["Isotopic Composition"].notna()]
+
+    # Drop the Notes column
+    df = df.drop(columns=["Notes"])
+
+    return df
+
+
+def add_elemental_symbol(df, csv_path):
+    """Add the Elemental Symbol column to the DataFrame based on the Atomic Number."""
+    # Read the CSV file
+    atomic_numbers_df = pd.read_csv(csv_path)
+
+    # Ensure both columns have the same data type
+    df = df.dropna(subset=["Atomic Number"])  # Drop rows where Atomic Number is None
+    df["Atomic Number"] = df["Atomic Number"].astype(int)
+    atomic_numbers_df["AtomicNumber"] = atomic_numbers_df["AtomicNumber"].astype(int)
+
+    # Merge the DataFrame with the atomic numbers DataFrame
+    df = df.merge(
+        atomic_numbers_df, left_on="Atomic Number", right_on="AtomicNumber", how="left"
+    )
+
+    # Rename the Symbol column to Elemental Symbol
+    df = df.rename(columns={"Symbol": "Elemental Symbol"})
+
+    # Drop the AtomicNumber column
+    df = df.drop(columns=["AtomicNumber"])
+
+    # Reorder columns to place Elemental Symbol as the second column
+    cols = df.columns.tolist()
+    cols.insert(1, cols.pop(cols.index("Elemental Symbol")))
+    df = df[cols]
+
+    return df
+
+
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    file_path = r"PIMMS v1.2\CEF_reading\data\Isotopic modelling values (NIST).txt"
+    csv_path = r"PIMMS v1.2\CEF_reading\data\Atomic numbers for elements.csv"
+
+    data = read_isotope_data(file_path)
+    isotope_data = parse_isotope_data(data)
+    isotope_data = add_elemental_symbol(isotope_data, csv_path)
 
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
     if multi_peak_df.empty:
         print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
         return pd.DataFrame()
-    print(multi_peak_df)
 
     labeled_df = label_isotopic_peaks(multi_peak_df)
-    print(labeled_df)
+    labeled_df = normalize_isotopic_intensity(labeled_df)
+
+    print(labeled_df.head())
 
 
 if __name__ == "__main__":
