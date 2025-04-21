@@ -210,7 +210,6 @@ def heavy_halogen_reader(isotope_df):
         "Isotopic Composition"
     ].transform(lambda x: x / x.max())
 
-    print("halogen df", halogen_df)
     return halogen_df
 
 
@@ -325,6 +324,40 @@ def merging_kaufman_df_with_isotopic_modeling(kaufman_df, multi_peak_df):
     return multi_peak_df
 
 
+def compute_max_possible_f_to_c(multi_peak_df):
+    """
+    Compute the maximum number of Carbon and Fluorine atoms possible given Peak_mz_1 and Predicted_F_per_C.
+
+    Parameters:
+        matches_df (pd.DataFrame): Must contain 'Peak_mz_1' and 'Predicted_F_per_C'
+
+    Returns:
+        pd.DataFrame: Original dataframe with 'Max_Carbons' and 'Max_Fluorines' columns added
+    """
+    if (
+        "Peak_mz_1" not in multi_peak_df.columns
+        or "Predicted_F_per_C" not in multi_peak_df.columns
+    ):
+        raise ValueError(
+            "Input DataFrame must contain 'Peak_mz_1' and 'Predicted_F_per_C' columns."
+        )
+
+    atomic_mass_C = 12.00000
+    atomic_mass_F = 18.9984032
+
+    def calculate_limits(row):
+        max_carbons = int(
+            row["Peak_mz_1"]
+            / (atomic_mass_C + row["Predicted_F_per_C"] * atomic_mass_F)
+        )
+        max_fluorines = int(row["Predicted_F_per_C"] * max_carbons)
+        return pd.Series({"Max_Carbons": max_carbons, "Max_Fluorines": max_fluorines})
+
+    result = multi_peak_df.copy()
+    result[["Max_Carbons", "Max_Fluorines"]] = result.apply(calculate_limits, axis=1)
+    return result
+
+
 def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
     """
     Match experimental isotopic patterns to theoretical ones based on Isotope_Label and Normalized_Intensity.
@@ -428,68 +461,58 @@ def add_predicted_f_to_matches(matches_df, kaufman_df):
     return merged_df
 
 
-def compute_max_possible_f_to_c(matches_df):
+def compute_cf_isotopic_distributions(matches_df, halogen_df):
     """
-    Compute the maximum number of Carbon and Fluorine atoms possible given Peak_mz_1 and Predicted_F_per_C.
+    Computes isotopic distributions up to M+6 for each row in matches_df using Max_Carbons and Max_Fluorines.
+    Keeps natural isotopic contributions without forcing zeros at odd M positions.
 
     Parameters:
-        matches_df (pd.DataFrame): Must contain 'Peak_mz_1' and 'Predicted_F_per_C'
+        matches_df (pd.DataFrame): Must contain 'Max_Carbons' and 'Max_Fluorines'
+        halogen_df (pd.DataFrame): Output from heavy_halogen_reader including C and F
 
     Returns:
-        pd.DataFrame: Original dataframe with 'Max_Carbons' and 'Max_Fluorines' columns added
+        pd.DataFrame: Combined isotopic distribution (up to M+6) with SampleName and Compound context
     """
-    if (
-        "Peak_mz_1" not in matches_df.columns
-        or "Predicted_F_per_C" not in matches_df.columns
-    ):
-        raise ValueError(
-            "Input DataFrame must contain 'Peak_mz_1' and 'Predicted_F_per_C' columns."
+    all_results = []
+
+    for idx, row in matches_df.iterrows():
+        sample = row["SampleName"]
+        compound = row["Compound"]
+        max_c = int(row.get("Max_Carbons", 0))
+        max_f = int(row.get("Max_Fluorines", 0))
+
+        carbon_dist = (
+            compute_isotopic_distribution(halogen_df, "C", max_c)
+            if max_c > 0
+            else pd.DataFrame({"Normalized_Intensity": [1.0]})
+        )
+        fluorine_dist = (
+            compute_isotopic_distribution(halogen_df, "F", max_f)
+            if max_f > 0
+            else pd.DataFrame({"Normalized_Intensity": [1.0]})
         )
 
-    atomic_mass_C = 12.00000
-    atomic_mass_F = 18.9984032
-
-    def calculate_limits(row):
-        max_carbons = int(
-            row["Peak_mz_1"]
-            / (atomic_mass_C + row["Predicted_F_per_C"] * atomic_mass_F)
+        combined = np.convolve(
+            carbon_dist["Normalized_Intensity"], fluorine_dist["Normalized_Intensity"]
         )
-        max_fluorines = int(row["Predicted_F_per_C"] * max_carbons)
-        return pd.Series({"Max_Carbons": max_carbons, "Max_Fluorines": max_fluorines})
+        combined /= combined.max()
 
-    result = matches_df.copy()
-    result[["Max_Carbons", "Max_Fluorines"]] = result.apply(calculate_limits, axis=1)
-    return result
+        # Only take M through M+6
+        labels = [f"M+{i}" for i in range(min(len(combined), 7))]
+        intensities = combined[:7]
 
+        result_df = pd.DataFrame(
+            {
+                "SampleName": sample,
+                "Compound": compound,
+                "Isotope_Label": labels,
+                "Normalized_Intensity": intensities,
+                "Combination": f"C{max_c}_F{max_f}",
+            }
+        )
+        all_results.append(result_df)
 
-def extended_isotope_reader(isotope_df):
-    """
-    Extracts and normalizes isotopic data for the specified elements.
-
-    Parameters:
-        isotope_df (pd.DataFrame): Isotope database with 'Elemental Symbol', 'Relative Atomic Mass', and 'Isotopic Composition'
-        elements (list): Elements to include (e.g., ["C", "F"])
-
-    Returns:
-        pd.DataFrame: Normalized isotopic patterns for the selected elements
-    """
-    elements = ["C", "F"]
-
-    selected_df = isotope_df[isotope_df["Elemental Symbol"].isin(elements)].copy()
-    # Ensure numeric types
-    selected_df["Relative Atomic Mass"] = selected_df["Relative Atomic Mass"].astype(
-        float
-    )
-    selected_df["Isotopic Composition"] = selected_df["Isotopic Composition"].astype(
-        float
-    )
-
-    # Normalize each group
-    selected_df["Normalized_Intensity"] = selected_df.groupby("Elemental Symbol")[
-        "Isotopic Composition"
-    ].transform(lambda x: x / x.max())
-
-    return selected_df
+    return pd.concat(all_results, ignore_index=True)
 
 
 def main():
@@ -529,7 +552,8 @@ def main():
     )
     matches = add_predicted_f_to_matches(matches, kaufman_df)
     matches = compute_max_possible_f_to_c(matches)
-    isotope_data = extended_isotope_reader(isotope_data)
+    matches = compute_cf_isotopic_distributions(matches, halogen_isotopes)
+    print(matches)
 
 
 if __name__ == "__main__":
