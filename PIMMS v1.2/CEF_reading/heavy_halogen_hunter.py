@@ -274,6 +274,93 @@ def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
     return pd.concat(results, ignore_index=True)
 
 
+def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
+    """
+    Match experimental isotopic patterns to theoretical ones based on Isotope_Label and Normalized_Intensity.
+    Only checks Compound 74 in 'NIST SRM-1957 9.d.DeMP' for debugging.
+    """
+    if labeled_df is None or theoretical_df is None:
+        raise ValueError("Input DataFrames cannot be None.")
+
+    print("\n[DEBUG] Filtering labeled_df for Compound 74 in NIST SRM-1957 9.d.DeMP...")
+    filtered_df = labeled_df[
+        (labeled_df["SampleName"] == "NIST SRM-1957 9.d.DeMP")
+        & (labeled_df["Compound"] == 74)
+    ].copy()
+
+    if filtered_df.empty:
+        print(
+            "[WARNING] No entries found for Compound 74 in sample NIST SRM-1957 9.d.DeMP"
+        )
+        return pd.DataFrame()
+
+    # Clean and prepare for matching
+    filtered_df["Isotope_Label"] = (
+        filtered_df["Isotope_Label"].str.strip().replace("M", "M+0")
+    )
+    theoretical_df["Isotope_Label"] = (
+        theoretical_df["Isotope_Label"].str.strip().replace("M", "M+0")
+    )
+
+    matches = []
+
+    for combination, ref_group in theoretical_df.groupby("Combination"):
+        ref_group = ref_group.copy()
+        ref_group["Isotope_Label"] = ref_group["Isotope_Label"].replace("M", "M+0")
+
+        merged = pd.merge(
+            filtered_df,
+            ref_group,
+            how="inner",
+            on="Isotope_Label",
+            suffixes=("_exp", "_ref"),
+        )
+
+        if merged.empty:
+            print(f"[DEBUG] No matching isotope labels found for {combination}")
+            continue
+
+        merged["Isotope_Order"] = (
+            merged["Isotope_Label"]
+            .str.extract(r"M\+(\d+)", expand=False)
+            .fillna("0")
+            .astype(int)
+        )
+        merged["Intensity_Diff"] = (
+            merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_ref"]
+        ).abs()
+        avg_diff = merged["Intensity_Diff"].mean()
+
+        merged = merged.sort_values("Isotope_Order")
+
+        if avg_diff <= tolerance:
+            print(f"\n[MATCH FOUND] {combination}")
+            print(
+                merged[
+                    [
+                        "Isotope_Label",
+                        "Normalized_Intensity_exp",
+                        "Normalized_Intensity_ref",
+                        "Intensity_Diff",
+                    ]
+                ]
+            )
+            matches.append(
+                {
+                    "Combination": combination,
+                    "Avg_Diff": avg_diff,
+                    "Match_Details": merged,
+                }
+            )
+
+    if not matches:
+        print("\n[INFO] No isotopic matches found within tolerance.")
+        return pd.DataFrame()
+
+    # Optionally return a summary DataFrame or all merged matches
+    return matches
+
+
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
@@ -293,8 +380,8 @@ def main():
     labeled_df = label_isotopic_peaks(multi_peak_df)
     labeled_df = normalize_isotopic_intensity(labeled_df)
     halogen_isotopes = heavy_halogen_reader(isotope_data)
-    complex_distributions = compute_mixed_isotopic_distribution(halogen_isotopes)
-    print(complex_distributions.head())
+    theoretical_df = compute_mixed_isotopic_distribution(halogen_isotopes)
+    matches = heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1)
 
 
 if __name__ == "__main__":
