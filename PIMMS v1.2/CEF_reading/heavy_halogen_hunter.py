@@ -515,6 +515,112 @@ def compute_cf_isotopic_distributions(matches_df, halogen_df):
     return pd.concat(all_results, ignore_index=True)
 
 
+def cf_isotopic_matching_filtered(
+    labeled_df, cf_theoretical_df, matches_df, tolerance=0.1
+):
+    """
+    Match experimental isotopic patterns to CF-only theoretical patterns using Isotope_Label and Normalized_Intensity.
+    Uses the Max_Carbons and Max_Fluorines values per SampleName + Compound pair to filter correct theoretical match.
+
+    Parameters:
+        labeled_df (pd.DataFrame): Experimental isotopic peaks. Must include 'SampleName', 'Compound', 'Isotope_Label', 'Normalized_Intensity'
+        cf_theoretical_df (pd.DataFrame): CF distributions from compute_cf_isotopic_distributions.
+        matches_df (pd.DataFrame): Must include 'SampleName', 'Compound', 'Max_Carbons', 'Max_Fluorines'
+        tolerance (float): Max allowed average error for a match to be reported.
+
+    Returns:
+        pd.DataFrame with matched info and intensity error (if any), one row per isotopic label.
+    """
+    if labeled_df is None or cf_theoretical_df is None or matches_df is None:
+        raise ValueError("Input DataFrames cannot be None.")
+
+    labeled_df = labeled_df.copy()
+    cf_theoretical_df = cf_theoretical_df.copy()
+    matches_df = matches_df.copy()
+
+    # Normalize Isotope_Label formatting
+    labeled_df["Isotope_Label"] = (
+        labeled_df["Isotope_Label"].str.strip().replace("M", "M+0")
+    )
+    cf_theoretical_df["Isotope_Label"] = (
+        cf_theoretical_df["Isotope_Label"].str.strip().replace("M", "M+0")
+    )
+
+    matches = []
+
+    grouped_exp = labeled_df.groupby(["SampleName", "Compound"])
+
+    for (sample, compound), group_df in grouped_exp:
+        print(f"\n[DEBUG] Processing Sample: {sample}, Compound: {compound}")
+        print(f"[DEBUG] Experimental group has {len(group_df)} rows")
+
+        match_row = matches_df[
+            (matches_df["SampleName"] == sample) & (matches_df["Compound"] == compound)
+        ]
+
+        if match_row.empty:
+            print("[DEBUG] No Max_Carbons/Fluorines info available for this compound.")
+            continue
+
+        max_c = int(match_row["Max_Carbons"].values[0])
+        max_f = int(match_row["Max_Fluorines"].values[0])
+        expected_label = f"C{max_c}_F{max_f}"
+
+        theoretical_subset = cf_theoretical_df[
+            (cf_theoretical_df["SampleName"] == sample)
+            & (cf_theoretical_df["Compound"] == compound)
+            & (cf_theoretical_df["Combination"] == expected_label)
+        ]
+
+        print(f"[DEBUG] Looking for theoretical match with: {expected_label}")
+
+        if theoretical_subset.empty:
+            print("[WARNING] No matching theoretical CF distribution found.")
+            continue
+
+        merged = pd.merge(
+            group_df, theoretical_subset, on="Isotope_Label", suffixes=("_exp", "_cf")
+        )
+
+        if merged.empty:
+            print("[DEBUG] No overlapping isotope labels to compare.")
+            continue
+
+        merged["Isotope_Order"] = (
+            merged["Isotope_Label"]
+            .str.extract(r"M\+(\d+)", expand=False)
+            .fillna("0")
+            .astype(int)
+        )
+        merged["Intensity_Diff"] = (
+            merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_cf"]
+        ).abs()
+
+        avg_diff = merged["Intensity_Diff"].mean()
+        print(f"[DEBUG] Avg Intensity Diff = {avg_diff:.4f}")
+
+        if avg_diff <= tolerance:
+            for _, row in merged.iterrows():
+                matches.append(
+                    {
+                        "SampleName": sample,
+                        "Compound": compound,
+                        "Isotope_Label": row["Isotope_Label"],
+                        "Normalized_Intensity_exp": row["Normalized_Intensity_exp"],
+                        "Normalized_Intensity_cf": row["Normalized_Intensity_cf"],
+                        "Intensity_Diff": row["Intensity_Diff"],
+                        "Avg_Diff": avg_diff,
+                        "Combination": expected_label,
+                    }
+                )
+
+    if not matches:
+        print("[INFO] No CF-only isotopic matches found within tolerance.")
+        return pd.DataFrame()
+
+    return pd.DataFrame(matches)
+
+
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
@@ -552,8 +658,14 @@ def main():
     )
     matches = add_predicted_f_to_matches(matches, kaufman_df)
     matches = compute_max_possible_f_to_c(matches)
-    matches = compute_cf_isotopic_distributions(matches, halogen_isotopes)
-    print(matches)
+    cf_theoretical_df = compute_cf_isotopic_distributions(matches, halogen_isotopes)
+    cf_results = cf_isotopic_matching_filtered(
+        labeled_df=labeled_df,
+        cf_theoretical_df=cf_theoretical_df,
+        matches_df=matches,
+        tolerance=0.1,
+    )
+    print(cf_results.head())
 
 
 if __name__ == "__main__":
