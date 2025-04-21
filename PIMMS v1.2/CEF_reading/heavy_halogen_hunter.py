@@ -242,7 +242,8 @@ def compute_isotopic_distribution(element_df, element_symbol="Cl", count=2):
 
 def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
     """
-    Computes isotopic distributions for all combinations of 1-3 Cl and 1-3 Br atoms.
+    Computes isotopic distributions for all combinations of 1–3 Cl and 1–3 Br atoms,
+    inserting zeroes at odd-numbered M+1, M+3, etc., to keep uniform labeling.
     """
     results = []
 
@@ -262,20 +263,31 @@ def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
                 else pd.DataFrame({"Normalized_Intensity": [1.0]})
             )
 
+            # Perform convolution
             combined = np.convolve(
                 cl_dist["Normalized_Intensity"], br_dist["Normalized_Intensity"]
             )
-            combined /= combined.max()
+            combined /= combined.max()  # Normalize to max = 1
 
-            labels = [f"M+{i * 2}" for i in range(len(combined))]
+            # Insert 0s into odd M+ positions (i.e., M+1, M+3, etc.)
+            extended = []
+            for i in range(len(combined) * 2 - 1):
+                if i % 2 == 0:
+                    extended.append(combined[i // 2])
+                else:
+                    extended.append(0.0)
+
+            labels = [f"M+{i}" for i in range(len(extended))]
             combination = f"Cl{cl_count}_Br{br_count}"
+
             df = pd.DataFrame(
                 {
                     "Isotope_Label": labels,
-                    "Normalized_Intensity": combined,
+                    "Normalized_Intensity": extended,
                     "Combination": combination,
                 }
             )
+
             results.append(df)
 
     return pd.concat(results, ignore_index=True)
@@ -316,20 +328,15 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
         raise ValueError("Input DataFrames cannot be None.")
 
     print("\n[DEBUG] Filtering labeled_df for Compound 74 in NIST SRM-1957 9.d.DeMP...")
-    filtered_df = labeled_df[
-        (labeled_df["SampleName"] == "NIST SRM-1957 9.d.DeMP")
-        & (labeled_df["Compound"] == 74)
-    ].copy()
-
+    filtered_df = labeled_df
     if filtered_df.empty:
         print(
             "[WARNING] No entries found for Compound 74 in sample NIST SRM-1957 9.d.DeMP"
         )
         return pd.DataFrame()
-
     # Clean labels
-    filtered_df["Isotope_Label"] = (
-        filtered_df["Isotope_Label"].str.strip().replace("M", "M+0")
+    labeled_df["Isotope_Label"] = (
+        labeled_df["Isotope_Label"].str.strip().replace("M", "M+0")
     )
     theoretical_df["Isotope_Label"] = (
         theoretical_df["Isotope_Label"].str.strip().replace("M", "M+0")
@@ -348,7 +355,7 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
             on="Isotope_Label",
             suffixes=("_exp", "_ref"),
         )
-
+        print("merged", merged)
         if merged.empty:
             print(f"[DEBUG] No matching isotope labels found for {combination}")
             continue
@@ -415,10 +422,11 @@ def add_predicted_f_to_matches(matches_df, kaufman_df):
 
     # Rename 'Sample' in kaufman_df to 'SampleName' to align with matches_df
     kaufman_df_renamed = kaufman_df.rename(columns={"Sample": "SampleName"})
-
     merged_df = pd.merge(
         matches_df,
-        kaufman_df_renamed[["SampleName", "Compound", "Predicted_F_per_C"]],
+        kaufman_df_renamed[
+            ["SampleName", "Compound", "Predicted_F_per_C", "Peak_mz_1"]
+        ],
         on=["SampleName", "Compound"],
         how="left",
     )
