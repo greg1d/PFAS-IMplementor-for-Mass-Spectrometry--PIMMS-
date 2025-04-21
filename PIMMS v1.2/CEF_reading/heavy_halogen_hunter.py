@@ -321,88 +321,79 @@ def merging_kaufman_df_with_isotopic_modeling(kaufman_df, multi_peak_df):
 def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
     """
     Match experimental isotopic patterns to theoretical ones based on Isotope_Label and Normalized_Intensity.
-    Only checks Compound 74 in 'NIST SRM-1957 9.d.DeMP' for debugging.
-    Returns a DataFrame with matched combination summaries.
+    Iterates through all (SampleName, Compound) groups in the experimental data.
+
+    Returns:
+        pd.DataFrame with all matched combinations for all compounds.
     """
     if labeled_df is None or theoretical_df is None:
         raise ValueError("Input DataFrames cannot be None.")
 
-    print("\n[DEBUG] Filtering labeled_df for Compound 74 in NIST SRM-1957 9.d.DeMP...")
-    filtered_df = labeled_df
-    if filtered_df.empty:
-        print(
-            "[WARNING] No entries found for Compound 74 in sample NIST SRM-1957 9.d.DeMP"
-        )
-        return pd.DataFrame()
-    # Clean labels
+    # Preprocess: normalize labels
+    labeled_df = labeled_df.copy()
     labeled_df["Isotope_Label"] = (
         labeled_df["Isotope_Label"].str.strip().replace("M", "M+0")
     )
+    theoretical_df = theoretical_df.copy()
     theoretical_df["Isotope_Label"] = (
         theoretical_df["Isotope_Label"].str.strip().replace("M", "M+0")
     )
 
-    summary_rows = []
+    all_matches = []
 
-    for combination, ref_group in theoretical_df.groupby("Combination"):
-        ref_group = ref_group.copy()
-        ref_group["Isotope_Label"] = ref_group["Isotope_Label"].replace("M", "M+0")
+    grouped = labeled_df.groupby(["SampleName", "Compound"])
 
-        merged = pd.merge(
-            filtered_df,
-            ref_group,
-            how="inner",
-            on="Isotope_Label",
-            suffixes=("_exp", "_ref"),
-        )
-        print("merged", merged)
-        if merged.empty:
-            print(f"[DEBUG] No matching isotope labels found for {combination}")
-            continue
+    for (sample, compound), group_df in grouped:
+        print(f"\n[INFO] Evaluating Compound {compound} in Sample {sample}...")
 
-        merged["Isotope_Order"] = (
-            merged["Isotope_Label"]
-            .str.extract(r"M\+(\d+)", expand=False)
-            .fillna("0")
-            .astype(int)
-        )
-        merged["Intensity_Diff"] = (
-            merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_ref"]
-        ).abs()
+        for combination, ref_group in theoretical_df.groupby("Combination"):
+            ref_group = ref_group.copy()
+            ref_group["Isotope_Label"] = ref_group["Isotope_Label"].replace("M", "M+0")
 
-        avg_diff = merged["Intensity_Diff"].mean()
-
-        if avg_diff <= tolerance:
-            print(f"\n[MATCH FOUND] {combination}")
-            print(
-                merged[
-                    [
-                        "Isotope_Label",
-                        "Normalized_Intensity_exp",
-                        "Normalized_Intensity_ref",
-                        "Intensity_Diff",
-                    ]
-                ]
+            merged = pd.merge(
+                group_df,
+                ref_group,
+                how="inner",
+                on="Isotope_Label",
+                suffixes=("_exp", "_ref"),
             )
-            for _, row in merged.iterrows():
-                summary_rows.append(
-                    {
-                        "SampleName": row["SampleName"],
-                        "Compound": row["Compound"],
-                        "Combination": combination,
-                        "Isotope_Label": row["Isotope_Label"],
-                        "Normalized_Intensity_exp": row["Normalized_Intensity_exp"],
-                        "Normalized_Intensity_ref": row["Normalized_Intensity_ref"],
-                        "Intensity_Diff": row["Intensity_Diff"],
-                        "Avg_Diff": avg_diff,
-                    }
-                )
 
-    if not summary_rows:
+            if merged.empty:
+                continue
+
+            merged["Isotope_Order"] = (
+                merged["Isotope_Label"]
+                .str.extract(r"M\+(\d+)", expand=False)
+                .fillna("0")
+                .astype(int)
+            )
+            merged["Intensity_Diff"] = (
+                merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_ref"]
+            ).abs()
+
+            avg_diff = merged["Intensity_Diff"].mean()
+
+            if avg_diff <= tolerance:
+                print(f"[MATCH FOUND] {combination} — Compound {compound} in {sample}")
+                for _, row in merged.iterrows():
+                    all_matches.append(
+                        {
+                            "SampleName": row["SampleName"],
+                            "Compound": row["Compound"],
+                            "Combination": combination,
+                            "Isotope_Label": row["Isotope_Label"],
+                            "Normalized_Intensity_exp": row["Normalized_Intensity_exp"],
+                            "Normalized_Intensity_ref": row["Normalized_Intensity_ref"],
+                            "Intensity_Diff": row["Intensity_Diff"],
+                            "Avg_Diff": avg_diff,
+                        }
+                    )
+
+    if not all_matches:
         print("\n[INFO] No isotopic matches found within tolerance.")
         return pd.DataFrame()
 
-    return pd.DataFrame(summary_rows)
+    return pd.DataFrame(all_matches)
 
 
 def add_predicted_f_to_matches(matches_df, kaufman_df):
@@ -466,9 +457,22 @@ def main():
     labeled_df = normalize_isotopic_intensity(labeled_df)
     halogen_isotopes = heavy_halogen_reader(isotope_data)
     theoretical_df = compute_mixed_isotopic_distribution(halogen_isotopes)
-    matches = heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1)
+    matches = heavy_halogen_isotopic_matching(
+        labeled_df, theoretical_df, tolerance=0.05
+    )
     matches = add_predicted_f_to_matches(matches, kaufman_df)
-    print(matches.head())
+
+    # === DEBUG: Show result for Compound 74 in NIST SRM-1957 9.d.DeMP ===
+    debug_df = matches[
+        (matches["SampleName"] == "NIST SRM-1957 9.d.DeMP")
+        & (matches["Compound"] == 74)
+    ]
+
+    if not debug_df.empty:
+        print("\n[DEBUG] Matched result for Compound 74 in NIST SRM-1957 9.d.DeMP:")
+        print(debug_df.to_string(index=False))
+    else:
+        print("\n[DEBUG] No match found for Compound 74 in NIST SRM-1957 9.d.DeMP.")
 
 
 if __name__ == "__main__":
