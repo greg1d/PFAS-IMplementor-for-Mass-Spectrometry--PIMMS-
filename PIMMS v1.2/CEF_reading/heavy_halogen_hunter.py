@@ -157,6 +157,48 @@ def add_elemental_symbol(df, csv_path):
     return df
 
 
+def heavy_halogen_hunter(isotope_df):
+    """
+    Identify Br or Cl isotopic signatures based on normalized isotopic compositions.
+
+    Parameters:
+        isotope_df (pd.DataFrame): Contains reference isotopic distributions with:
+                                   'Elemental Symbol', 'Relative Atomic Mass', 'Isotopic Composition'
+
+    Returns:
+        halogen_df (pd.DataFrame): Subset with Br/Cl isotopes, labeled and normalized
+    """
+    # Filter for Br and Cl
+    halogen_df = isotope_df[isotope_df["Elemental Symbol"].isin(["Br", "Cl"])].copy()
+
+    # Ensure correct types
+    halogen_df["Relative Atomic Mass"] = halogen_df["Relative Atomic Mass"].astype(
+        float
+    )
+    halogen_df["Isotopic Composition"] = halogen_df["Isotopic Composition"].astype(
+        float
+    )
+
+    # Sort for consistent labeling
+    halogen_df.sort_values(
+        by=["Elemental Symbol", "Relative Atomic Mass"], inplace=True
+    )
+
+    # Add Isotope_Label (M, M+2, M+4, etc.)
+    halogen_df["Isotope_Label"] = None
+    for element in ["Br", "Cl"]:
+        group = halogen_df[halogen_df["Elemental Symbol"] == element]
+        for i, idx in enumerate(group.index):
+            halogen_df.at[idx, "Isotope_Label"] = f"M+{i * 2}" if i > 0 else "M"
+
+    # Normalize intensities per element group
+    halogen_df["Normalized_Intensity"] = halogen_df.groupby("Elemental Symbol")[
+        "Isotopic Composition"
+    ].transform(lambda x: x / x.max())
+
+    return halogen_df
+
+
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
@@ -175,8 +217,9 @@ def main():
 
     labeled_df = label_isotopic_peaks(multi_peak_df)
     labeled_df = normalize_isotopic_intensity(labeled_df)
-
-    print(labeled_df.head())
+    print(labeled_df)
+    halogen_isotopes = heavy_halogen_hunter(isotope_data)
+    print(halogen_isotopes)
 
 
 if __name__ == "__main__":
