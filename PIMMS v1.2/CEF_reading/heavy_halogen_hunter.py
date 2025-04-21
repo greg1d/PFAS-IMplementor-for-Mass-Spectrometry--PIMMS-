@@ -2,7 +2,7 @@ from Kaufman_plotting import show_multi_peak_compound_matches
 from CEF_matching_algorithm import match_PIMMS_to_CEF
 import pandas as pd
 import re
-import time
+import numpy as np
 
 
 def label_isotopic_peaks(df):
@@ -158,7 +158,7 @@ def add_elemental_symbol(df, csv_path):
     return df
 
 
-def heavy_halogen_hunter(isotope_df):
+def heavy_halogen_reader(isotope_df):
     """
     Identify Br or Cl isotopic signatures based on normalized isotopic compositions.
 
@@ -200,56 +200,101 @@ def heavy_halogen_hunter(isotope_df):
     return halogen_df
 
 
-def main():
-    start_all = time.time()
+def compute_isotopic_distribution(element_df, element_symbol="Cl", count=2):
+    """
+    Computes the normalized isotopic distribution for a given element and atom count using convolution.
+    """
+    filtered = element_df[element_df["Elemental Symbol"] == element_symbol].copy()
 
+    if filtered.empty:
+        raise ValueError(f"No isotopic data found for element: {element_symbol}")
+
+    # Fix: convert Isotope_Label to Isotope_Order as integer
+    filtered["Isotope_Order"] = (
+        filtered["Isotope_Label"].str.replace("M", "0").str.replace("+", "").astype(int)
+    )
+
+    filtered = filtered.sort_values("Isotope_Order")
+    intensities = filtered["Normalized_Intensity"].values
+
+    distribution = intensities.copy()
+    for _ in range(count - 1):
+        distribution = np.convolve(distribution, intensities)
+
+    distribution /= distribution.max()
+    labels = [f"M+{i * 2}" for i in range(len(distribution))]
+
+    return pd.DataFrame(
+        {
+            "Isotope_Label": labels,
+            "Normalized_Intensity": distribution,
+            "Combination": f"{element_symbol}{count}",
+        }
+    )
+
+
+def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
+    """
+    Computes isotopic distributions for all combinations of 1-3 Cl and 1-3 Br atoms.
+    """
+    results = []
+
+    for cl_count in range(0, max_atoms + 1):
+        for br_count in range(0, max_atoms + 1):
+            if cl_count == 0 and br_count == 0:
+                continue
+
+            cl_dist = (
+                compute_isotopic_distribution(halogen_df, "Cl", cl_count)
+                if cl_count > 0
+                else pd.DataFrame({"Normalized_Intensity": [1.0]})
+            )
+            br_dist = (
+                compute_isotopic_distribution(halogen_df, "Br", br_count)
+                if br_count > 0
+                else pd.DataFrame({"Normalized_Intensity": [1.0]})
+            )
+
+            combined = np.convolve(
+                cl_dist["Normalized_Intensity"], br_dist["Normalized_Intensity"]
+            )
+            combined /= combined.max()
+
+            labels = [f"M+{i * 2}" for i in range(len(combined))]
+            combination = f"Cl{cl_count}_Br{br_count}"
+            df = pd.DataFrame(
+                {
+                    "Isotope_Label": labels,
+                    "Normalized_Intensity": combined,
+                    "Combination": combination,
+                }
+            )
+            results.append(df)
+
+    return pd.concat(results, ignore_index=True)
+
+
+def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     file_path = r"PIMMS v1.2\CEF_reading\data\Isotopic modelling values (NIST).txt"
     csv_path = r"PIMMS v1.2\CEF_reading\data\Atomic numbers for elements.csv"
 
-    t0 = time.time()
     data = read_isotope_data(file_path)
-    print(f"[TIMER] Reading isotope data: {time.time() - t0:.2f} s")
-
-    t1 = time.time()
     isotope_data = parse_isotope_data(data)
-    print(f"[TIMER] Parsing isotope data: {time.time() - t1:.2f} s")
-
-    t2 = time.time()
     isotope_data = add_elemental_symbol(isotope_data, csv_path)
-    print(f"[TIMER] Adding elemental symbols: {time.time() - t2:.2f} s")
 
-    t3 = time.time()
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
-    print(f"[TIMER] match_PIMMS_to_CEF: {time.time() - t3:.2f} s")
-
-    t4 = time.time()
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
-    print(f"[TIMER] show_multi_peak_compound_matches: {time.time() - t4:.2f} s")
-
     if multi_peak_df.empty:
         print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
         return pd.DataFrame()
 
-    t5 = time.time()
     labeled_df = label_isotopic_peaks(multi_peak_df)
-    print(f"[TIMER] Labeling isotopic peaks: {time.time() - t5:.2f} s")
-
-    t6 = time.time()
     labeled_df = normalize_isotopic_intensity(labeled_df)
-    print(f"[TIMER] Normalizing isotopic intensities: {time.time() - t6:.2f} s")
-
-    t7 = time.time()
-    halogen_isotopes = heavy_halogen_hunter(isotope_data)
-    print(f"[TIMER] Identifying Br/Cl isotopes: {time.time() - t7:.2f} s")
-
-    print("\n[INFO] === Final labeled DataFrame Preview ===")
-    print(labeled_df.head())
-    print("\n[INFO] === Halogen Reference Isotopes ===")
-    print(halogen_isotopes)
-
-    print(f"\n[TOTAL TIME] Script completed in {time.time() - start_all:.2f} seconds.")
+    halogen_isotopes = heavy_halogen_reader(isotope_data)
+    complex_distributions = compute_mixed_isotopic_distribution(halogen_isotopes)
+    print(complex_distributions.head())
 
 
 if __name__ == "__main__":
