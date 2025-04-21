@@ -167,17 +167,20 @@ def add_elemental_symbol(df, csv_path):
 
 def heavy_halogen_reader(isotope_df):
     """
-    Identify Br or Cl isotopic signatures based on normalized isotopic compositions.
+    Identify Br, Cl, C, or F isotopic signatures based on normalized isotopic compositions.
 
     Parameters:
         isotope_df (pd.DataFrame): Contains reference isotopic distributions with:
                                    'Elemental Symbol', 'Relative Atomic Mass', 'Isotopic Composition'
 
     Returns:
-        halogen_df (pd.DataFrame): Subset with Br/Cl isotopes, labeled and normalized
+        halogen_df (pd.DataFrame): Subset with Br/Cl/C/F isotopes, labeled and normalized
     """
-    # Filter for Br and Cl
-    halogen_df = isotope_df[isotope_df["Elemental Symbol"].isin(["Br", "Cl"])].copy()
+
+    # Filter for Br, Cl, C, F
+    halogen_df = isotope_df[
+        isotope_df["Elemental Symbol"].isin(["Br", "Cl", "C", "F"])
+    ].copy()
 
     # Ensure correct types
     halogen_df["Relative Atomic Mass"] = halogen_df["Relative Atomic Mass"].astype(
@@ -192,18 +195,22 @@ def heavy_halogen_reader(isotope_df):
         by=["Elemental Symbol", "Relative Atomic Mass"], inplace=True
     )
 
-    # Add Isotope_Label (M, M+2, M+4, etc.)
+    # Compute Isotope_Label dynamically
     halogen_df["Isotope_Label"] = None
-    for element in ["Br", "Cl"]:
-        group = halogen_df[halogen_df["Elemental Symbol"] == element]
-        for i, idx in enumerate(group.index):
-            halogen_df.at[idx, "Isotope_Label"] = f"M+{i * 2}" if i > 0 else "M"
+    for element in halogen_df["Elemental Symbol"].unique():
+        group = halogen_df[halogen_df["Elemental Symbol"] == element].copy()
+        base_mass = group["Relative Atomic Mass"].min()
+        for idx, row in group.iterrows():
+            diff = row["Relative Atomic Mass"] - base_mass
+            label = f"M+{int(round(diff))}"  # Round mass difference to nearest integer
+            halogen_df.at[idx, "Isotope_Label"] = label
 
     # Normalize intensities per element group
     halogen_df["Normalized_Intensity"] = halogen_df.groupby("Elemental Symbol")[
         "Isotopic Composition"
     ].transform(lambda x: x / x.max())
 
+    print("halogen df", halogen_df)
     return halogen_df
 
 
@@ -344,8 +351,6 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
     grouped = labeled_df.groupby(["SampleName", "Compound"])
 
     for (sample, compound), group_df in grouped:
-        print(f"\n[INFO] Evaluating Compound {compound} in Sample {sample}...")
-
         for combination, ref_group in theoretical_df.groupby("Combination"):
             ref_group = ref_group.copy()
             ref_group["Isotope_Label"] = ref_group["Isotope_Label"].replace("M", "M+0")
@@ -374,7 +379,6 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
             avg_diff = merged["Intensity_Diff"].mean()
 
             if avg_diff <= tolerance:
-                print(f"[MATCH FOUND] {combination} — Compound {compound} in {sample}")
                 for _, row in merged.iterrows():
                     all_matches.append(
                         {
@@ -390,7 +394,6 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
                     )
 
     if not all_matches:
-        print("\n[INFO] No isotopic matches found within tolerance.")
         return pd.DataFrame()
 
     return pd.DataFrame(all_matches)
@@ -423,6 +426,70 @@ def add_predicted_f_to_matches(matches_df, kaufman_df):
     )
 
     return merged_df
+
+
+def compute_max_possible_f_to_c(matches_df):
+    """
+    Compute the maximum number of Carbon and Fluorine atoms possible given Peak_mz_1 and Predicted_F_per_C.
+
+    Parameters:
+        matches_df (pd.DataFrame): Must contain 'Peak_mz_1' and 'Predicted_F_per_C'
+
+    Returns:
+        pd.DataFrame: Original dataframe with 'Max_Carbons' and 'Max_Fluorines' columns added
+    """
+    if (
+        "Peak_mz_1" not in matches_df.columns
+        or "Predicted_F_per_C" not in matches_df.columns
+    ):
+        raise ValueError(
+            "Input DataFrame must contain 'Peak_mz_1' and 'Predicted_F_per_C' columns."
+        )
+
+    atomic_mass_C = 12.00000
+    atomic_mass_F = 18.9984032
+
+    def calculate_limits(row):
+        max_carbons = int(
+            row["Peak_mz_1"]
+            / (atomic_mass_C + row["Predicted_F_per_C"] * atomic_mass_F)
+        )
+        max_fluorines = int(row["Predicted_F_per_C"] * max_carbons)
+        return pd.Series({"Max_Carbons": max_carbons, "Max_Fluorines": max_fluorines})
+
+    result = matches_df.copy()
+    result[["Max_Carbons", "Max_Fluorines"]] = result.apply(calculate_limits, axis=1)
+    return result
+
+
+def extended_isotope_reader(isotope_df):
+    """
+    Extracts and normalizes isotopic data for the specified elements.
+
+    Parameters:
+        isotope_df (pd.DataFrame): Isotope database with 'Elemental Symbol', 'Relative Atomic Mass', and 'Isotopic Composition'
+        elements (list): Elements to include (e.g., ["C", "F"])
+
+    Returns:
+        pd.DataFrame: Normalized isotopic patterns for the selected elements
+    """
+    elements = ["C", "F"]
+
+    selected_df = isotope_df[isotope_df["Elemental Symbol"].isin(elements)].copy()
+    # Ensure numeric types
+    selected_df["Relative Atomic Mass"] = selected_df["Relative Atomic Mass"].astype(
+        float
+    )
+    selected_df["Isotopic Composition"] = selected_df["Isotopic Composition"].astype(
+        float
+    )
+
+    # Normalize each group
+    selected_df["Normalized_Intensity"] = selected_df.groupby("Elemental Symbol")[
+        "Isotopic Composition"
+    ].transform(lambda x: x / x.max())
+
+    return selected_df
 
 
 def main():
@@ -461,18 +528,8 @@ def main():
         labeled_df, theoretical_df, tolerance=0.05
     )
     matches = add_predicted_f_to_matches(matches, kaufman_df)
-
-    # === DEBUG: Show result for Compound 74 in NIST SRM-1957 9.d.DeMP ===
-    debug_df = matches[
-        (matches["SampleName"] == "NIST SRM-1957 9.d.DeMP")
-        & (matches["Compound"] == 74)
-    ]
-
-    if not debug_df.empty:
-        print("\n[DEBUG] Matched result for Compound 74 in NIST SRM-1957 9.d.DeMP:")
-        print(debug_df.to_string(index=False))
-    else:
-        print("\n[DEBUG] No match found for Compound 74 in NIST SRM-1957 9.d.DeMP.")
+    matches = compute_max_possible_f_to_c(matches)
+    isotope_data = extended_isotope_reader(isotope_data)
 
 
 if __name__ == "__main__":
