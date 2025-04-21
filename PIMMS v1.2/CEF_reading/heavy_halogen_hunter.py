@@ -3,6 +3,13 @@ from CEF_matching_algorithm import match_PIMMS_to_CEF
 import pandas as pd
 import re
 import numpy as np
+from Kaufman_plotting import compute_kaufman_constants
+from CF2_prioritization import (
+    compute_mCm_alignment,
+    compute_MDCm_alignment,
+    cf2_prioritization,
+)
+from FC_prediction import FC_prediction
 
 
 def label_isotopic_peaks(df):
@@ -274,10 +281,36 @@ def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
     return pd.concat(results, ignore_index=True)
 
 
+def merging_kaufman_df_with_isotopic_modeling(kaufman_df, multi_peak_df):
+    """
+    Adds the Predicted_F_per_C value from kaufman_df into multi_peak_df
+    by matching on SampleName and Compound. Leaves all other columns in
+    multi_peak_df unchanged.
+
+    Parameters:
+        kaufman_df (pd.DataFrame): Must contain ['Sample', 'Compound', 'Predicted_F_per_C']
+        multi_peak_df (pd.DataFrame): Must contain ['SampleName', 'Compound']
+
+    Returns:
+        pd.DataFrame: Updated multi_peak_df with added Predicted_F_per_C column
+    """
+    # Create a lookup table from kaufman_df
+    lookup = kaufman_df.set_index(["Sample", "Compound"])["Predicted_F_per_C"]
+
+    # Map the predicted F/C value into multi_peak_df using SampleName as the key
+    multi_peak_df = multi_peak_df.copy()
+    multi_peak_df["Predicted_F_per_C"] = multi_peak_df.apply(
+        lambda row: lookup.get((row["SampleName"], row["Compound"]), pd.NA), axis=1
+    )
+
+    return multi_peak_df
+
+
 def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
     """
     Match experimental isotopic patterns to theoretical ones based on Isotope_Label and Normalized_Intensity.
     Only checks Compound 74 in 'NIST SRM-1957 9.d.DeMP' for debugging.
+    Returns a DataFrame with matched combination summaries.
     """
     if labeled_df is None or theoretical_df is None:
         raise ValueError("Input DataFrames cannot be None.")
@@ -294,7 +327,7 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
         )
         return pd.DataFrame()
 
-    # Clean and prepare for matching
+    # Clean labels
     filtered_df["Isotope_Label"] = (
         filtered_df["Isotope_Label"].str.strip().replace("M", "M+0")
     )
@@ -302,7 +335,7 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
         theoretical_df["Isotope_Label"].str.strip().replace("M", "M+0")
     )
 
-    matches = []
+    summary_rows = []
 
     for combination, ref_group in theoretical_df.groupby("Combination"):
         ref_group = ref_group.copy()
@@ -329,9 +362,8 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
         merged["Intensity_Diff"] = (
             merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_ref"]
         ).abs()
-        avg_diff = merged["Intensity_Diff"].mean()
 
-        merged = merged.sort_values("Isotope_Order")
+        avg_diff = merged["Intensity_Diff"].mean()
 
         if avg_diff <= tolerance:
             print(f"\n[MATCH FOUND] {combination}")
@@ -345,28 +377,72 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1):
                     ]
                 ]
             )
-            matches.append(
-                {
-                    "Combination": combination,
-                    "Avg_Diff": avg_diff,
-                    "Match_Details": merged,
-                }
-            )
+            for _, row in merged.iterrows():
+                summary_rows.append(
+                    {
+                        "SampleName": row["SampleName"],
+                        "Compound": row["Compound"],
+                        "Combination": combination,
+                        "Isotope_Label": row["Isotope_Label"],
+                        "Normalized_Intensity_exp": row["Normalized_Intensity_exp"],
+                        "Normalized_Intensity_ref": row["Normalized_Intensity_ref"],
+                        "Intensity_Diff": row["Intensity_Diff"],
+                        "Avg_Diff": avg_diff,
+                    }
+                )
 
-    if not matches:
+    if not summary_rows:
         print("\n[INFO] No isotopic matches found within tolerance.")
         return pd.DataFrame()
 
-    # Optionally return a summary DataFrame or all merged matches
-    return matches
+    return pd.DataFrame(summary_rows)
+
+
+def add_predicted_f_to_matches(matches_df, kaufman_df):
+    """
+    Merge Predicted_F_per_C from kaufman_df into matches_df based on SampleName and Compound.
+
+    Parameters:
+        matches_df (pd.DataFrame): Output from heavy_halogen_isotopic_matching
+        kaufman_df (pd.DataFrame): Contains Predicted_F_per_C, Sample, Compound
+
+    Returns:
+        pd.DataFrame: matches_df with added Predicted_F_per_C column
+    """
+    if matches_df.empty:
+        print("[INFO] matches_df is empty, skipping merge.")
+        return matches_df
+
+    # Rename 'Sample' in kaufman_df to 'SampleName' to align with matches_df
+    kaufman_df_renamed = kaufman_df.rename(columns={"Sample": "SampleName"})
+
+    merged_df = pd.merge(
+        matches_df,
+        kaufman_df_renamed[["SampleName", "Compound", "Predicted_F_per_C"]],
+        on=["SampleName", "Compound"],
+        how="left",
+    )
+
+    return merged_df
 
 
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+
+    matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
+    multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
+    if multi_peak_df.empty:
+        print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
+        return pd.DataFrame()
+
     file_path = r"PIMMS v1.2\CEF_reading\data\Isotopic modelling values (NIST).txt"
     csv_path = r"PIMMS v1.2\CEF_reading\data\Atomic numbers for elements.csv"
-
+    kaufman_df = compute_kaufman_constants(multi_peak_df)
+    kaufman_df = compute_mCm_alignment(kaufman_df)
+    kaufman_df = compute_MDCm_alignment(kaufman_df)
+    kaufman_df = cf2_prioritization(kaufman_df)
+    kaufman_df = FC_prediction(kaufman_df)
     data = read_isotope_data(file_path)
     isotope_data = parse_isotope_data(data)
     isotope_data = add_elemental_symbol(isotope_data, csv_path)
@@ -377,11 +453,14 @@ def main():
         print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
         return pd.DataFrame()
 
+    multi_peak_df = merging_kaufman_df_with_isotopic_modeling(kaufman_df, multi_peak_df)
     labeled_df = label_isotopic_peaks(multi_peak_df)
     labeled_df = normalize_isotopic_intensity(labeled_df)
     halogen_isotopes = heavy_halogen_reader(isotope_data)
     theoretical_df = compute_mixed_isotopic_distribution(halogen_isotopes)
     matches = heavy_halogen_isotopic_matching(labeled_df, theoretical_df, tolerance=0.1)
+    matches = add_predicted_f_to_matches(matches, kaufman_df)
+    print(matches.head())
 
 
 if __name__ == "__main__":
