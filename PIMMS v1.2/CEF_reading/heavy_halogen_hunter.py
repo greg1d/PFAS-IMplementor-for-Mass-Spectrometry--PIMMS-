@@ -731,13 +731,11 @@ def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
     if multi_peak_df.empty:
         print("[INFO] No multi-peak matches found. Aborting.")
         return pd.DataFrame()
-
     # === Compute Kaufman Constants and Prioritization ===
     kaufman_df = compute_kaufman_constants(multi_peak_df)
     kaufman_df = compute_mCm_alignment(kaufman_df)
     kaufman_df = compute_MDCm_alignment(kaufman_df)
     kaufman_df = cf2_prioritization(kaufman_df)
-
     kaufman_df = FC_prediction(kaufman_df)
 
     # === Load and process elemental isotope reference data ===
@@ -772,7 +770,6 @@ def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
 
     # === Combine results and finalize report ===
     all_matches = merge_matches_and_cf_results(matches, cf_results)
-
     # Standardize identifiers to prevent mismatches
     all_matches["SampleName"] = all_matches["SampleName"].str.strip()
     kaufman_df["Sample"] = kaufman_df["Sample"].str.strip()
@@ -785,7 +782,6 @@ def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
         how="left",
     ).drop(columns=["Sample"])
     all_matches = produce_final_report(all_matches)
-
     return all_matches
 
 
