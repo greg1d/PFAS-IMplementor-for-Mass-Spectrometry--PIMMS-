@@ -649,27 +649,20 @@ def produce_final_report(merged_df):
 
     Parameters:
         merged_df (pd.DataFrame): DataFrame containing 'SampleName', 'Compound',
-                                  'Avg_Diff', 'CF_Avg_Diff', 'Combination', 'CF_Combination'.
+                                  'Avg_Diff', 'CF_Avg_Diff', and 'Combination'.
 
     Returns:
         pd.DataFrame: Summary DataFrame with the most likely model per row and halogen presence.
     """
     df = merged_df.copy()
 
-    # Ensure required columns exist
-    required_cols = [
-        "SampleName",
-        "Compound",
-        "Avg_Diff",
-        "CF_Avg_Diff",
-        "Combination",
-        "CF_Combination",
-    ]
+    # Check required columns
+    required_cols = ["SampleName", "Compound", "Avg_Diff", "CF_Avg_Diff", "Combination"]
     for col in required_cols:
         if col not in df.columns:
             raise ValueError(f"Missing required column: {col}")
 
-    # Determine if heavy halogen is more supported
+    # Decide final call based on which model fits better
     df["Heavy_Halogen_Presence"] = df.apply(
         lambda row: row["Combination"]
         if pd.notna(row["Avg_Diff"])
@@ -678,22 +671,13 @@ def produce_final_report(merged_df):
         axis=1,
     )
 
-    # Optional: Deduplicate final report by SampleName + Compound
-    report = df.drop_duplicates(
+    # Return final report (dropping Combination, CF_Combination if present)
+    return df.drop(
+        columns=[col for col in ["Combination", "CF_Combination"] if col in df.columns],
+        errors="ignore",
+    )[["SampleName", "Compound", "Heavy_Halogen_Presence"]].drop_duplicates(
         subset=["SampleName", "Compound", "Heavy_Halogen_Presence"]
     )
-
-    return report[
-        [
-            "SampleName",
-            "Compound",
-            "Avg_Diff",
-            "CF_Avg_Diff",
-            "Combination",
-            "CF_Combination",
-            "Heavy_Halogen_Presence",
-        ]
-    ]
 
 
 def run_heavy_halogen_pipeline(cef_folder, pimms_file):
@@ -769,7 +753,7 @@ def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     all_matches = run_heavy_halogen_pipeline(cef_folder, pimms_file)
-    print(all_matches.head())
+    all_matches.to_csv("heavy_halogen_hunter_results.csv", index=False)
 
 
 if __name__ == "__main__":
