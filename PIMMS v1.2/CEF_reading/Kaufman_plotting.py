@@ -50,7 +50,6 @@ def show_multi_peak_compound_matches(matches, cef_folder, verbose=False):
                 compound_lookup(sample_name, cef_folder, int(compound_id))
 
     total_time = time.time() - start
-    print(f"[TIMER] Multi-peak matching completed in {total_time:.2f} seconds.")
 
     return (
         pd.concat(all_multi_peaks, ignore_index=True)

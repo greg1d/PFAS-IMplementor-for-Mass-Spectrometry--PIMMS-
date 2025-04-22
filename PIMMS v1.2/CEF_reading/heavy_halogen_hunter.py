@@ -8,6 +8,7 @@ from CF2_prioritization import (
     compute_mCm_alignment,
     compute_MDCm_alignment,
     cf2_prioritization,
+    plot_kaufman_scatter_colored,
 )
 from FC_prediction import FC_prediction
 
@@ -244,7 +245,7 @@ def compute_isotopic_distribution(element_df, element_symbol="Cl", count=2):
     )
 
 
-def compute_mixed_isotopic_distribution(halogen_df, max_atoms=2):
+def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
     """
     Computes isotopic distributions for all combinations of 1–3 Cl and 1–3 Br atoms,
     inserting zeroes at odd-numbered M+1, M+3, etc., to keep uniform labeling.
@@ -291,7 +292,6 @@ def compute_mixed_isotopic_distribution(halogen_df, max_atoms=2):
                     "Combination": combination,
                 }
             )
-            print("look here", df)
             results.append(df)
 
     return pd.concat(results, ignore_index=True)
@@ -388,6 +388,12 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df):
             theoretical_df["Isotope_Label"].str.strip().replace("M", "M+0")
         )
 
+    # Only print theoretical combos if compound 74 is being processed
+    debug_compound = 74
+    debug_sample = "NIST SRM-1957 6.d.DeMP"
+    debug_combination = "Cl3_Br0"
+    # Get list of combinations that were used in the experimental data for compound 74
+
     all_matches = []
 
     grouped = labeled_df.groupby(["SampleName", "Compound"])
@@ -401,10 +407,22 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df):
             merged = pd.merge(
                 group_df,
                 ref_group,
-                how="inner",
+                how="right",
                 on="Isotope_Label",
                 suffixes=("_exp", "_ref"),
             )
+
+            # Fill NaN in 'Normalized_Intensity_exp' with 0
+            if "Normalized_Intensity_exp" in merged.columns:
+                merged["Normalized_Intensity_exp"] = merged[
+                    "Normalized_Intensity_exp"
+                ].fillna(0)
+
+            # Forward fill all other NaNs (excluding 'Normalized_Intensity_exp')
+            other_cols = [
+                col for col in merged.columns if col != "Normalized_Intensity_exp"
+            ]
+            merged[other_cols] = merged[other_cols].ffill()
 
             if merged.empty:
                 continue
@@ -418,7 +436,6 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df):
             merged["Intensity_Diff"] = (
                 merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_ref"]
             ).abs()
-
             avg_diff = merged["Intensity_Diff"].mean()
 
             if avg_diff < best_avg_diff:
@@ -594,7 +611,6 @@ def cf_isotopic_matching_filtered(labeled_df, cf_theoretical_df, matches_df):
         merged["Intensity_Diff"] = (
             merged["Normalized_Intensity_exp"] - merged["Normalized_Intensity_cf"]
         ).abs()
-
         avg_diff = merged["Intensity_Diff"].mean()
 
         for _, row in merged.iterrows():
@@ -667,6 +683,8 @@ def produce_final_report(merged_df):
         "CF_Avg_Diff",
         "Combination",
         "r_CF2",
+        "m_over_Cm",
+        "md_over_Cm",
         "Predicted_F_per_C",
     ]
     for col in required_cols:
@@ -689,6 +707,8 @@ def produce_final_report(merged_df):
             "Compound",
             "Heavy_Halogen_Presence",
             "r_CF2",
+            "m_over_Cm",
+            "md_over_Cm",
             "Predicted_F_per_C",
         ]
     ].drop_duplicates(subset=["SampleName", "Compound", "Heavy_Halogen_Presence"])
@@ -718,8 +738,9 @@ def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
     kaufman_df = compute_mCm_alignment(kaufman_df)
     kaufman_df = compute_MDCm_alignment(kaufman_df)
     kaufman_df = cf2_prioritization(kaufman_df)
-    kaufman_df = FC_prediction(kaufman_df)
 
+    kaufman_df = FC_prediction(kaufman_df)
+    plot_kaufman_scatter_colored(kaufman_df)
     # === Load and process elemental isotope reference data ===
     data = read_isotope_data(file_path)
     isotope_data = parse_isotope_data(data)
@@ -759,7 +780,7 @@ def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
 
     # Merge ONLY the r_CF2 column into all_matches
     all_matches = all_matches.merge(
-        kaufman_df[["Sample", "Compound", "r_CF2"]],
+        kaufman_df[["Sample", "Compound", "r_CF2", "m_over_Cm", "md_over_Cm"]],
         left_on=["SampleName", "Compound"],
         right_on=["Sample", "Compound"],
         how="left",
@@ -773,7 +794,7 @@ def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     all_matches = run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file)
-    print(all_matches.head())
+    print(all_matches)
 
 
 if __name__ == "__main__":

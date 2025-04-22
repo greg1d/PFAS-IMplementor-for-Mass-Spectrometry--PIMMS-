@@ -46,9 +46,13 @@ def compute_MDCm_alignment(df):
     m = 4.23e-4
     m_over_C = df["m_over_C"]
     md_over_C = df["md_over_C"]
+    lambda_val = 3000  # Fixed scaling factor
+
+    df["m_over_Cm"] = (
+        (m_over_C - m_cf2) * np.cos(m) - (md_over_C - md_cf2) * np.sin(m)
+    ) / lambda_val
 
     df["md_over_Cm"] = (m_over_C - m_cf2) * np.sin(m) + (md_over_C - md_cf2) * np.cos(m)
-
     return df
 
 
