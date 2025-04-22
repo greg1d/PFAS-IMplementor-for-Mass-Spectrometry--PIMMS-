@@ -642,9 +642,74 @@ def merge_matches_and_cf_results(matches, cf_results):
     return merged
 
 
-def main():
-    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+def produce_final_report(merged_df):
+    """
+    Produces a final report identifying whether heavy halogen presence is more likely
+    than a CF-only model for each SampleName and Compound combination.
+
+    Parameters:
+        merged_df (pd.DataFrame): DataFrame containing 'SampleName', 'Compound',
+                                  'Avg_Diff', 'CF_Avg_Diff', 'Combination', 'CF_Combination'.
+
+    Returns:
+        pd.DataFrame: Summary DataFrame with the most likely model per row and halogen presence.
+    """
+    df = merged_df.copy()
+
+    # Ensure required columns exist
+    required_cols = [
+        "SampleName",
+        "Compound",
+        "Avg_Diff",
+        "CF_Avg_Diff",
+        "Combination",
+        "CF_Combination",
+    ]
+    for col in required_cols:
+        if col not in df.columns:
+            raise ValueError(f"Missing required column: {col}")
+
+    # Determine if heavy halogen is more supported
+    df["Heavy_Halogen_Presence"] = df.apply(
+        lambda row: row["Combination"]
+        if pd.notna(row["Avg_Diff"])
+        and (pd.isna(row["CF_Avg_Diff"]) or row["Avg_Diff"] < row["CF_Avg_Diff"])
+        else "No",
+        axis=1,
+    )
+
+    # Optional: Deduplicate final report by SampleName + Compound
+    report = df.drop_duplicates(
+        subset=["SampleName", "Compound", "Heavy_Halogen_Presence"]
+    )
+
+    return report[
+        [
+            "SampleName",
+            "Compound",
+            "Avg_Diff",
+            "CF_Avg_Diff",
+            "Combination",
+            "CF_Combination",
+            "Heavy_Halogen_Presence",
+        ]
+    ]
+
+
+def run_heavy_halogen_pipeline(cef_folder, pimms_file):
+    """
+    Complete heavy halogen + CF isotopic analysis workflow.
+
+    Parameters:
+        cef_folder (str): Path to folder with CEF files.
+        pimms_file (str): Path to processed PIMMS output CSV.
+
+    Output:
+        Saves final annotated match results to 'heavy_halogen_hunter_results.csv'
+    """
+    import pandas as pd
+
+    # Static paths for reference data
     file_path = r"PIMMS v1.2\CEF_reading\data\Isotopic modelling values (NIST).txt"
     csv_path = r"PIMMS v1.2\CEF_reading\data\Atomic numbers for elements.csv"
 
@@ -652,6 +717,7 @@ def main():
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
     if multi_peak_df.empty:
+        print("[INFO] No multi-peak matches found. Aborting.")
         return pd.DataFrame()
 
     # === Compute Kaufman Constants and Prioritization ===
@@ -666,38 +732,44 @@ def main():
     isotope_data = parse_isotope_data(data)
     isotope_data = add_elemental_symbol(isotope_data, csv_path)
 
-    # === Reload multi-peak data and merge Kaufman predictions ===
+    # === Reload and merge Kaufman predictions ===
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
     if multi_peak_df.empty:
+        print("[INFO] No multi-peak matches after reload. Aborting.")
         return pd.DataFrame()
-
     multi_peak_df = merging_kaufman_df_with_isotopic_modeling(kaufman_df, multi_peak_df)
 
     # === Isotopic labeling and normalization ===
     labeled_df = label_isotopic_peaks(multi_peak_df)
     labeled_df = normalize_isotopic_intensity(labeled_df)
 
-    # === Generate halogen isotope reference models ===
+    # === Generate halogen isotope models and match ===
     halogen_isotopes = heavy_halogen_reader(isotope_data)
     theoretical_df = compute_mixed_isotopic_distribution(halogen_isotopes)
-    # === Run halogen-based isotopic matching ===
     matches = heavy_halogen_isotopic_matching(labeled_df, theoretical_df)
-    # === Predict C/F ratios and estimate max elemental counts ===
     matches = add_predicted_f_to_matches(matches, kaufman_df)
     matches = compute_max_possible_f_to_c(matches)
 
-    # === Generate C/F theoretical distributions ===
+    # === Generate and match CF-only distributions ===
     cf_theoretical_df = compute_cf_isotopic_distributions(matches, halogen_isotopes)
-    # === Match experimental patterns to CF-only theoretical ones ===
     cf_results = cf_isotopic_matching_filtered(
-        labeled_df=labeled_df,
-        cf_theoretical_df=cf_theoretical_df,
-        matches_df=matches,
+        labeled_df=labeled_df, cf_theoretical_df=cf_theoretical_df, matches_df=matches
     )
-    # === Merge halogen and CF results ===
+
+    # === Combine results and finalize report ===
     all_matches = merge_matches_and_cf_results(matches, cf_results)
-    all_matches.to_csv(r"PIMMS v1.2\Data_output\heavy_halogen_matches.csv", index=False)
+    all_matches = produce_final_report(all_matches)
+
+    # === Save output ===
+    return all_matches
+
+
+def main():
+    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
+    pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    all_matches = run_heavy_halogen_pipeline(cef_folder, pimms_file)
+    print(all_matches.head())
 
 
 if __name__ == "__main__":
