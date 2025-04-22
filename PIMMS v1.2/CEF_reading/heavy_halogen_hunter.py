@@ -426,7 +426,6 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df):
                 best_combination = combination
                 best_merged = merged.copy()
 
-        # Only keep the best one
         if not best_merged.empty:
             for _, row in best_merged.iterrows():
                 all_matches.append(
@@ -442,7 +441,17 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df):
                     }
                 )
 
-    return pd.DataFrame(all_matches) if all_matches else pd.DataFrame()
+    result_df = pd.DataFrame(all_matches)
+
+    # ⬇️ Only return the specific sample/compound of interest
+    return (
+        result_df[
+            (result_df["SampleName"] == "NIST SRM-1957 6.d.DeMP")
+            & (result_df["Compound"] == 74)
+        ]
+        if not result_df.empty
+        else pd.DataFrame()
+    )
 
 
 def add_predicted_f_to_matches(matches_df, kaufman_df):
@@ -771,6 +780,7 @@ def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
     all_matches = run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file)
+    print(all_matches.head())
 
 
 if __name__ == "__main__":
