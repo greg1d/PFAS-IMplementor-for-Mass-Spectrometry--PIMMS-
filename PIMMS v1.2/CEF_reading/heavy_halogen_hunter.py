@@ -648,21 +648,30 @@ def produce_final_report(merged_df):
     than a CF-only model for each SampleName and Compound combination.
 
     Parameters:
-        merged_df (pd.DataFrame): DataFrame containing 'SampleName', 'Compound',
-                                  'Avg_Diff', 'CF_Avg_Diff', and 'Combination'.
+        merged_df (pd.DataFrame): Must contain 'SampleName', 'Compound',
+                                  'Avg_Diff', 'CF_Avg_Diff', 'Combination',
+                                  'r_CF2', and 'Predicted_F_per_C'.
 
     Returns:
-        pd.DataFrame: Summary DataFrame with the most likely model per row and halogen presence.
+        pd.DataFrame: Cleaned report showing heavy halogen call, fluorine ratio, and CF2 patterning info.
     """
     df = merged_df.copy()
 
     # Check required columns
-    required_cols = ["SampleName", "Compound", "Avg_Diff", "CF_Avg_Diff", "Combination"]
+    required_cols = [
+        "SampleName",
+        "Compound",
+        "Avg_Diff",
+        "CF_Avg_Diff",
+        "Combination",
+        "r_CF2",
+        "Predicted_F_per_C",
+    ]
     for col in required_cols:
         if col not in df.columns:
             raise ValueError(f"Missing required column: {col}")
 
-    # Decide final call based on which model fits better
+    # Compute presence decision
     df["Heavy_Halogen_Presence"] = df.apply(
         lambda row: row["Combination"]
         if pd.notna(row["Avg_Diff"])
@@ -671,25 +680,23 @@ def produce_final_report(merged_df):
         axis=1,
     )
 
-    # Return final report (dropping Combination, CF_Combination if present)
-    return df.drop(
-        columns=[col for col in ["Combination", "CF_Combination"] if col in df.columns],
-        errors="ignore",
-    )[["SampleName", "Compound", "Heavy_Halogen_Presence"]].drop_duplicates(
-        subset=["SampleName", "Compound", "Heavy_Halogen_Presence"]
-    )
+    # Drop unused columns and deduplicate
+    final_report = df[
+        [
+            "SampleName",
+            "Compound",
+            "Heavy_Halogen_Presence",
+            "r_CF2",
+            "Predicted_F_per_C",
+        ]
+    ].drop_duplicates(subset=["SampleName", "Compound", "Heavy_Halogen_Presence"])
+
+    return final_report
 
 
-def run_heavy_halogen_pipeline(cef_folder, pimms_file):
+def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
     """
     Complete heavy halogen + CF isotopic analysis workflow.
-
-    Parameters:
-        cef_folder (str): Path to folder with CEF files.
-        pimms_file (str): Path to processed PIMMS output CSV.
-
-    Output:
-        Saves final annotated match results to 'heavy_halogen_hunter_results.csv'
     """
     import pandas as pd
 
@@ -743,17 +750,27 @@ def run_heavy_halogen_pipeline(cef_folder, pimms_file):
 
     # === Combine results and finalize report ===
     all_matches = merge_matches_and_cf_results(matches, cf_results)
+
+    # Standardize identifiers to prevent mismatches
+    all_matches["SampleName"] = all_matches["SampleName"].str.strip()
+    kaufman_df["Sample"] = kaufman_df["Sample"].str.strip()
+
+    # Merge ONLY the r_CF2 column into all_matches
+    all_matches = all_matches.merge(
+        kaufman_df[["Sample", "Compound", "r_CF2"]],
+        left_on=["SampleName", "Compound"],
+        right_on=["Sample", "Compound"],
+        how="left",
+    ).drop(columns=["Sample"])
     all_matches = produce_final_report(all_matches)
 
-    # === Save output ===
     return all_matches
 
 
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
     pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
-    all_matches = run_heavy_halogen_pipeline(cef_folder, pimms_file)
-    all_matches.to_csv("heavy_halogen_hunter_results.csv", index=False)
+    all_matches = run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file)
 
 
 if __name__ == "__main__":
