@@ -244,7 +244,7 @@ def compute_isotopic_distribution(element_df, element_symbol="Cl", count=2):
     )
 
 
-def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
+def compute_mixed_isotopic_distribution(halogen_df, max_atoms=2):
     """
     Computes isotopic distributions for all combinations of 1–3 Cl and 1–3 Br atoms,
     inserting zeroes at odd-numbered M+1, M+3, etc., to keep uniform labeling.
@@ -291,7 +291,7 @@ def compute_mixed_isotopic_distribution(halogen_df, max_atoms=3):
                     "Combination": combination,
                 }
             )
-
+            print("look here", df)
             results.append(df)
 
     return pd.concat(results, ignore_index=True)
@@ -444,14 +444,7 @@ def heavy_halogen_isotopic_matching(labeled_df, theoretical_df):
     result_df = pd.DataFrame(all_matches)
 
     # ⬇️ Only return the specific sample/compound of interest
-    return (
-        result_df[
-            (result_df["SampleName"] == "NIST SRM-1957 6.d.DeMP")
-            & (result_df["Compound"] == 74)
-        ]
-        if not result_df.empty
-        else pd.DataFrame()
-    )
+    return result_df if not result_df.empty else pd.DataFrame()
 
 
 def add_predicted_f_to_matches(matches_df, kaufman_df):
