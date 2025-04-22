@@ -8,7 +8,6 @@ from CF2_prioritization import (
     compute_mCm_alignment,
     compute_MDCm_alignment,
     cf2_prioritization,
-    plot_kaufman_scatter_colored,
 )
 from FC_prediction import FC_prediction
 
@@ -740,7 +739,7 @@ def run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file):
     kaufman_df = cf2_prioritization(kaufman_df)
 
     kaufman_df = FC_prediction(kaufman_df)
-    plot_kaufman_scatter_colored(kaufman_df)
+
     # === Load and process elemental isotope reference data ===
     data = read_isotope_data(file_path)
     isotope_data = parse_isotope_data(data)
