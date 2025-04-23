@@ -47,10 +47,10 @@ def run_full_halogen_merging_pipeline(cef_folder, pimms_file):
 
 
 def main():
-    cef_folder = r"PIMMS v1.2\NTA\DBS\CEF_folder"
-    pimms_file = r"PIMMS v1.2\Data_output\DBS.csv"
+    cef_folder = r"PIMMS v1.2\NTA\Serum\CEF_folder"
+    pimms_file = r"PIMMS v1.2\Data_output\Serum.csv"
     final_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
-    print(final_df)
+    final_df.to_csv("Serum_heavy_halogen_matches.csv", index=False)
 
 
 if __name__ == "__main__":

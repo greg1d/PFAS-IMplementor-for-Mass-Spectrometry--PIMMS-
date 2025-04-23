@@ -55,7 +55,7 @@ from kaufman_analysis import run_full_halogen_merging_pipeline
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/NTA/DBS/All Features - DBS.csv"]
+    file_paths = ["PIMMS v1.2/NTA/Serum/Serum - All features.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -454,11 +454,11 @@ def main():
         sys.exit(1)
 
     try:
-        cef_folder = r"PIMMS v1.2\NTA\DBS\CEF_folder"
-        pimms_file = r"PIMMS v1.2\Data_output\DBS.csv"
+        cef_folder = r"PIMMS v1.2\NTA\Serum\CEF_folder"
+        pimms_file = r"PIMMS v1.2\Data_output\Serum.csv"
         heavy_halogen_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
         heavy_halogen_df.to_csv(
-            "PIMMS Validation work/PIMMS data/heavy_halogen_report.csv"
+            "PIMMS Validation work/PIMMS data/heavy_halogen_report_Mitra.csv"
         )
 
     except Exception as e:
