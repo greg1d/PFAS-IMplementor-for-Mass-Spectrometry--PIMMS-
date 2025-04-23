@@ -55,9 +55,7 @@ from kaufman_analysis import run_full_halogen_merging_pipeline
 
 def main():
     # File paths
-    file_paths = [
-        "PIMMS Validation work/PIMMS data/All Features - No Blank Subtraction.csv"
-    ]
+    file_paths = [r"PIMMS v1.2\NTA\DBS\All Features - DBS.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -69,7 +67,7 @@ def main():
     )
 
     # Define control columns
-    control_samples = [f"Blank {i}.d" for i in range(1, 6)]
+    control_samples = [f"Blank {i}.d" for i in range(1, 4)]
 
     # Set tolerances
     mass_error_ppm = 15  # Mass error in ppm
@@ -456,11 +454,11 @@ def main():
         sys.exit(1)
 
     try:
-        cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-        output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+        cef_folder = r"PIMMS v1.2\NTA\DBS\CEF_folder"
+        output_path = "PIMMS v1.2/Data_output/DBS.csv"
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         adjusted_df.to_csv(output_path, index=False)
-        pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+        pimms_file = pd.read_csv(output_path)
         heavy_halogen_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
         heavy_halogen_df.to_csv(
             "PIMMS Validation work/PIMMS data/heavy_halogen_report.csv"
@@ -470,11 +468,7 @@ def main():
         print(f"[ERROR] Failed to perform kaufman analysis loss filtering: {e}")
         sys.exit(1)
 
-    output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    adjusted_df.to_csv(output_path, index=False)
-    print(f"[INFO] Final adjusted dataset saved to {output_path}")
-    print(adjusted_df.head())
+    print("[INFO] All processing completed successfully.")
 
 
 if __name__ == "__main__":
