@@ -34,9 +34,20 @@ def extract_filtered_sample_data(sample_name, pimms_file_path):
     from the PIMMS dataset where values > 0.
     """
     pimms_df = pd.read_csv(pimms_file_path)
-    pimms_df.columns = [col.strip() for col in pimms_df.columns]
-    core_cols = pimms_df.columns[3:8].tolist()
 
+    # Strip spaces from column names
+    pimms_df.columns = [col.strip() for col in pimms_df.columns]
+
+    # Also strip the sample_name input
+    sample_name = sample_name.strip()
+
+    # Skip columns that are labeled as blanks
+    if "Blank" in sample_name:
+        print(f"[INFO] Skipping blank sample: {sample_name}")
+        return None
+
+    core_cols = pimms_df.columns[3:8].tolist()
+    print(pimms_df.columns)
     if sample_name not in pimms_df.columns:
         print(f"[WARN] Sample column '{sample_name}' not found in PIMMS data.")
         return None

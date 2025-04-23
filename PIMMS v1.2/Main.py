@@ -55,7 +55,7 @@ from kaufman_analysis import run_full_halogen_merging_pipeline
 
 def main():
     # File paths
-    file_paths = [r"PIMMS v1.2\NTA\DBS\All Features - DBS.csv"]
+    file_paths = ["PIMMS v1.2/NTA/DBS/All Features - DBS.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -455,10 +455,7 @@ def main():
 
     try:
         cef_folder = r"PIMMS v1.2\NTA\DBS\CEF_folder"
-        output_path = "PIMMS v1.2/Data_output/DBS.csv"
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        adjusted_df.to_csv(output_path, index=False)
-        pimms_file = pd.read_csv(output_path)
+        pimms_file = r"PIMMS v1.2\Data_output\DBS.csv"
         heavy_halogen_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
         heavy_halogen_df.to_csv(
             "PIMMS Validation work/PIMMS data/heavy_halogen_report.csv"
@@ -468,7 +465,10 @@ def main():
         print(f"[ERROR] Failed to perform kaufman analysis loss filtering: {e}")
         sys.exit(1)
 
-    print("[INFO] All processing completed successfully.")
+    os.makedirs(os.path.dirname(pimms_file), exist_ok=True)
+    adjusted_df.to_csv(pimms_file, index=False)
+    print(f"[INFO] Final adjusted dataset saved to {adjusted_df}")
+    print(adjusted_df)
 
 
 if __name__ == "__main__":
