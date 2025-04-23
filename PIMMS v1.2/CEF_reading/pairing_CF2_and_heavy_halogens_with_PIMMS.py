@@ -41,10 +41,7 @@ def main():
         return pd.DataFrame()
 
     merged_df = merging_pimms_report_with_halogen_data(all_matches, multi_peak_df)
-    print(merged_df.head())
-    merged_df.to_csv(
-        r"PIMMS v1.2\CEF_reading\merged_pimms_and_halogen_data.csv", index=False
-    )
+    merged_df.to_csv("merged_results.csv", index=False)
 
 
 if __name__ == "__main__":

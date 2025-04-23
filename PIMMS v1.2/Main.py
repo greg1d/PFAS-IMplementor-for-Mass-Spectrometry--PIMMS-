@@ -50,6 +50,7 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
 from single_chromatography import combined_filter_pipeline
 from adduct_checker import find_matching_mass_relationships
 from neutral_loss_checker import find_neutral_loss_matches
+from kaufman_analysis import run_full_halogen_merging_pipeline
 
 
 def main():
@@ -452,6 +453,21 @@ def main():
         )
     except Exception as e:
         print(f"[ERROR] Failed to perform neutral loss filtering: {e}")
+        sys.exit(1)
+
+    try:
+        cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
+        output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        adjusted_df.to_csv(output_path, index=False)
+        pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+        heavy_halogen_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
+        heavy_halogen_df.to_csv(
+            "PIMMS Validation work/PIMMS data/heavy_halogen_report.csv"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Failed to perform kaufman analysis loss filtering: {e}")
         sys.exit(1)
 
     output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
