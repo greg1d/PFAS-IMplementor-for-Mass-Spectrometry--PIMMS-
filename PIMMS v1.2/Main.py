@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
+from adduct_checker import find_matching_mass_relationships
 from blank_subtraction import (  # type: ignore
     count_non_zero_rows,
     process_standards_report_only,
@@ -23,6 +24,7 @@ from crude_filters import (  # type: ignore
     apply_rt_filter,
 )
 from detection_frequency_filter import detection_frequency_filter  # type: ignore
+from kaufman_analysis import run_full_halogen_merging_pipeline
 from mass_defect_filter import (  # type: ignore
     mass_defect_filter,
 )  # Importing the mass defect filter module
@@ -35,8 +37,10 @@ from monoisotopic_grouper import (  # type: ignore
 from monoisotopic_grouper import (  # type: ignore
     merge_groups_into_adjusted_df as mono_merge,
 )
+from neutral_loss_checker import find_neutral_loss_matches
 from post_source_decay_filter import remove_post_source_decay
 from regression_analysis import produce_filtered_df
+from single_chromatography import combined_filter_pipeline
 from smearing_filter import (
     smearing_filter,  # type: ignore # Importing the smearing filter module
 )
@@ -47,15 +51,12 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
     match_pfas_library,
 )
 
-from single_chromatography import combined_filter_pipeline
-from adduct_checker import find_matching_mass_relationships
-from neutral_loss_checker import find_neutral_loss_matches
-from kaufman_analysis import run_full_halogen_merging_pipeline
-
 
 def main():
     # File paths
-    file_paths = ["PIMMS v1.2/NTA/Serum/Serum - All features.csv"]
+    file_paths = [
+        "PIMMS Validation work/PIMMS data/All Features - No Blank Subtraction.csv"
+    ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -67,7 +68,7 @@ def main():
     )
 
     # Define control columns
-    control_samples = [f"Blank {i}.d" for i in range(1, 4)]
+    control_samples = [f"Blank {i}.d" for i in range(1, 6)]
 
     # Set tolerances
     mass_error_ppm = 15  # Mass error in ppm
