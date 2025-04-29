@@ -33,12 +33,14 @@ for idx, row in data.iterrows():
 
     if id_ in match_ids:
         print(f"Matched ID: {id_}")
-        plt.scatter(mz, ccs, color="red", marker="x", s=40, linewidths=1.5, zorder=5)
+        plt.scatter(mz, ccs, color="black", marker="x", s=100, linewidths=1.5, zorder=5)
     else:
         if row["Condition"]:
-            plt.scatter(mz, ccs, facecolors="none", edgecolors="k", s=marker_size)
+            plt.scatter(
+                mz, ccs, facecolors="none", edgecolors="k", s=marker_size, alpha=0.5
+            )
         else:
-            plt.scatter(mz, ccs, color="k", s=marker_size)
+            plt.scatter(mz, ccs, color="k", s=marker_size, alpha=0.5)
 
 # === Plot condition line ===
 mz_values = np.linspace(0, 1000, 500)
@@ -69,14 +71,9 @@ ax.spines["right"].set_visible(False)
 ax.spines["left"].set_linewidth(2)
 ax.spines["bottom"].set_linewidth(2)
 
-plt.title(
-    r"CCS vs $\mathit{m/z}$ cutoff",
-    fontsize=10,
-    fontfamily="Arial",
-    fontweight="bold",
-)
+
 plt.xlabel(
-    r"$\mathit{m/z}$ (Da)",
+    r"$\mathbfit{m/z}$",
     fontsize=10,
     fontfamily="Arial",
     fontweight="bold",
@@ -96,5 +93,4 @@ for label in ax.get_xticklabels() + ax.get_yticklabels():
     label.set_fontname("Arial")
     label.set_weight("bold")
 
-plt.legend()
 plt.show()
