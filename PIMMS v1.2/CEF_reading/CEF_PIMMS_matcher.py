@@ -34,9 +34,20 @@ def extract_filtered_sample_data(sample_name, pimms_file_path):
     from the PIMMS dataset where values > 0.
     """
     pimms_df = pd.read_csv(pimms_file_path)
-    pimms_df.columns = [col.strip() for col in pimms_df.columns]
-    core_cols = pimms_df.columns[3:8].tolist()
 
+    # Strip spaces from column names
+    pimms_df.columns = [col.strip() for col in pimms_df.columns]
+
+    # Also strip the sample_name input
+    sample_name = sample_name.strip()
+
+    # Skip columns that are labeled as blanks
+    if "Blank" in sample_name:
+        print(f"[INFO] Skipping blank sample: {sample_name}")
+        return None
+
+    core_cols = pimms_df.columns[3:8].tolist()
+    print(pimms_df.columns)
     if sample_name not in pimms_df.columns:
         print(f"[WARN] Sample column '{sample_name}' not found in PIMMS data.")
         return None
@@ -116,22 +127,6 @@ def process_sample_matches(sample_names, pimms_file_path):
     return all_filtered
 
 
-def print_PIMMS_report(sample_name, pimms_file_path):
-    """
-    Extracts and prints the filtered PIMMS report for a given sample.
-    Only rows where sample intensity > 0 are included.
-    """
-    try:
-        df = extract_filtered_sample_data(sample_name, pimms_file_path)
-        if df is not None and not df.empty:
-            print(f"\n=== PIMMS Report for Sample: {sample_name} ===")
-            print(df.to_string(index=False))
-        else:
-            print(f"[INFO] No non-zero intensity rows found for: {sample_name}")
-    except ValueError as e:
-        print(f"[ERROR] {e}")
-
-
 def print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path):
     """
     Prints both the PIMMS report and CEF peak data for a given sample.
@@ -170,7 +165,6 @@ def main():
 
     for sample_name in sample_names:
         print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path)
-        print_PIMMS_report(sample_name, pimms_file_path)  # this prints it already
 
 
 if __name__ == "__main__":

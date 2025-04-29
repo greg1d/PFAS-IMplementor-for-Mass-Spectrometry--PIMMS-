@@ -50,13 +50,12 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
 from single_chromatography import combined_filter_pipeline
 from adduct_checker import find_matching_mass_relationships
 from neutral_loss_checker import find_neutral_loss_matches
+from kaufman_analysis import run_full_halogen_merging_pipeline
 
 
 def main():
     # File paths
-    file_paths = [
-        "PIMMS Validation work/PIMMS data/All Features - No Blank Subtraction.csv"
-    ]
+    file_paths = ["PIMMS v1.2/NTA/Serum/Serum - All features.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -68,7 +67,7 @@ def main():
     )
 
     # Define control columns
-    control_samples = [f"Blank {i}.d" for i in range(1, 6)]
+    control_samples = [f"Blank {i}.d" for i in range(1, 4)]
 
     # Set tolerances
     mass_error_ppm = 15  # Mass error in ppm
@@ -454,11 +453,22 @@ def main():
         print(f"[ERROR] Failed to perform neutral loss filtering: {e}")
         sys.exit(1)
 
-    output_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    adjusted_df.to_csv(output_path, index=False)
-    print(f"[INFO] Final adjusted dataset saved to {output_path}")
-    print(adjusted_df.head())
+    try:
+        cef_folder = r"PIMMS v1.2\NTA\Serum\CEF_folder"
+        pimms_file = r"PIMMS v1.2\Data_output\Serum.csv"
+        heavy_halogen_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
+        heavy_halogen_df.to_csv(
+            "PIMMS Validation work/PIMMS data/heavy_halogen_report_Mitra.csv"
+        )
+
+    except Exception as e:
+        print(f"[ERROR] Failed to perform kaufman analysis loss filtering: {e}")
+        sys.exit(1)
+
+    os.makedirs(os.path.dirname(pimms_file), exist_ok=True)
+    adjusted_df.to_csv(pimms_file, index=False)
+    print(f"[INFO] Final adjusted dataset saved to {adjusted_df}")
+    print(adjusted_df)
 
 
 if __name__ == "__main__":
