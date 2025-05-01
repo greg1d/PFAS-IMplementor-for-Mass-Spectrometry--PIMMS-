@@ -1,53 +1,69 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
-# === Read the main data ===
+# === Load Data ===
 file_path = r"figures\Raw_data_for_regression_analysis_figure.csv"
 data = pd.read_csv(file_path)
 
-# === Read the file containing IDs to highlight ===
-match_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
-match_data = pd.read_csv(match_file_path)
-match_ids = match_data["ID"].apply(lambda x: str(int(float(x)))).tolist()
 
-# Add a new column based on the condition
+# === Compute condition based on RT bounds ===
 data["Condition"] = data.apply(
-    lambda row: row["m/z"] * 0.19 + 110.28 > row["CCS"], axis=1
+    lambda row: (
+        -242.7983 + 64.1664 * np.log(row["m/z"])
+        <= row["CCS"]
+        <= -205.8669 + 63.9175 * np.log(row["m/z"])
+    ),
+    axis=1,
 )
 
-# === Create 3D figure ===
-fig = plt.figure(figsize=(8, 5))
-ax = fig.add_subplot(111, projection="3d")
+# === Compute RT bounds ===
+mz_vals = np.linspace(0, 1000, 500)
+rt_upper = -205.8669 + 63.9175 * np.log(np.clip(mz_vals, 1e-5, None))  # avoid log(0)
+rt_lower = -242.7983 + 64.1664 * np.log(np.clip(mz_vals, 1e-5, None))
 
-# Shrink all points
+# === Plot Setup ===
+plt.figure(figsize=(3.3, 4.326))
+ax = plt.gca()
+
+# === Shade between RT bounds ===
+ax.fill_between(mz_vals, rt_lower, rt_upper, color="gray", alpha=0.3)
+
+# === Plot points with logic based on Condition ===
 marker_size = 10
-
-# Plot points
 for idx, row in data.iterrows():
     mz = row["m/z"]
-    ccs = row["CCS"]
-    rt = row["RT"]
-    id_ = str(int(float(row["ID"])))
+    rt = row["CCS"]
 
-    if id_ in match_ids:
-        ax.scatter(
-            mz, ccs, rt, color="black", marker="x", s=100, linewidths=1.5, zorder=5
-        )
+    if row["Condition"]:
+        plt.scatter(mz, rt, facecolors="none", edgecolors="k", s=marker_size, alpha=0.5)
     else:
-        if row["Condition"]:
-            ax.scatter(
-                mz, ccs, rt, facecolors="none", edgecolors="k", s=marker_size, alpha=0.5
-            )
-        else:
-            ax.scatter(mz, ccs, rt, color="k", s=marker_size, alpha=0.5)
+        plt.scatter(mz, rt, color="k", s=marker_size, alpha=0.5)
 
-# === Labeling and aesthetics ===
-ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontweight="bold", labelpad=10)
-ax.set_ylabel(r"CCS (Å$^2$)", fontsize=10, fontweight="bold", labelpad=10)
-ax.set_zlabel("RT (s)", fontsize=10, fontweight="bold", labelpad=10)
-
-ax.tick_params(axis="both", labelsize=9)
-ax.tick_params(axis="z", labelsize=9)
+# === Axis formatting to match your original plot ===
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["left"].set_linewidth(2)
+ax.spines["bottom"].set_linewidth(2)
+# === Count points inside vs outside bounds ===
+inside_count = data["Condition"].sum()
+outside_count = (~data["Condition"]).sum()
+print("\n--- RT Bound Summary ---")
+print(f"Points inside RT bounds: {inside_count}")
+print(f"Points outside RT bounds: {outside_count}")
+ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial", fontweight="bold")
+plt.ylabel(
+    r"CCS (Å$^2$)",
+    fontsize=10,
+    fontfamily="Arial",
+    fontweight="bold",
+)
+ax.set_xlim(0, 1000)
+ax.set_ylim(1.5, 300)
+ax.tick_params(axis="both", which="both", labelsize=9)
+for label in ax.get_xticklabels() + ax.get_yticklabels():
+    label.set_fontname("Arial")
+    label.set_weight("bold")
 
 plt.tight_layout()
 plt.show()
