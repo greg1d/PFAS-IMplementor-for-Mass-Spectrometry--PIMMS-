@@ -1,53 +1,52 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
-# === Read the main data ===
+# === Load Data ===
 file_path = r"figures\Raw_data_for_regression_analysis_figure.csv"
 data = pd.read_csv(file_path)
 
-# === Read the file containing IDs to highlight ===
-match_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
-match_data = pd.read_csv(match_file_path)
-match_ids = match_data["ID"].apply(lambda x: str(int(float(x)))).tolist()
+# === Define m/z and CCS grid for cone surface ===
+mz_vals = np.linspace(50, 1000, 200)
+ccs_vals = np.linspace(data["CCS"].min(), data["CCS"].max(), 50)
+MZ, CCS = np.meshgrid(mz_vals, ccs_vals)
+LN_MZ = np.log(MZ)
 
-# Add a new column based on the condition
-data["Condition"] = data.apply(
-    lambda row: row["m/z"] * 0.19 + 110.28 > row["CCS"], axis=1
-)
+# Compute RT surface bounds
+RT_upper = -50.3742 + 9.3733 * LN_MZ
+RT_lower = -23.6289 + 5.6657 * LN_MZ
 
-# === Create 3D figure ===
-fig = plt.figure(figsize=(8, 5))
+# === Plot Setup ===
+fig = plt.figure(figsize=(10, 6))
 ax = fig.add_subplot(111, projection="3d")
 
-# Shrink all points
-marker_size = 10
+# === Plot surfaces to define the "cone" ===
+ax.plot_surface(MZ, CCS, RT_upper, color="red", alpha=0.3, edgecolor="none")
+ax.plot_surface(MZ, CCS, RT_lower, color="blue", alpha=0.3, edgecolor="none")
 
-# Plot points
-for idx, row in data.iterrows():
+# === Classify and plot each point ===
+for _, row in data.iterrows():
     mz = row["m/z"]
     ccs = row["CCS"]
     rt = row["RT"]
-    id_ = str(int(float(row["ID"])))
+    ln_mz = np.log(mz)
 
-    if id_ in match_ids:
-        ax.scatter(
-            mz, ccs, rt, color="black", marker="x", s=100, linewidths=1.5, zorder=5
-        )
+    rt_lo = -23.6289 + 5.6657 * ln_mz
+    rt_hi = -50.3742 + 9.3733 * ln_mz
+
+    # Check if RT is within bounds
+    if rt_lo <= rt <= rt_hi:
+        ax.scatter(mz, ccs, rt, color="black", alpha=1, s=10)
     else:
-        if row["Condition"]:
-            ax.scatter(
-                mz, ccs, rt, facecolors="none", edgecolors="k", s=marker_size, alpha=0.5
-            )
-        else:
-            ax.scatter(mz, ccs, rt, color="k", s=marker_size, alpha=0.5)
+        ax.scatter(mz, ccs, rt, color="black", alpha=0.5, s=10)
 
-# === Labeling and aesthetics ===
-ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontweight="bold", labelpad=10)
-ax.set_ylabel(r"CCS (Å$^2$)", fontsize=10, fontweight="bold", labelpad=10)
-ax.set_zlabel("RT (s)", fontsize=10, fontweight="bold", labelpad=10)
-
-ax.tick_params(axis="both", labelsize=9)
-ax.tick_params(axis="z", labelsize=9)
+# === Labels and Aesthetics ===
+ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontweight="bold")
+ax.set_ylabel("CCS (Å$^2$)", fontsize=10, fontweight="bold")
+ax.set_zlabel("RT (s)", fontsize=10, fontweight="bold")
+ax.set_title("3D RT Bound Cone with Data Points", fontsize=12, fontweight="bold")
+ax.view_init(elev=25, azim=135)
+ax.tick_params(labelsize=9)
 
 plt.tight_layout()
 plt.show()
