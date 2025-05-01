@@ -21,48 +21,53 @@ data["Condition"] = data.apply(
     axis=1,
 )
 
-# === Create meshgrid for shaded region ===
-mz_vals = np.linspace(50, 1000, 200)
-ccs_vals = np.linspace(data["CCS"].min(), data["CCS"].max(), 50)
-MZ, CCS = np.meshgrid(mz_vals, ccs_vals)
-LN_MZ = np.log(MZ)
-RT_upper = -23.6289 + 5.6657 * LN_MZ
-RT_lower = -50.3742 + 9.3733 * LN_MZ
+# === Compute RT bounds ===
+mz_vals = np.linspace(0, 1000, 500)
+rt_upper = -23.6289 + 5.6657 * np.log(np.clip(mz_vals, 1e-5, None))  # avoid log(0)
+rt_lower = -50.3742 + 9.3733 * np.log(np.clip(mz_vals, 1e-5, None))
 
 # === Plot Setup ===
-fig = plt.figure(figsize=(10, 6))
-ax = fig.add_subplot(111, projection="3d")
+plt.figure(figsize=(3.3, 4.326))
+ax = plt.gca()
 
-# === Plot RT boundary surfaces ===
-ax.plot_surface(MZ, CCS, RT_upper, color="blue", alpha=0.3, edgecolor="none")
-ax.plot_surface(MZ, CCS, RT_lower, color="red", alpha=0.3, edgecolor="none")
+# === Shade between RT bounds ===
+ax.fill_between(mz_vals, rt_lower, rt_upper, color="gray", alpha=0.3)
 
 # === Plot points with logic based on Condition ===
 marker_size = 10
-
 for idx, row in data.iterrows():
     mz = row["m/z"]
-    ccs = row["CCS"]
     rt = row["RT"]
     id_ = str(int(float(row["ID"])))
 
-    if id_ in match_ids:
-        ax.scatter(
-            mz, ccs, rt, color="black", marker="x", s=100, linewidths=1.5, zorder=5
-        )
+    if row["Condition"]:
+        plt.scatter(mz, rt, facecolors="none", edgecolors="k", s=marker_size, alpha=0.5)
     else:
-        if row["Condition"]:
-            ax.scatter(mz, ccs, rt, color="black", s=marker_size, alpha=1)
-        else:
-            ax.scatter(mz, ccs, rt, color="red", s=marker_size, alpha=0.5)
+        plt.scatter(mz, rt, color="k", s=marker_size, alpha=0.5)
+    # === Count points inside vs outside bounds ===
+inside_count = data["Condition"].sum()
+outside_count = (~data["Condition"]).sum()
+print("\n--- RT Bound Summary ---")
+print(f"Points inside RT bounds: {inside_count}")
+print(f"Points outside RT bounds: {outside_count}")
+# === Axis formatting to match your original plot ===
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["left"].set_linewidth(2)
+ax.spines["bottom"].set_linewidth(2)
 
-# === Labels and Aesthetics ===
-ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontweight="bold")
-ax.set_ylabel("CCS (Å$^2$)", fontsize=10, fontweight="bold")
-ax.set_zlabel("RT (s)", fontsize=10, fontweight="bold")
-ax.set_title("3D RT Cone with Condition-Based Coloring", fontsize=12, fontweight="bold")
-ax.view_init(elev=25, azim=135)
-ax.tick_params(labelsize=9)
+ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial", fontweight="bold")
+ax.set_ylabel(
+    "Retention Time (minutes)", fontsize=10, fontfamily="Arial", fontweight="bold"
+)
+
+ax.set_xlim(0, 1000)
+ax.set_ylim(data["RT"].min() - 1, data["RT"].max() + 1)  # Auto range for RT
+
+ax.tick_params(axis="both", which="both", labelsize=9)
+for label in ax.get_xticklabels() + ax.get_yticklabels():
+    label.set_fontname("Arial")
+    label.set_weight("bold")
 
 plt.tight_layout()
 plt.show()
