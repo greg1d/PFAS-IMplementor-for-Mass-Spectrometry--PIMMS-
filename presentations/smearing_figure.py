@@ -54,11 +54,14 @@ ax.set_ylabel(
     fontfamily="Arial",
     fontweight="bold",
 )
+ax.zaxis.set_tick_params(pad=10)  # Try 10, adjust higher if needed
+
 ax.set_zlabel(
     "Abundance (count)",
     fontsize=10,
     fontfamily="Arial",
     fontweight="bold",
+    labelpad=15,
 )
 
 plt.tight_layout()
