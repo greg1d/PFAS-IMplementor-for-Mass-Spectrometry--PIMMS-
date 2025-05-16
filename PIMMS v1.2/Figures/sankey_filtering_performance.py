@@ -3,18 +3,18 @@ import plotly.graph_objects as go
 # Define nodes (labels)
 labels = [
     "9077",
-    "3350",  # after blank subtraction
-    "2538",  # after crude
-    "2501",  # after smearing
-    "2003",  # after branching
-    "1748",  # after monoisotopic
-    "410",  # after fluorinated density
-    "350",  # after mass defect
-    "342",  # after detection frequency
-    "332",  # after removing standards
-    "331",  # after post decay filter
-    "48",  # after regression analysis
-    "End (34)",  # after adduct and neutral loss filter
+    "3350",  # 1 after blank subtraction
+    "2538",  # 2 after crude
+    "2501",  # 3 after smearing
+    "2003",  # 4 after branching
+    "1748",  # 5 after monoisotopic
+    "410",  # 6 after fluorinated density
+    "350",  # 7 after mass defect
+    "342",  # 8 after detection frequency
+    "332",  # 9 after removing standards
+    "331",  # 10 after post decay filter
+    "48",  # 11 after regression analysis
+    "End (34)",  # 12 after adduct and neutral loss filter
     "Split 1 (5)",
     "Split 2 (15)",
     "Split 3 (14)",
@@ -26,23 +26,22 @@ targets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
 # Link values and labels for all links
 link_values = [
-    10577,
-    4628,
-    4456,
-    3099,
-    2808,
-    336,
-    271,
-    233,
-    227,
-    20,
-    80,
-    121,
-    5,
+    9077,
+    3350,
+    2538,
+    2501,
+    2003,
+    1748,
+    410,
+    350,
+    342,
+    332,
+    331,
+    48,
+    34,
     15,
     14,
 ]
-link_labels = [str(v) for v in link_values]
 
 # Define colors for the split end links and nodes
 split_colors = ["#91ED91"] * 3  # Light green
@@ -90,25 +89,27 @@ node_y = [
     0.8,
 ]
 
-# Create the Sankey diagram
+# Create the Sankey diagram with text hidden
 fig = go.Figure(
     go.Sankey(
-        arrangement="snap",
+        arrangement="fixed",
         node=dict(
-            pad=15,
+            pad=0,
             thickness=100,
-            line=dict(color="white", width=7),
+            line=dict(color="white", width=0),
             color=node_colors,
             x=node_x,
             y=node_y,
-            label=labels,
+            label=[""] * len(labels),  # Hide node text
+            hovertemplate=None,  # Hide hover text for nodes
         ),
         link=dict(
             source=sources,
             target=targets,
             value=link_values,
-            label=link_labels,
+            label=[""] * len(link_values),  # Hide link text
             color=link_colors,
+            hovertemplate=None,  # Hide hover text for links
         ),
     )
 )
@@ -117,8 +118,10 @@ fig = go.Figure(
 fig.update_layout(
     width=3840,
     height=1168,
+    showlegend=False,  # No legend
 )
 
 # Show the figure
 fig.show()
 fig.write_image("sankey_filtering_performance.png")
+9077
