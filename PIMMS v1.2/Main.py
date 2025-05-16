@@ -55,7 +55,7 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
 def main():
     # File paths
     file_paths = [
-        "PIMMS Validation work/PIMMS data/All Features - No Blank Subtraction.csv"
+        r"F:\Twins Project (2.24-)\Non-target work\Processed Data\Test folder\All Samples.xlsx"
     ]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
