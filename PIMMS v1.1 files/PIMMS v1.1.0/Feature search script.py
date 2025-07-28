@@ -10,11 +10,11 @@ import seaborn as sns
 from matplotlib.widgets import RectangleSelector
 
 # Define the directory containing the Excel files
-directory_path = r"D:\2023 gators\PIMMS data\PIMMS Processing\All Features Master"
+directory_path = r"F:\Twins Project (2.24-)\Non-target work\All Features Master"
 
 # Define the directory to save the search results
 output_directory = (
-    r"D:\2023 gators\PIMMS data\PIMMS Processing\All Features Master\Search Results"
+    r"F:\Twins Project (2.24-)\Non-target work\All Features Master\Search Results"
 )
 os.makedirs(output_directory, exist_ok=True)  # Create the directory if it doesn't exist
 

@@ -15,8 +15,9 @@ from dash_formatting import get_dash_layout
 from plotly_graphing import make_plotly_graph, update_graph
 
 # ✅ Load Data Before Initializing Layout
-file_path = "PIMMS v1.2/Data_output/PIMMS Processed Data set.csv"
-adjusted_df = pd.read_csv(file_path)
+file_path = "PIMMS v1.2/Data_output/Serum.csv"
+
+adjusted_df = pd.read_csv(file_path, encoding="ISO-8859-1")
 
 # ✅ Define Available Repeating Units
 REPEATING_UNITS = {
