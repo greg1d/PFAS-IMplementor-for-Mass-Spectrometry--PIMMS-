@@ -3,3 +3,92 @@ Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Err
 4,10,likely,4,5,10,140,299.9872,0,0,0,100,100,100
 4,11,likely,4,6,11,150,349.984,0,0,0,200,200,200
 4,12,likely,4,6,11,160,399.9808,0,0,0,200,200,200
+"(-)-1-Perfluoropropylethanol or (2S)-3,3,4,4,5,5,5-Heptafluoropentan-2-ol or 1-Perfluoropropylethanol or 2(Perfluoro-2-propyl)ethanol or 3:2 Fluorotelomer alcohol",External Targets,tentative,4735,2.73,17.69,136.7,213.01,-6.49,N/A,N/A,123,107,107
+"1-Dodecanol, 7,7,8,8,9,9,10,10,11,11,12,12,12-tridecafluoro-5-iodo- or 11-H-Perfluoroundecanoic acid",External Targets,tentative,3427,10.37,22.3,165.76,544.96,-3.6 or -1.74,N/A,N/A,0,0,0
+"1,1,2,2,3,3,4,4,5,6,6,7,7,7-tetradecafluoro-5-(trifluoromethyl)heptane-1-sulfonic acid or 1,1,2,2,3,3,4,5,5,6,6,7,7,7-tetradecafluoro-4-(trifluoromethyl)heptane-1-sulfonic acid or 1,1,2,2,3,3,5,5,6,6,6-undecafluoro-4,4-bis(trifluoromethyl)hexane-1-sulfonic acid or 1,1,2,2,3,4,4,5,5,6,6,7,7,7-tetradecafluoro-3-(trifluoromethyl)heptane-1-sulfonic acid or 1,1,2,3,3,4,4,5,5,6,6,7,7,7-tetradecafluoro-2-(trifluoromethyl)heptane-1-sulfonic acid or Heptadecafluorooctane-2-sulfonic acid or IsoPFOS or Perfluorooctanesulfonic acid",External Targets,tentative,3813,10.09,22.01,164.06,498.93,-2.13,N/A,N/A,3945,11882,41776
+"1,3-Benzenediamine, 4-(1,1,2,2-tetrafluoroethoxy)- or [3-(1,1,2,2-Tetrafluoroethoxy)phenyl]hydrazine",External Targets,tentative,6882,4.63,16.93,130.21,223.05,11.68,N/A,N/A,0,0,0
+17-H-Perfluoroheptadecanoic acid,External Targets,tentative,800,13.3,27.65,203.83,844.95,-1.18,N/A,N/A,195.97,0,0
+2-(Perfluorobutyl)ethanethiol,External Targets,tentative,7500,6.64,18.48,140.84,278.99,9.52,N/A,N/A,69,68,0
+"2,2,3,3-Tetrafluoropropyl 4-(2H-tetrazol-5-yl)benzoate",External Targets,tentative,3108,5.19,19.23,145.74,303.06,13.01,N/A,N/A,0,0,0
+"3-(1,1,1,3,3,3-Hexafluoro-2-hydroxypropan-2-yl)bicyclo[2.2.1]heptan-2-one or 3-(2-Methylprop-1-en-1-yl)-2,2-bis(trifluoromethyl)cyclopropane-1-carboxylic acid",External Targets,tentative,6910,4.36,18.33,139.42,275.05,9.75,N/A,N/A,0,0,0
+"3-Amino-4,4,5,5-tetrafluoro-1-phenylpent-2-ene-1-thione",External Targets,tentative,4499,7.49,18.93,144.48,262.04,12.2,N/A,N/A,0,256,0
+"3,3,4,4,5,5,6,6,7,7,8,8-dodecafluoro-2-methyloctan-2-ol or 3,3,4,4,5,5,6,7,7,8,8,8-dodecafluoro-6-methyloctan-1-ol",External Targets,tentative,7630,9.24,21.66,163.25,359.03,5.37,N/A,N/A,50,0,57
+"4-[(2,2,3,3-Tetrafluoropropyl)sulfanyl]benzene-1,2-diamine",External Targets,tentative,3289,4.84,17.73,135.54,253.04,-10.68,N/A,N/A,0,234,0
+"4-bromo-3,3,4,4-tetrafluorobutan-1-ol",External Targets,tentative,1564,5.92,17.06,131.4,222.94,-12.16,N/A,N/A,649,953,0
+"5-(Heptafluoropropyl)-N-methyl-1,3,4-oxadiazol-2-amine",External Targets,tentative,3638,3.48,18.03,137.53,266.02,-0.67,N/A,N/A,0,0,241
+6-Oxoperfluorooctanesulfonic acid,External Targets,tentative,6764,9.71,22.07,164.7,476.93,-3.19,N/A,N/A,0,0,117
+"6,6,6-trifluoro-5-hydroxy-2,2-dimethyl-5-(trifluoromethyl)hexan-3-one",External Targets,tentative,4217,4.84,18.35,139.91,265.06,-14.59,N/A,N/A,0,105,0
+"Methyl 4,4,5,5-tetrafluoro-3,3-dihydroxypentanoate",External Targets,tentative,3148,6.48,17.47,134.63,219.03,-7.27,N/A,N/A,0,0,0
+"N-[(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-Heptadecafluorooctyl)sulfonyl]glycine",External Targets,tentative,3482,10.94,24.55,182.41,555.95,-3.74,N/A,N/A,0,0,0
+No Match,None,unmatched,6870,4.78,15.19,117.72,201,,,,0,58,83
+No Match,None,unmatched,2907,3.8,17.16,132.86,203,,,,0,98,154
+No Match,None,unmatched,1488,5.57,16.8,129.94,204.94,,,,0,347,990
+No Match,None,unmatched,1197,3.32,16.76,129.65,205.94,,,,311,365,279
+No Match,None,unmatched,2287,5.57,16.82,129.98,206.94,,,,0,301,0
+No Match,None,unmatched,1606,3.32,16.77,129.64,207.94,,,,216,247,159
+No Match,None,unmatched,1235,4.38,17.02,131.37,210.95,,,,0,0,0
+No Match,None,unmatched,891,4.55,17.28,133.43,211.02,,,,0,135,185
+No Match,None,unmatched,1911,4.38,17.04,131.44,212.94,,,,0,0,0
+No Match,None,unmatched,3456,4.92,16.89,130.35,213.08,,,,155,0,126
+No Match,None,unmatched,2288,3.71,17.19,132.53,216.96,,,,126,252,164
+No Match,None,unmatched,2101,6.56,17.51,134.95,218.03,,,,0,452,409
+No Match,None,unmatched,5657,3.34,17.16,132.17,219.91,,,,210,0,0
+No Match,None,unmatched,1528,6.35,16.69,128.54,220.9,,,,261,258,338
+No Match,None,unmatched,421,5.91,17.05,131.32,220.94,,,,842,1423,1784
+No Match,None,unmatched,3346,3.8,17.61,135.51,221.01,,,,0,0,0
+No Match,None,unmatched,555,6.84,17.05,131.29,221.95,,,,754,350,610
+No Match,None,unmatched,1103,6.35,16.7,128.53,222.9,,,,358,338,455
+No Match,None,unmatched,1353,6.84,17.06,131.36,223.95,,,,0,344,596
+No Match,None,unmatched,3353,6.35,16.7,128.5,224.89,,,,0,0,162
+No Match,None,unmatched,3137,5.91,17.08,131.38,224.93,,,,0,158,0
+No Match,None,unmatched,4143,6.12,17.01,130.8,225.07,,,,443,0,95
+No Match,None,unmatched,3569,4.1,16.72,128.37,230.93,,,,113,0,0
+No Match,None,unmatched,3602,3.64,17.09,131.34,231.05,,,,96,0,0
+No Match,None,unmatched,2921,5.27,17.25,132.42,232.08,,,,0,0,201
+No Match,None,unmatched,3864,4.94,17.07,130.98,233.07,,,,0,0,0
+No Match,None,unmatched,4356,5.32,18.36,140.7,238.08,,,,0,0,0
+No Match,None,unmatched,5191,3.1,17.24,132.18,239.07,,,,0,0,0
+No Match,None,unmatched,19,6.38,17.86,136.78,244.91,,,,21953,19939,18224
+No Match,None,unmatched,3837,3.67,17.44,133.65,245.07,,,,105,142,73
+No Match,None,unmatched,4855,4.01,17.46,133.75,246.07,,,,0,0,0
+No Match,None,unmatched,6396,4.37,18.89,144.58,246.07,,,,104,0,0
+No Match,None,unmatched,5115,6.38,18.83,144.15,246.9,,,,0,0,0
+No Match,None,unmatched,3608,6.38,17.86,136.69,247,,,,129,0,0
+No Match,None,unmatched,5251,6.25,18,137.67,250.99,,,,0,0,0
+No Match,None,unmatched,2514,2.88,17.49,133.66,254.07,,,,251,0,0
+No Match,None,unmatched,3506,5.3,17.6,134.54,254.09,,,,0,104,69
+No Match,None,unmatched,3444,2.56,19.26,147.17,255.03,,,,0,121,132
+No Match,None,unmatched,5207,2.39,19.02,145.19,258.99,,,,0,0,0
+No Match,None,unmatched,3858,3.12,17.76,135.63,259.01,,,,266,0,192
+No Match,None,unmatched,6113,4.14,17.65,134.7,260.91,,,,0,0,0
+No Match,None,unmatched,3010,5.32,18.3,139.52,267.06,,,,92,106,0
+No Match,None,unmatched,1035,2.59,19.72,150.21,273.01,,,,0,0,0
+No Match,None,unmatched,5313,5.38,18.77,142.82,273.11,,,,0,0,0
+No Match,None,unmatched,584,4.87,17.22,131.04,278.91,,,,645,379,594
+No Match,None,unmatched,6224,6.09,19.67,149.55,280.93,,,,0,0,82
+No Match,None,unmatched,3719,5.09,19.39,147.34,286.11,,,,0,0,0
+No Match,None,unmatched,2242,3.13,19.41,147.34,294.11,,,,130,0,368
+No Match,None,unmatched,4170,7.29,18.94,143.78,295.11,,,,174,0,351
+No Match,None,unmatched,5262,3.67,20.49,155.41,302.97,,,,0,0,0
+No Match,None,unmatched,5776,3.68,20.5,155.38,304.97,,,,0,0,0
+No Match,None,unmatched,2298,6.67,19.49,147.61,308.97,,,,171,0,193
+No Match,None,unmatched,3726,5.32,19.74,149.27,317.07,,,,0,0,0
+No Match,None,unmatched,6351,4.83,19.9,150.41,318.04,,,,0,0,0
+No Match,None,unmatched,6557,6.87,19.61,148.14,326.96,,,,78,0,0
+No Match,None,unmatched,6079,8.43,20.12,150.87,402.07,,,,66,0,0
+No Match,None,unmatched,6737,9.43,20.71,154.95,430.98,,,,0,0,70
+No Match,None,unmatched,792,10.95,23.77,177.66,450.92,,,,152,0,0
+No Match,None,unmatched,752,11.05,20.85,155.69,468.97,,,,0,460.75,557.75
+No Match,None,unmatched,3799,11.46,22.84,170.13,504.97,,,,0,107,88
+No Match,None,unmatched,3968,11.46,22.84,170.05,507.97,,,,0,0,0
+No Match,None,unmatched,2716,11.68,22.03,163.99,518.97,,,,0,145,114
+No Match,None,unmatched,5767,12.23,23.21,172.36,568.96,,,,0,0,0
+No Match,None,unmatched,676,14.01,29.52,217.12,944.94,,,,0,0,0
+Perfluoro-2-(trifluoromethyl)propanesulphonic acid or Perfluorobutanesulfonic acid,External Targets,tentative,1085,5.4,17.6,133.55,298.94,-5.65,N/A,N/A,204,117,786
+Perfluoropentanesulfonic acid,External Targets,tentative,1117,7.14,18.85,142.16,348.94,-6.58,N/A,N/A,1931,175,0
+PFHpS (M-H),PFAS Standards,likely,1809,9.33,21.21,158.56,448.93,-4.12,-0.4,N/A,929,1848,4925
+PFHxS (M-H),PFAS Standards,likely,359,8.31,19.97,149.92,398.94,-2.26,-0.39,N/A,12633.37,7111.37,25643.37
+PFHxS (M-H),PFAS Standards,likely,3425,8.83,20.1,150.85,398.93,-5.89,0.23,N/A,126,194,143
+PFHxS (M-H),PFAS Standards,likely,7120,9.28,20.12,150.81,398.93,-8.02,0.21,N/A,0,0,0
+PFNA (M-H-CO2),PFAS Standards,likely,329,10.3,19.65,147.22,418.97,-3.58,0.15,N/A,396.41,2048.41,3313.41
+PFOA (M-H-CO2),PFAS Standards,likely,1570,9.41,18.51,139.3,368.97,-4.61,-0.14,N/A,9823.56,3324.56,5821.56
