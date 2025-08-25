@@ -1,7 +1,4 @@
 Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (%),35 2286 - Serum.d.DeMP,38 2182 - Serum.d.DeMP,41 2187 - Serum.d.DeMP,44 2854 - Serum.d.DeMP,47 2911 - Serum.d.DeMP, 125 1777 - Serum.d.DeMP,128 1821 - Serum.d.DeMP,131 1673 - Serum.d.DeMP,134 1894 - Serum.d.DeMP,137 3330 - Serum.d.DeMP,80 2003 - Serum.d.DeMP,83 2095 - Serum.d.DeMP,86 2046 - Serum.d.DeMP,89 2889 - Serum.d.DeMP,92 3021 - Serum.d.DeMP
-No Match,None,unmatched,1235,4.38,17.02,131.37,210.95,,,,0,0,0,1028,445,900,1489,251,0,149,630,787,191,216,189
-No Match,None,unmatched,1911,4.38,17.04,131.44,212.94,,,,0,0,0,683,282,556,970,183,0,0,353,0,113,149,106
-No Match,None,unmatched,2288,3.71,17.19,132.53,216.96,,,,126,252,164,0,369,79,266,300,203,465,0,344,0,0,0
 No Match,None,unmatched,5657,3.34,17.16,132.17,219.91,,,,210,0,0,0,0,0,99,0,0,0,0,0,0,133,0
 No Match,None,unmatched,1528,6.35,16.69,128.54,220.9,,,,261,258,338,761,329,398,0,378,341,382,279,501,285,264,0
 No Match,None,unmatched,421,5.91,17.05,131.32,220.94,,,,842,1423,1784,2556,1331,1398,1654,1970,2303,2922,1219,2649,1861,1518,526
