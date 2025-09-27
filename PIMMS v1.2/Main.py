@@ -92,8 +92,8 @@ def main():
 
     frequency_threshold = 15  # Detection frequency threshold percentage
 
-    rt_filter = False
-    ccs_filter = True
+    rt_regression_filter = False
+    ccs_regression_filter = True
 
     try:
         # Step 1: Read and combine data from all source files
@@ -382,8 +382,8 @@ def main():
         adjusted_df = produce_filtered_df(
             adjusted_df,
             level_2_library,
-            rt_filter,
-            ccs_filter,
+            rt_regression_filter,
+            ccs_regression_filter,
         )
         adjusted_df.to_csv(
             "PIMMS Validation work/PIMMS data/after_regression_analysis_filter.csv",
