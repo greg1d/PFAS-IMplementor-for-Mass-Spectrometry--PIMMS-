@@ -1,4 +1,3 @@
-import bisect
 import os
 
 import numpy as np
@@ -299,44 +298,6 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     return adjusted_df, control_mean, control_std
 
 
-def calculate_mass_error(mass, mass_error_ppm=10, z=1):
-    """
-    Calculate the mass error bounds based on mass, ppm, and charge state.
-    """
-    mass_error = mass * mass_error_ppm * 1e-6
-    mass_bound = mass_error / z
-    return mass_bound
-
-
-def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
-    """
-    Finds peaks within the mass error bounds of a specific peak.
-
-    Args:
-        array (list): Array of masses to search within.
-        z (int): Charge state.
-        M (float): Experimental mass to compare.
-        i (int): Current index in the array.
-        mass_error_ppm (float): Mass error tolerance in ppm.
-
-    Returns:
-        tuple: List of peaks within bounds and the count of matches.
-    """
-    mass_bound = calculate_mass_error(array[i], mass_error_ppm, z)
-    lower_bound = array[i] + (M / z) - mass_bound
-    upper_bound = array[i] + (M / z) + mass_bound
-
-    # Find the bounds using binary search
-    j_start = bisect.bisect_left(array, lower_bound, i + 1)
-    j_end = bisect.bisect_right(array, upper_bound, i + 1)
-
-    # Collect all peaks within the bounds
-    peaks_within_bounds = []
-    for j in range(j_start, j_end):
-        peaks_within_bounds.append(array[j])
-    return peaks_within_bounds, j_end - j_start
-
-
 def remove_standards_library(
     adjusted_df,
     standards_file,
@@ -410,85 +371,3 @@ def remove_standards_library(
     except Exception as e:
         print(f"[ERROR] Failed to remove standards: {e}")
         return adjusted_df
-
-
-def combine_matched_rows(
-    matched_rows, mass_error_ppm, ccs_error_percentage, rt_tolerance
-):
-    """
-    Combines matched rows within specified tolerances for m/z, CCS, and RT.
-
-    Args:
-        matched_rows (list of dict): List of matched rows to process.
-        mass_error_ppm (float): Tolerance for m/z in parts per million (ppm).
-        ccs_error_percentage (float): Tolerance for CCS as a percentage.
-        rt_tolerance (float): Tolerance for RT in minutes.
-
-    Returns:
-        list of dict: Consolidated matched rows.
-    """
-    print("[DEBUG] combine_matched_rows function has been called.")
-
-    # Convert matched rows to a DataFrame
-    matched_df = pd.DataFrame(matched_rows)
-
-    # Ensure necessary columns are present
-    required_columns = {"Experimental m/z", "Experimental CCS", "RT"}
-    if not required_columns.issubset(matched_df.columns):
-        raise ValueError(f"Matched rows must include {required_columns} columns.")
-    print("[DEBUG] All required columns are present.")
-
-    # Sort for grouping
-    matched_df = matched_df.sort_values(
-        by=["Experimental m/z", "Experimental CCS", "RT"]
-    )
-
-    # Initialize list for consolidated rows
-    consolidated_rows = []
-
-    # Iterate to combine rows
-    iteration_count = 0
-    while not matched_df.empty:
-        iteration_count += 1
-
-        # Take the first row as the base
-        base_row = matched_df.iloc[0]
-        mz_base = base_row["Experimental m/z"]
-        ccs_base = base_row["Experimental CCS"]
-        rt_base = base_row["RT"]
-
-        # Identify rows within tolerances
-        in_group = matched_df[
-            (
-                matched_df["Experimental m/z"].sub(mz_base).div(mz_base).abs() * 1e6
-                <= mass_error_ppm
-            )
-            & (
-                matched_df["Experimental CCS"].sub(ccs_base).div(ccs_base).abs() * 100
-                <= ccs_error_percentage
-            )
-            & (matched_df["RT"].sub(rt_base).abs() <= rt_tolerance)
-        ]
-
-        # Remove grouped rows from the DataFrame
-        matched_df = matched_df.drop(in_group.index)
-
-        # Consolidate data
-        combined_row = base_row.to_dict()
-        for col in [c for c in in_group.columns if ".d" in c]:
-            # Combine intensities for each `.d` column separately
-            combined_row[col] = in_group[col].max()
-
-        # Calculate sample coverage
-        non_zero_count = sum(
-            1 for col in in_group.columns if ".d" in col and combined_row[col] > 0.001
-        )
-        total_count = sum(1 for col in in_group.columns if ".d" in col)
-        combined_row["Sample Coverage (%)"] = (
-            (non_zero_count / total_count) * 100 if total_count > 0 else 0
-        )
-
-        consolidated_rows.append(combined_row)
-
-    print(f"[DEBUG] Final consolidated rows: {len(consolidated_rows)}")
-    return consolidated_rows
