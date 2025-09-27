@@ -260,34 +260,6 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     return adjusted_df, control_mean, control_std
 
 
-def save_adjusted_dataset(adjusted_df, original_df):
-    """
-    Saves the adjusted dataset into a .temp folder with a filename that includes the current date and time.
-    Removes rows with empty cells before saving.
-
-    Args:
-        adjusted_df (pd.DataFrame): The adjusted experimental dataset.
-        original_df (pd.DataFrame): The original dataset for metadata (first 5 columns).
-    """
-    # Create .temp folder if it doesn't exist
-    temp_folder = "PIMMS v1.2/.temp"
-    os.makedirs(temp_folder, exist_ok=True)
-
-    # Combine metadata (first 5 columns) with the adjusted dataset
-    combined_df = pd.concat([original_df.iloc[:, :5], adjusted_df], axis=1)
-    print(adjusted_df.head())
-    # Drop rows with any missing values
-    combined_df = combined_df.dropna(how="any")
-
-    # Generate a filename with the current date and time
-    file_name = "blank_subtracted_dataset.csv"
-    file_path = os.path.join(temp_folder, file_name)
-
-    # Save the cleaned dataset as a CSV file
-    combined_df.to_csv(file_path, index=False)
-    print(f"Blank-subtracted dataset saved to {file_path}")
-
-
 def calculate_mass_error(mass, mass_error_ppm=10, z=1):
     """
     Calculate the mass error bounds based on mass, ppm, and charge state.
