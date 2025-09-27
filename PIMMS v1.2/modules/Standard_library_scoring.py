@@ -1,5 +1,6 @@
-import pandas as pd
 import bisect
+
+import pandas as pd
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm=10):
@@ -20,16 +21,28 @@ def find_similar_peaks(array, mass, mass_error_ppm=10):
 
 
 def load_pfas_library(file_path):
-    """Load the PFAS primary standards library from a CSV file."""
-    columns_to_read = [
-        "PrecursorName",
-        "PrecursorFormula",
-        "PrecursorAdduct",
-        "PrecursorCCS",
-        "PrecursorRT",
-        "PrecursorMz",
-    ]
-    return pd.read_csv(file_path, usecols=columns_to_read)
+    """
+    Load specific columns from the PFAS primary standards library.
+
+    Args:
+        file_path (str): The path to the CSV library file.
+        columns_to_load (list): A list of column names to load from the file.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing only the specified columns.
+    """
+    try:
+        # The 'sep' argument is added in case the file is tab-separated
+        return pd.read_csv(file_path)
+    except ValueError as e:
+        # This error occurs if a column in 'usecols' is not in the file
+        print(
+            f"[ERROR] Could not load PFAS library. Check if all specified columns exist in '{file_path}'."
+        )
+        raise e
+    except FileNotFoundError:
+        print(f"[ERROR] PFAS library file not found at: '{file_path}'")
+        raise
 
 
 def load_external_targets_library(file_path):
@@ -39,45 +52,77 @@ def load_external_targets_library(file_path):
     )
 
 
+# This helper function is required
+def column_letter_to_index(letter):
+    """Converts an Excel-style column letter to a zero-based integer index."""
+    letter = letter.upper()
+    index = 0
+    for char in letter:
+        index = index * 26 + (ord(char) - ord("A") + 1)
+    return index - 1
+
+
 def match_pfas_library(
     adjusted_df,
     pfas_library,
-    file_path,
-    standards_library_file,
+    LEVEL_2_COLUMN_LETTERS,
     mass_error_ppm=10,
     ccs_tolerance=2.0,
     rt_tolerance=2.0,
     include_rt=True,
 ):
-    """Matches features in adjusted_df with PFAS library entries based on mass, CCS, and RT."""
+    """
+    Matches features with PFAS library entries using user-defined column letters for the library.
+    """
+    # --- 1. Validate the mapping and translate letters to column names ---
+    required_keys = {"mz", "ccs", "rt", "name", "adduct"}
+    if not required_keys.issubset(LEVEL_2_COLUMN_LETTERS.keys()):
+        missing_keys = required_keys - set(LEVEL_2_COLUMN_LETTERS.keys())
+        raise KeyError(
+            f"Configuration is missing required library column keys: {missing_keys}"
+        )
+
+    lib_cols = {}
+    all_lib_columns = pfas_library.columns.tolist()
+    print(all_lib_columns)
+    for key, letter in LEVEL_2_COLUMN_LETTERS.items():
+        try:
+            index = column_letter_to_index(letter)
+            if index >= len(all_lib_columns):
+                raise IndexError(
+                    f"Column '{letter}' is out of bounds for the library file."
+                )
+            lib_cols[key] = all_lib_columns[index]
+        except Exception as e:
+            raise ValueError(
+                f"Could not process library mapping for '{key}' ('{letter}'): {e}"
+            )
+
+    # --- 2. Proceed with matching ---
     matched_rows = []
     matched_ids = set()
     match_source = "PFAS Standards"
 
-    sorted_pfas_masses = sorted(pfas_library["PrecursorMz"].tolist())
+    sorted_pfas_masses = sorted(pfas_library[lib_cols["mz"]].tolist())
 
     for _, row in adjusted_df.iterrows():
         mz = row["m/z"]
         ccs = row["CCS"]
         rt = row["RT"] if include_rt else None
 
-        matching_masses = find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm)
-
-        for lib_mz in matching_masses:
-            matching_rows = pfas_library[pfas_library["PrecursorMz"] == lib_mz]
-
+        for lib_mz in find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm):
+            matching_rows = pfas_library[pfas_library[lib_cols["mz"]] == lib_mz]
             if matching_rows.empty:
                 continue
-
             lib_row = matching_rows.iloc[0]
 
             mass_error = ((mz - lib_mz) / lib_mz) * 1e6
             ccs_error = (
-                (ccs - lib_row["PrecursorCCS"]) / lib_row["PrecursorCCS"]
+                (ccs - lib_row[lib_cols["ccs"]]) / lib_row[lib_cols["ccs"]]
             ) * 100
             rt_error = (
-                ((rt - lib_row["PrecursorRT"]) / lib_row["PrecursorRT"]) * 100
-                if include_rt and pd.notna(rt) and pd.notna(lib_row["PrecursorRT"])
+                ((rt - lib_row[lib_cols["rt"]]) / lib_row[lib_cols["rt"]]) * 100
+                if include_rt and pd.notna(rt) and pd.notna(lib_row[lib_cols["rt"]])
                 else "N/A"
             )
 
@@ -88,16 +133,14 @@ def match_pfas_library(
                     and not (-rt_tolerance <= rt_error <= rt_tolerance)
                 ):
                     continue
-
                 if not (-mass_error_ppm <= mass_error <= mass_error_ppm):
                     continue
 
                 matched_ids.add(row["ID"])
 
                 new_row = {
-                    "Match": f"{lib_row['PrecursorName']} ({lib_row['PrecursorAdduct']})",
+                    "Match": f"{lib_row[lib_cols['name']]} ({lib_row[lib_cols['adduct']]})",
                     "Match Source": match_source,
-                    "Classification Type": "likely",
                     "ID": row["ID"],
                     "RT": row["RT"],
                     "DT": row["DT"],
@@ -114,13 +157,11 @@ def match_pfas_library(
                     col: row[col] for col in adjusted_df.columns if ".d" in col
                 }
                 new_row.update(intensity_cols)
-
                 matched_rows.append(new_row)
 
     likely_matched_df = pd.DataFrame(matched_rows)
     likely_unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
 
-    # Ensure 'Classification Type' is set for unmatched rows
     likely_unmatched_df["Match"] = "No Match"
     likely_unmatched_df["Match Source"] = "None"
     likely_unmatched_df["Classification Type"] = "unmatched"

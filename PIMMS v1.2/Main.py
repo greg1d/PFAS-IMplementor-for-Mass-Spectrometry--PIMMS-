@@ -63,8 +63,17 @@ def main():
         r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
     level_5_library = (
-        r"PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only.csv"
+        r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
+
+    LIBRARY_COLUMN_LETTERS = {
+        "name": "B",  # Column B is 'PrecursorName'
+        "adduct": "D",  # Column D is 'PrecursorAdduct'
+        "ccs": "E",  # Column E is 'PrecursorCCS'
+        "rt": "F",  # Column F is 'PrecursorRT'
+        "mz": "G",  # Column G is 'PrecursorMz'
+    }
+    level_2_library_column_letters = LIBRARY_COLUMN_LETTERS  #
 
     METADATA_MAPPING = {"ID": "A", "RT": "B", "DT": "C", "CCS": "D", "m/z": "E"}
     # Define control columns
@@ -76,7 +85,7 @@ def main():
 
     # Set tolerances
     mass_error_ppm = 15  # Mass error in ppm
-    ccs_error_percentage = 2  # CCS variance as 2% tolerance
+    ccs_tolerance = 2  # CCS variance as 2% tolerance
     rt_tolerance = 0.5
     include_rt = False
 
@@ -173,7 +182,7 @@ def main():
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=rt_tolerance,
-            ccs_tolerance=ccs_error_percentage,
+            ccs_tolerance=ccs_tolerance,
         )
         adjusted_df.to_csv(
             "PIMMS Validation work/PIMMS data/after_smearing_filter.csv",
@@ -197,7 +206,7 @@ def main():
             adjusted_df,
             mass_error_ppm=mass_error_ppm,
             rt_tolerance=rt_tolerance,
-            ccs_tolerance=ccs_error_percentage,
+            ccs_tolerance=ccs_tolerance,
         )
         print(f"[INFO] Number of groups identified by branching filter: {len(groups)}")
 
@@ -226,7 +235,7 @@ def main():
             z_range=range(1, 4),
             mass_error_ppm=mass_error_ppm,
             rt_tolerance=rt_tolerance,
-            ccs_tolerance=ccs_error_percentage,
+            ccs_tolerance=ccs_tolerance,
         )
         print(
             f"[INFO] Number of groups identified by monoisotopic filter: {len(groups)}"
@@ -314,7 +323,7 @@ def main():
             adjusted_df,
             standards_file,
             mass_error_ppm=mass_error_ppm,
-            ccs_error_percentage=ccs_error_percentage,
+            ccs_error_percentage=ccs_tolerance,
             z=1,
         )
         adjusted_df.to_csv(
@@ -335,13 +344,13 @@ def main():
 
     print("[INFO] Matching features against PFAS Standards Library...")
     pfas_library = load_pfas_library(level_2_library)
+    print(pfas_library.columns)
     likely_matched_df, likely_unmatched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
-        level_2_library,
-        level_2_library,
+        level_2_library_column_letters,  # <-- New parameter for letter mapping
         mass_error_ppm,
-        ccs_error_percentage,
+        ccs_tolerance,
         rt_tolerance,
         include_rt,
     )
