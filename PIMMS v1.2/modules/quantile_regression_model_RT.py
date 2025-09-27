@@ -1,0 +1,118 @@
+import numpy as np
+import pandas as pd
+from patsy import dmatrix
+from sklearn.model_selection import KFold
+from statsmodels.regression.quantile_regression import QuantReg
+
+# Define models globally
+models = {
+    "Linear": "PrecursorMz",
+    "Logarithmic": "log_mz",
+    "Spline": "bs(log_mz, df=3, include_intercept=False)",
+}
+
+
+# Loss function
+def pinball_loss(y, y_pred, q):
+    delta = y - y_pred
+    return np.mean(np.maximum(q * delta, (q - 1) * delta))
+
+
+# KFold Cross-validation setup
+def run_kfold_cv(
+    df, quantiles=[0.10, 0.5, 0.90], n_splits=5, shuffle=True, random_state=42
+):
+    # Initialize KFold and result storage
+    kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
+    cross_val_results = {}
+
+    # Run KFold cross-validation for each model
+    for model_name, formula in models.items():
+        # Convert the design matrix to NumPy array for compatibility with KFold
+        X = dmatrix(formula, df, return_type="dataframe")
+        X_array = np.array(X)
+
+        # Store metrics for each fold
+        pinball_losses_5 = []
+        pinball_losses_50 = []
+        pinball_losses_95 = []
+        coverage_list = []
+        width_list = []
+
+        # Perform k-fold cross-validation
+        for train_index, test_index in kf.split(df):
+            X_train, X_test = X_array[train_index], X_array[test_index]
+            y_train, y_test = (
+                df["PrecursorRT"].values[train_index],
+                df["PrecursorRT"].values[test_index],
+            )
+
+            preds = {}
+            for q in quantiles:
+                model = QuantReg(y_train, X_train)
+                res = model.fit(q=q)
+                preds[q] = res.predict(X_test)
+
+            # Calculate Pinball Loss for each quantile
+            pin5 = pinball_loss(y_test, preds[0.10], 0.10)
+            pin50 = pinball_loss(y_test, preds[0.5], 0.5)
+            pin95 = pinball_loss(y_test, preds[0.90], 0.90)
+            pinball_losses_5.append(pin5)
+            pinball_losses_50.append(pin50)
+            pinball_losses_95.append(pin95)
+
+            # Coverage and Width
+            coverage = ((y_test >= preds[0.10]) & (y_test <= preds[0.90])).mean()
+            coverage_list.append(coverage)
+            interval_width = (preds[0.90] - preds[0.10]).mean()
+            width_list.append(interval_width)
+
+        # Store the results for each model
+        cross_val_results[model_name] = {
+            "Pinball Loss 5%": np.mean(pinball_losses_5),
+            "Pinball Loss 50%": np.mean(pinball_losses_50),
+            "Pinball Loss 95%": np.mean(pinball_losses_95),
+            "Coverage": np.mean(coverage_list),
+            "Width": np.mean(width_list),
+        }
+
+    # Return the cross-validation results
+    return cross_val_results
+
+
+def run_RT_regression_analysis(library_file):
+    # Load data
+    df = pd.read_csv(library_file)
+    df = df[["PrecursorName", "PrecursorMz", "PrecursorRT"]].dropna()
+    df["log_mz"] = np.log(df["PrecursorMz"])
+
+    # Run KFold cross-validation
+    cross_val_results = run_kfold_cv(df)
+
+    # Logarithmic Model Equations (5th and 95th Percentiles)
+    X = dmatrix("1 + log_mz", df, return_type="dataframe")
+    model_5 = QuantReg(df["PrecursorRT"], X).fit(q=0.10)
+    model_95 = QuantReg(df["PrecursorRT"], X).fit(q=0.90)
+
+    coef_5 = model_5.params
+    coef_95 = model_95.params
+
+    # Plot the results
+
+    # Return coefficients for use elsewhere
+    return {
+        "q05_intercept": coef_5["Intercept"],
+        "q05_slope": coef_5["log_mz"],
+        "q95_intercept": coef_95["Intercept"],
+        "q95_slope": coef_95["log_mz"],
+    }
+
+
+if __name__ == "__main__":
+    # File path for the dataset
+    library_file = (
+        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
+    )
+
+    # Run the analysis
+    run_RT_regression_analysis(library_file)

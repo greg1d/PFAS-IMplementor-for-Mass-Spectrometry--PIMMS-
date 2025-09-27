@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from patsy import dmatrix
@@ -81,102 +80,6 @@ def run_kfold_cv(
     return cross_val_results
 
 
-# Visualization function
-def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
-    fig, axes = plt.subplots(1, 3, figsize=(7, 5), sharey=True)
-
-    for i, (ax, (label, formula)) in enumerate(zip(axes, models.items())):
-        preds = {}
-        X = dmatrix(formula, df, return_type="dataframe")
-        for q in quantiles:
-            model = QuantReg(df["PrecursorCCS"], X)
-            res = model.fit(q=q)
-            bias_correction = -3.0  # Shift down by 5 CCS units, adjust as needed
-            preds[q] = res.predict(X) + bias_correction
-        # Sort for smooth plotting
-        sort_idx = df["PrecursorMz"].argsort()
-        x_sorted = df["PrecursorMz"].values[sort_idx]
-        q5_sorted = preds[0.10].values[sort_idx]
-        q50_sorted = preds[0.5].values[sort_idx]
-        q95_sorted = preds[0.90].values[sort_idx]
-
-        # Fetch cross-validation results for the current model
-        pin5 = cross_val_results[label]["Pinball Loss 5%"]
-        pin50 = cross_val_results[label]["Pinball Loss 50%"]
-        pin95 = cross_val_results[label]["Pinball Loss 95%"]
-        coverage = cross_val_results[label]["Coverage"]
-        interval_width = cross_val_results[label]["Width"]
-
-        # Determine outliers based on bounds
-        inliers_mask = (df["PrecursorCCS"] >= preds[0.10]) & (
-            df["PrecursorCCS"] <= preds[0.90]
-        )
-        outliers_mask = ~inliers_mask
-
-        # Print PrecursorNames of outliers if column exists
-
-        inliers = df[inliers_mask]
-        outliers = df[outliers_mask]
-        outliers_mask = ~inliers_mask
-
-        # Print PrecursorNames of outliers if column exists
-
-        inliers = df[inliers_mask]
-        outliers = df[outliers_mask]
-
-        inliers = df[inliers_mask]
-        outliers = df[~inliers_mask]
-
-        # Plot inliers in gray
-        ax.scatter(
-            inliers["PrecursorMz"],
-            inliers["PrecursorCCS"],
-            color="gray",
-            alpha=0.3,
-            s=15,
-            label="Within Bounds",
-        )
-
-        # Plot outliers in red
-        ax.scatter(
-            outliers["PrecursorMz"],
-            outliers["PrecursorCCS"],
-            color="red",
-            alpha=0.5,
-            edgecolors="k",
-            linewidths=0.4,
-            s=25,
-            label="Outside Bounds",
-        )
-
-        ax.plot(x_sorted, q50_sorted, color="black", label="Median (50%)")
-        ax.plot(
-            x_sorted, q5_sorted, linestyle="--", color="red", label="5th Percentile"
-        )
-        ax.plot(
-            x_sorted, q95_sorted, linestyle="--", color="red", label="95th Percentile"
-        )
-        ax.fill_between(x_sorted, q5_sorted, q95_sorted, color="red", alpha=0.1)
-
-        ax.set_title(label, fontsize=10, fontweight="bold", fontfamily="Arial")
-        ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
-        ax.set_ylim(0, 300)
-        ax.grid(True)
-        ax.tick_params(axis="both", labelsize=9)
-        for label in ax.get_xticklabels() + ax.get_yticklabels():
-            label.set_fontname("Arial")
-            label.set_fontweight("bold")
-
-        if i == 1:
-            ax.set_ylabel(
-                "CCS (Å²)", fontsize=10, fontweight="bold", fontfamily="Arial"
-            )
-
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.savefig("PIMMS v1.2\CCSRT v mz predictions\CCS v mz plot no legends.png")
-    plt.show()
-
-
 def run_CCS_regression_analysis(library_file):
     # Load data
     df = pd.read_csv(library_file)
@@ -211,7 +114,6 @@ def run_CCS_regression_analysis(library_file):
     )
 
     # Plot the results
-    plot_results(df, cross_val_results)
 
     # Return bias-adjusted coefficients
     return {
@@ -238,7 +140,6 @@ def run_analysis(library_file):
             print(f"  {metric}: {value:.3f}")
 
     # Plot the results
-    plot_results(df, cross_val_results)
 
 
 if __name__ == "__main__":
