@@ -9,7 +9,6 @@ from blank_subtraction import (  # type: ignore
     count_non_zero_rows,
     define_and_separate_samples,
     process_and_combine_files,
-    process_standards_report_only,
     remove_standards_library,
     rename_metadata_columns,
 )
@@ -56,15 +55,18 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
 def main():
     # File paths
     file_paths = [r"PIMMS v1.2\data\Dummy test blank subtracted data.csv"]
+
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
+
     standards_library_file = (
         "PIMMS Validation work/Target lists/Target_list_native_analytes.csv"
     )
     external_targets_file = (
         "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
+
     METADATA_MAPPING = {"ID": "A", "RT": "B", "DT": "C", "CCS": "D", "m/z": "E"}
     # Define control columns
     CONTROL_START_COL = "AY"  # Example: Column AY
@@ -118,20 +120,6 @@ def main():
         f"  Average Non-Zero Rows: {group_avg}\n"
         f"  Std Dev of Non-Zero Rows: {group_std}"
     )
-
-    # Step 1: Generate Standards Report (No removal of features yet)
-    print("[INFO] Generating Standards Report without removing matched features...")
-    try:
-        process_standards_report_only(
-            experimental_df,
-            standards_file,
-            mass_error_ppm=mass_error_ppm,
-            ccs_error_percentage=ccs_error_percentage,
-            z=1,
-        )
-    except Exception as e:
-        print(f"[ERROR] Failed to generate Standards Report: {e}")
-        sys.exit(1)
 
     # Step 2: Perform Blank Subtraction and Filtering
     print("Select blank subtraction method:")
@@ -309,7 +297,6 @@ def main():
             index=False,
         )
 
-        # Count non-zero rows after removing standards
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
             f"[INFO] After performing detection frequency cutoff:\n"

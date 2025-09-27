@@ -340,243 +340,76 @@ def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
 def remove_standards_library(
     adjusted_df,
     standards_file,
-    mass_error_ppm=10,
-    ccs_error_percentage=2,
-    rt_tolerance=0.5,
-    z=1,
+    mass_error_ppm,
+    ccs_error_percentage,
+    z,
 ):
     """
-    Processes the adjusted dataset to separate matched features and unmatched features.
-    Removes matched features from the adjusted dataset and consolidates similar rows.
+    Removes features from the adjusted dataset that match the m/z and CCS
+    values found in a standards library.
 
     Args:
-        adjusted_df (pd.DataFrame): Adjusted sample DataFrame after blank subtraction.
+        adjusted_df (pd.DataFrame): The DataFrame to be filtered.
         standards_file (str): Path to the standards library CSV file.
         mass_error_ppm (int): Mass error tolerance in ppm.
-        ccs_error_percentage (float): CCS error percentage (e.g., 2 for 2%).
-        rt_tolerance (float): RT tolerance in minutes.
+        ccs_error_percentage (float): CCS error tolerance as a percentage.
         z (int): Charge state.
 
     Returns:
-        pd.DataFrame: Adjusted DataFrame with unmatched features retained.
+        pd.DataFrame: The DataFrame with matched features removed.
     """
     try:
-        print("[DEBUG] Loading standards library...")
+        # --- 1. Load Standards Library (Name column is no longer required) ---
+        print("[INFO] Loading standards library to identify features for removal...")
         standards_df = pd.read_csv(standards_file)
 
-        # Ensure required columns exist
-        required_columns = {"m/z", "CCS", "Name"}
+        required_columns = {"m/z", "CCS"}
         if not required_columns.issubset(standards_df.columns):
-            raise ValueError(f"Standards library must contain {required_columns}.")
+            raise ValueError(
+                f"Standards library must contain {required_columns} columns."
+            )
 
-        # Extract standards data
         standards_mz = standards_df["m/z"].dropna().to_numpy()
         standards_ccs = standards_df["CCS"].dropna().to_numpy()
-        standards_names = standards_df["Name"].dropna().to_numpy()
 
-        # Validate adjusted_df contains necessary columns
+        # --- 2. Prepare Experimental Data ---
         if "m/z" not in adjusted_df.columns or "CCS" not in adjusted_df.columns:
-            raise ValueError("Adjusted dataset must contain 'm/z' and 'CCS' columns.")
+            raise ValueError("Input DataFrame must contain 'm/z' and 'CCS' columns.")
 
         experimental_mz = adjusted_df["m/z"].to_numpy()
         experimental_ccs = adjusted_df["CCS"].to_numpy()
-        experimental_rt = adjusted_df["RT"].to_numpy()
 
-        # Match standards against the adjusted dataset
-        matched_rows = []
-        for i, (mz, ccs, rt) in enumerate(
-            zip(experimental_mz, experimental_ccs, experimental_rt)
-        ):
-            for std_mz, std_ccs, std_name in zip(
-                standards_mz, standards_ccs, standards_names
-            ):
-                mass_tolerance = mz * mass_error_ppm * 1e-6 / z
+        # --- 3. Find Indices of Matched Features ---
+        # We will directly collect the indices of rows to be dropped.
+        matched_indices = set()
+        for i, (exp_mz, exp_ccs) in enumerate(zip(experimental_mz, experimental_ccs)):
+            for std_mz, std_ccs in zip(standards_mz, standards_ccs):
+                mass_tolerance = exp_mz * mass_error_ppm * 1e-6 / z
                 ccs_tolerance = std_ccs * ccs_error_percentage / 100
 
+                # Check if the experimental feature falls within the standard's tolerance
                 if (
-                    std_mz - mass_tolerance <= mz <= std_mz + mass_tolerance
-                    and std_ccs - ccs_tolerance <= ccs <= std_ccs + ccs_tolerance
+                    std_mz - mass_tolerance <= exp_mz <= std_mz + mass_tolerance
+                    and std_ccs - ccs_tolerance <= exp_ccs <= std_ccs + ccs_tolerance
                 ):
-                    matched_row = adjusted_df.iloc[i].to_dict()
-                    matched_row.update(
-                        {
-                            "Experimental m/z": mz,
-                            "Experimental CCS": ccs,
-                            "Standard m/z": std_mz,
-                            "Standard CCS": std_ccs,
-                            "Name": std_name,
-                            "Mass Error (ppm)": round((mz - std_mz) / std_mz * 1e6, 2),
-                            "CCS Error (%)": round(
-                                abs(ccs - std_ccs) / std_ccs * 100, 2
-                            ),
-                        }
-                    )
-                    matched_rows.append(matched_row)
+                    # If a match is found, add its index to the set and stop checking this feature
+                    matched_indices.add(adjusted_df.index[i])
                     break
 
-        # Consolidate matched rows using combine_matched_rows
-        print("[DEBUG] Consolidating matched rows...")
-        consolidated_rows = combine_matched_rows(
-            matched_rows, mass_error_ppm, ccs_error_percentage, rt_tolerance
+        # --- 4. Remove Matched Rows ---
+        # The consolidation step is no longer needed.
+        unmatched_df = adjusted_df.drop(index=list(matched_indices), errors="ignore")
+
+        print(
+            f"[INFO] Found and removed {len(matched_indices)} features matching the standards library."
         )
-        print(f"[DEBUG] Consolidated matched rows: {len(consolidated_rows)}")
-
-        # Identify indices to remove
-        matched_indices = [
-            adjusted_df.index[adjusted_df["m/z"] == row["Experimental m/z"]][0]
-            for row in consolidated_rows
-        ]
-
-        # Remove matched rows from the adjusted dataset
-        unmatched_df = adjusted_df.drop(index=matched_indices, errors="ignore")
-        print(f"[DEBUG] Matched rows removed: {len(matched_indices)}")
-        print(f"[DEBUG] Remaining unmatched rows: {len(unmatched_df)}")
+        print(f"[INFO] Remaining features: {len(unmatched_df)}")
 
         return unmatched_df
 
     except Exception as e:
         print(f"[ERROR] Failed to remove standards: {e}")
         return adjusted_df
-
-
-def process_standards_report_only(
-    experimental_df,
-    standards_file,
-    mass_error_ppm=10,
-    ccs_error_percentage=2,
-    rt_tolerance=0.5,
-    z=1,
-):
-    """
-    Creates a Standards Report by matching features in the experimental dataset
-    to the standards library and consolidating matched rows within tolerances.
-    Rows with no matches are also included in the report with NA values.
-
-    Args:
-        experimental_df (pd.DataFrame): Experimental sample DataFrame.
-        standards_file (str): Path to the standards library CSV file.
-        mass_error_ppm (int): Mass error tolerance in ppm.
-        ccs_error_percentage (float): CCS error percentage (e.g., 2 for 2%).
-        rt_tolerance (float): RT tolerance in minutes.
-        z (int): Charge state.
-
-    Returns:
-        None: Generates and saves a Standards Report CSV file.
-    """
-    try:
-        print("[DEBUG] Loading standards library...")
-        # Load the standards library
-        standards_df = pd.read_csv(standards_file)
-
-        # Ensure the required columns exist in the standards file
-        required_columns = {"m/z", "CCS", "Name"}
-        if not required_columns.issubset(set(standards_df.columns)):
-            raise ValueError(
-                f"Standards library must contain {required_columns} columns."
-            )
-
-        # Extract standard values
-        standards_mz = standards_df["m/z"].dropna().to_numpy()
-        standards_ccs = standards_df["CCS"].dropna().to_numpy()
-        standards_names = standards_df["Name"].dropna().to_numpy()
-
-        # Validate experimental_df contains necessary columns
-        if not {"m/z", "CCS", "RT"}.issubset(experimental_df.columns):
-            raise ValueError(
-                "Experimental dataset must contain 'm/z', 'CCS', and 'RT' columns."
-            )
-        experimental_df = experimental_df.applymap(lambda x: 0 if x == 0.001 else x)
-
-        experimental_mz = experimental_df["m/z"].to_numpy()
-        experimental_ccs = experimental_df["CCS"].to_numpy()
-        experimental_rt = experimental_df["RT"].to_numpy()
-
-        matched_rows = []
-        unmatched_standards = []
-        d_columns = [col for col in experimental_df.columns if ".d" in col]
-
-        print("[DEBUG] Iterating through standards library...")
-        for std_mz, std_ccs, std_name in zip(
-            standards_mz, standards_ccs, standards_names
-        ):
-            matched = False
-            for i, (mz, ccs, rt) in enumerate(
-                zip(experimental_mz, experimental_ccs, experimental_rt)
-            ):
-                try:
-                    # Calculate mass and CCS tolerances
-                    mass_tolerance = mz * mass_error_ppm * 1e-6 / z
-                    ccs_tolerance = std_ccs * ccs_error_percentage / 100
-
-                    if (
-                        std_mz - mass_tolerance <= mz <= std_mz + mass_tolerance
-                        and std_ccs - ccs_tolerance <= ccs <= std_ccs + ccs_tolerance
-                    ):
-                        # Gather row information for reporting
-                        row_values = experimental_df.iloc[i][d_columns]
-                        non_zero_count = (row_values > 0.001).sum()
-                        total_count = len(d_columns)
-                        sample_coverage = round((non_zero_count / total_count) * 100, 2)
-
-                        matched_row = {
-                            "Experimental m/z": mz,
-                            "Experimental CCS": ccs,
-                            "RT": rt,
-                            "Standard m/z": std_mz,
-                            "Standard CCS": std_ccs,
-                            "Name": std_name,
-                            "Sample Coverage (%)": sample_coverage,
-                            "Mass Error (ppm)": round((mz - std_mz) / std_mz * 1e6, 2),
-                            "CCS Error (%)": round(
-                                abs(ccs - std_ccs) / std_ccs * 100, 2
-                            ),
-                        }
-                        matched_row.update(
-                            {
-                                f"Intensity ({col})": experimental_df.iloc[i][col]
-                                for col in d_columns
-                            }
-                        )
-                        matched_rows.append(matched_row)
-                        matched = True
-                        break
-                except Exception as e:
-                    print(f"[ERROR] Matching failed for row {i}: {e}")
-            if not matched:
-                # Add unmatched standard to the report
-                unmatched_standards.append(
-                    {
-                        "Standard m/z": std_mz,
-                        "Standard CCS": std_ccs,
-                        "Name": std_name,
-                        "Experimental m/z": "NA",
-                        "Experimental CCS": "NA",
-                        "RT": "NA",
-                        "Sample Coverage (%)": 0,
-                        "Mass Error (ppm)": "NA",
-                        "CCS Error (%)": "NA",
-                    }
-                )
-
-        # Combine matched and unmatched rows
-        print("[DEBUG] Consolidating matched rows...")
-        consolidated_rows = combine_matched_rows(
-            matched_rows, mass_error_ppm, ccs_error_percentage, rt_tolerance
-        )
-        final_report = consolidated_rows + unmatched_standards
-        print(f"[DEBUG] Total rows in report: {len(final_report)}")
-
-        # Create standards report
-        output_folder = "PIMMS v1.2/.temp"
-        os.makedirs(output_folder, exist_ok=True)
-
-        if final_report:
-            matched_report_path = os.path.join(output_folder, "Standards_report.csv")
-            pd.DataFrame(final_report).to_csv(matched_report_path, index=False)
-            print(f"[DEBUG] Standards report saved to {matched_report_path}")
-
-    except Exception as e:
-        print(f"[ERROR] Error during standards report generation: {e}")
 
 
 def combine_matched_rows(
@@ -659,87 +492,3 @@ def combine_matched_rows(
 
     print(f"[DEBUG] Final consolidated rows: {len(consolidated_rows)}")
     return consolidated_rows
-
-
-def edit_and_save_standards_report(
-    matched_rows, standards_file, output_folder, file_name="Standards_report.csv"
-):
-    """
-    Edits and saves the matched standards report, ensuring unmatched standards are included.
-
-    Args:
-        matched_rows (list): List of dictionaries containing matched rows data.
-        standards_file (str): Path to the standards library CSV file.
-        output_folder (str): Folder path to save the standards report.
-        file_name (str): Name of the output file.
-    """
-    if not matched_rows:
-        print("No matches found. Standards report is empty.")
-        return
-
-    try:
-        print("[DEBUG] Loading standards library for unmatched standards...")
-        standards_df = pd.read_csv(standards_file)
-        if (
-            "m/z" not in standards_df.columns
-            or "CCS" not in standards_df.columns
-            or "Name" not in standards_df.columns
-        ):
-            raise ValueError(
-                "Standards library must contain 'm/z', 'CCS', and 'Name' columns."
-            )
-
-        # Create a DataFrame for matched rows
-        print("[DEBUG] Combining matched rows...")
-        consolidated_rows = combine_matched_rows(
-            matched_rows, mass_error_ppm=10, ccs_error_percentage=2, rt_tolerance=0.5
-        )
-        print(f"[DEBUG] combine_matched_rows returned {len(consolidated_rows)} rows.")
-        matched_standards_df = pd.DataFrame(consolidated_rows)
-
-        # Ensure all standards are included
-        unmatched_rows = []
-        for _, standard in standards_df.iterrows():
-            std_name = standard["Name"]
-            if std_name not in matched_standards_df["Name"].values:
-                unmatched_row = {
-                    "Standard m/z": standard["m/z"],
-                    "Standard CCS": standard["CCS"],
-                    "Name": std_name,
-                    "Experimental m/z": "NA",
-                    "Experimental CCS": "NA",
-                    "Experimental DT": "NA",  # Adding "Experimental DT" for unmatched standards
-                    "Sample Coverage (%)": 0,
-                    "Mass Error (ppm)": "NA",
-                    "CCS Error (%)": "NA",
-                }
-                unmatched_rows.append(unmatched_row)
-
-        unmatched_df = pd.DataFrame(unmatched_rows)
-
-        # Combine matched and unmatched rows
-        final_report_df = pd.concat(
-            [matched_standards_df, unmatched_df], ignore_index=True
-        )
-
-        # Drop unnecessary columns and rename `DT` to `Experimental DT`
-        final_report_df = final_report_df.drop(columns=["CCS", "m/z"], errors="ignore")
-        if "DT" in final_report_df.columns:
-            final_report_df.rename(columns={"DT": "Experimental DT"}, inplace=True)
-
-        # Save the edited report
-        os.makedirs(output_folder, exist_ok=True)
-        report_file = os.path.join(output_folder, file_name)
-        final_report_df.to_csv(report_file, index=False)
-        print(f"[DEBUG] Standards report saved to {report_file}")
-
-        # Summary
-        print(
-            f"Standards report saved to {report_file}\n"
-            f"Total Matches: {len(matched_standards_df)}\n"
-            f"Unmatched Standards: {len(unmatched_rows)}\n"
-            f"Total Standards: {len(final_report_df)}"
-        )
-
-    except Exception as e:
-        print(f"[ERROR] Failed to edit and save standards report: {e}")
