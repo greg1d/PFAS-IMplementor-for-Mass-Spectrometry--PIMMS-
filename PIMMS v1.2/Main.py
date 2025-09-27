@@ -43,10 +43,9 @@ from smearing_filter import (  # type: ignore
     smearing_filter,  # type: ignore # Importing the smearing filter module
 )
 from Standard_library_scoring import (  # type: ignore
-    load_external_targets_library,
+    level_2_library_matching,
+    level_5_library_matching,
     load_pfas_library,
-    match_external_targets,
-    match_pfas_library,
 )
 
 
@@ -63,17 +62,21 @@ def main():
         r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
     level_5_library = (
-        r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        r"PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
 
-    LIBRARY_COLUMN_LETTERS = {
+    level_2_library_mapping = {
         "name": "B",  # Column B is 'PrecursorName'
         "adduct": "D",  # Column D is 'PrecursorAdduct'
         "ccs": "E",  # Column E is 'PrecursorCCS'
         "rt": "F",  # Column F is 'PrecursorRT'
         "mz": "G",  # Column G is 'PrecursorMz'
     }
-    level_2_library_column_letters = LIBRARY_COLUMN_LETTERS  #
+
+    level_5_library_mapping = {
+        "name": "A",  # Column B is 'PrecursorName'
+        "mz": "D",  # Column G is 'PrecursorMz'
+    }
 
     METADATA_MAPPING = {"ID": "A", "RT": "B", "DT": "C", "CCS": "D", "m/z": "E"}
     # Define control columns
@@ -341,11 +344,12 @@ def main():
     except Exception as e:
         print(f"[ERROR] Failed to remove standards: {e}")
         sys.exit(1)
+    level_2_library_column_letters = level_2_library_mapping  #
 
     print("[INFO] Matching features against PFAS Standards Library...")
     pfas_library = load_pfas_library(level_2_library)
     print(pfas_library.columns)
-    likely_matched_df, likely_unmatched_df = match_pfas_library(
+    likely_matched_df, likely_unmatched_df = level_2_library_matching(
         adjusted_df,
         pfas_library,
         level_2_library_column_letters,  # <-- New parameter for letter mapping
@@ -357,9 +361,13 @@ def main():
 
     # **Step 2: Match Remaining Features Against External Targets Library**
     print("[INFO] Matching remaining features against External Targets Library...")
-    external_targets_library = load_external_targets_library(level_5_library)
-    external_matched_df, external_unmatched_df = match_external_targets(
-        likely_unmatched_df, external_targets_library, mass_error_ppm
+    external_targets_library = load_pfas_library(level_5_library)
+    library_column_letters = level_5_library_mapping
+    external_matched_df, external_unmatched_df = level_5_library_matching(
+        likely_unmatched_df,
+        external_targets_library,
+        library_column_letters,
+        mass_error_ppm,
     )
 
     # **Combine All Matches into Adjusted Dataset**

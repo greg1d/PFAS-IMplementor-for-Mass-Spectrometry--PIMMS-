@@ -45,13 +45,6 @@ def load_pfas_library(file_path):
         raise
 
 
-def load_external_targets_library(file_path):
-    """Load the external targets library from an Excel file. Only uses m/z values."""
-    return pd.read_csv(
-        file_path, usecols=["PrecursorName", "PrecursorMz"], encoding="latin1"
-    )
-
-
 # This helper function is required
 def column_letter_to_index(letter):
     """Converts an Excel-style column letter to a zero-based integer index."""
@@ -62,7 +55,7 @@ def column_letter_to_index(letter):
     return index - 1
 
 
-def match_pfas_library(
+def level_2_library_matching(
     adjusted_df,
     pfas_library,
     LEVEL_2_COLUMN_LETTERS,
@@ -169,14 +162,47 @@ def match_pfas_library(
     return likely_matched_df, likely_unmatched_df
 
 
-def match_external_targets(unmatched_df, external_targets_library, mass_error_ppm=10):
-    """Matches unmatched_df with External Targets library based on m/z only, consolidating multiple matches and ppm errors into one row."""
+def level_5_library_matching(
+    unmatched_df,
+    external_targets_library,
+    library_column_letters,  # <-- New parameter for letter mapping
+    mass_error_ppm=10,
+):
+    """Matches unmatched_df with an external library using user-defined column letters."""
     matched_dict = {}
     matched_ids = set()
     match_source = "External Targets"
 
-    sorted_external_masses = sorted(external_targets_library["PrecursorMz"].tolist())
+    # --- Translate library column letters to actual column names ---
+    required_keys = {"name", "mz"}
+    if not required_keys.issubset(library_column_letters.keys()):
+        missing_keys = required_keys - set(library_column_letters.keys())
+        raise KeyError(
+            f"Configuration is missing required library column keys: {missing_keys}"
+        )
 
+    lib_cols = {}
+    all_lib_columns = external_targets_library.columns.tolist()
+    for key, letter in library_column_letters.items():
+        try:
+            index = column_letter_to_index(letter)
+            if index >= len(all_lib_columns):
+                raise IndexError(
+                    f"Column '{letter}' is out of bounds for the library file."
+                )
+            lib_cols[key] = all_lib_columns[index]
+        except Exception as e:
+            raise ValueError(
+                f"Could not process library mapping for '{key}' ('{letter}'): {e}"
+            )
+    # --- End of translation section ---
+
+    # The rest of the function now uses the dynamically found column names
+    numeric_mz = pd.to_numeric(
+        external_targets_library[lib_cols["mz"]], errors="coerce"
+    )
+    sorted_external_masses = sorted(numeric_mz.dropna().tolist())
+    print("sorted external masses", sorted_external_masses)
     for _, row in unmatched_df.iterrows():
         mz = row["m/z"]
         match_names = []
@@ -186,7 +212,7 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
 
         for lib_mz in matching_masses:
             matching_rows = external_targets_library[
-                external_targets_library["PrecursorMz"] == lib_mz
+                external_targets_library[lib_cols["mz"]] == lib_mz
             ]
 
             if matching_rows.empty:
@@ -194,17 +220,13 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
 
             for _, lib_row in matching_rows.iterrows():
                 mass_error = ((mz - lib_mz) / lib_mz) * 1e6
-                match_names.append(lib_row["PrecursorName"])  # Store matched names
-                ppm_errors.append(
-                    str(round(mass_error, 2))
-                )  # Store ppm error as string
+                match_names.append(lib_row[lib_cols["name"]])  # Use mapped name column
+                ppm_errors.append(str(round(mass_error, 2)))
                 matched_ids.add(row["ID"])
 
         if match_names:
-            match_str = " or ".join(sorted(set(match_names)))  # Merge multiple matches
-            ppm_str = " or ".join(
-                sorted(set(ppm_errors), key=float)
-            )  # Merge multiple ppm errors
+            match_str = " or ".join(sorted(set(match_names)))
+            ppm_str = " or ".join(sorted(set(ppm_errors), key=float))
 
             new_row = {
                 "Match": match_str,
@@ -215,7 +237,7 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
                 "DT": row["DT"],
                 "CCS": row["CCS"],
                 "m/z": row["m/z"],
-                "Mass Error (ppm)": ppm_str,  # Store multiple ppm errors
+                "Mass Error (ppm)": ppm_str,
                 "CCS Error (%)": "N/A",
                 "RT Error (%)": "N/A",
             }
@@ -224,81 +246,13 @@ def match_external_targets(unmatched_df, external_targets_library, mass_error_pp
                 col: row[col] for col in unmatched_df.columns if ".d" in col
             }
             new_row.update(intensity_cols)
-
-            matched_dict[row["ID"]] = new_row  # Store unique matches
+            matched_dict[row["ID"]] = new_row
 
     external_matched_df = pd.DataFrame(matched_dict.values())
     external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
-
-    # Ensure 'Classification Type' is set for unmatched rows
+    print("matched df", external_matched_df)
     external_unmatched_df["Match"] = "No Match"
     external_unmatched_df["Match Source"] = "None"
     external_unmatched_df["Classification Type"] = "unmatched"
 
     return external_matched_df, external_unmatched_df
-
-
-def main():
-    # Example adjusted_df with rows to process
-    adjusted_df = pd.DataFrame(
-        {
-            "ID": [1, 2, 3, 4, 5],
-            "RT": [12.73, 3.5, 3.665, 3.666, 3.664],
-            "DT": [23.175, 22.024, 23.130, 23.407, 24.319],
-            "CCS": [2, 142.20, 147.02212060071, 175.79, 175.79],
-            "m/z": [131.0125474, 348.9398, 418.9734, 300, 400],
-            "148 B2 16632.d.DeMP": [10, 10, 10, 10, 10],
-            "149 B2 16631.d.DeMP": [20, 20, 10, 10, 10],
-        }
-    )
-
-    mass_error_ppm = 10
-    rt_tolerance = 2.0
-    ccs_tolerance = 2.0
-    include_rt = False
-
-    standards_library_file = (
-        "PIMMS v1.2/import folder/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-    )
-    external_targets_file = (
-        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
-    )
-
-    pfas_library = load_pfas_library(standards_library_file)
-    external_targets_library = load_external_targets_library(external_targets_file)
-
-    likely_matched_df, likely_unmatched_df = match_pfas_library(
-        adjusted_df,
-        pfas_library,
-        standards_library_file,
-        standards_library_file,
-        mass_error_ppm,
-        ccs_tolerance,
-        rt_tolerance,
-        include_rt,
-    )
-
-    external_matched_df, external_unmatched_df = match_external_targets(
-        likely_unmatched_df, external_targets_library, mass_error_ppm
-    )
-
-    adjusted_df = pd.concat(
-        [likely_matched_df, external_matched_df, external_unmatched_df],
-        ignore_index=True,
-    )
-
-    print("\n[INFO] Likely Matched DF:")
-    print(likely_matched_df)
-
-    print("\n[INFO] External Matched DF:")
-    print(external_matched_df)
-
-    print("\n[INFO] External Unmatched DF:")
-    print(external_unmatched_df)
-
-    print("\n[INFO] Adjusted DF (Final):")
-    print(adjusted_df)
-
-
-if __name__ == "__main__":
-    main()
