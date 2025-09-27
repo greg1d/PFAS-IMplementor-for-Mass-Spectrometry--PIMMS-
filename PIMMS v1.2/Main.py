@@ -55,14 +55,15 @@ def main():
     file_paths = [r"PIMMS v1.2\data\Dummy test blank subtracted data.csv"]
 
     standards_file = (
-        "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
+        r"PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
+    output_path = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\NTA\DBS\PIMMS Report - All features test.csv"
 
     standards_library_file = (
-        "PIMMS Validation work/Target lists/Target_list_native_analytes.csv"
+        r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
     external_targets_file = (
-        "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
+        r"PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
 
     METADATA_MAPPING = {"ID": "A", "RT": "B", "DT": "C", "CCS": "D", "m/z": "E"}
@@ -377,9 +378,7 @@ def main():
 
     print("[INFO] Applying regression analysis filter...")
     try:
-        library_file = (
-            r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
-        )
+        library_file = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         adjusted_df = produce_filtered_df(
             adjusted_df,
             library_file,
@@ -401,9 +400,7 @@ def main():
         sys.exit(1)
 
     try:
-        library_file = (
-            r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
-        )
+        library_file = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         library_df = pd.read_csv(library_file)
         adjusted_df = combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm)
         adjusted_df.to_csv(
@@ -451,8 +448,6 @@ def main():
     except Exception as e:
         print(f"[ERROR] Failed to perform neutral loss filtering: {e}")
         sys.exit(1)
-
-    output_path = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\NTA\DBS\PIMMS Report - All features.csv"
 
     # Make sure directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
