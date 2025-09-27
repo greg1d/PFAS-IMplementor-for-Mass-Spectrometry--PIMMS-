@@ -24,7 +24,6 @@ from crude_filters import (  # type: ignore
     apply_rt_filter,
 )
 from detection_frequency_filter import detection_frequency_filter  # type: ignore
-from kaufman_analysis import run_full_halogen_merging_pipeline
 from mass_defect_filter import (  # type: ignore
     mass_defect_filter,
 )  # Importing the mass defect filter module
@@ -54,9 +53,7 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
 
 def main():
     # File paths
-    file_paths = [
-        r"F:\Twins Project (2.24-)\Non-target work\Processed Data\Test folder\All Samples.xlsx"
-    ]
+    file_paths = [r"C:\Users\Greg Kudzin\Downloads\all features.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -68,7 +65,7 @@ def main():
     )
 
     # Define control columns
-    control_samples = [f"Blank {i}.d" for i in range(1, 6)]
+    control_samples = [f"Blank {i}.d" for i in range(1, 10)]
 
     # Set tolerances
     mass_error_ppm = 15  # Mass error in ppm
@@ -88,7 +85,7 @@ def main():
 
     frequency_threshold = 15  # Detection frequency threshold percentage
 
-    rt_filter = True
+    rt_filter = False
     ccs_filter = True
 
     try:
@@ -456,21 +453,15 @@ def main():
         print(f"[ERROR] Failed to perform neutral loss filtering: {e}")
         sys.exit(1)
 
-    try:
-        cef_folder = r"PIMMS v1.2\NTA\Serum\CEF_folder"
-        pimms_file = r"PIMMS v1.2\Data_output\Serum.csv"
-        heavy_halogen_df = run_full_halogen_merging_pipeline(cef_folder, pimms_file)
-        heavy_halogen_df.to_csv(
-            "PIMMS Validation work/PIMMS data/heavy_halogen_report_Mitra.csv"
-        )
+    output_path = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\NTA\DBS\PIMMS Report - All features.csv"
 
-    except Exception as e:
-        print(f"[ERROR] Failed to perform kaufman analysis loss filtering: {e}")
-        sys.exit(1)
+    # Make sure directory exists
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    os.makedirs(os.path.dirname(pimms_file), exist_ok=True)
-    adjusted_df.to_csv(pimms_file, index=False)
-    print(f"[INFO] Final adjusted dataset saved to {adjusted_df}")
+    # Save DataFrame to file
+    adjusted_df.to_csv(output_path, index=False)
+
+    print(f"[INFO] Final adjusted dataset saved to {output_path}")
     print(adjusted_df)
 
 

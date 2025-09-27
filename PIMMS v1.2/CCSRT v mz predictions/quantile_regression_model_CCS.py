@@ -158,30 +158,6 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
         )
         ax.fill_between(x_sorted, q5_sorted, q95_sorted, color="red", alpha=0.1)
 
-        # Add metric box with KFold results
-        metrics_text = (
-            f"Pinball Loss:\n"
-            f"5% = {pin5:.3f}\n"
-            f"50% = {pin50:.3f}\n"
-            f"95% = {pin95:.3f}\n"
-            f"Coverage: {coverage:.2%}\n"
-            f"Width: {interval_width:.2f}"
-        )
-        ax.text(
-            0.97,
-            0.03,
-            metrics_text,
-            transform=ax.transAxes,
-            fontsize=8,
-            fontfamily="Arial",
-            fontweight="bold",
-            verticalalignment="bottom",
-            horizontalalignment="right",
-            bbox=dict(
-                boxstyle="round,pad=0.4", facecolor="white", edgecolor="gray", alpha=0.7
-            ),
-        )
-
         ax.set_title(label, fontsize=10, fontweight="bold", fontfamily="Arial")
         ax.set_xlabel(r"$\mathbfit{m/z}$", fontsize=10, fontfamily="Arial")
         ax.set_ylim(0, 300)
@@ -191,30 +167,14 @@ def plot_results(df, cross_val_results, quantiles=[0.10, 0.5, 0.90]):
             label.set_fontname("Arial")
             label.set_fontweight("bold")
 
-        if i == 0:
+        if i == 1:
             ax.set_ylabel(
                 "CCS (Å²)", fontsize=10, fontweight="bold", fontfamily="Arial"
             )
 
-    handles, labels = axes[1].get_legend_handles_labels()
-    unique = dict(zip(labels, handles))  # Remove duplicates by label
-    legend = axes[1].legend(
-        unique.values(),
-        unique.keys(),
-        loc="upper left",
-        fontsize=8,
-        frameon=True,
-        fancybox=True,
-        facecolor="white",
-        edgecolor="gray",
-        framealpha=0.7,
-    )
-
-    # Manually style legend text
-    for text in legend.get_texts():
-        text.set_fontweight("bold")
-        text.set_fontfamily("Arial")
     plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.savefig("PIMMS v1.2\CCSRT v mz predictions\CCS v mz plot no legends.png")
+    plt.show()
 
 
 def run_CCS_regression_analysis(library_file):
@@ -286,6 +246,5 @@ if __name__ == "__main__":
     library_file = (
         r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
     )
-
     # Run the analysis
     run_analysis(library_file)
