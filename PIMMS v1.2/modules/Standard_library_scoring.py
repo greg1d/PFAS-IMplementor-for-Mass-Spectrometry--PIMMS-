@@ -202,7 +202,6 @@ def level_5_library_matching(
         external_targets_library[lib_cols["mz"]], errors="coerce"
     )
     sorted_external_masses = sorted(numeric_mz.dropna().tolist())
-    print("sorted external masses", sorted_external_masses)
     for _, row in unmatched_df.iterrows():
         mz = row["m/z"]
         match_names = []
@@ -250,7 +249,6 @@ def level_5_library_matching(
 
     external_matched_df = pd.DataFrame(matched_dict.values())
     external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
-    print("matched df", external_matched_df)
     external_unmatched_df["Match"] = "No Match"
     external_unmatched_df["Match Source"] = "None"
     external_unmatched_df["Classification Type"] = "unmatched"
