@@ -11,6 +11,7 @@ from blank_subtraction import (  # type: ignore
     process_and_combine_files,
     process_standards_report_only,
     remove_standards_library,
+    rename_metadata_columns,
 )
 from blank_subtraction_workflow import (  # type: ignore
     perform_blank_subtraction,
@@ -64,7 +65,7 @@ def main():
     external_targets_file = (
         "PIMMS v1.2/import folder/Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
-
+    METADATA_MAPPING = {"ID": "A", "RT": "B", "DT": "C", "CCS": "D", "m/z": "E"}
     # Define control columns
     CONTROL_START_COL = "AY"  # Example: Column AY
     CONTROL_END_COL = "BG"  # Example: Column BG
@@ -96,6 +97,7 @@ def main():
     try:
         # Step 1: Read and combine data from all source files
         combined_data = process_and_combine_files(file_paths)
+        combined_data = rename_metadata_columns(combined_data, METADATA_MAPPING)
 
         # Step 2: Use the GUI parameters to separate the data
         combined_data, control_df, experimental_df = define_and_separate_samples(

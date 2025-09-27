@@ -31,6 +31,45 @@ def read_and_filter_csv(file_path):
         raise RuntimeError(f"Error processing {file_path}: {e}")
 
 
+def rename_metadata_columns(df, user_mapping):
+    """
+    Renames DataFrame columns based on a user-provided mapping.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to modify.
+        user_mapping (dict): A dictionary mapping standard names to column letters.
+                             Example: {'ID': 'A', 'RT': 'B', 'm/z': 'E'}
+
+    Returns:
+        pd.DataFrame: The DataFrame with renamed columns.
+    """
+    all_columns = df.columns.tolist()
+    rename_dict = {}
+
+    print("--- Renaming Metadata Columns ---")
+
+    # Build the dictionary for pandas .rename() method, e.g., {'Old Name': 'New Name'}
+    for standard_name, column_letter in user_mapping.items():
+        try:
+            index = column_letter_to_index(column_letter)
+            if index >= len(all_columns):
+                raise IndexError(
+                    f"Column '{column_letter}' is out of bounds for this file."
+                )
+
+            old_name = all_columns[index]
+            rename_dict[old_name] = standard_name
+
+        except Exception as e:
+            raise ValueError(f"Could not process mapping for '{standard_name}': {e}")
+
+    # Apply the renaming
+    df_renamed = df.rename(columns=rename_dict)
+
+    print(f"✔️ Columns successfully renamed: {rename_dict}\n")
+    return df_renamed
+
+
 def separate_control_experimental(combined_data, control_samples, experimental_samples):
     """
     Separates the combined DataFrame into control and experimental DataFrames
