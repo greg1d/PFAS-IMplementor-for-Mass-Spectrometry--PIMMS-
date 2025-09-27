@@ -7,12 +7,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 from adduct_checker import find_matching_mass_relationships
 from blank_subtraction import (  # type: ignore
     count_non_zero_rows,
+    define_and_separate_samples,
+    process_and_combine_files,
     process_standards_report_only,
     remove_standards_library,
 )
 from blank_subtraction_workflow import (  # type: ignore
     perform_blank_subtraction,
-    process_files,
 )
 from branching_filter import (  # type: ignore
     branching_analyze,
@@ -53,7 +54,7 @@ from Standard_library_scoring import (  # Import PFAS and External Library match
 
 def main():
     # File paths
-    file_paths = [r"C:\Users\Greg Kudzin\Downloads\all features.csv"]
+    file_paths = [r"PIMMS v1.2\data\Dummy test blank subtracted data.csv"]
     standards_file = (
         "PIMMS v1.2/import folder/MPFAC HIF ES SIL peaks.csv"  # Standards library
     )
@@ -65,7 +66,11 @@ def main():
     )
 
     # Define control columns
-    control_samples = [f"Blank {i}.d" for i in range(1, 10)]
+    CONTROL_START_COL = "AY"  # Example: Column AY
+    CONTROL_END_COL = "BG"  # Example: Column BG
+
+    EXPERIMENTAL_START_COL = "F"  # Example: Column F
+    EXPERIMENTAL_END_COL = "AX"  # Example: Column AX
 
     # Set tolerances
     mass_error_ppm = 15  # Mass error in ppm
@@ -89,12 +94,19 @@ def main():
     ccs_filter = True
 
     try:
-        # Process files and separate data
-        combined_data, control_df, experimental_df = process_files(
-            file_paths, control_samples
+        # Step 1: Read and combine data from all source files
+        combined_data = process_and_combine_files(file_paths)
+
+        # Step 2: Use the GUI parameters to separate the data
+        combined_data, control_df, experimental_df = define_and_separate_samples(
+            combined_data,
+            CONTROL_START_COL,
+            CONTROL_END_COL,
+            EXPERIMENTAL_START_COL,
+            EXPERIMENTAL_END_COL,
         )
     except Exception as e:
-        print(f"Error processing files: {e}")
+        print(f"[ERROR] A problem occurred during the initial data setup: {e}")
         sys.exit(1)
 
     # Count non-zero rows in the raw experimental dataset

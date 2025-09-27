@@ -5,61 +5,102 @@ import numpy as np
 import pandas as pd
 
 
+def column_letter_to_index(letter):
+    """Converts an Excel-style column letter to a zero-based integer index."""
+    letter = letter.upper()
+    index = 0
+    for char in letter:
+        index = index * 26 + (ord(char) - ord("A") + 1)
+    return index - 1
+
+
 def read_and_filter_csv(file_path):
     """
-    Reads a CSV file, selects the first 5 columns and any column containing '.d',
-    and adds a column for the source file.
+    Reads a CSV file, selects the first 5 columns and any column containing '.d'.
     """
     print(f"Reading file: {file_path}...")
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
-
     try:
-        # Load the CSV file with low_memory=False to handle mixed types
         df = pd.read_csv(file_path, low_memory=False)
-
-        # Select the first 5 columns and any column containing '.d'
         selected_columns = list(df.columns[:5]) + [
             col for col in df.columns if ".d" in col
         ]
-        filtered_df = df[selected_columns]
-
-        return filtered_df
+        return df[selected_columns]
     except Exception as e:
         raise RuntimeError(f"Error processing {file_path}: {e}")
 
 
-def separate_control_experimental(combined_data, control_samples):
+def separate_control_experimental(combined_data, control_samples, experimental_samples):
     """
-    Separates the combined DataFrame into control and experimental DataFrames.
-
-    Args:
-        combined_data (pd.DataFrame): The combined data containing all samples.
-        control_samples (list): List of control sample column names.
-
-    Returns:
-        control_df (pd.DataFrame): DataFrame containing control samples and metadata.
-        experimental_df (pd.DataFrame): DataFrame containing experimental samples.
+    Separates the combined DataFrame into control and experimental DataFrames
+    based on provided column name lists.
     """
-    # Ensure all control columns are present
-    for col in control_samples:
+    metadata_cols = combined_data.columns[:5].tolist()
+
+    # Ensure all specified columns actually exist in the DataFrame
+    for col in control_samples + experimental_samples:
         if col not in combined_data.columns:
-            raise ValueError(f"Control column '{col}' not found in the data.")
+            raise ValueError(f"Column '{col}' not found in the data.")
 
-    # Select control samples and metadata (first 5 columns)
-    control_df = combined_data[combined_data.columns[:5].tolist() + control_samples]
-
-    # Select experimental samples (all other '.d' columns not in control_samples)
-    experimental_columns = [
-        col
-        for col in combined_data.columns
-        if col not in control_df.columns and ".d" in col
-    ]
-    experimental_df = combined_data[
-        combined_data.columns[:5].tolist() + experimental_columns
-    ]
+    control_df = combined_data[metadata_cols + control_samples]
+    experimental_df = combined_data[metadata_cols + experimental_samples]
 
     return control_df, experimental_df
+
+
+# --- NEW MODULAR FUNCTIONS FOR GUI-FRIENDLY WORKFLOW ---
+
+
+def process_and_combine_files(file_paths):
+    """Reads and concatenates all specified CSV files into a single DataFrame."""
+    if not file_paths:
+        raise ValueError("No file paths provided.")
+    all_data_frames = [read_and_filter_csv(fp) for fp in file_paths]
+    return pd.concat(all_data_frames, ignore_index=True)
+
+
+def define_and_separate_samples(
+    combined_data, control_start_col, control_end_col, exp_start_col, exp_end_col
+):
+    """
+    Uses column boundaries to define and separate samples into control and experimental.
+    """
+    all_columns = combined_data.columns.tolist()
+    metadata_cols = combined_data.columns[:5].tolist()
+
+    try:
+        # Define control samples from column letters
+        control_start_index = column_letter_to_index(control_start_col)
+        control_end_index = column_letter_to_index(control_end_col)
+        control_samples = all_columns[control_start_index : control_end_index + 1]
+
+        # Define experimental samples from column letters
+        exp_start_index = column_letter_to_index(exp_start_col)
+        exp_end_index = column_letter_to_index(exp_end_col)
+        experimental_samples = all_columns[exp_start_index : exp_end_index + 1]
+
+        print("--- Column Definition ---")
+        print(
+            f"✔️ Control columns ('{control_start_col}' to '{control_end_col}') selected: {control_samples}"
+        )
+        print(
+            f"✔️ Experimental columns ('{exp_start_col}' to '{exp_end_col}') selected: {experimental_samples}\n"
+        )
+
+        # Create the separate dataframes
+        control_df = combined_data[metadata_cols + control_samples]
+        experimental_df = combined_data[metadata_cols + experimental_samples]
+
+        # [FIX] Return all three DataFrames as expected by the main function call
+        return combined_data, control_df, experimental_df
+
+    except IndexError:
+        raise ValueError(
+            "A specified column letter is out of bounds for the data file."
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to separate samples: {e}")
 
 
 def count_non_zero_rows(df):
