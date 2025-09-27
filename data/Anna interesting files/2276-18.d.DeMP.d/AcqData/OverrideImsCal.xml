@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<OverrideImsCalibration>
-    <FileVersion>1</FileVersion>
-    <SingleFieldCcsCalibration>
-        <DriftGas mass="28.006148">N2</DriftGas>
-        <TFix>0.0059832109339659212</TFix>
-        <Beta>0.13867520886329529</Beta>
-    </SingleFieldCcsCalibration>
-</OverrideImsCalibration>

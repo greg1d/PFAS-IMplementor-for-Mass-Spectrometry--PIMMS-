@@ -59,10 +59,10 @@ def main():
     )
     output_path = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\NTA\DBS\PIMMS Report - All features test.csv"
 
-    standards_library_file = (
+    level_2_library = (
         r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )
-    external_targets_file = (
+    level_5_library = (
         r"PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only.csv"
     )
 
@@ -334,12 +334,12 @@ def main():
         sys.exit(1)
 
     print("[INFO] Matching features against PFAS Standards Library...")
-    pfas_library = load_pfas_library(standards_library_file)
+    pfas_library = load_pfas_library(level_2_library)
     likely_matched_df, likely_unmatched_df = match_pfas_library(
         adjusted_df,
         pfas_library,
-        standards_library_file,
-        standards_library_file,
+        level_2_library,
+        level_2_library,
         mass_error_ppm,
         ccs_error_percentage,
         rt_tolerance,
@@ -348,7 +348,7 @@ def main():
 
     # **Step 2: Match Remaining Features Against External Targets Library**
     print("[INFO] Matching remaining features against External Targets Library...")
-    external_targets_library = load_external_targets_library(external_targets_file)
+    external_targets_library = load_external_targets_library(level_5_library)
     external_matched_df, external_unmatched_df = match_external_targets(
         likely_unmatched_df, external_targets_library, mass_error_ppm
     )
@@ -378,10 +378,10 @@ def main():
 
     print("[INFO] Applying regression analysis filter...")
     try:
-        library_file = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        level_2_library = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         adjusted_df = produce_filtered_df(
             adjusted_df,
-            library_file,
+            level_2_library,
             rt_filter,
             ccs_filter,
         )
@@ -400,8 +400,8 @@ def main():
         sys.exit(1)
 
     try:
-        library_file = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-        library_df = pd.read_csv(library_file)
+        level_2_library = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        library_df = pd.read_csv(level_2_library)
         adjusted_df = combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm)
         adjusted_df.to_csv(
             "PIMMS Validation work/PIMMS data/after_single_chromatography_filter.csv",
