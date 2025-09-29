@@ -6,11 +6,13 @@ class Config:
 
     def __init__(self):
         # --- File and Directory Paths ---
-        self.raw_data_input_location = ""
-        self.standards_file = ""
-        self.output_path = ""
-        self.level_2_library = ""
-        self.level_5_library = ""
+        self.raw_data_input_location = (
+            "PIMMS v1.2\data\Dummy test blank subtracted data.csv"
+        )
+        self.standards_file = "PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.csv"
+        self.output_path = "PIMMS v1.2\import folder\Dummy test output.csv"
+        self.level_2_library = "PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        self.level_5_library = "PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only test.csv"
 
         # --- Column Mappings ---
         self.metadata_mapping = {
@@ -34,7 +36,7 @@ class Config:
         self.level_5_library_mapping = {"name": "A", "mz": "D"}
 
         # --- Workflow Parameters ---
-        self.blank_subtraction_method = "1"  # Default to method 1
+        self.blank_subtraction_method = "2"  # Default to method 2
 
         # --- Tolerances ---
         self.mass_error_ppm = 15.0

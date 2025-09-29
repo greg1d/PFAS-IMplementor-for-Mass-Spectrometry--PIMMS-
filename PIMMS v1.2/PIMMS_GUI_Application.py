@@ -7,39 +7,43 @@ import threading
 import csv
 
 # --- Local Imports ---
+# Make sure your configuration file is named PIMMS_Configuration.py
 from PIMMS_Configuration import Config
 
+# ============================================================================================
+# ❗ CRITICAL: WORKFLOW MODULE IMPORTS ❗
+# ============================================================================================
+# All your data processing modules should be in a 'modules' subdirectory
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-from adduct_checker import find_matching_mass_relationships  # type: ignore # type: ignore
-from blank_subtraction import (  # type: ignore
+from adduct_checker import find_matching_mass_relationships
+from blank_subtraction import (
     define_and_separate_samples,
     perform_blank_subtraction,
-    # process_and_combine_files, # This is now replaced by a robust local version
     rename_metadata_columns,
 )
-from branching_filter import (  # type: ignore
+from branching_filter import (
     branching_analyze,
     branching_merge,
 )
-from crude_filters import (  # type: ignore
+from crude_filters import (
     apply_mass_filter,
     apply_min_intensity_filter,
     apply_rt_filter,
 )
-from detection_frequency_filter import detection_frequency_filter  # type: ignore
-from mass_defect_filter import mass_defect_filter  # type: ignore
-from ML_algorithm_density import fluorinated_density_filter  # type: ignore
-from monoisotopic_grouper import (  # type: ignore
+from detection_frequency_filter import detection_frequency_filter
+from mass_defect_filter import mass_defect_filter
+from ML_algorithm_density import fluorinated_density_filter
+from monoisotopic_grouper import (
     analyze_adjusted_df as mono_analyze,
     merge_groups_into_adjusted_df as mono_merge,
 )
-from neutral_loss_checker import find_neutral_loss_matches  # type: ignore
-from post_source_decay_filter import remove_post_source_decay  # type: ignore
-from regression_analysis import produce_filtered_df  # type: ignore
-from removing_standards import remove_standards_library  # type: ignore
-from single_chromatography import combined_filter_pipeline  # type: ignore
-from smearing_filter import smearing_filter  # type: ignore
-from Standard_library_scoring import (  # type: ignore
+from neutral_loss_checker import find_neutral_loss_matches
+from post_source_decay_filter import remove_post_source_decay
+from regression_analysis import produce_filtered_df
+from removing_standards import remove_standards_library
+from single_chromatography import combined_filter_pipeline
+from smearing_filter import smearing_filter
+from Standard_library_scoring import (
     level_2_library_matching,
     level_5_library_matching,
     load_pfas_library,
@@ -47,8 +51,17 @@ from Standard_library_scoring import (  # type: ignore
 
 
 # ============================================================================================
-# WORKFLOW LOGIC
+# HELPER AND WORKFLOW LOGIC
 # ============================================================================================
+def column_letter_to_index(letter):
+    """Converts an Excel-style column letter to a zero-based integer index."""
+    letter = letter.upper()
+    index = 0
+    for char in letter:
+        index = index * 26 + (ord(char) - ord("A") + 1)
+    return index - 1
+
+
 def robust_process_and_combine_files(file_paths):
     """
     Reads and concatenates CSV/TSV files, auto-detecting the delimiter.
@@ -128,13 +141,11 @@ def run_pimms_workflow(config):
         adjusted_df = apply_min_intensity_filter(adjusted_df, config.min_intensity)
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
         adjusted_df = apply_mass_filter(adjusted_df, config.mass_min, config.mass_max)
-
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-
         groups = branching_analyze(
             adjusted_df,
             mass_error_ppm=config.mass_error_ppm,
@@ -142,7 +153,6 @@ def run_pimms_workflow(config):
             ccs_tolerance=config.ccs_tolerance,
         )
         adjusted_df = branching_merge(groups)
-
         groups = mono_analyze(
             adjusted_df,
             z_range=range(1, 4),
@@ -151,16 +161,13 @@ def run_pimms_workflow(config):
             ccs_tolerance=config.ccs_tolerance,
         )
         adjusted_df = mono_merge(adjusted_df, groups)
-
         adjusted_df = fluorinated_density_filter(adjusted_df)
         adjusted_df = mass_defect_filter(
             adjusted_df, config.mass_defect_lower_bound, config.mass_defect_upper_bound
         )
-
         adjusted_df = detection_frequency_filter(
             adjusted_df, config.frequency_threshold
         )
-
         adjusted_df = remove_standards_library(
             adjusted_df,
             config.standards_file,
@@ -169,9 +176,12 @@ def run_pimms_workflow(config):
             z=1,
         )
 
-        # --- LIBRARY MATCHING ---
-        print("[INFO] Matching features against Level 2 Library...")
+        # --- LIBRARY LOADING AND MATCHING ---
+        print("[INFO] Loading libraries...")
         pfas_library = load_pfas_library(config.level_2_library)
+        external_targets_library = load_pfas_library(config.level_5_library)
+
+        print("[INFO] Matching features against Level 2 Library...")
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
             adjusted_df,
             pfas_library,
@@ -183,7 +193,6 @@ def run_pimms_workflow(config):
         )
 
         print("[INFO] Matching remaining features against Level 5 Library...")
-        external_targets_library = load_pfas_library(config.level_5_library)
         external_matched_df, external_unmatched_df = level_5_library_matching(
             likely_unmatched_df,
             external_targets_library,
@@ -199,16 +208,39 @@ def run_pimms_workflow(config):
         # --- FINAL ANALYSIS STEPS ---
         adjusted_df = remove_post_source_decay(adjusted_df)
 
+        # [FIX] Create a fully renamed library DataFrame for functions that expect hardcoded column names
+        all_lib_columns = pfas_library.columns.tolist()
+        rename_map = {}
+
+        standard_column_names = {
+            "name": "PrecursorName",
+            "adduct": "PrecursorAdduct",
+            "ccs": "PrecursorCCS",
+            "rt": "PrecursorRT",
+            "mz": "PrecursorMz",
+        }
+
+        for key, letter in config.level_2_library_mapping.items():
+            if key in standard_column_names:
+                index = column_letter_to_index(letter)
+                if index < len(all_lib_columns):
+                    actual_name = all_lib_columns[index]
+                    expected_name = standard_column_names[key]
+                    rename_map[actual_name] = expected_name
+
+        library_df_renamed = pfas_library.rename(columns=rename_map)
+
+        # [FIX] Pass the FILE PATH to produce_filtered_df, as it reads the file internally
         adjusted_df = produce_filtered_df(
             adjusted_df,
-            config.level_2_library,
+            config.level_2_library,  # Pass the file path
             config.rt_regression_filter,
             config.ccs_regression_filter,
         )
 
-        library_df = pd.read_csv(config.level_2_library)
+        # [FIX] Pass the RENAMED DATAFRAME to combined_filter_pipeline
         adjusted_df = combined_filter_pipeline(
-            adjusted_df, library_df, config.mass_error_ppm
+            adjusted_df, library_df_renamed, config.mass_error_ppm
         )
 
         adjusted_df = find_matching_mass_relationships(adjusted_df)
@@ -365,7 +397,6 @@ class PimmsGUI(tk.Tk):
             entry.grid(row=i, column=1, padx=5, pady=2, sticky="ew")
             self.param_entries[key] = entry
 
-        # [NEW] Frame for Mass Defect Filter parameters
         mdf_frame = ttk.LabelFrame(tab, text="Mass Defect Filter", padding=(10, 5))
         mdf_frame.pack(fill="x", padx=10, pady=5, anchor="w")
 
@@ -388,7 +419,6 @@ class PimmsGUI(tk.Tk):
         )
         mdf_upper_entry.grid(row=1, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["mass_defect_upper_bound"] = mdf_upper_entry
-        # [END NEW]
 
         bs_frame = ttk.LabelFrame(tab, text="Blank Subtraction", padding=(10, 5))
         bs_frame.pack(fill="x", padx=10, pady=5, anchor="w")
@@ -418,6 +448,25 @@ class PimmsGUI(tk.Tk):
         bs_combo.bind("<<ComboboxSelected>>", self._toggle_std_dev_entry)
         self._toggle_std_dev_entry()
 
+        reg_frame = ttk.LabelFrame(tab, text="Regression Analysis", padding=(10, 5))
+        reg_frame.pack(fill="x", padx=10, pady=5, anchor="w")
+
+        self.rt_reg_var = tk.BooleanVar(
+            value=getattr(self.config, "rt_regression_filter", False)
+        )
+        rt_check = ttk.Checkbutton(
+            reg_frame, text="Apply RT Regression Filter", variable=self.rt_reg_var
+        )
+        rt_check.pack(anchor="w", padx=5)
+
+        self.ccs_reg_var = tk.BooleanVar(
+            value=getattr(self.config, "ccs_regression_filter", True)
+        )
+        ccs_check = ttk.Checkbutton(
+            reg_frame, text="Apply CCS Regression Filter", variable=self.ccs_reg_var
+        )
+        ccs_check.pack(anchor="w", padx=5)
+
     def _toggle_std_dev_entry(self, event=None):
         if self.bs_method_var.get() == "2":
             self.std_dev_entry.config(state="normal")
@@ -440,9 +489,8 @@ class PimmsGUI(tk.Tk):
             row=row, column=0, padx=5, pady=5, sticky="w"
         )
         entry = ttk.Entry(parent, width=70)
-        # Populate with default value from config
         default_val = getattr(self.config, config_key, "")
-        if isinstance(default_val, list):  # Handle list case for raw data
+        if isinstance(default_val, list):
             default_val = default_val[0] if default_val else ""
         entry.insert(0, default_val)
         entry.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
@@ -473,6 +521,9 @@ class PimmsGUI(tk.Tk):
                 setattr(self.config, key, float(entry.get()))
 
             self.config.blank_subtraction_method = self.bs_method_var.get()
+
+            self.config.rt_regression_filter = self.rt_reg_var.get()
+            self.config.ccs_regression_filter = self.ccs_reg_var.get()
 
             self.config.control_start_col = self.mapping_entries[
                 "control_start_col"
