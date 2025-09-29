@@ -51,7 +51,7 @@ from Standard_library_scoring import (  # type: ignore
 
 def main():
     # File paths
-    file_paths = [r"PIMMS v1.2\data\Dummy test blank subtracted data.csv"]
+    raw_data_input_location = [r"PIMMS v1.2\data\Dummy test blank subtracted data.csv"]
 
     standards_file = (
         r"PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.csv"  # Standards library
@@ -109,7 +109,7 @@ def main():
 
     try:
         # Step 1: Read and combine data from all source files
-        combined_data = process_and_combine_files(file_paths)
+        combined_data = process_and_combine_files(raw_data_input_location)
         combined_data = rename_metadata_columns(combined_data, METADATA_MAPPING)
 
         # Step 2: Use the GUI parameters to separate the data
@@ -151,11 +151,7 @@ def main():
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
-        # Save the adjusted dataframe after blank subtraction to a new CSV file
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_blank_subtraction.csv",
-            index=False,
-        )
+
         # Apply filters
         print("[INFO] Applying filters to adjusted dataset...")
         try:
@@ -169,7 +165,6 @@ def main():
                 f"  Average Non-Zero Rows: {group_avg}\n"
                 f"  Std Dev of Non-Zero Rows: {group_std}"
             )
-            # Save the adjusted dataframe after blank subtraction to a new CSV file
 
         except Exception as e:
             print(f"[ERROR] Filtering failed: {e}")
@@ -187,10 +182,7 @@ def main():
             rt_tolerance=rt_tolerance,
             ccs_tolerance=ccs_tolerance,
         )
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_smearing_filter.csv",
-            index=False,
-        )
+
         # Count non-zero rows after smearing filter
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
@@ -215,9 +207,7 @@ def main():
 
         # Merge groups into adjusted_df
         adjusted_df = branching_merge(groups)
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_branching_filter.csv", index=False
-        )
+
         # Count non-zero rows after merging
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
@@ -242,10 +232,6 @@ def main():
         )
         print(
             f"[INFO] Number of groups identified by monoisotopic filter: {len(groups)}"
-        )
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_monoisotopic_filter.csv",
-            index=False,
         )
 
         # Merge groups into adjusted_df
@@ -272,10 +258,7 @@ def main():
             f"  Average Non-Zero Rows: {group_avg}\n"
             f"  Std Dev of Non-Zero Rows: {group_std}"
         )
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_fluorinated_density_filter.csv",
-            index=False,
-        )
+
     except Exception as e:
         print(f"[ERROR] Fluorinated density filter logic failed: {e}")
         sys.exit(1)
@@ -284,9 +267,6 @@ def main():
     try:
         adjusted_df = mass_defect_filter(
             adjusted_df, lower_mass_filter_bound, upper_mass_filter_bound
-        )
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_mass_defect_filter.csv", index=False
         )
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
@@ -303,10 +283,6 @@ def main():
     print("[INFO] Performing detection frequency cutoff...")
     try:
         adjusted_df = detection_frequency_filter(adjusted_df, frequency_threshold)
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_detection_frequency_filter.csv",
-            index=False,
-        )
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
@@ -328,9 +304,6 @@ def main():
             mass_error_ppm=mass_error_ppm,
             ccs_error_percentage=ccs_tolerance,
             z=1,
-        )
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_standards_removal.csv", index=False
         )
 
         # Count non-zero rows after removing standards
@@ -379,9 +352,6 @@ def main():
     print("[INFO] Applying post filter decay filter...")
     try:
         adjusted_df = remove_post_source_decay(adjusted_df)
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_post_source_decay_filter.csv"
-        )
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
@@ -395,17 +365,13 @@ def main():
 
     print("[INFO] Applying regression analysis filter...")
     try:
-        level_2_library = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         adjusted_df = produce_filtered_df(
             adjusted_df,
             level_2_library,
             rt_regression_filter,
             ccs_regression_filter,
         )
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_regression_analysis_filter.csv",
-            index=False,
-        )
+
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
             f"[INFO] After Applying post filter decay filter:\n"
@@ -417,13 +383,9 @@ def main():
         sys.exit(1)
 
     try:
-        level_2_library = r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         library_df = pd.read_csv(level_2_library)
         adjusted_df = combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm)
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_single_chromatography_filter.csv",
-            index=False,
-        )
+
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
             f"[INFO] After Applying post filter decay filter:\n"
@@ -437,7 +399,6 @@ def main():
     print("[INFO] Applying adduct filter...")
     try:
         adjusted_df = find_matching_mass_relationships(adjusted_df)
-        adjusted_df.to_csv("PIMMS Validation work/PIMMS data/after_adduct_filter.csv")
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
@@ -452,9 +413,6 @@ def main():
 
     try:
         adjusted_df = find_neutral_loss_matches(adjusted_df)
-        adjusted_df.to_csv(
-            "PIMMS Validation work/PIMMS data/after_neutral_loss_filter.csv"
-        )
 
         group_avg, group_std = count_non_zero_rows(adjusted_df)
         print(
