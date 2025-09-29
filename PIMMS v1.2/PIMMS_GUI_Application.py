@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 import threading
+import csv
 
 # --- Local Imports ---
 # Make sure your configuration file is named PIMMS_Configuration.py
@@ -18,7 +19,7 @@ from adduct_checker import find_matching_mass_relationships
 from blank_subtraction import (
     define_and_separate_samples,
     perform_blank_subtraction,
-    process_and_combine_files,
+    # process_and_combine_files, # This is now replaced by a robust local version
     rename_metadata_columns,
 )
 from branching_filter import (
@@ -53,6 +54,31 @@ from Standard_library_scoring import (
 # ============================================================================================
 # WORKFLOW LOGIC
 # ============================================================================================
+def robust_process_and_combine_files(file_paths):
+    """
+    Reads and concatenates CSV/TSV files, auto-detecting the delimiter.
+    """
+    all_data_frames = []
+    for fp in file_paths:
+        try:
+            with open(fp, "r", newline="", encoding="utf-8") as f:
+                dialect = csv.Sniffer().sniff(f.readline(), delimiters=",\t")
+                delimiter = dialect.delimiter
+                print(
+                    f"[INFO] Auto-detected delimiter '{repr(delimiter)}' for file {os.path.basename(fp)}"
+                )
+            df = pd.read_csv(fp, sep=delimiter)
+            all_data_frames.append(df)
+        except Exception as e:
+            raise IOError(
+                f"Could not parse the file {fp}. Please ensure it is a valid CSV or TSV file. Error: {e}"
+            )
+
+    if not all_data_frames:
+        raise ValueError("No data could be loaded from the provided files.")
+    return pd.concat(all_data_frames, ignore_index=True)
+
+
 def run_pimms_workflow(config):
     """
     This function contains the complete data processing pipeline.
@@ -60,10 +86,16 @@ def run_pimms_workflow(config):
     """
     try:
         # --- Pre-run Check ---
-        if not config.raw_data_input_location or not config.output_path:
+        if not config.raw_data_input_location or not os.path.exists(
+            config.raw_data_input_location
+        ):
             messagebox.showerror(
-                "Error", "Please specify both an input file and an output path."
+                "Error",
+                f"Input file not found. Please check the path:\n{config.raw_data_input_location}",
             )
+            return
+        if not config.output_path:
+            messagebox.showerror("Error", "Please specify an output file path.")
             return
 
         print("[INFO] Starting PIMMS workflow...")
@@ -72,7 +104,9 @@ def run_pimms_workflow(config):
 
         # --- DATA SETUP ---
         print("[INFO] Loading and preparing initial data...")
-        combined_data = process_and_combine_files([config.raw_data_input_location])
+        combined_data = robust_process_and_combine_files(
+            [config.raw_data_input_location]
+        )
         combined_data = rename_metadata_columns(combined_data, config.metadata_mapping)
         _, control_df, experimental_df = define_and_separate_samples(
             combined_data,
@@ -87,12 +121,11 @@ def run_pimms_workflow(config):
         print(
             f"[INFO] Performing Blank Subtraction (Method: {config.blank_subtraction_method})..."
         )
-        # The underlying perform_blank_subtraction function must be modified to accept std_devs
         adjusted_df, _, _ = perform_blank_subtraction(
             config.blank_subtraction_method,
             control_df,
             experimental_df,
-            std_devs=config.blank_subtraction_std_dev,  # Pass the value from the GUI
+            std_devs=config.blank_subtraction_std_dev,
         )
 
         # --- FULL FILTERING PIPELINE ---
@@ -177,7 +210,7 @@ def run_pimms_workflow(config):
             config.ccs_regression_filter,
         )
 
-        library_df = pd.read_csv(config.level_2_library)  # Assuming tab separated
+        library_df = pd.read_csv(config.level_2_library)
         adjusted_df = combined_filter_pipeline(
             adjusted_df, library_df, config.mass_error_ppm
         )
@@ -186,7 +219,9 @@ def run_pimms_workflow(config):
         adjusted_df = find_neutral_loss_matches(adjusted_df)
 
         # --- SAVE OUTPUT ---
-        os.makedirs(os.path.dirname(config.output_path), exist_ok=True)
+        output_dir = os.path.dirname(config.output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
         adjusted_df.to_csv(config.output_path, index=False)
 
         print(f"[SUCCESS] Final adjusted dataset saved to {config.output_path}")
@@ -197,6 +232,9 @@ def run_pimms_workflow(config):
 
     except Exception as e:
         print(f"[ERROR] Workflow failed: {e}")
+        import traceback
+
+        traceback.print_exc()
         messagebox.showerror("Error", f"The workflow failed during processing:\n\n{e}")
 
 
@@ -214,6 +252,7 @@ class PimmsGUI(tk.Tk):
         self.notebook.pack(pady=10, padx=10, expand=True, fill="both")
 
         self._create_files_tab()
+        self._create_mapping_tab()
         self._create_params_tab()
         self._create_run_tab()
 
@@ -230,6 +269,78 @@ class PimmsGUI(tk.Tk):
         }
         for i, (text, key) in enumerate(file_options.items()):
             self._create_file_input(tab, text, key, i)
+
+    def _create_mapping_tab(self):
+        tab = ttk.Frame(self.notebook)
+        self.notebook.add(tab, text="Column Mappings")
+        self.mapping_entries = {}
+
+        def _create_mapping_input(parent, text, key, default, row, col):
+            ttk.Label(parent, text=text + ":").grid(
+                row=row, column=col * 2, padx=5, pady=2, sticky="w"
+            )
+            entry = ttk.Entry(parent, width=8)
+            entry.insert(0, default)
+            entry.grid(row=row, column=col * 2 + 1, padx=5, pady=2, sticky="w")
+            self.mapping_entries[key] = entry
+
+        meta_frame = ttk.LabelFrame(
+            tab, text="Metadata Column Letters (Raw Data)", padding=(10, 5)
+        )
+        meta_frame.pack(fill="x", padx=10, pady=5)
+        for i, (key, val) in enumerate(self.config.metadata_mapping.items()):
+            _create_mapping_input(meta_frame, key, f"meta_{key}", val, i // 3, i % 3)
+
+        sample_frame = ttk.LabelFrame(
+            tab, text="Sample Column Ranges (Raw Data)", padding=(10, 5)
+        )
+        sample_frame.pack(fill="x", padx=10, pady=5)
+        _create_mapping_input(
+            sample_frame,
+            "Control Start",
+            "control_start_col",
+            self.config.control_start_col,
+            0,
+            0,
+        )
+        _create_mapping_input(
+            sample_frame,
+            "Control End",
+            "control_end_col",
+            self.config.control_end_col,
+            0,
+            1,
+        )
+        _create_mapping_input(
+            sample_frame,
+            "Experimental Start",
+            "experimental_start_col",
+            self.config.experimental_start_col,
+            1,
+            0,
+        )
+        _create_mapping_input(
+            sample_frame,
+            "Experimental End",
+            "experimental_end_col",
+            self.config.experimental_end_col,
+            1,
+            1,
+        )
+
+        l2_frame = ttk.LabelFrame(
+            tab, text="Level 2 Library Column Letters", padding=(10, 5)
+        )
+        l2_frame.pack(fill="x", padx=10, pady=5)
+        for i, (key, val) in enumerate(self.config.level_2_library_mapping.items()):
+            _create_mapping_input(l2_frame, key, f"l2_{key}", val, i // 3, i % 3)
+
+        l5_frame = ttk.LabelFrame(
+            tab, text="Level 5 Library Column Letters", padding=(10, 5)
+        )
+        l5_frame.pack(fill="x", padx=10, pady=5)
+        for i, (key, val) in enumerate(self.config.level_5_library_mapping.items()):
+            _create_mapping_input(l5_frame, key, f"l5_{key}", val, i // 2, i % 2)
 
     def _create_params_tab(self):
         tab = ttk.Frame(self.notebook)
@@ -273,7 +384,6 @@ class PimmsGUI(tk.Tk):
         )
         bs_combo.grid(row=0, column=1, padx=5, pady=2, sticky="w")
 
-        # --- NEW: Input for Standard Deviations ---
         ttk.Label(bs_frame, text="Std Deviations (for Method 2):").grid(
             row=1, column=0, padx=5, pady=2, sticky="w"
         )
@@ -284,13 +394,10 @@ class PimmsGUI(tk.Tk):
         self.std_dev_entry.grid(row=1, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["blank_subtraction_std_dev"] = self.std_dev_entry
 
-        # Link the state of the entry to the combobox selection
         bs_combo.bind("<<ComboboxSelected>>", self._toggle_std_dev_entry)
-        # Set initial state
         self._toggle_std_dev_entry()
 
     def _toggle_std_dev_entry(self, event=None):
-        """Enable or disable the standard deviation entry based on the selected method."""
         if self.bs_method_var.get() == "2":
             self.std_dev_entry.config(state="normal")
         else:
@@ -312,6 +419,11 @@ class PimmsGUI(tk.Tk):
             row=row, column=0, padx=5, pady=5, sticky="w"
         )
         entry = ttk.Entry(parent, width=70)
+        # Populate with default value from config
+        default_val = getattr(self.config, config_key, "")
+        if isinstance(default_val, list):  # Handle list case for raw data
+            default_val = default_val[0] if default_val else ""
+        entry.insert(0, default_val)
         entry.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
         self.file_path_entries[config_key] = entry
         browse_button = ttk.Button(
@@ -333,7 +445,6 @@ class PimmsGUI(tk.Tk):
             entry.insert(0, filename)
 
     def run_workflow_thread(self):
-        """Validates inputs and runs the workflow in a separate thread to keep the GUI responsive."""
         try:
             for key, entry in self.file_path_entries.items():
                 setattr(self.config, key, entry.get())
@@ -341,6 +452,30 @@ class PimmsGUI(tk.Tk):
                 setattr(self.config, key, float(entry.get()))
 
             self.config.blank_subtraction_method = self.bs_method_var.get()
+
+            self.config.control_start_col = self.mapping_entries[
+                "control_start_col"
+            ].get()
+            self.config.control_end_col = self.mapping_entries["control_end_col"].get()
+            self.config.experimental_start_col = self.mapping_entries[
+                "experimental_start_col"
+            ].get()
+            self.config.experimental_end_col = self.mapping_entries[
+                "experimental_end_col"
+            ].get()
+
+            self.config.metadata_mapping = {
+                k: self.mapping_entries[f"meta_{k}"].get()
+                for k in self.config.metadata_mapping
+            }
+            self.config.level_2_library_mapping = {
+                k: self.mapping_entries[f"l2_{k}"].get()
+                for k in self.config.level_2_library_mapping
+            }
+            self.config.level_5_library_mapping = {
+                k: self.mapping_entries[f"l5_{k}"].get()
+                for k in self.config.level_5_library_mapping
+            }
 
             thread = threading.Thread(target=run_pimms_workflow, args=(self.config,))
             thread.daemon = True

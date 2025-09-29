@@ -136,9 +136,7 @@ def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
 
 
 if __name__ == "__main__":
-    adjusted_df = pd.read_csv(
-        "PIMMS Validation work/PIMMS data/after_RT_CCS_filter.csv"
-    )
+    adjusted_df = pd.read_csv("PIMMS v1.2\data\Dummy test blank subtracted data.csv")
     library_df = pd.read_csv(
         r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
     )

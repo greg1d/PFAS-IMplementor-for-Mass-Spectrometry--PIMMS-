@@ -298,33 +298,35 @@ def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor
     return adjusted_df, control_mean, control_std
 
 
-def perform_blank_subtraction(method, control_df, experimental_df):
+# Replace the existing function in your modules/blank_subtraction.py file
+
+
+def perform_blank_subtraction(method, control_df, experimental_df, std_devs=3.0):
     """
     Performs blank subtraction based on the selected method.
 
     Args:
-        method (str): The method number ('1', '2', or '3').
+        method (str): The method number ('1' or '2').
         control_df (pd.DataFrame): Control DataFrame.
         experimental_df (pd.DataFrame): Experimental DataFrame.
+        std_devs (float): The number of standard deviations for Method 2, passed from the GUI.
 
     Returns:
-        pd.DataFrame: Adjusted experimental DataFrame.
+        tuple: Adjusted experimental DataFrame, control mean, and control std.
     """
     if method == "1":
+        # No changes needed for Method 1
         adjusted_df, control_mean, control_std = method_1_blank_subtraction(
             control_df, experimental_df
         )
-
         return adjusted_df, control_mean, control_std
 
     elif method == "2":
-        std_deviation_factor = float(
-            input("Enter the number of standard deviations for subtraction: ")
-        )
+        # This now uses the 'std_devs' argument instead of the input() prompt
         adjusted_df, control_mean, control_std = method_2_blank_subtraction(
-            control_df, experimental_df, std_deviation_factor
+            control_df, experimental_df, std_deviation_factor=std_devs
         )
         return adjusted_df, control_mean, control_std
 
     else:
-        raise ValueError("Invalid method selected.")
+        raise ValueError("Invalid method selected. Please choose '1' or '2'.")
