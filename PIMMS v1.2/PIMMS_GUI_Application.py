@@ -7,44 +7,39 @@ import threading
 import csv
 
 # --- Local Imports ---
-# Make sure your configuration file is named PIMMS_Configuration.py
 from PIMMS_Configuration import Config
 
-# ============================================================================================
-# ❗ CRITICAL: WORKFLOW MODULE IMPORTS ❗
-# ============================================================================================
-# All your data processing modules should be in a 'modules' subdirectory
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
-from adduct_checker import find_matching_mass_relationships
-from blank_subtraction import (
+from adduct_checker import find_matching_mass_relationships  # type: ignore # type: ignore
+from blank_subtraction import (  # type: ignore
     define_and_separate_samples,
     perform_blank_subtraction,
     # process_and_combine_files, # This is now replaced by a robust local version
     rename_metadata_columns,
 )
-from branching_filter import (
+from branching_filter import (  # type: ignore
     branching_analyze,
     branching_merge,
 )
-from crude_filters import (
+from crude_filters import (  # type: ignore
     apply_mass_filter,
     apply_min_intensity_filter,
     apply_rt_filter,
 )
-from detection_frequency_filter import detection_frequency_filter
-from mass_defect_filter import mass_defect_filter
-from ML_algorithm_density import fluorinated_density_filter
-from monoisotopic_grouper import (
+from detection_frequency_filter import detection_frequency_filter  # type: ignore
+from mass_defect_filter import mass_defect_filter  # type: ignore
+from ML_algorithm_density import fluorinated_density_filter  # type: ignore
+from monoisotopic_grouper import (  # type: ignore
     analyze_adjusted_df as mono_analyze,
     merge_groups_into_adjusted_df as mono_merge,
 )
-from neutral_loss_checker import find_neutral_loss_matches
-from post_source_decay_filter import remove_post_source_decay
-from regression_analysis import produce_filtered_df
-from removing_standards import remove_standards_library
-from single_chromatography import combined_filter_pipeline
-from smearing_filter import smearing_filter
-from Standard_library_scoring import (
+from neutral_loss_checker import find_neutral_loss_matches  # type: ignore
+from post_source_decay_filter import remove_post_source_decay  # type: ignore
+from regression_analysis import produce_filtered_df  # type: ignore
+from removing_standards import remove_standards_library  # type: ignore
+from single_chromatography import combined_filter_pipeline  # type: ignore
+from smearing_filter import smearing_filter  # type: ignore
+from Standard_library_scoring import (  # type: ignore
     level_2_library_matching,
     level_5_library_matching,
     load_pfas_library,
@@ -159,8 +154,9 @@ def run_pimms_workflow(config):
 
         adjusted_df = fluorinated_density_filter(adjusted_df)
         adjusted_df = mass_defect_filter(
-            adjusted_df, config.mass_defect_lower, config.mass_defect_upper
+            adjusted_df, config.mass_defect_lower_bound, config.mass_defect_upper_bound
         )
+
         adjusted_df = detection_frequency_filter(
             adjusted_df, config.frequency_threshold
         )
@@ -368,6 +364,31 @@ class PimmsGUI(tk.Tk):
             entry.insert(0, str(getattr(self.config, key)))
             entry.grid(row=i, column=1, padx=5, pady=2, sticky="ew")
             self.param_entries[key] = entry
+
+        # [NEW] Frame for Mass Defect Filter parameters
+        mdf_frame = ttk.LabelFrame(tab, text="Mass Defect Filter", padding=(10, 5))
+        mdf_frame.pack(fill="x", padx=10, pady=5, anchor="w")
+
+        ttk.Label(mdf_frame, text="Lower Bound:").grid(
+            row=0, column=0, padx=5, pady=2, sticky="w"
+        )
+        mdf_lower_entry = ttk.Entry(mdf_frame)
+        mdf_lower_entry.insert(
+            0, str(getattr(self.config, "mass_defect_lower_bound", -0.11))
+        )
+        mdf_lower_entry.grid(row=0, column=1, padx=5, pady=2, sticky="w")
+        self.param_entries["mass_defect_lower_bound"] = mdf_lower_entry
+
+        ttk.Label(mdf_frame, text="Upper Bound:").grid(
+            row=1, column=0, padx=5, pady=2, sticky="w"
+        )
+        mdf_upper_entry = ttk.Entry(mdf_frame)
+        mdf_upper_entry.insert(
+            0, str(getattr(self.config, "mass_defect_upper_bound", 0.12))
+        )
+        mdf_upper_entry.grid(row=1, column=1, padx=5, pady=2, sticky="w")
+        self.param_entries["mass_defect_upper_bound"] = mdf_upper_entry
+        # [END NEW]
 
         bs_frame = ttk.LabelFrame(tab, text="Blank Subtraction", padding=(10, 5))
         bs_frame.pack(fill="x", padx=10, pady=5, anchor="w")
