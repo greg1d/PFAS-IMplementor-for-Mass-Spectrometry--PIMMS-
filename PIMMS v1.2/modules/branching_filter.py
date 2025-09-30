@@ -167,21 +167,3 @@ def branching_merge(group_dfs):
     fixed_cols = ["ID", "RT", "DT", "CCS", "m/z"]
     other_cols = [col for col in summary_df.columns if col not in fixed_cols]
     return summary_df[fixed_cols + other_cols]
-
-
-def main():
-    adjusted_df = pd.read_csv("PIMMS v1.2/Data_output/post_smearing_filter.csv")
-
-    mass_error_ppm = 10
-    ccs_tolerance = 2.0
-    rt_tolerance = 0.5
-
-    final_groups = branching_analyze(
-        adjusted_df, mass_error_ppm, ccs_tolerance, rt_tolerance
-    )
-    summary_df = branching_merge(final_groups)
-    print(summary_df.head())
-
-
-if __name__ == "__main__":
-    main()

@@ -61,23 +61,29 @@ def apply_rt_filter(experimental_df, rt_min=1.0, rt_max=10.0):
     return filtered_df
 
 
-def apply_mass_filter(df, mass_min=50.0, mass_max=500.0):
+def apply_mass_filter(experimental_df, mz_min=50.0, mz_max=500.0):
     """
-    Filters rows based on mass.
+    Filters rows from the experimental DataFrame based on m/z values.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the dataset.
-        mass_min (float): Minimum mass threshold.
-        mass_max (float): Maximum mass threshold.
+        experimental_df (pd.DataFrame): DataFrame containing the experimental dataset.
+        rt_min (float): Minimum RT threshold (inclusive).
+        rt_max (float): Maximum RT threshold (inclusive).
 
     Returns:
-        pd.DataFrame: Filtered DataFrame.
+        pd.DataFrame: A new, filtered DataFrame.
     """
-    # Adjust the column name to match the actual column in your dataset
-    column_name = "m/z" if "m/z" in df.columns else "Experimental m/z"
+    # --- 1. Validation ---
+    if "RT" not in experimental_df.columns:
+        raise ValueError("Required column 'RT' not found in the DataFrame.")
 
-    if column_name not in df.columns:
-        raise ValueError(f"Column '{column_name}' not found in the DataFrame.")
+    print(
+        f"Applying m/z filter to experimental data with bounds [{mz_min}, {mz_max}]..."
+    )
 
-    filtered_df = df[(df[column_name] >= mass_min) & (df[column_name] <= mass_max)]
+    # --- 2. Apply Filter ---
+    filtered_df = experimental_df[
+        (experimental_df["m/z"] >= mz_min) & (experimental_df["m/z"] <= mz_max)
+    ].reset_index(drop=True)
+
     return filtered_df
