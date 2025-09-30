@@ -131,6 +131,9 @@ def unsaturated_chain_elimination(adjusted_df, mass_error_ppm=15):
 
 
 def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
+    if adjusted_df.empty:
+        print("[INFO] No features to process for filtering pipeline.")
+        return adjusted_df
     adjusted_df = prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm)
     adjusted_df = group_and_eliminate(adjusted_df, mass_error_ppm)
     adjusted_df = unsaturated_chain_elimination(adjusted_df, mass_error_ppm)

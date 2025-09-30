@@ -68,6 +68,9 @@ def level_2_library_matching(
     Assumes the pfas_library DataFrame has columns named:
     'm/z', 'CCS', 'RT', 'Name', 'Adduct'.
     """
+    if adjusted_df.empty:
+        print("[INFO] No features to process for Level 2 matching.")
+        return pd.DataFrame(), adjusted_df
     # --- The entire "Validate the mapping and translate letters" block has been removed. ---
 
     # --- 1. Validate that the incoming library DataFrame has been standardized ---
@@ -159,6 +162,9 @@ def level_5_library_matching(
     external_targets_library,
     mass_error_ppm=10,
 ):
+    if unmatched_df.empty:
+        print("[INFO] No unmatched features to process for Level 5 matching.")
+        return pd.DataFrame(), unmatched_df
     """Matches unmatched_df with a pre-standardized external library."""
     matched_dict = {}
     matched_ids = set()

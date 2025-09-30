@@ -12,6 +12,9 @@ def apply_min_intensity_filter(experimental_df, metadata_cols, min_intensity=100
         pd.DataFrame: A new DataFrame with the intensity filter applied to sample columns.
     """
     # Create a copy to ensure the original DataFrame outside the function is not modified
+    if experimental_df.empty:
+        print("[INFO] No data available to apply intensity filter.")
+        return experimental_df
     filtered_df = experimental_df.copy()
 
     # --- The Fix: Dynamically identify sample columns by excluding metadata ---
@@ -45,6 +48,9 @@ def apply_rt_filter(experimental_df, rt_min=1.0, rt_max=10.0):
     Returns:
         pd.DataFrame: A new, filtered DataFrame.
     """
+    if experimental_df.empty:
+        print("[INFO] No data available to apply RT filter.")
+        return experimental_df
     # --- 1. Validation ---
     if "RT" not in experimental_df.columns:
         raise ValueError("Required column 'RT' not found in the DataFrame.")
@@ -73,9 +79,12 @@ def apply_mass_filter(experimental_df, mz_min=50.0, mz_max=500.0):
     Returns:
         pd.DataFrame: A new, filtered DataFrame.
     """
+    if experimental_df.empty:
+        print("[INFO] No data available to apply m/z filter.")
+        return experimental_df
     # --- 1. Validation ---
-    if "RT" not in experimental_df.columns:
-        raise ValueError("Required column 'RT' not found in the DataFrame.")
+    if "m/z" not in experimental_df.columns:
+        raise ValueError("Required column 'm/z' not found in the DataFrame.")
 
     print(
         f"Applying m/z filter to experimental data with bounds [{mz_min}, {mz_max}]..."
