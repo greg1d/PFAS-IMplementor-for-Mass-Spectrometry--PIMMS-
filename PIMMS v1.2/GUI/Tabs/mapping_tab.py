@@ -19,12 +19,11 @@ class MappingTab(ttk.Frame):
         # --- NEW: Define all help texts in a structured dictionary ---
         help_texts = {
             "metadata": {
-                "Precursor mass": "The column letter in the Raw Data file for the precursor mass (m/z).",
+                "ID": "The column letter in the Raw Data file for the unique identifier (ID) for each feature.",
+                "DT": "The column letter in the Raw Data file for the drift time (DT).",
                 "CCS": "The column letter in the Raw Data file for the Collisional Cross-Section (CCS).",
                 "RT": "The column letter in the Raw Data file for the Retention Time (RT).",
-                "Precursor ion": "The column letter for the precursor ion formula or name.",
-                "m/z": "The column letter for the calculated m/z value.",
-                "z": "The column letter for the charge state (z).",
+                "m/z": "The column letter for the m/z value.",
             },
             "sample_ranges": {
                 "control_start_col": "The starting column letter for your control/blank samples (e.g., 'H').",
@@ -33,15 +32,15 @@ class MappingTab(ttk.Frame):
                 "experimental_end_col": "The ending column letter for your experimental samples.",
             },
             "level_2": {
-                "Precursor mass": "The column letter in the Level 2 Library for the precursor mass.",
-                "CCS": "The column letter in the Level 2 Library for the CCS value.",
-                "RT": "The column letter in the Level 2 Library for the Retention Time.",
-                "Primary Ion": "The column letter in the Level 2 Library for the primary ion.",
-                "Adduct": "The column letter in the Level 2 Library for the adduct type.",
+                "Name": "The column letter in the Level 2 Library for the compound's name.",
+                "Adduct": "The column letter in the Level 2 Library specifying the adduct type (e.g., M+H, M+Na, M-H, M-).",
+                "m/z": "The column letter in the Level 2 Library for the precursor mass-to-charge ratio (m/z).",
+                "CCS": "The column letter in the Level 2 Library for the Collisional Cross-Section (CCS) value.",
+                "RT": "The column letter in the Level 2 Library for the Retention Time (RT).",
             },
             "level_5": {
-                "Compound Name": "The column letter in the Level 5 Library for the compound's name.",
-                "Formula": "The column letter in the Level 5 Library for the chemical formula.",
+                "Name": "The column letter in the Level 5 Library for the compound's name.",
+                "m/z": "The column letter in the Level 5 Library for the precursor mass-to-charge ratio (m/z).",
             },
         }
 

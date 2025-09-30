@@ -27,13 +27,13 @@ class Config:
         self.experimental_start_col = "F"
         self.experimental_end_col = "AX"
         self.level_2_library_mapping = {
-            "name": "B",
-            "adduct": "D",
-            "ccs": "E",
-            "rt": "F",
-            "mz": "G",
+            "Name": "B",
+            "Adduct": "D",
+            "CCS": "E",
+            "RT": "F",
+            "m/z": "G",
         }
-        self.level_5_library_mapping = {"name": "A", "mz": "D"}
+        self.level_5_library_mapping = {"Name": "A", "m/z": "D"}
 
         # --- Workflow Parameters ---
         self.blank_subtraction_method = "2"  # Default to method 2
