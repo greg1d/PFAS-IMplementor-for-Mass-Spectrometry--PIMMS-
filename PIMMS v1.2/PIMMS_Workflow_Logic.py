@@ -161,7 +161,6 @@ def run_pimms_workflow(config):
             control_df=control_df,
             experimental_df=experimental_df,
             metadata_cols=metadata_cols,  # Pass the list of metadata columns
-            id_column=config.id_column,  # Pass the name of the identifier column
             std_devs=config.blank_subtraction_std_dev,
         )
 

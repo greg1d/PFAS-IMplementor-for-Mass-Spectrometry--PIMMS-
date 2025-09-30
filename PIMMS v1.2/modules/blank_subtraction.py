@@ -206,9 +206,7 @@ def count_non_zero_rows(df):
     return group_average, group_std_dev
 
 
-def method_1_blank_subtraction(
-    control_df, experimental_df, metadata_cols, id_column="ID"
-):
+def method_1_blank_subtraction(control_df, experimental_df, metadata_cols):
     """
     Subtracts the highest control value from the experimental samples for each row.
 
@@ -228,25 +226,7 @@ def method_1_blank_subtraction(
             - control_mean (pd.Series): The mean of control values for each row.
             - control_std (pd.Series): The standard deviation of control values for each row.
     """
-    # --- 1. Validation Step ---
-    # Ensure the specified ID column exists and the DataFrames are perfectly aligned.
-    if id_column not in control_df.columns or id_column not in experimental_df.columns:
-        raise ValueError(
-            f"The specified id_column '{id_column}' was not found in both DataFrames."
-        )
 
-    if not control_df[id_column].equals(experimental_df[id_column]):
-        raise ValueError(
-            f"The values in the '{id_column}' column do not match between the control and "
-            "experimental DataFrames. Cannot perform row-wise subtraction on misaligned data."
-        )
-
-    print(
-        f"✔️ Validation successful: '{id_column}' column is identical in both DataFrames."
-    )
-
-    # --- 2. Dynamically Identify Sample Columns ---
-    # This avoids hardcoding positions with .iloc[]
     control_sample_cols = [
         col for col in control_df.columns if col not in metadata_cols
     ]
@@ -273,7 +253,7 @@ def method_1_blank_subtraction(
 
 
 def method_2_blank_subtraction(
-    control_df, experimental_df, metadata_cols, id_column="ID", std_deviation_factor=1
+    control_df, experimental_df, metadata_cols, std_deviation_factor=1
 ):
     """
     Subtracts the control mean plus a factor of the control standard deviation
@@ -295,23 +275,7 @@ def method_2_blank_subtraction(
             - control_mean (pd.Series): The mean of control values for each row.
             - control_std (pd.Series): The standard deviation of control values for each row.
     """
-    # --- 1. Validation Step (replaces align_control_experimental) ---
-    if id_column not in control_df.columns or id_column not in experimental_df.columns:
-        raise ValueError(
-            f"The specified id_column '{id_column}' was not found in both DataFrames."
-        )
 
-    if not control_df[id_column].equals(experimental_df[id_column]):
-        raise ValueError(
-            f"The values in the '{id_column}' column do not match. "
-            "Cannot perform row-wise subtraction on misaligned data."
-        )
-
-    print(
-        f"✔️ Validation successful: '{id_column}' column is identical in both DataFrames."
-    )
-
-    # --- 2. Dynamically Identify Sample Columns ---
     control_sample_cols = [
         col for col in control_df.columns if col not in metadata_cols
     ]
@@ -349,7 +313,7 @@ def method_2_blank_subtraction(
 
 
 def perform_blank_subtraction(
-    method, control_df, experimental_df, metadata_cols, id_column="ID", std_devs=3.0
+    method, control_df, experimental_df, metadata_cols, std_devs=3.0
 ):
     """
     Performs blank subtraction by dispatching to the selected method.
@@ -375,7 +339,6 @@ def perform_blank_subtraction(
             control_df=control_df,
             experimental_df=experimental_df,
             metadata_cols=metadata_cols,
-            id_column=id_column,
         )
         return adjusted_df, control_mean, control_std
 
@@ -385,7 +348,6 @@ def perform_blank_subtraction(
             control_df=control_df,
             experimental_df=experimental_df,
             metadata_cols=metadata_cols,
-            id_column=id_column,
             std_deviation_factor=std_devs,
         )
         return adjusted_df, control_mean, control_std
