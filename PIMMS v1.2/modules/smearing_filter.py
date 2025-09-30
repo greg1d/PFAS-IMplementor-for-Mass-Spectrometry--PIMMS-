@@ -1,49 +1,79 @@
-def smearing_filter(adjusted_df, rt_tolerance=0.5, ccs_tolerance=2):
+def smearing_filter(
+    experimental_df,
+    mz_col="m/z",
+    rt_col="RT",
+    ccs_col="CCS",
+    rt_tolerance=0.5,
+    ccs_tolerance=2,
+):
     """
-    Filters rows from the adjusted DataFrame to eliminate mass shift rows based on tolerances.
-    If a peak is significantly stronger in a `.d` column, the weaker peak is set to 0 in that column.
+    Filters out artifact peaks caused by smearing or isotopes.
+
+    For each peak, it looks for a nearby peak with a slightly lower mass. If that
+    lower-mass peak is significantly stronger (50x) in a given sample, the
+    intensity of the higher-mass peak is set to 0 for that sample.
 
     Args:
-        adjusted_df (pd.DataFrame): The adjusted DataFrame containing intensity and metadata columns.
-        rt_tolerance (float): Retention time tolerance.
-        ccs_tolerance (float): Tolerance for CCS as a percentage.
+        experimental_df (pd.DataFrame): DataFrame with metadata and experimental samples.
+        metadata_cols (list): List of metadata column names.
+        mz_col (str): Name of the mass-to-charge ratio column.
+        rt_col (str): Name of the retention time column.
+        ccs_col (str): Name of the collisional cross-section column.
+        rt_tolerance (float): Retention time tolerance for matching peaks.
+        ccs_tolerance (float): CCS tolerance percentage for matching peaks.
 
     Returns:
-        pd.DataFrame: Filtered DataFrame where weaker intensities are zeroed out in relevant `.d` columns.
+        pd.DataFrame: A new DataFrame with smearing artifacts zeroed out.
     """
-    # Identify intensity columns containing ".d"
-    intensity_columns = [col for col in adjusted_df.columns if ".d" in col]
-    if not intensity_columns:
-        raise ValueError("No intensity columns found in the DataFrame.")
+    # --- 1. Setup and Validation ---
+    # Create a copy to avoid modifying the original DataFrame
+    df_filtered = experimental_df.copy()
 
-    # Sort DataFrame by Experimental m/z and reset index
-    adjusted_df = adjusted_df.sort_values("m/z").reset_index(drop=True)
+    # Dynamically identify sample columns by excluding metadata
+    sample_cols = [col for col in df_filtered.columns]
 
-    # Iterate through rows to find and eliminate weaker intensity values
-    for i in range(len(adjusted_df)):
-        mz1 = adjusted_df.loc[i, "m/z"]
-        ccs1 = adjusted_df.loc[i, "CCS"]
-        retention_time1 = adjusted_df.loc[i, "RT"]
+    # Check if required metadata columns exist
+    required_cols = [mz_col, rt_col, ccs_col]
+    for col in required_cols:
+        if col not in df_filtered.columns:
+            raise ValueError(f"Required column '{col}' not found in the DataFrame.")
 
-        # Get potential matches with a **lower mass (-2 Da cutoff)** but within tolerances
-        potential_matches = adjusted_df[
-            (adjusted_df["m/z"] >= mz1 - 2)
-            & (adjusted_df["m/z"] < mz1)
-            & (abs(adjusted_df["CCS"] - ccs1) / ccs1 * 100 < ccs_tolerance)
-            & (abs(adjusted_df["RT"] - retention_time1) <= rt_tolerance)
+    if not sample_cols:
+        print("[WARNING] No sample columns found for smearing filter.")
+        return df_filtered
+
+    print(f"Applying smearing filter to sample columns: {sample_cols}")
+
+    # Sort by m/z for efficient searching, and reset index
+    df_sorted = df_filtered.sort_values(mz_col).reset_index(drop=True)
+
+    # --- 2. Core Filtering Logic ---
+    # Iterate through each row (peak)
+    for i in range(len(df_sorted)):
+        mz1 = df_sorted.loc[i, mz_col]
+        ccs1 = df_sorted.loc[i, ccs_col]
+        rt1 = df_sorted.loc[i, rt_col]
+
+        # Find potential artifact sources: peaks with a slightly lower mass but within RT and CCS tolerance
+        potential_matches = df_sorted[
+            (df_sorted[mz_col] >= mz1 - 2)
+            & (df_sorted[mz_col] < mz1)
+            & (abs(df_sorted[ccs_col] - ccs1) / ccs1 * 100 < ccs_tolerance)
+            & (abs(df_sorted[rt_col] - rt1) <= rt_tolerance)
         ]
 
-        for j in potential_matches.index:
-            if j >= i:
-                continue
+        # If matching lower-mass peaks are found, compare intensities
+        if not potential_matches.empty:
+            for j in potential_matches.index:
+                # Compare each sample column individually
+                for col in sample_cols:
+                    intensity_high_mass = df_sorted.at[i, col]
+                    intensity_low_mass = df_sorted.at[j, col]
 
-            # Compare each intensity column separately
-            for col in intensity_columns:
-                int1 = adjusted_df.at[i, col]
-                int2 = adjusted_df.at[j, col]
+                    # If the lower mass peak is >50x stronger, it's likely the source.
+                    # Zero out the higher mass peak's intensity in this specific sample.
+                    if intensity_low_mass > 50 * intensity_high_mass:
+                        df_sorted.at[i, col] = 0
 
-                # If the intensity of peak j (lower mass) is much stronger, zero out peak i in that column
-                if int2 > 50 * int1:
-                    adjusted_df.at[i, col] = 0
-
-    return adjusted_df
+    print("✔️ Smearing filter applied.")
+    return df_sorted

@@ -169,20 +169,27 @@ def run_pimms_workflow(config):
         adjusted_df = apply_min_intensity_filter(
             experimental_df, metadata_cols, config.min_intensity
         )
+        print("after intensity filter", len(adjusted_df))
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
+        print("after rt  filter", len(adjusted_df))
+
         adjusted_df = apply_mass_filter(adjusted_df, config.mass_min, config.mass_max)
+        print("after mass filter", len(adjusted_df))
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
+        print("after smearing filter", len(adjusted_df))
         groups = branching_analyze(
             adjusted_df,
             mass_error_ppm=config.mass_error_ppm,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
+        print(len(groups), "groups found")
         adjusted_df = branching_merge(groups)
+        print("after branching", len(adjusted_df))
         groups = mono_analyze(
             adjusted_df,
             z_range=range(1, 4),
@@ -190,15 +197,19 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
+        print(len(groups), "mono groups found")
         adjusted_df = mono_merge(adjusted_df, groups)
+        print("after monoisotopic merging", len(adjusted_df))
         adjusted_df = fluorinated_density_filter(adjusted_df)
+        print("after density filter", len(adjusted_df))
         adjusted_df = mass_defect_filter(
             adjusted_df, config.mass_defect_lower, config.mass_defect_upper
         )
+        print("after mass defect filter", len(adjusted_df))
         adjusted_df = detection_frequency_filter(
-            adjusted_df, config.frequency_threshold
+            adjusted_df, metadata_cols, config.frequency_threshold
         )
-
+        print("after detection frequency filter", len(adjusted_df))
         # --- FIX: The call now passes the prepared 'standards_df' DataFrame ---
         adjusted_df = remove_standards_library(
             adjusted_df,
@@ -207,7 +218,7 @@ def run_pimms_workflow(config):
             ccs_error_percentage=config.ccs_tolerance,
             z=1,
         )
-
+        print("after standards removal", len(adjusted_df))
         # --- LIBRARY MATCHING (unchanged) ---
         print("[INFO] Matching features against Level 2 Library...")
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
@@ -223,12 +234,11 @@ def run_pimms_workflow(config):
         external_matched_df, external_unmatched_df = level_5_library_matching(
             likely_unmatched_df, external_targets_library, config.mass_error_ppm
         )
-
         adjusted_df = pd.concat(
             [likely_matched_df, external_matched_df, external_unmatched_df],
             ignore_index=True,
         )
-
+        print("After scoring:", len(adjusted_df))
         # --- FINAL ANALYSIS STEPS (unchanged) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
         adjusted_df = produce_filtered_df(
@@ -238,11 +248,16 @@ def run_pimms_workflow(config):
             rt_regression_filter=config.rt_regression_filter,
             ccs_regression_filter=config.ccs_regression_filter,
         )
+        print("After regression:", len(adjusted_df))
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )
+        print("After combined filtering:", len(adjusted_df))
+
         adjusted_df = find_matching_mass_relationships(adjusted_df)
+        print("After adducts:", len(adjusted_df))
         adjusted_df = find_neutral_loss_matches(adjusted_df)
+        print("After neutral loss:", len(adjusted_df))
 
         # --- SAVE OUTPUT (unchanged) ---
         output_dir = os.path.dirname(config.output_path)
@@ -251,6 +266,7 @@ def run_pimms_workflow(config):
         adjusted_df.to_csv(config.output_path, index=False)
 
         print(f"[SUCCESS] Final adjusted dataset saved to {config.output_path}")
+        print(adjusted_df)
         messagebox.showinfo(
             "Success",
             f"Workflow completed successfully!\n\nOutput saved to:\n{config.output_path}",

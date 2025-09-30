@@ -48,9 +48,9 @@ def prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm):
         # Mark for exclusion if CCS is too high
         if matching_ccs.size > 0 and ccs_other > 1.03 * matching_ccs.max():
             indices_to_exclude.append(idx)
-
     # Drop rows with high CCS
     adjusted_df_filtered = adjusted_df.drop(index=indices_to_exclude).copy()
+    print(f"✔️ CCS prescreening applied: removed {len(indices_to_exclude)}")
     return adjusted_df_filtered
 
 
@@ -92,6 +92,8 @@ def group_and_eliminate(adjusted_df, mass_error_ppm):
 
     # Drop excluded group features from adjusted_df
     filtered_df = adjusted_df.drop(index=indices_to_remove).copy()
+    print(f"✔️ Group elimination applied: removed {len(indices_to_remove)}")
+
     return filtered_df
 
 
@@ -123,6 +125,7 @@ def unsaturated_chain_elimination(adjusted_df, mass_error_ppm=15):
         ]
         if not matches.empty:
             to_exclude.update(matches.index)
+    print(f"✔️ after unsaturated chain elimination: removed {len(to_exclude)}")
 
     return adjusted_df.drop(index=to_exclude).reset_index(drop=True)
 
