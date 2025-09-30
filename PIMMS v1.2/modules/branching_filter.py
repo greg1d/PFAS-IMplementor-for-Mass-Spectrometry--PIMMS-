@@ -136,16 +136,28 @@ def branching_analyze(
     return rt_groups
 
 
-def branching_merge(group_dfs):
+def branching_merge(group_dfs, original_df, metadata_cols):
     """
-    For each group DataFrame:
-    - Take the average of m/z, RT, CCS (keeping original names)
-    - Take the max of all '.d' columns
-    - Output columns ordered: ID, RT, DT, CCS, m/z, [all .d columns...]
+    [CORRECTED] For each group DataFrame, merge and summarize features.
+    Identifies sample columns by excluding metadata columns.
     """
-    summaries = []
+    # --- Guard Clause for empty list of groups ---
+    if not group_dfs:
+        print("[INFO] No groups to merge. Returning a structured empty DataFrame.")
+        # Determine final columns from the original DataFrame and metadata list
+        output_metadata = ["ID", "RT", "DT", "CCS", "m/z"]
+        # The sample columns are all columns from original_df that are not metadata
+        sample_cols = [col for col in original_df.columns if col not in metadata_cols]
+        # Ensure the final columns only contain metadata that actually exists
+        present_output_metadata = [
+            c for c in output_metadata if c in original_df.columns
+        ]
+        final_cols = present_output_metadata + sample_cols
+        return pd.DataFrame(columns=final_cols)
 
+    summaries = []
     for idx, group in enumerate(group_dfs, 1):
+        # This summary logic for metadata is fine
         summary = {
             "ID": group.loc[group.index[0], "ID"],
             "RT": group["RT"].mean(),
@@ -154,16 +166,18 @@ def branching_merge(group_dfs):
             "m/z": group["m/z"].mean(),
         }
 
-        # Include all .d columns with max value
-        d_cols = [col for col in group.columns if ".d" in col]
-        for col in d_cols:
+        # --- THE FIX: Identify sample columns by EXCLUSION, not by '.d' ---
+        sample_cols = [col for col in group.columns if col not in metadata_cols]
+        for col in sample_cols:
             summary[col] = group[col].max()
 
         summaries.append(summary)
 
     summary_df = pd.DataFrame(summaries)
 
-    # Reorder columns to: ID, RT, DT, CCS, m/z, [all others]
+    # Robust column reordering remains the same
     fixed_cols = ["ID", "RT", "DT", "CCS", "m/z"]
-    other_cols = [col for col in summary_df.columns if col not in fixed_cols]
-    return summary_df[fixed_cols + other_cols]
+    present_fixed_cols = [c for c in fixed_cols if c in summary_df.columns]
+    other_cols = [col for col in summary_df.columns if col not in present_fixed_cols]
+
+    return summary_df[present_fixed_cols + other_cols]

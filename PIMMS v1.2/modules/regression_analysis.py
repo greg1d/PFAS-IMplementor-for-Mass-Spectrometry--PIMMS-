@@ -39,6 +39,9 @@ def produce_filtered_df(
     ccs_regression_filter,
 ):
     """Apply RT and/or CCS regression filters to a pre-standardized DataFrame."""
+    if df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping regression filters.")
+        return df
     filtered_df = df.copy()
 
     # --- CHANGED: Remove the lookup from the config map ---

@@ -15,7 +15,6 @@ def detection_frequency_filter(experimental_df, metadata_cols, frequency_thresho
         pd.DataFrame: A new DataFrame with low-frequency rows removed.
     """
     # --- 1. Identify Sample Columns ---
-    # This robustly finds sample columns by excluding metadata, replacing the ".d" search.
     sample_cols = [col for col in experimental_df.columns if col not in metadata_cols]
 
     if not sample_cols:

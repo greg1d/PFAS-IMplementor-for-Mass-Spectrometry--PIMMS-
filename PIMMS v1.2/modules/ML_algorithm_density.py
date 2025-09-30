@@ -10,6 +10,10 @@ def fluorinated_density_filter(adjusted_df):
     Returns:
         pd.DataFrame: Filtered DataFrame with non-conforming rows removed.
     """
+    if adjusted_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping fluorinated density filter.")
+        return adjusted_df
+
     filtered_df = adjusted_df[
         adjusted_df.apply(lambda row: row["m/z"] * 0.19 + 110.28 > row["CCS"], axis=1)
     ]

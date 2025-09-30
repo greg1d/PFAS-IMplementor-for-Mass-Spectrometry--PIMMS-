@@ -14,6 +14,9 @@ def remove_standards_library(
     standards library DataFrame, including M-1 artifacts. Assumes both
     DataFrames have 'm/z' and 'CCS' columns.
     """
+    if adjusted_df.empty or standards_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping standards library removal.")
+        return adjusted_df
     try:
         print(
             "[INFO] Identifying features for removal based on standards library (including M-1 artifacts)..."

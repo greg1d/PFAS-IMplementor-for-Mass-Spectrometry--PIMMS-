@@ -96,7 +96,15 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
     The representative feature is the row with the lowest m/z in the group.
     The intensity values are preserved from the first peak.
     """
-    intensity_columns = [col for col in adjusted_df.columns if ".d.DeMP" in col]
+    if adjusted_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping neutral loss checking.")
+        return adjusted_df
+
+    intensity_columns = [
+        col
+        for col in adjusted_df.columns
+        if col not in ["ID", "RT", "DT", "CCS", "m/z"]
+    ]
 
     for group in groups:
         # Find the rows corresponding to the group

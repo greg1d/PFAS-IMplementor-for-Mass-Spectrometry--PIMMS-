@@ -21,6 +21,10 @@ def find_similar_peaks(array, target_mass, mass_error_ppm):
 
 def find_neutral_loss_matches(df, mass_error_ppm=15):
     """Finds neutral loss matches and removes m/z2 if Classification Type != 'Likely'."""
+    if df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping neutral loss checking.")
+        return df
+
     mz_values = sorted(df["m/z"].dropna().unique())
 
     neutral_losses = [

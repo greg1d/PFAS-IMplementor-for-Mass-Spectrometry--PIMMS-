@@ -1,28 +1,56 @@
 def mass_defect_filter(
-    adjusted_df, lower_mass_filter_bound=-0.11, upper_mass_filter_bound=0.12
+    experimental_df,
+    mz_col="m/z",
+    lower_mass_filter_bound=-0.11,
+    upper_mass_filter_bound=0.12,
 ):
     """
-    Filters masses in the 'm/z' column that are within -0.11 to 0.12 of their nearest integer.
+    [MODIFIED] Filters a single DataFrame based on mass defect.
+    Handles empty inputs gracefully.
 
     Args:
-        adjusted_df (pd.DataFrame): Input DataFrame with 'm/z' column.
+        experimental_df (pd.DataFrame): Input DataFrame with a mass column.
+        mz_col (str): Name of the mass-to-charge ratio column to filter on.
+        lower_mass_filter_bound (float): The lower bound for the mass defect.
+        upper_mass_filter_bound (float): The upper bound for the mass defect.
 
     Returns:
-        pd.DataFrame: Filtered DataFrame containing only masses within the specified range.
+        pd.DataFrame: A new, filtered DataFrame.
     """
-    if "m/z" not in adjusted_df.columns:
-        raise ValueError("Column 'm/z' not found in the DataFrame.")
+    # --- FIX 1: Guard Clause for empty DataFrame ---
+    if experimental_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping mass defect filter.")
+        return experimental_df
+
+    # --- FIX 2: Use mz_col parameter instead of hardcoded "m/z" ---
+    if mz_col not in experimental_df.columns:
+        raise ValueError(f"Column '{mz_col}' not found in the DataFrame.")
+
+    initial_rows = len(experimental_df)
+    print(
+        f"Applying mass defect filter on column '{mz_col}' with bounds [{lower_mass_filter_bound}, {upper_mass_filter_bound}]..."
+    )
+
+    # Use a temporary copy to avoid SettingWithCopyWarning
+    df_copy = experimental_df.copy()
 
     # Compute the deviation from the nearest integer
-    adjusted_df["mass_defect"] = adjusted_df["m/z"] - adjusted_df["m/z"].round()
+    df_copy["mass_defect"] = df_copy[mz_col] - df_copy[mz_col].round()
 
-    # Filter rows where the deviation is within -0.11 to 0.12
-    adjusted_df = adjusted_df[
-        (adjusted_df["mass_defect"] >= lower_mass_filter_bound)
-        & (adjusted_df["mass_defect"] <= upper_mass_filter_bound)
+    # Filter rows where the deviation is within the specified bounds
+    filtered_df = df_copy[
+        (df_copy["mass_defect"] >= lower_mass_filter_bound)
+        & (df_copy["mass_defect"] <= upper_mass_filter_bound)
     ].copy()
 
-    # Drop the helper column
-    adjusted_df.drop(columns=["mass_defect"], inplace=True)
+    # Drop the helper column and reset the index
+    filtered_df.drop(columns=["mass_defect"], inplace=True)
+    filtered_df.reset_index(drop=True, inplace=True)
 
-    return adjusted_df
+    final_rows = len(filtered_df)
+    rows_removed = initial_rows - final_rows
+    print(
+        f"✔️ Mass defect filter applied. Removed {rows_removed} rows. {final_rows} rows remain."
+    )
+
+    return filtered_df

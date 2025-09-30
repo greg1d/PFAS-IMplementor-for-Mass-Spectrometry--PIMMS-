@@ -27,6 +27,10 @@ def smearing_filter(
     """
     # --- 1. Setup and Validation ---
     # Create a copy to avoid modifying the original DataFrame
+    if experimental_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping smearing filter.")
+        return experimental_df
+
     df_filtered = experimental_df.copy()
 
     # Dynamically identify sample columns by excluding metadata

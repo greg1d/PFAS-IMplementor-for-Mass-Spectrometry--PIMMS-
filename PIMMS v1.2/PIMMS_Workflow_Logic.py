@@ -187,8 +187,10 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-        print(len(groups), "groups found")
-        adjusted_df = branching_merge(groups)
+
+        adjusted_df = branching_merge(
+            group_dfs=groups, original_df=adjusted_df, metadata_cols=metadata_cols
+        )
         print("after branching", len(adjusted_df))
         groups = mono_analyze(
             adjusted_df,

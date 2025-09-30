@@ -20,7 +20,9 @@ def find_similar_peaks(array, mass, mass_error_ppm=10):
 
 def remove_post_source_decay(adjusted_df):
     """Removes post-source decay candidates by keeping the feature with the lower CCS using ID-based removal."""
-
+    if adjusted_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping post-source-decay filters.")
+        return adjusted_df
     # Extract 'likely' features
     likely_df = adjusted_df[adjusted_df["Classification Type"] == "likely"].copy()
 
