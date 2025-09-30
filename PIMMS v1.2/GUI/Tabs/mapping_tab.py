@@ -2,6 +2,9 @@
 
 from tkinter import ttk
 
+# --- NEW: Import the Tooltip class ---
+from ..widgets.tooltip import Tooltip
+
 
 class MappingTab(ttk.Frame):
     def __init__(self, parent, config, *args, **kwargs):
@@ -12,15 +15,48 @@ class MappingTab(ttk.Frame):
 
     def _create_widgets(self):
         """Creates all widgets for the column mappings tab."""
+
+        # --- NEW: Define all help texts in a structured dictionary ---
+        help_texts = {
+            "metadata": {
+                "Precursor mass": "The column letter in the Raw Data file for the precursor mass (m/z).",
+                "CCS": "The column letter in the Raw Data file for the Collisional Cross-Section (CCS).",
+                "RT": "The column letter in the Raw Data file for the Retention Time (RT).",
+                "Precursor ion": "The column letter for the precursor ion formula or name.",
+                "m/z": "The column letter for the calculated m/z value.",
+                "z": "The column letter for the charge state (z).",
+            },
+            "sample_ranges": {
+                "control_start_col": "The starting column letter for your control/blank samples (e.g., 'H').",
+                "control_end_col": "The ending column letter for your control/blank samples (e.g., 'K').",
+                "experimental_start_col": "The starting column letter for your experimental samples.",
+                "experimental_end_col": "The ending column letter for your experimental samples.",
+            },
+            "level_2": {
+                "Precursor mass": "The column letter in the Level 2 Library for the precursor mass.",
+                "CCS": "The column letter in the Level 2 Library for the CCS value.",
+                "RT": "The column letter in the Level 2 Library for the Retention Time.",
+                "Primary Ion": "The column letter in the Level 2 Library for the primary ion.",
+                "Adduct": "The column letter in the Level 2 Library for the adduct type.",
+            },
+            "level_5": {
+                "Compound Name": "The column letter in the Level 5 Library for the compound's name.",
+                "Formula": "The column letter in the Level 5 Library for the chemical formula.",
+            },
+        }
+
+        # --- Metadata Frame ---
         meta_frame = ttk.LabelFrame(
             self, text="Metadata Column Letters (Raw Data)", padding=(10, 5)
         )
         meta_frame.pack(fill="x", padx=10, pady=5)
         for i, (key, val) in enumerate(self.config.metadata_mapping.items()):
+            help_text = help_texts["metadata"].get(key, "No details.")
             self._create_mapping_input(
-                meta_frame, key, f"meta_{key}", val, i // 3, i % 3
+                meta_frame, key, f"meta_{key}", val, i // 3, i % 3, help_text
             )
 
+        # --- Sample Ranges Frame ---
         sample_frame = ttk.LabelFrame(
             self, text="Sample Column Ranges (Raw Data)", padding=(10, 5)
         )
@@ -32,6 +68,7 @@ class MappingTab(ttk.Frame):
             self.config.control_start_col,
             0,
             0,
+            help_texts["sample_ranges"]["control_start_col"],
         )
         self._create_mapping_input(
             sample_frame,
@@ -40,6 +77,7 @@ class MappingTab(ttk.Frame):
             self.config.control_end_col,
             0,
             1,
+            help_texts["sample_ranges"]["control_end_col"],
         )
         self._create_mapping_input(
             sample_frame,
@@ -48,6 +86,7 @@ class MappingTab(ttk.Frame):
             self.config.experimental_start_col,
             1,
             0,
+            help_texts["sample_ranges"]["experimental_start_col"],
         )
         self._create_mapping_input(
             sample_frame,
@@ -56,31 +95,50 @@ class MappingTab(ttk.Frame):
             self.config.experimental_end_col,
             1,
             1,
+            help_texts["sample_ranges"]["experimental_end_col"],
         )
 
+        # --- Level 2 Library Frame ---
         l2_frame = ttk.LabelFrame(
             self, text="Level 2 Library Column Letters", padding=(10, 5)
         )
         l2_frame.pack(fill="x", padx=10, pady=5)
         for i, (key, val) in enumerate(self.config.level_2_library_mapping.items()):
-            self._create_mapping_input(l2_frame, key, f"l2_{key}", val, i // 3, i % 3)
+            help_text = help_texts["level_2"].get(key, "No details.")
+            self._create_mapping_input(
+                l2_frame, key, f"l2_{key}", val, i // 3, i % 3, help_text
+            )
 
+        # --- Level 5 Library Frame ---
         l5_frame = ttk.LabelFrame(
             self, text="Level 5 Library Column Letters", padding=(10, 5)
         )
         l5_frame.pack(fill="x", padx=10, pady=5)
         for i, (key, val) in enumerate(self.config.level_5_library_mapping.items()):
-            self._create_mapping_input(l5_frame, key, f"l5_{key}", val, i // 2, i % 2)
+            help_text = help_texts["level_5"].get(key, "No details.")
+            self._create_mapping_input(
+                l5_frame, key, f"l5_{key}", val, i // 2, i % 2, help_text
+            )
 
-    def _create_mapping_input(self, parent, text, key, default, row, col):
-        """Helper to create a label and entry for a mapping."""
+    # --- MODIFIED: Method now accepts 'help_text' ---
+    def _create_mapping_input(self, parent, text, key, default, row, col, help_text=""):
+        """Helper to create a label, entry, and help icon for a mapping."""
+        # The Label and Entry are placed in columns relative to 'col'
         ttk.Label(parent, text=text + ":").grid(
-            row=row, column=col * 2, padx=5, pady=2, sticky="w"
+            row=row, column=col * 3, padx=5, pady=2, sticky="w"
         )
         entry = ttk.Entry(parent, width=8)
         entry.insert(0, default)
-        entry.grid(row=row, column=col * 2 + 1, padx=5, pady=2, sticky="w")
+        entry.grid(row=row, column=col * 3 + 1, padx=5, pady=2, sticky="w")
         self.mapping_entries[key] = entry
+
+        # --- NEW: Add the help icon and attach the tooltip ---
+        if help_text:  # Only add an icon if there is help text
+            help_label = ttk.Label(parent, text=" (?) ", cursor="question_arrow")
+            help_label.grid(
+                row=row, column=col * 3 + 2, padx=(0, 10), pady=2, sticky="w"
+            )
+            Tooltip(help_label, text=help_text)
 
     def update_config(self, config_obj):
         """Updates the main config object with values from this tab."""
