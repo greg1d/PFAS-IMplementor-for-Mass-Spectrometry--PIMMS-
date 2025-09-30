@@ -166,7 +166,9 @@ def run_pimms_workflow(config):
 
         # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
         print("[INFO] Applying filters to adjusted dataset...")
-        adjusted_df = apply_min_intensity_filter(adjusted_df, config.min_intensity)
+        adjusted_df = apply_min_intensity_filter(
+            experimental_df, metadata_cols, config.min_intensity
+        )
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
         adjusted_df = apply_mass_filter(adjusted_df, config.mass_min, config.mass_max)
         adjusted_df = smearing_filter(

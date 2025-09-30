@@ -1,27 +1,44 @@
 from blank_subtraction import count_non_zero_rows
 
 
-def apply_min_intensity_filter(df, min_intensity=100):
+def apply_min_intensity_filter(experimental_df, metadata_cols, min_intensity=100):
     """
-    Sets values below the minimum intensity threshold in '.d' columns to 0.
-    Keeps all rows intact.
+    Sets values below a minimum intensity threshold to 0, operating only on
+    experimental sample columns.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the dataset.
-        min_intensity (float): Minimum intensity threshold.
+        experimental_df (pd.DataFrame): DataFrame containing metadata and experimental samples.
+        metadata_cols (list): A list of the metadata column names, which will be excluded from filtering.
+        min_intensity (float): The minimum intensity threshold.
 
     Returns:
-        pd.DataFrame: Modified DataFrame with intensity values below the threshold set to 0.
+        pd.DataFrame: A new DataFrame with the intensity filter applied to sample columns.
     """
-    d_columns = [col for col in df.columns if ".d" in col]
-    if not d_columns:
-        raise ValueError("No '.d' columns found for intensity filtering.")
+    # Create a copy to ensure the original DataFrame outside the function is not modified
+    filtered_df = experimental_df.copy()
 
-    # Apply the intensity threshold: set values below the threshold to 0
-    df[d_columns] = df[d_columns].applymap(lambda x: x if x >= min_intensity else 0)
+    # --- The Fix: Dynamically identify sample columns by excluding metadata ---
+    # This replaces the brittle search for '.d' in column names.
+    exp_sample_cols = [col for col in filtered_df.columns if col not in metadata_cols]
 
-    print(f"[INFO] Intensity filter applied: values below {min_intensity} set to 0.")
-    return df
+    if not exp_sample_cols:
+        print(
+            "[WARNING] No experimental sample columns found to apply intensity filter."
+        )
+        return filtered_df
+
+    print(f"Applying intensity filter to columns: {exp_sample_cols}")
+
+    # Use boolean masking with .mask() for efficient filtering.
+    # Where the condition (value < threshold) is True, the value is replaced with 0.
+    filtered_df[exp_sample_cols] = filtered_df[exp_sample_cols].mask(
+        filtered_df[exp_sample_cols] < min_intensity, 0
+    )
+
+    print(
+        f"✔️ Intensity filter applied: values below {min_intensity} in sample columns set to 0."
+    )
+    return filtered_df
 
 
 def apply_rt_filter(df, rt_min=1.0, rt_max=10.0):
