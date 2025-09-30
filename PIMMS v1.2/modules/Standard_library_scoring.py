@@ -68,7 +68,7 @@ def level_2_library_matching(
     Matches features with PFAS library entries using user-defined column letters for the library.
     """
     # --- 1. Validate the mapping and translate letters to column names ---
-    required_keys = {"mz", "ccs", "rt", "name", "adduct"}
+    required_keys = {"m/z", "CCS", "RT", "Name", "Adduct"}
     if not required_keys.issubset(LEVEL_2_COLUMN_LETTERS.keys()):
         missing_keys = required_keys - set(LEVEL_2_COLUMN_LETTERS.keys())
         raise KeyError(
@@ -96,7 +96,7 @@ def level_2_library_matching(
     matched_ids = set()
     match_source = "PFAS Standards"
 
-    sorted_pfas_masses = sorted(pfas_library[lib_cols["mz"]].tolist())
+    sorted_pfas_masses = sorted(pfas_library[lib_cols["m/z"]].tolist())
 
     for _, row in adjusted_df.iterrows():
         mz = row["m/z"]
@@ -104,18 +104,18 @@ def level_2_library_matching(
         rt = row["RT"] if include_rt else None
 
         for lib_mz in find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm):
-            matching_rows = pfas_library[pfas_library[lib_cols["mz"]] == lib_mz]
+            matching_rows = pfas_library[pfas_library[lib_cols["m/z"]] == lib_mz]
             if matching_rows.empty:
                 continue
             lib_row = matching_rows.iloc[0]
 
             mass_error = ((mz - lib_mz) / lib_mz) * 1e6
             ccs_error = (
-                (ccs - lib_row[lib_cols["ccs"]]) / lib_row[lib_cols["ccs"]]
+                (ccs - lib_row[lib_cols["CCS"]]) / lib_row[lib_cols["CCS"]]
             ) * 100
             rt_error = (
-                ((rt - lib_row[lib_cols["rt"]]) / lib_row[lib_cols["rt"]]) * 100
-                if include_rt and pd.notna(rt) and pd.notna(lib_row[lib_cols["rt"]])
+                ((rt - lib_row[lib_cols["RT"]]) / lib_row[lib_cols["RT"]]) * 100
+                if include_rt and pd.notna(rt) and pd.notna(lib_row[lib_cols["RT"]])
                 else "N/A"
             )
 
@@ -174,7 +174,7 @@ def level_5_library_matching(
     match_source = "External Targets"
 
     # --- Translate library column letters to actual column names ---
-    required_keys = {"name", "mz"}
+    required_keys = {"Name", "m/z"}
     if not required_keys.issubset(library_column_letters.keys()):
         missing_keys = required_keys - set(library_column_letters.keys())
         raise KeyError(
@@ -199,7 +199,7 @@ def level_5_library_matching(
 
     # The rest of the function now uses the dynamically found column names
     numeric_mz = pd.to_numeric(
-        external_targets_library[lib_cols["mz"]], errors="coerce"
+        external_targets_library[lib_cols["m/z"]], errors="coerce"
     )
     sorted_external_masses = sorted(numeric_mz.dropna().tolist())
     for _, row in unmatched_df.iterrows():
@@ -211,7 +211,7 @@ def level_5_library_matching(
 
         for lib_mz in matching_masses:
             matching_rows = external_targets_library[
-                external_targets_library[lib_cols["mz"]] == lib_mz
+                external_targets_library[lib_cols["m/z"]] == lib_mz
             ]
 
             if matching_rows.empty:
@@ -219,7 +219,7 @@ def level_5_library_matching(
 
             for _, lib_row in matching_rows.iterrows():
                 mass_error = ((mz - lib_mz) / lib_mz) * 1e6
-                match_names.append(lib_row[lib_cols["name"]])  # Use mapped name column
+                match_names.append(lib_row[lib_cols["Name"]])  # Use mapped name column
                 ppm_errors.append(str(round(mass_error, 2)))
                 matched_ids.add(row["ID"])
 
