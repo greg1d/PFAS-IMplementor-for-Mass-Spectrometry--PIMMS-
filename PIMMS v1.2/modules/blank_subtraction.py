@@ -103,22 +103,32 @@ def define_and_separate_samples(
 ):
     """
     Uses column boundaries to define and separate samples into control and experimental.
+    This version dynamically identifies metadata columns.
     """
     all_columns = combined_data.columns.tolist()
-    metadata_cols = combined_data.columns[:5].tolist()
 
     try:
-        # Define control samples from column letters
+        # --- Step 1: Define Control and Experimental Sample Columns ---
         control_start_index = column_letter_to_index(control_start_col)
         control_end_index = column_letter_to_index(control_end_col)
         control_samples = all_columns[control_start_index : control_end_index + 1]
 
-        # Define experimental samples from column letters
         exp_start_index = column_letter_to_index(exp_start_col)
         exp_end_index = column_letter_to_index(exp_end_col)
         experimental_samples = all_columns[exp_start_index : exp_end_index + 1]
 
+        # --- Step 2: Dynamically Identify Metadata Columns (The Fix) ---
+        # A column is metadata if it's NOT a control or experimental sample.
+        # We use a set for efficient lookup.
+        data_columns_set = set(control_samples + experimental_samples)
+        metadata_cols = [col for col in all_columns if col not in data_columns_set]
+
+        # --- Step 3: Add Debug Statements and User Feedback ---
         print("--- Column Definition ---")
+
+        # [DEBUG] New statement to show that metadata columns are correctly identified
+        print(f"✔️ Dynamically identified metadata columns: {metadata_cols}")
+
         print(
             f"✔️ Control columns ('{control_start_col}' to '{control_end_col}') selected: {control_samples}"
         )
@@ -126,16 +136,17 @@ def define_and_separate_samples(
             f"✔️ Experimental columns ('{exp_start_col}' to '{exp_end_col}') selected: {experimental_samples}\n"
         )
 
-        # Create the separate dataframes
+        # --- Step 4: Create the Separate DataFrames ---
+        # The logic here remains the same, but now uses the dynamically found metadata_cols
         control_df = combined_data[metadata_cols + control_samples]
         experimental_df = combined_data[metadata_cols + experimental_samples]
 
-        # [FIX] Return all three DataFrames as expected by the main function call
         return combined_data, control_df, experimental_df
 
     except IndexError:
         raise ValueError(
-            "A specified column letter is out of bounds for the data file."
+            "A specified column letter is out of bounds for the data file. "
+            f"The data has {len(all_columns)} columns."
         )
     except Exception as e:
         raise RuntimeError(f"Failed to separate samples: {e}")
