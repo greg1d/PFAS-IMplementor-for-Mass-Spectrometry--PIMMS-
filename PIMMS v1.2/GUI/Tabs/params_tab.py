@@ -39,6 +39,10 @@ class ParamsTab(ttk.Frame):
                 "rt_filter": "If checked, applies a regression model built from the Level 2 library provided. The model creates 5th - 95th percentile bounds for retention time with respect to m/z excluding any features that fall outside these bounds.",
                 "ccs_filter": "If checked, applies a regression model built from the Level 2 library provided. The model creates 5th - 95th percentile bounds for Collisional Cross-Section (CCS) with respect to m/z excluding any features that fall outside these bounds.",
             },
+            # --- ADD THIS SECTION ---
+            "scoring": {
+                "rt_scoring": "If checked, Retention Time (RT) will be used as a factor in the Level 2 library matching score. This can improve accuracy if your chromatography is consistent."
+            },
         }
 
         # --- Tolerances and Filters Frame ---
@@ -73,7 +77,7 @@ class ParamsTab(ttk.Frame):
         # --- Mass Defect Filter Frame ---
         mdf_frame = ttk.LabelFrame(self, text="Mass Defect Filter", padding=(10, 5))
         mdf_frame.pack(fill="x", padx=10, pady=5)
-
+        # ... (code for this frame is unchanged)
         ttk.Label(mdf_frame, text="Lower Bound:").grid(
             row=0, column=0, padx=5, pady=2, sticky="w"
         )
@@ -81,11 +85,9 @@ class ParamsTab(ttk.Frame):
         mdf_lower.insert(0, str(getattr(self.config, "mass_defect_lower_bound", -0.11)))
         mdf_lower.grid(row=0, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["mass_defect_lower_bound"] = mdf_lower
-        # --- NEW: Add help icon ---
         help_lower = ttk.Label(mdf_frame, text=" (?) ", cursor="question_arrow")
         help_lower.grid(row=0, column=2, padx=(0, 5), pady=2, sticky="w")
         Tooltip(help_lower, text=help_texts["mass_defect"]["lower_bound"])
-
         ttk.Label(mdf_frame, text="Upper Bound:").grid(
             row=1, column=0, padx=5, pady=2, sticky="w"
         )
@@ -93,7 +95,6 @@ class ParamsTab(ttk.Frame):
         mdf_upper.insert(0, str(getattr(self.config, "mass_defect_upper_bound", 0.12)))
         mdf_upper.grid(row=1, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["mass_defect_upper_bound"] = mdf_upper
-        # --- NEW: Add help icon ---
         help_upper = ttk.Label(mdf_frame, text=" (?) ", cursor="question_arrow")
         help_upper.grid(row=1, column=2, padx=(0, 5), pady=2, sticky="w")
         Tooltip(help_upper, text=help_texts["mass_defect"]["upper_bound"])
@@ -101,7 +102,7 @@ class ParamsTab(ttk.Frame):
         # --- Blank Subtraction Frame ---
         bs_frame = ttk.LabelFrame(self, text="Blank Subtraction", padding=(10, 5))
         bs_frame.pack(fill="x", padx=10, pady=5)
-
+        # ... (code for this frame is unchanged)
         ttk.Label(bs_frame, text="Method:").grid(
             row=0, column=0, padx=5, pady=2, sticky="w"
         )
@@ -113,11 +114,9 @@ class ParamsTab(ttk.Frame):
             state="readonly",
         )
         bs_combo.grid(row=0, column=1, padx=5, pady=2, sticky="w")
-        # --- NEW: Add help icon ---
         help_method = ttk.Label(bs_frame, text=" (?) ", cursor="question_arrow")
         help_method.grid(row=0, column=2, padx=(0, 5), pady=2, sticky="w")
         Tooltip(help_method, text=help_texts["blank_subtraction"]["method"])
-
         ttk.Label(bs_frame, text="Std Deviations (for Method 2):").grid(
             row=1, column=0, padx=5, pady=2, sticky="w"
         )
@@ -127,22 +126,18 @@ class ParamsTab(ttk.Frame):
         )
         self.std_dev_entry.grid(row=1, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["blank_subtraction_std_dev"] = self.std_dev_entry
-        # --- NEW: Add help icon ---
         help_std = ttk.Label(bs_frame, text=" (?) ", cursor="question_arrow")
         help_std.grid(row=1, column=2, padx=(0, 5), pady=2, sticky="w")
         Tooltip(help_std, text=help_texts["blank_subtraction"]["std_dev"])
-
         bs_combo.bind("<<ComboboxSelected>>", self._toggle_std_dev_entry)
         self._toggle_std_dev_entry()
 
         # --- Regression Analysis Frame ---
         reg_frame = ttk.LabelFrame(self, text="Regression Analysis", padding=(10, 5))
         reg_frame.pack(fill="x", padx=10, pady=5)
-
-        # --- MODIFIED: Create sub-frames for layout ---
+        # ... (code for this frame is unchanged)
         rt_reg_line = ttk.Frame(reg_frame)
         rt_reg_line.pack(fill="x", anchor="w", padx=5)
-
         self.rt_reg_var = tk.BooleanVar(
             value=getattr(self.config, "rt_regression_filter", False)
         )
@@ -152,10 +147,8 @@ class ParamsTab(ttk.Frame):
         help_rt_reg = ttk.Label(rt_reg_line, text=" (?) ", cursor="question_arrow")
         help_rt_reg.pack(side="left")
         Tooltip(help_rt_reg, text=help_texts["regression"]["rt_filter"])
-
         ccs_reg_line = ttk.Frame(reg_frame)
         ccs_reg_line.pack(fill="x", anchor="w", padx=5)
-
         self.ccs_reg_var = tk.BooleanVar(
             value=getattr(self.config, "ccs_regression_filter", True)
         )
@@ -165,6 +158,29 @@ class ParamsTab(ttk.Frame):
         help_ccs_reg = ttk.Label(ccs_reg_line, text=" (?) ", cursor="question_arrow")
         help_ccs_reg.pack(side="left")
         Tooltip(help_ccs_reg, text=help_texts["regression"]["ccs_filter"])
+
+        # --- ADD THIS ENTIRE SECTION ---
+        # --- Scoring Options Frame ---
+        scoring_frame = ttk.LabelFrame(self, text="Scoring Options", padding=(10, 5))
+        scoring_frame.pack(fill="x", padx=10, pady=5)
+
+        rt_scoring_line = ttk.Frame(scoring_frame)
+        rt_scoring_line.pack(fill="x", anchor="w", padx=5)
+
+        self.rt_scoring_var = tk.BooleanVar(
+            value=getattr(self.config, "include_rt_scoring", False)
+        )
+        ttk.Checkbutton(
+            rt_scoring_line,
+            text="Include Retention Time in Scoring",
+            variable=self.rt_scoring_var,
+        ).pack(side="left")
+        help_rt_scoring = ttk.Label(
+            rt_scoring_line, text=" (?) ", cursor="question_arrow"
+        )
+        help_rt_scoring.pack(side="left")
+        Tooltip(help_rt_scoring, text=help_texts["scoring"]["rt_scoring"])
+        # --- END OF NEW SECTION ---
 
     def _toggle_std_dev_entry(self, event=None):
         """Enables or disables the Std Dev entry based on the combobox."""
@@ -181,3 +197,6 @@ class ParamsTab(ttk.Frame):
         config_obj.blank_subtraction_method = self.bs_method_var.get()
         config_obj.rt_regression_filter = self.rt_reg_var.get()
         config_obj.ccs_regression_filter = self.ccs_reg_var.get()
+
+        # --- ADD THIS LINE ---
+        config_obj.include_rt_scoring = self.rt_scoring_var.get()
