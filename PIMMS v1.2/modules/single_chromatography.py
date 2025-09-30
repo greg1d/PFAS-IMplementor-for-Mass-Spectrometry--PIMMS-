@@ -1,5 +1,4 @@
 import bisect
-import pandas as pd
 import numpy as np
 
 
@@ -27,8 +26,8 @@ def prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm):
     """
     # Identify the non-"likely" features for screening
     other_df = adjusted_df[adjusted_df["Classification Type"] != "likely"].copy()
-    mz_library = library_df["PrecursorMz"].values
-    ccs_library = library_df["PrecursorCCS"].values
+    mz_library = library_df["m/z"].values
+    ccs_library = library_df["CCS"].values
 
     # Track indices to exclude
     indices_to_exclude = []
@@ -133,16 +132,3 @@ def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
     adjusted_df = group_and_eliminate(adjusted_df, mass_error_ppm)
     adjusted_df = unsaturated_chain_elimination(adjusted_df, mass_error_ppm)
     return adjusted_df
-
-
-if __name__ == "__main__":
-    adjusted_df = pd.read_csv("PIMMS v1.2\data\Dummy test blank subtracted data.csv")
-    library_df = pd.read_csv(
-        r"PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-    )
-    mass_error_ppm = 15
-    adjusted_df = combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm)
-    adjusted_df.to_csv(
-        "PIMMS Validation work/PIMMS data/after_RT_CCS_filter_grouped.csv", index=False
-    )
-    print(adjusted_df)

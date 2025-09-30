@@ -80,39 +80,55 @@ def run_kfold_cv(
     return cross_val_results
 
 
-def run_RT_regression_analysis(library_file):
+def run_RT_regression_analysis(library_file, column_mappings):
+    """
+    Performs quantile regression on RT vs. m/z using dynamic column mappings.
+    """
+    # --- 1. Get column names from the mapping dictionary using the standard keys ---
+    mz_col_name = column_mappings.get("m/z")
+    rt_col_name = column_mappings.get("RT")
+
+    # --- 2. Validate that the required column names were provided ---
+    if not mz_col_name or not rt_col_name:
+        raise ValueError("Column mappings for 'm/z' and 'RT' must be provided.")
+
     # Load data
     df = pd.read_csv(library_file)
-    df = df[["PrecursorName", "PrecursorMz", "PrecursorRT"]].dropna()
-    df["log_mz"] = np.log(df["PrecursorMz"])
 
-    # Run KFold cross-validation
-    cross_val_results = run_kfold_cv(df)
+    # --- 3. Check if the specified columns exist in the DataFrame ---
+    required_cols = [mz_col_name, rt_col_name]
+    if not all(col in df.columns for col in required_cols):
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        raise KeyError(
+            f"The following specified columns are not in the library file: {missing_cols}"
+        )
 
-    # Logarithmic Model Equations (5th and 95th Percentiles)
+    # --- 4. Use the dynamic column names for processing ---
+    df = df[required_cols].dropna()
+    df["log_mz"] = np.log(df[mz_col_name])
+
+    # --- 5. Fit the quantile regression models ---
+    # We will use a simple logarithmic model for RT as well.
     X = dmatrix("1 + log_mz", df, return_type="dataframe")
-    model_5 = QuantReg(df["PrecursorRT"], X).fit(q=0.10)
-    model_95 = QuantReg(df["PrecursorRT"], X).fit(q=0.90)
+    model_5 = QuantReg(df[rt_col_name], X).fit(q=0.05)  # Using 5th percentile
+    model_95 = QuantReg(df[rt_col_name], X).fit(q=0.95)  # Using 95th percentile
 
     coef_5 = model_5.params
     coef_95 = model_95.params
 
-    # Plot the results
+    # Optional: print equation for verification
+    print("Adjusted RT regression equations:")
+    print(
+        f"5th percentile: y = {coef_5['log_mz']:.4f} * log(m/z) + {coef_5['Intercept']:.4f}"
+    )
+    print(
+        f"95th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {coef_95['Intercept']:.4f}"
+    )
 
-    # Return coefficients for use elsewhere
+    # Return the coefficients for the upper and lower bounds
     return {
         "q05_intercept": coef_5["Intercept"],
         "q05_slope": coef_5["log_mz"],
         "q95_intercept": coef_95["Intercept"],
         "q95_slope": coef_95["log_mz"],
     }
-
-
-if __name__ == "__main__":
-    # File path for the dataset
-    library_file = (
-        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
-    )
-
-    # Run the analysis
-    run_RT_regression_analysis(library_file)

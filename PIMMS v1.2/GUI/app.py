@@ -18,7 +18,7 @@ from .Tabs.run_tab import RunTab
 class PimmsGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("PIMMS Workflow Configuration")
+        self.title("PIMMS v1.2")
         self.geometry("850x700")
 
         # The Config object acts as the central data model

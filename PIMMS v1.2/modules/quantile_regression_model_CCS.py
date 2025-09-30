@@ -6,7 +6,7 @@ from statsmodels.regression.quantile_regression import QuantReg
 
 # Define models globally
 models = {
-    "Linear": "PrecursorMz",
+    "Linear": "mz_col",  # Use a generic name that we will rename later
     "Logarithmic": "log_mz",
     "Spline": "bs(log_mz, df=3, include_intercept=False)",
 }
@@ -20,8 +20,15 @@ def pinball_loss(y, y_pred, q):
 
 # KFold Cross-validation setup
 def run_kfold_cv(
-    df, quantiles=[0.10, 0.5, 0.90], n_splits=5, shuffle=True, random_state=42
+    df,
+    ccs_col_name,
+    quantiles=[0.10, 0.5, 0.90],
+    n_splits=5,
+    shuffle=True,
+    random_state=42,
 ):
+    # This function does not need changes as it uses the passed 'ccs_col_name' variable.
+    # ... (function content is unchanged)
     # Initialize KFold and result storage
     kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
     cross_val_results = {}
@@ -43,8 +50,8 @@ def run_kfold_cv(
         for train_index, test_index in kf.split(df):
             X_train, X_test = X_array[train_index], X_array[test_index]
             y_train, y_test = (
-                df["PrecursorCCS"].values[train_index],
-                df["PrecursorCCS"].values[test_index],
+                df[ccs_col_name].values[train_index],
+                df[ccs_col_name].values[test_index],
             )
 
             preds = {}
@@ -75,24 +82,45 @@ def run_kfold_cv(
             "Coverage": np.mean(coverage_list),
             "Width": np.mean(width_list),
         }
-
     # Return the cross-validation results
     return cross_val_results
 
 
-def run_CCS_regression_analysis(library_file):
+def run_CCS_regression_analysis(library_file, column_mappings):
+    # --- 1. Get column names from the mapping dictionary using the new standard keys ---
+    mz_col_name = column_mappings.get("m/z")  # --- CHANGED ---
+    ccs_col_name = column_mappings.get("CCS")  # --- CHANGED ---
+
+    # --- 2. Validate that the required column names were provided ---
+    if not mz_col_name or not ccs_col_name:
+        # --- CHANGED --- (Updated error message to reflect new keys)
+        raise ValueError("Column mappings for 'm/z' and 'CCS' must be provided.")
+
     # Load data
     df = pd.read_csv(library_file)
-    df = df[["PrecursorMz", "PrecursorCCS"]].dropna()
-    df["log_mz"] = np.log(df["PrecursorMz"])
+
+    # --- 3. Check if the specified columns exist in the DataFrame ---
+    required_cols = [mz_col_name, ccs_col_name]
+    if not all(col in df.columns for col in required_cols):
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        raise KeyError(
+            f"The following specified columns are not in the library file: {missing_cols}"
+        )
+
+    # --- 4. Use the dynamic column names for processing ---
+    df = df[required_cols].dropna()
+    df.rename(
+        columns={mz_col_name: "mz_col"}, inplace=True
+    )  # Rename for patsy formula compatibility
+    df["log_mz"] = np.log(df["mz_col"])
 
     # Run KFold cross-validation
-    cross_val_results = run_kfold_cv(df)
+    cross_val_results = run_kfold_cv(df, ccs_col_name)
 
     # Logarithmic Model Equations (5th and 95th Percentiles)
     X = dmatrix("1 + log_mz", df, return_type="dataframe")
-    model_5 = QuantReg(df["PrecursorCCS"], X).fit(q=0.10)
-    model_95 = QuantReg(df["PrecursorCCS"], X).fit(q=0.90)
+    model_5 = QuantReg(df[ccs_col_name], X).fit(q=0.10)
+    model_95 = QuantReg(df[ccs_col_name], X).fit(q=0.90)
 
     coef_5 = model_5.params
     coef_95 = model_95.params
@@ -113,8 +141,6 @@ def run_CCS_regression_analysis(library_file):
         f"95th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {q95_intercept_corrected:.4f}"
     )
 
-    # Plot the results
-
     # Return bias-adjusted coefficients
     return {
         "q05_intercept": q05_intercept_corrected,
@@ -122,30 +148,3 @@ def run_CCS_regression_analysis(library_file):
         "q95_intercept": q95_intercept_corrected,
         "q95_slope": coef_95["log_mz"],
     }
-
-
-def run_analysis(library_file):
-    # Load data
-    df = pd.read_csv(library_file)
-    df = df[["PrecursorName", "PrecursorMz", "PrecursorCCS"]].dropna()
-    df["log_mz"] = np.log(df["PrecursorMz"])
-
-    # Run KFold cross-validation
-    cross_val_results = run_kfold_cv(df)
-
-    # Print the results
-    for model_name, metrics in cross_val_results.items():
-        print(f"\n{model_name} Model Cross-Validation Results:")
-        for metric, value in metrics.items():
-            print(f"  {metric}: {value:.3f}")
-
-    # Plot the results
-
-
-if __name__ == "__main__":
-    # File path for the dataset
-    library_file = (
-        r"PIMMS v1.2\CCSRT v mz predictions\Library Data for model building.csv"
-    )
-    # Run the analysis
-    run_analysis(library_file)

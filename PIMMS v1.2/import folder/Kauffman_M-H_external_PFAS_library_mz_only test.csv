@@ -1,4 +1,4 @@
-PrecursorName,SMILES,Formula,PrecursorMz,PrecursorAdduct
+NAME,SMILES,Formula,PrecursorMZ,PrecursorAdduct
 "1,1,2,2-Tetrafluoroethan-1-ol",OC(F)(F)C(F)F,C2H2F4O,116.9968973,M-H
 "2,2,3,3-Tetrafluoropropan-1-amine",NCC(F)(F)C(F)F,C3H5F4N,130.0285318,M-H
 A,OCC(F)(F)C(F)F,C3H4F4O,131.0124474,M-H
