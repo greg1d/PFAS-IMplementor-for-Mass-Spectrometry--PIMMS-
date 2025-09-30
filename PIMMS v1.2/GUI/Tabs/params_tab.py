@@ -26,6 +26,7 @@ class ParamsTab(ttk.Frame):
                 "min_intensity": "The absolute intensity threshold. Any feature with an intensity below this value will be excluded from the analysis. \nN.B. feature extraction softwares often report lower intensities than those observed in spectral data viewers such as Skyline and IMBrowser.",
                 "rt_min": "The minimum retention time to consider for feature analysis. Features appearing before this time will be excluded from analysis.",
                 "rt_max": "The maximum retention time to consider for feature analysis. Features appearing after this time will be excluded from analysis.",
+                "frequency_threshold": "The minimum percentage (%) of experimental samples a feature must be detected in to be kept. For example, 15.0 means a feature is removed if it appears in less than 15% of samples.",
             },
             "mass_defect": {
                 "lower_bound": "The lower bound for the mass defect filter.",
@@ -57,6 +58,7 @@ class ParamsTab(ttk.Frame):
             "Minimum Intensity": "min_intensity",
             "Minimum RT": "rt_min",
             "Maximum RT": "rt_max",
+            "Detection Frequency (%)": "frequency_threshold",
         }
         for i, (text, key) in enumerate(params.items()):
             ttk.Label(params_frame, text=text + ":").grid(
