@@ -51,8 +51,8 @@ class Config:
         self.min_intensity = 10.0
         self.rt_min = 2.0
         self.rt_max = 16.0
-        self.mass_min = 68.98
-        self.mass_max = 1700.0
+        self.mz_min = 100.0
+        self.mz_max = 2000.0
         self.mass_defect_lower = -0.11
         self.mass_defect_upper = 0.12
         self.frequency_threshold = 15.0

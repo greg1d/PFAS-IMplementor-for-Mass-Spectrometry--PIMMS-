@@ -1,6 +1,5 @@
 def mass_defect_filter(
     experimental_df,
-    mz_col="m/z",
     lower_mass_filter_bound=-0.11,
     upper_mass_filter_bound=0.12,
 ):
@@ -22,20 +21,13 @@ def mass_defect_filter(
         print("[INFO] Input DataFrame is empty. Skipping mass defect filter.")
         return experimental_df
 
-    # --- FIX 2: Use mz_col parameter instead of hardcoded "m/z" ---
-    if mz_col not in experimental_df.columns:
-        raise ValueError(f"Column '{mz_col}' not found in the DataFrame.")
-
     initial_rows = len(experimental_df)
-    print(
-        f"Applying mass defect filter on column '{mz_col}' with bounds [{lower_mass_filter_bound}, {upper_mass_filter_bound}]..."
-    )
 
     # Use a temporary copy to avoid SettingWithCopyWarning
     df_copy = experimental_df.copy()
 
     # Compute the deviation from the nearest integer
-    df_copy["mass_defect"] = df_copy[mz_col] - df_copy[mz_col].round()
+    df_copy["mass_defect"] = df_copy["m/z"] - df_copy["m/z"].round()
 
     # Filter rows where the deviation is within the specified bounds
     filtered_df = df_copy[

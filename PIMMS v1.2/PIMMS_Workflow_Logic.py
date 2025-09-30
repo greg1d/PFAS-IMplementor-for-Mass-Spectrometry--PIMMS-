@@ -173,7 +173,7 @@ def run_pimms_workflow(config):
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
         print("after rt  filter", len(adjusted_df))
 
-        adjusted_df = apply_mass_filter(adjusted_df, config.mass_min, config.mass_max)
+        adjusted_df = apply_mass_filter(adjusted_df, config.mz_min, config.mz_max)
         print("after mass filter", len(adjusted_df))
         adjusted_df = smearing_filter(
             adjusted_df,
@@ -205,7 +205,9 @@ def run_pimms_workflow(config):
         adjusted_df = fluorinated_density_filter(adjusted_df)
         print("after density filter", len(adjusted_df))
         adjusted_df = mass_defect_filter(
-            adjusted_df, config.mass_defect_lower, config.mass_defect_upper
+            adjusted_df,
+            lower_mass_filter_bound=config.mass_defect_lower_bound,
+            upper_mass_filter_bound=config.mass_defect_upper_bound,
         )
         print("after mass defect filter", len(adjusted_df))
         adjusted_df = detection_frequency_filter(

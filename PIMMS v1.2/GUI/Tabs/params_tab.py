@@ -27,6 +27,8 @@ class ParamsTab(ttk.Frame):
                 "rt_min": "The minimum retention time to consider for feature analysis. Features appearing before this time will be excluded from analysis.",
                 "rt_max": "The maximum retention time to consider for feature analysis. Features appearing after this time will be excluded from analysis.",
                 "frequency_threshold": "The minimum percentage (%) of experimental samples a feature must be detected in to be kept. For example, 15.0 means a feature is removed if it appears in less than 15% of samples.",
+                "mz_min": "The minimum m/z to consider for feature analysis. Features with m/z below this value will be excluded.",
+                "mz_max": "The maximum m/z to consider for feature analysis. Features with m/z above this value will be excluded.",
             },
             "mass_defect": {
                 "lower_bound": "The lower bound for the mass defect filter.",
@@ -59,6 +61,8 @@ class ParamsTab(ttk.Frame):
             "Minimum RT": "rt_min",
             "Maximum RT": "rt_max",
             "Detection Frequency (%)": "frequency_threshold",
+            "Minimum m/z": "mz_min",
+            "Maximum m/z": "mz_max",
         }
         for i, (text, key) in enumerate(params.items()):
             ttk.Label(params_frame, text=text + ":").grid(
