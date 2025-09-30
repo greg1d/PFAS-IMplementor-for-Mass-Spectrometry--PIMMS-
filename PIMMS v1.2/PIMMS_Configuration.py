@@ -34,7 +34,10 @@ class Config:
             "m/z": "G",
         }
         self.level_5_library_mapping = {"Name": "A", "m/z": "D"}
-
+        self.standards_library_mapping = {
+            "m/z": "C",
+            "CCS": "B",
+        }
         # --- Workflow Parameters ---
         self.blank_subtraction_method = "2"  # Default to method 2
 

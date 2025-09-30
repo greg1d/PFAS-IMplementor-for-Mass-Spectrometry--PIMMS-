@@ -42,6 +42,10 @@ class MappingTab(ttk.Frame):
                 "Name": "The column letter in the Level 5 Library for the compound's name.",
                 "m/z": "The column letter in the Level 5 Library for the precursor mass-to-charge ratio (m/z).",
             },
+            "standards": {
+                "m/z": "The column letter in your Standards Library file that contains the mass-to-charge (m/z) values.",
+                "CCS": "The column letter in your Standards Library file that contains the Collisional Cross-Section (CCS) values.",
+            },
         }
 
         # --- Metadata Frame ---
@@ -119,6 +123,31 @@ class MappingTab(ttk.Frame):
                 l5_frame, key, f"l5_{key}", val, i // 2, i % 2, help_text
             )
 
+        standards_frame = ttk.LabelFrame(
+            self, text="Standards Library Column Letters", padding=(10, 5)
+        )
+        standards_frame.pack(fill="x", padx=10, pady=5)
+
+        # Add m/z and CCS inputs for the standards library
+        self._create_mapping_input(
+            standards_frame,
+            "m/z",
+            "standards_m/z",
+            self.config.standards_library_mapping.get("m/z", ""),
+            0,
+            0,
+            help_texts["standards"]["m/z"],
+        )
+        self._create_mapping_input(
+            standards_frame,
+            "CCS",
+            "standards_CCS",
+            self.config.standards_library_mapping.get("CCS", ""),
+            0,
+            1,
+            help_texts["standards"]["CCS"],
+        )
+
     # --- MODIFIED: Method now accepts 'help_text' ---
     def _create_mapping_input(self, parent, text, key, default, row, col, help_text=""):
         """Helper to create a label, entry, and help icon for a mapping."""
@@ -161,4 +190,8 @@ class MappingTab(ttk.Frame):
         config_obj.level_5_library_mapping = {
             k: self.mapping_entries[f"l5_{k}"].get()
             for k in config_obj.level_5_library_mapping
+        }
+        config_obj.standards_library_mapping = {
+            "m/z": self.mapping_entries["standards_m/z"].get(),
+            "CCS": self.mapping_entries["standards_CCS"].get(),
         }

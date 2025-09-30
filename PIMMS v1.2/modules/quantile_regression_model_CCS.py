@@ -76,9 +76,9 @@ def run_kfold_cv(
 
         # Store the results for each model
         cross_val_results[model_name] = {
-            "Pinball Loss 5%": np.mean(pinball_losses_5),
+            "Pinball Loss 10%": np.mean(pinball_losses_5),
             "Pinball Loss 50%": np.mean(pinball_losses_50),
-            "Pinball Loss 95%": np.mean(pinball_losses_95),
+            "Pinball Loss 90%": np.mean(pinball_losses_95),
             "Coverage": np.mean(coverage_list),
             "Width": np.mean(width_list),
         }
@@ -135,10 +135,10 @@ def run_CCS_regression_analysis(library_file, column_mappings):
     # Optional: print equation for verification
     print("Adjusted CCS regression equations:")
     print(
-        f"5th percentile: y = {coef_5['log_mz']:.4f} * log(m/z) + {q05_intercept_corrected:.4f}"
+        f"10th percentile: y = {coef_5['log_mz']:.4f} * log(m/z) + {q05_intercept_corrected:.4f}"
     )
     print(
-        f"95th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {q95_intercept_corrected:.4f}"
+        f"90th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {q95_intercept_corrected:.4f}"
     )
 
     # Return bias-adjusted coefficients

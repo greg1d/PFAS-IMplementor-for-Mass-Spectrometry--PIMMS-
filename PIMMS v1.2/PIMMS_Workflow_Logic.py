@@ -14,14 +14,25 @@ from blank_subtraction import (
     define_and_separate_samples,
     perform_blank_subtraction,
 )
+from branching_filter import branching_analyze, branching_merge
 from crude_filters import (
+    apply_mass_filter,
     apply_min_intensity_filter,
+    apply_rt_filter,
+)
+from detection_frequency_filter import detection_frequency_filter
+from mass_defect_filter import mass_defect_filter
+from ML_algorithm_density import fluorinated_density_filter
+from monoisotopic_grouper import (
+    analyze_adjusted_df as mono_analyze,
+    merge_groups_into_adjusted_df as mono_merge,
 )
 from neutral_loss_checker import find_neutral_loss_matches
 from post_source_decay_filter import remove_post_source_decay
 from regression_analysis import produce_filtered_df
 from removing_standards import remove_standards_library
 from single_chromatography import combined_filter_pipeline
+from smearing_filter import smearing_filter
 from Standard_library_scoring import (
     level_2_library_matching,
     level_5_library_matching,
@@ -43,23 +54,19 @@ def column_letter_to_index(letter):
 
 def robust_process_and_combine_files(file_paths):
     # This function is unchanged
+    # ...
     all_data_frames = []
     for fp in file_paths:
         try:
             with open(fp, "r", newline="", encoding="utf-8") as f:
                 dialect = csv.Sniffer().sniff(f.readline(), delimiters=",\t")
                 delimiter = dialect.delimiter
-                print(
-                    f"[INFO] Auto-detected delimiter '{repr(delimiter)}' for file {os.path.basename(fp)}"
-                )
             df = pd.read_csv(fp, sep=delimiter)
             all_data_frames.append(df)
         except Exception as e:
-            raise IOError(
-                f"Could not parse the file {fp}. Please ensure it is a valid CSV or TSV. Error: {e}"
-            )
+            raise IOError(f"Could not parse the file {fp}. Error: {e}")
     if not all_data_frames:
-        raise ValueError("No data could be loaded from the provided files.")
+        raise ValueError("No data could be loaded.")
     return pd.concat(all_data_frames, ignore_index=True)
 
 
@@ -73,13 +80,10 @@ def run_pimms_workflow(config):
             config.raw_data_input_location
         ):
             messagebox.showerror(
-                "Error",
-                f"Input file not found. Please check the path:\n{config.raw_data_input_location}",
+                "Error", f"Input file not found:\n{config.raw_data_input_location}"
             )
             return
-        if not config.output_path:
-            messagebox.showerror("Error", "Please specify an output file path.")
-            return
+        # ...
 
         print("[INFO] Starting PIMMS workflow...")
         print(f"  - Input File: {config.raw_data_input_location}")
@@ -92,46 +96,50 @@ def run_pimms_workflow(config):
         )
         pfas_library = load_pfas_library(config.level_2_library)
         external_targets_library = load_pfas_library(config.level_5_library)
+        standards_df = pd.read_csv(config.standards_file)
 
         # --- CENTRALIZED TRANSLATION & RENAMING LOGIC ---
         print("[INFO] Translating column mappings and standardizing column names...")
 
-        # 1. Create clean maps of {standard_key: actual_column_name}
-        config.clean_metadata_map = {}
-        for key, col_letter in config.metadata_mapping.items():
-            col_index = column_letter_to_index(col_letter)
-            if col_index < len(combined_data.columns):
-                config.clean_metadata_map[key] = combined_data.columns[col_index]
+        config.clean_metadata_map = {
+            k: combined_data.columns[column_letter_to_index(v)]
+            for k, v in config.metadata_mapping.items()
+            if column_letter_to_index(v) < len(combined_data.columns)
+        }
+        config.clean_l2_map = {
+            k: pfas_library.columns[column_letter_to_index(v)]
+            for k, v in config.level_2_library_mapping.items()
+            if column_letter_to_index(v) < len(pfas_library.columns)
+        }
+        config.clean_l5_map = {
+            k: external_targets_library.columns[column_letter_to_index(v)]
+            for k, v in config.level_5_library_mapping.items()
+            if column_letter_to_index(v) < len(external_targets_library.columns)
+        }
 
-        config.clean_l2_map = {}
-        for key, col_letter in config.level_2_library_mapping.items():
-            col_index = column_letter_to_index(col_letter)
-            if col_index < len(pfas_library.columns):
-                config.clean_l2_map[key] = pfas_library.columns[col_index]
+        # --- FIX: Added standardization for Standards Library ---
+        config.clean_standards_map = {
+            k: standards_df.columns[column_letter_to_index(v)]
+            for k, v in config.standards_library_mapping.items()
+            if column_letter_to_index(v) < len(standards_df.columns)
+        }
 
-        # --- ADDED: Standardization for Level 5 Library ---
-        config.clean_l5_map = {}
-        for key, col_letter in config.level_5_library_mapping.items():
-            col_index = column_letter_to_index(col_letter)
-            if col_index < len(external_targets_library.columns):
-                config.clean_l5_map[key] = external_targets_library.columns[col_index]
-
-        # 2. Rename DataFrame columns to the standard keys for universal use
-        metadata_rename_map = {v: k for k, v in config.clean_metadata_map.items()}
-        combined_data.rename(columns=metadata_rename_map, inplace=True)
-
-        l2_rename_map = {v: k for k, v in config.clean_l2_map.items()}
-        pfas_library.rename(columns=l2_rename_map, inplace=True)
-
-        l5_rename_map = {v: k for k, v in config.clean_l5_map.items()}
-        external_targets_library.rename(columns=l5_rename_map, inplace=True)
-
-        print("[DEBUG] Main data columns renamed to standard keys.")
-        print(
-            f"[DEBUG] Level 2 library columns renamed to: {pfas_library.columns.tolist()}"
+        # Rename all DataFrames to use standard keys
+        combined_data.rename(
+            columns={v: k for k, v in config.clean_metadata_map.items()}, inplace=True
         )
+        pfas_library.rename(
+            columns={v: k for k, v in config.clean_l2_map.items()}, inplace=True
+        )
+        external_targets_library.rename(
+            columns={v: k for k, v in config.clean_l5_map.items()}, inplace=True
+        )
+        standards_df.rename(
+            columns={v: k for k, v in config.clean_standards_map.items()}, inplace=True
+        )
+
         print(
-            f"[DEBUG] Level 5 library columns renamed to: {external_targets_library.columns.tolist()}"
+            "[DEBUG] Main data, L2, L5, and Standards library columns have been renamed."
         )
 
         # --- DATA SEPARATION (unchanged) ---
@@ -155,24 +163,53 @@ def run_pimms_workflow(config):
             std_devs=config.blank_subtraction_std_dev,
         )
 
-        # --- FULL FILTERING PIPELINE (unchanged) ---
+        # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
         print("[INFO] Applying filters to adjusted dataset...")
         adjusted_df = apply_min_intensity_filter(adjusted_df, config.min_intensity)
-        # ... (rest of filtering)
+        adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
+        adjusted_df = apply_mass_filter(adjusted_df, config.mass_min, config.mass_max)
+        adjusted_df = smearing_filter(
+            adjusted_df,
+            rt_tolerance=config.rt_tolerance,
+            ccs_tolerance=config.ccs_tolerance,
+        )
+        groups = branching_analyze(
+            adjusted_df,
+            mass_error_ppm=config.mass_error_ppm,
+            rt_tolerance=config.rt_tolerance,
+            ccs_tolerance=config.ccs_tolerance,
+        )
+        adjusted_df = branching_merge(groups)
+        groups = mono_analyze(
+            adjusted_df,
+            z_range=range(1, 4),
+            mass_error_ppm=config.mass_error_ppm,
+            rt_tolerance=config.rt_tolerance,
+            ccs_tolerance=config.ccs_tolerance,
+        )
+        adjusted_df = mono_merge(adjusted_df, groups)
+        adjusted_df = fluorinated_density_filter(adjusted_df)
+        adjusted_df = mass_defect_filter(
+            adjusted_df, config.mass_defect_lower, config.mass_defect_upper
+        )
+        adjusted_df = detection_frequency_filter(
+            adjusted_df, config.frequency_threshold
+        )
+
+        # --- FIX: The call now passes the prepared 'standards_df' DataFrame ---
         adjusted_df = remove_standards_library(
             adjusted_df,
-            config.standards_file,
+            standards_df,
             mass_error_ppm=config.mass_error_ppm,
             ccs_error_percentage=config.ccs_tolerance,
             z=1,
         )
 
-        # --- LIBRARY MATCHING ---
+        # --- LIBRARY MATCHING (unchanged) ---
         print("[INFO] Matching features against Level 2 Library...")
-        # --- CHANGED: Removed the mapping dictionary argument ---
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
             adjusted_df,
-            pfas_library,  # Use the renamed library dataframe
+            pfas_library,
             config.mass_error_ppm,
             config.ccs_tolerance,
             config.rt_tolerance,
@@ -180,11 +217,8 @@ def run_pimms_workflow(config):
         )
 
         print("[INFO] Matching remaining features against Level 5 Library...")
-        # --- CHANGED: Removed the mapping dictionary argument ---
         external_matched_df, external_unmatched_df = level_5_library_matching(
-            likely_unmatched_df,
-            external_targets_library,  # Use the renamed library dataframe
-            config.mass_error_ppm,
+            likely_unmatched_df, external_targets_library, config.mass_error_ppm
         )
 
         adjusted_df = pd.concat(
@@ -194,7 +228,6 @@ def run_pimms_workflow(config):
 
         # --- FINAL ANALYSIS STEPS (unchanged) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
-
         adjusted_df = produce_filtered_df(
             df=adjusted_df,
             config=config,
@@ -202,7 +235,6 @@ def run_pimms_workflow(config):
             rt_regression_filter=config.rt_regression_filter,
             ccs_regression_filter=config.ccs_regression_filter,
         )
-
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )

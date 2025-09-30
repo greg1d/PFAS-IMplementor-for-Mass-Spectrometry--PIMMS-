@@ -58,9 +58,7 @@ def produce_filtered_df(
 
     # --- Run analyses to get regression equations ---
     ccs_eq = run_CCS_regression_analysis(level_2_library, clean_l2_map)
-    print("CCS equation:", ccs_eq)
     rt_eq = run_RT_regression_analysis(level_2_library, clean_l2_map)
-    print("RT equation:", rt_eq)
 
     # --- Apply filters using the standard column names ---
     if rt_regression_filter:

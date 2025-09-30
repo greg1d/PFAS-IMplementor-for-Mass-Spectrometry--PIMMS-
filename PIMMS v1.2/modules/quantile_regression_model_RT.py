@@ -119,10 +119,10 @@ def run_RT_regression_analysis(library_file, column_mappings):
     # Optional: print equation for verification
     print("Adjusted RT regression equations:")
     print(
-        f"5th percentile: y = {coef_5['log_mz']:.4f} * log(m/z) + {coef_5['Intercept']:.4f}"
+        f"10th percentile: y = {coef_5['log_mz']:.4f} * log(m/z) + {coef_5['Intercept']:.4f}"
     )
     print(
-        f"95th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {coef_95['Intercept']:.4f}"
+        f"90th percentile: y = {coef_95['log_mz']:.4f} * log(m/z) + {coef_95['Intercept']:.4f}"
     )
 
     # Return the coefficients for the upper and lower bounds
