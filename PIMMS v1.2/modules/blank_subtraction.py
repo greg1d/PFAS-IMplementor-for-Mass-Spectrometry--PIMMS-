@@ -1,6 +1,5 @@
 import os
 
-import numpy as np
 import pandas as pd
 
 
@@ -141,7 +140,7 @@ def define_and_separate_samples(
         control_df = combined_data[metadata_cols + control_samples]
         experimental_df = combined_data[metadata_cols + experimental_samples]
 
-        return combined_data, control_df, experimental_df
+        return combined_data, control_df, experimental_df, metadata_cols
 
     except IndexError:
         raise ValueError(
@@ -150,6 +149,32 @@ def define_and_separate_samples(
         )
     except Exception as e:
         raise RuntimeError(f"Failed to separate samples: {e}")
+
+
+def align_control_experimental(control_df, experimental_df):
+    """
+    Aligns the control and experimental DataFrames so that only rows present in both are retained.
+    Any rows in the control set without matching rows in the experimental set are excluded.
+
+    Args:
+        control_df (pd.DataFrame): Control DataFrame.
+        experimental_df (pd.DataFrame): Experimental DataFrame.
+
+    Returns:
+        aligned_control_df (pd.DataFrame): Aligned control DataFrame.
+        aligned_experimental_df (pd.DataFrame): Aligned experimental DataFrame.
+    """
+    # Ensure both DataFrames have the same indices
+    common_indices = control_df.index.intersection(experimental_df.index)
+    aligned_control_df = control_df.loc[common_indices].reset_index(drop=True)
+    aligned_experimental_df = experimental_df.loc[common_indices].reset_index(drop=True)
+
+    print(f"[DEBUG] Aligned control DataFrame shape: {aligned_control_df.shape}")
+    print(
+        f"[DEBUG] Aligned experimental DataFrame shape: {aligned_experimental_df.shape}"
+    )
+
+    return aligned_control_df, aligned_experimental_df
 
 
 def count_non_zero_rows(df):
@@ -181,161 +206,187 @@ def count_non_zero_rows(df):
     return group_average, group_std_dev
 
 
-def align_control_experimental(control_df, experimental_df):
+def method_1_blank_subtraction(
+    control_df, experimental_df, metadata_cols, id_column="ID"
+):
     """
-    Aligns the control and experimental DataFrames so that only rows present in both are retained.
-    Any rows in the control set without matching rows in the experimental set are excluded.
+    Subtracts the highest control value from the experimental samples for each row.
+
+    This method first validates that the control and experimental dataframes are
+    aligned using a specified ID column. It then dynamically identifies sample
+    columns by excluding the provided metadata columns.
 
     Args:
-        control_df (pd.DataFrame): Control DataFrame.
-        experimental_df (pd.DataFrame): Experimental DataFrame.
+        control_df (pd.DataFrame): DataFrame with metadata and control sample values.
+        experimental_df (pd.DataFrame): DataFrame with metadata and experimental sample values.
+        metadata_cols (list): A list of strings with the names of the metadata columns.
+        id_column (str): The name of the column to use for row-wise alignment validation.
 
     Returns:
-        aligned_control_df (pd.DataFrame): Aligned control DataFrame.
-        aligned_experimental_df (pd.DataFrame): Aligned experimental DataFrame.
+        tuple: A tuple containing:
+            - adjusted_df (pd.DataFrame): Experimental data after blank subtraction.
+            - control_mean (pd.Series): The mean of control values for each row.
+            - control_std (pd.Series): The standard deviation of control values for each row.
     """
-    # Ensure both DataFrames have the same indices
-    common_indices = control_df.index.intersection(experimental_df.index)
-    aligned_control_df = control_df.loc[common_indices].reset_index(drop=True)
-    aligned_experimental_df = experimental_df.loc[common_indices].reset_index(drop=True)
+    # --- 1. Validation Step ---
+    # Ensure the specified ID column exists and the DataFrames are perfectly aligned.
+    if id_column not in control_df.columns or id_column not in experimental_df.columns:
+        raise ValueError(
+            f"The specified id_column '{id_column}' was not found in both DataFrames."
+        )
 
-    print(f"[DEBUG] Aligned control DataFrame shape: {aligned_control_df.shape}")
+    if not control_df[id_column].equals(experimental_df[id_column]):
+        raise ValueError(
+            f"The values in the '{id_column}' column do not match between the control and "
+            "experimental DataFrames. Cannot perform row-wise subtraction on misaligned data."
+        )
+
     print(
-        f"[DEBUG] Aligned experimental DataFrame shape: {aligned_experimental_df.shape}"
+        f"✔️ Validation successful: '{id_column}' column is identical in both DataFrames."
     )
 
-    return aligned_control_df, aligned_experimental_df
+    # --- 2. Dynamically Identify Sample Columns ---
+    # This avoids hardcoding positions with .iloc[]
+    control_sample_cols = [
+        col for col in control_df.columns if col not in metadata_cols
+    ]
+    exp_sample_cols = [
+        col for col in experimental_df.columns if col not in metadata_cols
+    ]
 
+    print(f"Identified Control Sample Columns: {control_sample_cols}")
+    print(f"Identified Experimental Sample Columns: {exp_sample_cols}")
 
-def method_1_blank_subtraction(control_df, experimental_df):
-    """
-    Subtracts the highest value within the control set for each row from the experimental sample set.
-    Returns adjusted experimental DataFrame with the first five columns retained as identifiers.
-    """
-    # Calculate statistics for control and experimental sets before subtraction
-    group_avg, group_std = count_non_zero_rows(control_df)
-    print(
-        f"Control Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
-    )
-    group_avg, group_std = count_non_zero_rows(experimental_df)
-    print(
-        f"Experimental Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
-    )
-
-    # Calculate the maximum value in the control set for each row
-    control_max = control_df.iloc[:, 5:].max(
-        axis=1
-    )  # Exclude the first 5 columns (metadata)
+    # --- 3. Perform Subtraction Logic ---
+    # Calculate the maximum value in the control set for each row using column names
+    control_max = control_df[control_sample_cols].max(axis=1)
 
     # Subtract the maximum control value from each row in the experimental set
-    adjusted_values = experimental_df.iloc[:, 5:].sub(control_max, axis=0)
+    adjusted_values = experimental_df[exp_sample_cols].sub(control_max, axis=0)
     adjusted_values = adjusted_values.clip(lower=0)  # Ensure no negative values
 
-    # Concatenate the first 5 columns as identifiers
-    adjusted_df = pd.concat([experimental_df.iloc[:, :5], adjusted_values], axis=1)
+    # Reconstruct the final DataFrame by combining metadata and adjusted values
+    metadata_df = experimental_df[metadata_cols]
+    adjusted_df = pd.concat([metadata_df, adjusted_values], axis=1)
 
-    # Calculate statistics after subtraction
-    group_avg, group_std = count_non_zero_rows(adjusted_values)
-    print(
-        f"After Blank Subtraction - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
-    )
-
-    # Calculate the control mean and control standard deviation
-    control_mean = control_df.iloc[:, 5:].mean(axis=1)
-    control_std = control_df.iloc[:, 5:].std(axis=1)
-
-    return adjusted_df, control_mean, control_std
+    return adjusted_df
 
 
-def method_2_blank_subtraction(control_df, experimental_df, std_deviation_factor=1):
+def method_2_blank_subtraction(
+    control_df, experimental_df, metadata_cols, id_column="ID", std_deviation_factor=1
+):
     """
-    Subtraction of the control mean and adjustment with standard deviation,
-    while retaining identifier columns and consistent column names.
+    Subtracts the control mean plus a factor of the control standard deviation
+    from the experimental samples for each row.
+
+    This method first validates data alignment using an ID column, then dynamically
+    identifies sample columns to perform the calculations.
 
     Args:
-        control_df (pd.DataFrame): Control DataFrame.
-        experimental_df (pd.DataFrame): Experimental DataFrame.
-        std_deviation_factor (float): Factor for standard deviation adjustment.
+        control_df (pd.DataFrame): DataFrame with metadata and control sample values.
+        experimental_df (pd.DataFrame): DataFrame with metadata and experimental sample values.
+        metadata_cols (list): A list of strings with the names of the metadata columns.
+        id_column (str): The name of the column to use for row-wise alignment validation.
+        std_deviation_factor (float): Factor to multiply the standard deviation by before subtraction.
 
     Returns:
-        tuple: Adjusted experimental DataFrame with identifier columns, control mean, and control std.
+        tuple: A tuple containing:
+            - adjusted_df (pd.DataFrame): Experimental data after subtraction.
+            - control_mean (pd.Series): The mean of control values for each row.
+            - control_std (pd.Series): The standard deviation of control values for each row.
     """
-    # Align control and experimental DataFrames
-    control_df, experimental_df = align_control_experimental(
-        control_df, experimental_df
+    # --- 1. Validation Step (replaces align_control_experimental) ---
+    if id_column not in control_df.columns or id_column not in experimental_df.columns:
+        raise ValueError(
+            f"The specified id_column '{id_column}' was not found in both DataFrames."
+        )
+
+    if not control_df[id_column].equals(experimental_df[id_column]):
+        raise ValueError(
+            f"The values in the '{id_column}' column do not match. "
+            "Cannot perform row-wise subtraction on misaligned data."
+        )
+
+    print(
+        f"✔️ Validation successful: '{id_column}' column is identical in both DataFrames."
     )
 
-    # Count rows before subtraction
-    group_avg, group_std = count_non_zero_rows(control_df)
-    print(
-        f"Control Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
-    )
-    group_avg, group_std = count_non_zero_rows(experimental_df)
-    print(
-        f"Experimental Sample Set - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
-    )
+    # --- 2. Dynamically Identify Sample Columns ---
+    control_sample_cols = [
+        col for col in control_df.columns if col not in metadata_cols
+    ]
+    exp_sample_cols = [
+        col for col in experimental_df.columns if col not in metadata_cols
+    ]
 
+    print(f"Identified Control Sample Columns: {control_sample_cols}")
+    print(f"Identified Experimental Sample Columns: {exp_sample_cols}")
+
+    # --- 3. Perform Subtraction Logic using Pandas-native operations ---
     # Calculate row-wise mean and standard deviation for control samples
-    control_mean = control_df.iloc[:, 5:].mean(axis=1)
-    control_std = control_df.iloc[:, 5:].std(axis=1)
+    control_mean = control_df[control_sample_cols].mean(axis=1)
+    control_std = (
+        control_df[control_sample_cols].std(axis=1).fillna(0)
+    )  # fillna(0) for rows with one sample
 
-    # Convert mean and std to numpy arrays for proper broadcasting
-    control_mean_array = control_mean.to_numpy()
-    control_std_array = control_std.to_numpy()
+    # Determine the total amount to subtract from each row
+    subtraction_value = control_mean + (control_std * std_deviation_factor)
 
-    # Subtract control mean and apply standard deviation adjustment
-    experimental_values = experimental_df.iloc[:, 5:]
-    adjusted_values = experimental_values.sub(control_mean_array, axis=0)
-    adjusted_values -= std_deviation_factor * control_std_array[:, np.newaxis]
+    # Subtract the calculated value from each experimental sample in the row
+    experimental_values = experimental_df[exp_sample_cols]
+    adjusted_values = experimental_values.sub(subtraction_value, axis=0)
     adjusted_values = adjusted_values.clip(lower=0)  # Ensure no negative values
 
-    # Concatenate identifier columns back with adjusted values
-    adjusted_df = pd.concat([experimental_df.iloc[:, :5], adjusted_values], axis=1)
+    # --- 4. Reconstruct the DataFrame ---
+    metadata_df = experimental_df[metadata_cols]
+    adjusted_df = pd.concat([metadata_df, adjusted_values], axis=1)
 
-    # Ensure column consistency with method 1 (retain `m/z` naming)
-    adjusted_df.rename(
-        columns={
-            "m/z": "m/z",
-        },
-        inplace=True,
-    )
-
-    # Count rows after subtraction
-    group_avg, group_std = count_non_zero_rows(adjusted_values)
-    print(
-        f"After Blank Subtraction - Number of Features Present: {group_avg:.0f}, Std Dev: {group_std:.0f}"
-    )
-
+    # --- 5. Return Consistent Tuple Output ---
     return adjusted_df, control_mean, control_std
 
 
 # Replace the existing function in your modules/blank_subtraction.py file
 
 
-def perform_blank_subtraction(method, control_df, experimental_df, std_devs=3.0):
+def perform_blank_subtraction(
+    method, control_df, experimental_df, metadata_cols, id_column="ID", std_devs=3.0
+):
     """
-    Performs blank subtraction based on the selected method.
+    Performs blank subtraction by dispatching to the selected method.
 
     Args:
         method (str): The method number ('1' or '2').
-        control_df (pd.DataFrame): Control DataFrame.
-        experimental_df (pd.DataFrame): Experimental DataFrame.
-        std_devs (float): The number of standard deviations for Method 2, passed from the GUI.
+        control_df (pd.DataFrame): DataFrame with control samples.
+        experimental_df (pd.DataFrame): DataFrame with experimental samples.
+        metadata_cols (list): List of metadata column names.
+        id_column (str): The column name to use for alignment validation.
+        std_devs (float): The number of standard deviations for Method 2.
 
     Returns:
-        tuple: Adjusted experimental DataFrame, control mean, and control std.
+        tuple: A tuple containing:
+            - adjusted_df (pd.DataFrame): The blank-subtracted experimental data.
+            - control_mean (pd.Series): The calculated mean of the control samples per row.
+            - control_std (pd.Series): The calculated std dev of the control samples per row.
     """
+    print(f"--- Performing Blank Subtraction using Method {method} ---")
     if method == "1":
-        # No changes needed for Method 1
+        # Call Method 1 with the required metadata and ID column arguments
         adjusted_df, control_mean, control_std = method_1_blank_subtraction(
-            control_df, experimental_df
+            control_df=control_df,
+            experimental_df=experimental_df,
+            metadata_cols=metadata_cols,
+            id_column=id_column,
         )
         return adjusted_df, control_mean, control_std
 
     elif method == "2":
-        # This now uses the 'std_devs' argument instead of the input() prompt
+        # Call Method 2 with the required metadata and ID column arguments
         adjusted_df, control_mean, control_std = method_2_blank_subtraction(
-            control_df, experimental_df, std_deviation_factor=std_devs
+            control_df=control_df,
+            experimental_df=experimental_df,
+            metadata_cols=metadata_cols,
+            id_column=id_column,
+            std_deviation_factor=std_devs,
         )
         return adjusted_df, control_mean, control_std
 

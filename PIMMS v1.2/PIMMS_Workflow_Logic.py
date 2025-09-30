@@ -143,7 +143,7 @@ def run_pimms_workflow(config):
         )
 
         # --- DATA SEPARATION (unchanged) ---
-        _, control_df, experimental_df = define_and_separate_samples(
+        _, control_df, experimental_df, metadata_cols = define_and_separate_samples(
             combined_data,
             config.control_start_col,
             config.control_end_col,
@@ -157,9 +157,11 @@ def run_pimms_workflow(config):
             f"[INFO] Performing Blank Subtraction (Method: {config.blank_subtraction_method})..."
         )
         adjusted_df, _, _ = perform_blank_subtraction(
-            config.blank_subtraction_method,
-            control_df,
-            experimental_df,
+            method=config.blank_subtraction_method,
+            control_df=control_df,
+            experimental_df=experimental_df,
+            metadata_cols=metadata_cols,  # Pass the list of metadata columns
+            id_column=config.id_column,  # Pass the name of the identifier column
             std_devs=config.blank_subtraction_std_dev,
         )
 
