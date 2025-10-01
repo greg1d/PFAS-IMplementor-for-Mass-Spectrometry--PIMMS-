@@ -57,6 +57,7 @@ def column_letter_to_index(letter):
 
 def level_2_library_matching(
     adjusted_df,
+    metadata_cols,
     pfas_library,
     mass_error_ppm=10,
     ccs_tolerance=2.0,
@@ -64,46 +65,41 @@ def level_2_library_matching(
     include_rt_scoring=True,
 ):
     """
-    Matches features with a pre-standardized PFAS library DataFrame.
-    Assumes the pfas_library DataFrame has columns named:
-    'm/z', 'CCS', 'RT', 'Name', 'Adduct'.
+    Matches features with a standardized library, using a metadata list to
+    identify sample columns. Assumes 'adjusted_df' contains standardized columns:
+    'ID', 'RT', 'm/z', 'CCS', and 'DT'.
     """
     if adjusted_df.empty:
         print("[INFO] No features to process for Level 2 matching.")
-        return pd.DataFrame(), adjusted_df
-    # --- The entire "Validate the mapping and translate letters" block has been removed. ---
+        return pd.DataFrame(), pd.DataFrame()
 
-    # --- 1. Validate that the incoming library DataFrame has been standardized ---
-    required_cols = {"m/z", "CCS", "RT", "Name", "Adduct"}
-    if not required_cols.issubset(pfas_library.columns):
-        missing = required_cols - set(pfas_library.columns)
+    # --- 1. Validate the external library DataFrame ---
+    required_lib_cols = {"m/z", "CCS", "RT", "Name", "Adduct"}
+    if not required_lib_cols.issubset(pfas_library.columns):
+        missing = required_lib_cols - set(pfas_library.columns)
         raise KeyError(
             f"Level 2 Library DataFrame is missing required standardized columns: {missing}"
         )
 
-    # --- 2. Proceed with matching using direct column names ---
+    # --- 2. Robustly identify sample columns by excluding metadata ---
+    intensity_cols = [col for col in adjusted_df.columns if col not in metadata_cols]
+
+    # --- 3. Perform Matching ---
     matched_rows = []
     matched_ids = set()
-    match_source = "PFAS Standards"
-
+    match_source = "CCS Library"
     sorted_pfas_masses = sorted(pfas_library["m/z"].tolist())
 
     for _, row in adjusted_df.iterrows():
-        # Ensure the main dataframe also has the required columns
         mz = row["m/z"]
         ccs = row["CCS"]
         rt = row["RT"] if include_rt_scoring else None
 
         for lib_mz in find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm):
-            matching_rows = pfas_library[pfas_library["m/z"] == lib_mz]
-            if matching_rows.empty:
-                continue
-            lib_row = matching_rows.iloc[0]
+            lib_row = pfas_library[pfas_library["m/z"] == lib_mz].iloc[0]
 
             mass_error = ((mz - lib_mz) / lib_mz) * 1e6
             ccs_error = ((ccs - lib_row["CCS"]) / lib_row["CCS"]) * 100
-
-            # --- RT Error logic corrected to use absolute difference ---
             rt_error = (
                 abs(rt - lib_row["RT"])
                 if include_rt_scoring and pd.notna(rt) and pd.notna(lib_row["RT"])
@@ -111,77 +107,105 @@ def level_2_library_matching(
             )
 
             # Check if the feature is within all tolerances
-            if -ccs_tolerance <= ccs_error <= ccs_tolerance:
-                # --- RT check corrected to use absolute tolerance ---
-                if (
-                    include_rt_scoring
-                    and isinstance(rt_error, (int, float))
-                    and not (rt_error <= rt_tolerance)
-                ):
-                    continue
-                if not (-mass_error_ppm <= mass_error <= mass_error_ppm):
-                    continue
+            rt_match = not (
+                isinstance(rt_error, (int, float)) and rt_error > rt_tolerance
+            )
+            ccs_match = -ccs_tolerance <= ccs_error <= ccs_tolerance
 
+            if ccs_match and rt_match:
                 matched_ids.add(row["ID"])
 
                 new_row = {
-                    # --- Use direct access with standard keys ---
                     "Match": f"{lib_row['Name']} ({lib_row['Adduct']})",
                     "Match Source": match_source,
                     "ID": row["ID"],
                     "RT": row["RT"],
-                    "DT": row["DT"],
+                    "DT": row.get("DT"),  # Use .get() for optional 'DT' column
                     "CCS": row["CCS"],
                     "m/z": row["m/z"],
                     "Mass Error (ppm)": round(mass_error, 2),
                     "CCS Error (%)": round(ccs_error, 2),
-                    # --- Output column name updated for clarity ---
-                    "RT Error (abs)": round(rt_error, 2)
-                    if isinstance(rt_error, (int, float))
-                    else "N/A",
+                    "RT Error (abs)": (
+                        round(rt_error, 2)
+                        if isinstance(rt_error, (int, float))
+                        else "N/A"
+                    ),
                 }
 
-                intensity_cols = {
-                    col: row[col] for col in adjusted_df.columns if ".d" in col
-                }
-                new_row.update(intensity_cols)
+                # Add all intensity columns with their values
+                for col in intensity_cols:
+                    new_row[col] = row[col]
+
                 matched_rows.append(new_row)
 
-    likely_matched_df = pd.DataFrame(matched_rows)
-    likely_unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
+    # --- 4. Assemble Final DataFrames ---
+    matched_df = pd.DataFrame(matched_rows)
+    unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
 
-    likely_unmatched_df["Match"] = "No Match"
-    likely_unmatched_df["Match Source"] = "None"
-    likely_unmatched_df["Classification Type"] = "unmatched"
+    unmatched_df["Match"] = "No Match"
+    unmatched_df["Match Source"] = "None"
 
-    return likely_matched_df, likely_unmatched_df
+    # Define a consistent final column order
+    output_cols_front = [
+        "Match",
+        "Match Source",
+        "ID",
+        "RT",
+        "DT",
+        "CCS",
+        "m/z",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (abs)",
+    ]
+
+    # Ensure both dataframes have the same final columns for easy concatenation later
+    final_cols = output_cols_front + intensity_cols
+
+    # Re-order and add missing columns filled with None/NaN
+    if not matched_df.empty:
+        matched_df = matched_df.reindex(columns=final_cols)
+    if not unmatched_df.empty:
+        unmatched_df = unmatched_df.reindex(columns=final_cols)
+
+    # Add classification type to unmatched
+    unmatched_df["Classification Type"] = "unmatched"
+
+    return matched_df, unmatched_df
+
+
+# Assuming find_similar_peaks is available from another module in your project
+# from .helpers import find_similar_peaks
 
 
 def level_5_library_matching(
     unmatched_df,
+    metadata_cols,
     external_targets_library,
     mass_error_ppm=10,
 ):
+    """
+    [MODIFIED] Matches features with an external target list, robustly identifying sample columns.
+    """
     if unmatched_df.empty:
         print("[INFO] No unmatched features to process for Level 5 matching.")
         return pd.DataFrame(), unmatched_df
-    """Matches unmatched_df with a pre-standardized external library."""
-    matched_dict = {}
-    matched_ids = set()
-    match_source = "External Targets"
 
-    # --- The entire "Translate library column letters" block has been removed. ---
-    # We now assume 'external_targets_library' has columns named 'Name' and 'm/z'.
-
-    # Ensure required columns exist in the pre-standardized library DataFrame
-    required_cols = {"Name", "m/z"}
-    if not required_cols.issubset(external_targets_library.columns):
-        missing = required_cols - set(external_targets_library.columns)
+    # --- 1. Validate the external library DataFrame ---
+    required_lib_cols = {"Name", "m/z"}
+    if not required_lib_cols.issubset(external_targets_library.columns):
+        missing = required_lib_cols - set(external_targets_library.columns)
         raise KeyError(
             f"Level 5 Library DataFrame is missing required standardized columns: {missing}"
         )
 
-    # The rest of the function now uses direct column access
+    # --- 2. Robustly identify sample columns by excluding metadata ---
+    sample_cols = [col for col in unmatched_df.columns if col not in metadata_cols]
+
+    # --- 3. Perform Matching ---
+    matched_dict = {}
+    matched_ids = set()
+    match_source = "Suspects Library"
     numeric_mz = pd.to_numeric(external_targets_library["m/z"], errors="coerce")
     sorted_external_masses = sorted(numeric_mz.dropna().tolist())
 
@@ -196,13 +220,9 @@ def level_5_library_matching(
             matching_rows = external_targets_library[
                 external_targets_library["m/z"] == lib_mz
             ]
-
-            if matching_rows.empty:
-                continue
-
             for _, lib_row in matching_rows.iterrows():
                 mass_error = ((mz - lib_mz) / lib_mz) * 1e6
-                match_names.append(lib_row["Name"])  # Use direct column access
+                match_names.append(lib_row["Name"])
                 ppm_errors.append(str(round(mass_error, 2)))
                 matched_ids.add(row["ID"])
 
@@ -216,24 +236,44 @@ def level_5_library_matching(
                 "Classification Type": "tentative",
                 "ID": row["ID"],
                 "RT": row["RT"],
-                "DT": row["DT"],
+                "DT": row.get("DT"),
                 "CCS": row["CCS"],
                 "m/z": row["m/z"],
                 "Mass Error (ppm)": ppm_str,
                 "CCS Error (%)": "N/A",
-                "RT Error (%)": "N/A",
+                "RT Error (abs)": "N/A",  # Changed name for consistency
             }
 
-            intensity_cols = {
-                col: row[col] for col in unmatched_df.columns if ".d" in col
-            }
-            new_row.update(intensity_cols)
+            # Add all sample columns with their values using the robust list
+            for col in sample_cols:
+                new_row[col] = row[col]
+
             matched_dict[row["ID"]] = new_row
 
+    # --- 4. Assemble Final DataFrames ---
     external_matched_df = pd.DataFrame(matched_dict.values())
     external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
-    external_unmatched_df["Match"] = "No Match"
-    external_unmatched_df["Match Source"] = "None"
-    external_unmatched_df["Classification Type"] = "unmatched"
+
+    # Define a consistent final column order
+    output_cols_front = [
+        "Match",
+        "Match Source",
+        "Classification Type",
+        "ID",
+        "RT",
+        "DT",
+        "CCS",
+        "m/z",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (abs)",
+    ]
+    final_cols = output_cols_front + sample_cols
+
+    # Re-order and add missing columns filled with None/NaN
+    if not external_matched_df.empty:
+        external_matched_df = external_matched_df.reindex(columns=final_cols)
+    if not external_unmatched_df.empty:
+        external_unmatched_df = external_unmatched_df.reindex(columns=final_cols)
 
     return external_matched_df, external_unmatched_df

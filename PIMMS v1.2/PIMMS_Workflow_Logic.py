@@ -200,30 +200,62 @@ def run_pimms_workflow(config):
         )
         print("after standards library removal", adjusted_df)
 
-        # --- LIBRARY MATCHING (unchanged) ---
+        # Using keyword arguments for clarity and safety
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
-            adjusted_df,
-            pfas_library,
-            config.mass_error_ppm,
-            config.ccs_tolerance,
-            config.rt_tolerance,
-            config.include_rt_scoring,
+            adjusted_df=adjusted_df,
+            metadata_cols=metadata_cols,
+            pfas_library=pfas_library,
+            mass_error_ppm=config.mass_error_ppm,
+            ccs_tolerance=config.ccs_tolerance,
+            rt_tolerance=config.rt_tolerance,
+            include_rt_scoring=config.include_rt_scoring,
         )
-        print("after level 2 library matching", likely_matched_df)
-        print("after level 2 library matching", likely_unmatched_df)
+        print("after level 2 library matching, likely matched:", len(likely_matched_df))
+        print(
+            "after level 2 library matching, likely unmatched:",
+            len(likely_unmatched_df),
+        )
+
+        # --- 2. Perform Level 5 Library Matching on the remaining features ---
         external_matched_df, external_unmatched_df = level_5_library_matching(
-            likely_unmatched_df, external_targets_library, config.mass_error_ppm
+            unmatched_df=likely_unmatched_df,
+            metadata_cols=metadata_cols,
+            external_targets_library=external_targets_library,
+            mass_error_ppm=config.mass_error_ppm,
         )
-        print("after level 5 library matching", external_matched_df)
-        print("after level 5 library matching", external_unmatched_df)
-
-        adjusted_df = pd.concat(
-            [likely_matched_df, external_matched_df, external_unmatched_df],
-            ignore_index=True,
+        print(
+            "after level 5 library matching, external matched:",
+            len(external_matched_df),
         )
-        print("after concatenation", adjusted_df)
+        print(
+            "after level 5 library matching, external unmatched:",
+            len(external_unmatched_df),
+        )
 
-        # --- FINAL ANALYSIS STEPS (unchanged) ---
+        # --- 3. Consolidate all results into a single DataFrame ---
+        # First, define the list of all DataFrames to be combined
+        dfs_to_concat = [
+            likely_matched_df,
+            external_matched_df,
+            external_unmatched_df,
+        ]
+
+        # Next, create a new list of cleaned DataFrames, removing duplicate columns
+        cleaned_dfs = []
+        for df in dfs_to_concat:
+            if not df.empty:
+                # This keeps the first occurrence of any column name and drops duplicates
+                cleaned_df = df.loc[:, ~df.columns.duplicated(keep="first")]
+                cleaned_dfs.append(cleaned_df)
+
+        # Finally, concatenate the cleaned DataFrames
+        if cleaned_dfs:
+            adjusted_df = pd.concat(cleaned_dfs, ignore_index=True)
+        else:
+            # Handle the edge case where all processing resulted in empty DataFrames
+            adjusted_df = pd.DataFrame()
+
+        # --- FINAL ANALYSIS STEPS (Now correctly indented) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
         adjusted_df = produce_filtered_df(
             df=adjusted_df,
@@ -235,7 +267,6 @@ def run_pimms_workflow(config):
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )
-
         adjusted_df = find_matching_mass_relationships(adjusted_df)
         adjusted_df = find_neutral_loss_matches(adjusted_df)
 
