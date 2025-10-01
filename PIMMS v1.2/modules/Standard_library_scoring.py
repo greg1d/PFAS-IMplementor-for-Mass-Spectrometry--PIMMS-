@@ -168,6 +168,8 @@ def level_2_library_matching(
     if not unmatched_df.empty:
         unmatched_df = unmatched_df.reindex(columns=final_cols)
 
+    # Add classification type to matched
+    matched_df["Classification Type"] = "likely"
     # Add classification type to unmatched
     unmatched_df["Classification Type"] = "unmatched"
 
