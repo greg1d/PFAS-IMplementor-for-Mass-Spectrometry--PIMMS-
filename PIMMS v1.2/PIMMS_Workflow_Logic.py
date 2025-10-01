@@ -150,14 +150,17 @@ def run_pimms_workflow(config):
             metadata_cols=metadata_cols,  # Pass the list of metadata columns
             std_devs=config.blank_subtraction_std_dev,
         )
-
+        print("after blank subtraction in the main", adjusted_df)
         # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
         adjusted_df = apply_min_intensity_filter(
-            experimental_df, metadata_cols, config.min_intensity
+            adjusted_df, metadata_cols, config.min_intensity
         )
+        print("after min intensity filter in the main", adjusted_df)
+
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
 
         adjusted_df = apply_mass_filter(adjusted_df, config.mz_min, config.mz_max)
+
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,

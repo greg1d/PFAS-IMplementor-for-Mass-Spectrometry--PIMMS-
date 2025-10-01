@@ -186,10 +186,6 @@ def level_2_library_matching(
     return matched_df, unmatched_df
 
 
-# Assuming find_similar_peaks is available from another module in your project
-# from .helpers import find_similar_peaks
-
-
 def level_5_library_matching(
     unmatched_df,
     metadata_cols,
@@ -197,7 +193,8 @@ def level_5_library_matching(
     mass_error_ppm=10,
 ):
     """
-    [MODIFIED] Matches features with an external target list, robustly identifying sample columns.
+    Matches features with an external target list, robustly identifying sample columns
+    and ensuring consistent output structure.
     """
     if unmatched_df.empty:
         print("[INFO] No unmatched features to process for Level 5 matching.")
@@ -211,8 +208,16 @@ def level_5_library_matching(
             f"Level 5 Library DataFrame is missing required standardized columns: {missing}"
         )
 
-    # --- 2. Robustly identify sample columns by excluding metadata ---
-    sample_cols = [col for col in unmatched_df.columns if col not in metadata_cols]
+    # --- 2. Robustly identify sample columns by excluding all known info columns ---
+    known_info_cols = set(metadata_cols) | {
+        "Match",
+        "Match Source",
+        "Classification Type",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (abs)",
+    }
+    sample_cols = [col for col in unmatched_df.columns if col not in known_info_cols]
 
     # --- 3. Perform Matching ---
     matched_dict = {}
@@ -253,20 +258,19 @@ def level_5_library_matching(
                 "m/z": row["m/z"],
                 "Mass Error (ppm)": ppm_str,
                 "CCS Error (%)": "N/A",
-                "RT Error (abs)": "N/A",  # Changed name for consistency
+                "RT Error (abs)": "N/A",
             }
 
-            # Add all sample columns with their values using the robust list
             for col in sample_cols:
                 new_row[col] = row[col]
 
             matched_dict[row["ID"]] = new_row
 
-    # --- 4. Assemble Final DataFrames ---
+    # --- 4. Assemble and Standardize Final DataFrames ---
     external_matched_df = pd.DataFrame(matched_dict.values())
     external_unmatched_df = unmatched_df[~unmatched_df["ID"].isin(matched_ids)].copy()
 
-    # Define a consistent final column order
+    # Define the standard order for output columns
     output_cols_front = [
         "Match",
         "Match Source",
@@ -280,12 +284,19 @@ def level_5_library_matching(
         "CCS Error (%)",
         "RT Error (abs)",
     ]
-    final_cols = output_cols_front + sample_cols
 
-    # Re-order and add missing columns filled with None/NaN
+    # Construct the final full column list, ensuring uniqueness
+    final_cols = output_cols_front.copy()
+    front_cols_set = set(final_cols)
+    for col in sample_cols:
+        if col not in front_cols_set:
+            final_cols.append(col)
+
+    # Re-order and add missing columns to ensure both DataFrames have identical structure
     if not external_matched_df.empty:
         external_matched_df = external_matched_df.reindex(columns=final_cols)
     if not external_unmatched_df.empty:
+        # Unmatched rows retain their previous classification (e.g., 'unmatched')
         external_unmatched_df = external_unmatched_df.reindex(columns=final_cols)
 
     return external_matched_df, external_unmatched_df

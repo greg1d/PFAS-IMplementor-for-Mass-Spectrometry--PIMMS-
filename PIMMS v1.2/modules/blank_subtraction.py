@@ -253,7 +253,7 @@ def method_1_blank_subtraction(control_df, experimental_df, metadata_cols):
 
 
 def method_2_blank_subtraction(
-    control_df, experimental_df, metadata_cols, std_deviation_factor=1
+    control_df, experimental_df, metadata_cols, std_deviation_factor
 ):
     """
     Subtracts the control mean plus a factor of the control standard deviation
@@ -289,22 +289,25 @@ def method_2_blank_subtraction(
     # --- 3. Perform Subtraction Logic using Pandas-native operations ---
     # Calculate row-wise mean and standard deviation for control samples
     control_mean = control_df[control_sample_cols].mean(axis=1)
+    print("Control Mean:", control_mean)
     control_std = (
         control_df[control_sample_cols].std(axis=1).fillna(0)
     )  # fillna(0) for rows with one sample
 
     # Determine the total amount to subtract from each row
     subtraction_value = control_mean + (control_std * std_deviation_factor)
-
+    print("Subtraction Value (Mean + Factor * Std Dev):", subtraction_value)
     # Subtract the calculated value from each experimental sample in the row
     experimental_values = experimental_df[exp_sample_cols]
+    print("Experimental Values before Subtraction:", experimental_values)
     adjusted_values = experimental_values.sub(subtraction_value, axis=0)
+    print("Adjusted Values after Subtraction:", adjusted_values)
     adjusted_values = adjusted_values.clip(lower=0)  # Ensure no negative values
 
     # --- 4. Reconstruct the DataFrame ---
     metadata_df = experimental_df[metadata_cols]
     adjusted_df = pd.concat([metadata_df, adjusted_values], axis=1)
-
+    print("Final Adjusted DataFrame:", adjusted_df)
     # --- 5. Return Consistent Tuple Output ---
     return adjusted_df, control_mean, control_std
 

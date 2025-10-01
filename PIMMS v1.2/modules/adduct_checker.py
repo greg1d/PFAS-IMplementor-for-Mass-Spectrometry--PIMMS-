@@ -1,4 +1,3 @@
-import pandas as pd
 import bisect
 
 mass_error_ppm = 15
@@ -61,16 +60,3 @@ def find_matching_mass_relationships(df, mass_error_ppm=15):
     filtered_df = df[~df["m/z"].isin(matched_mz2_set)].reset_index(drop=True)
 
     return filtered_df
-
-
-def main():
-    file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set test.csv"
-    df = pd.read_csv(file_path)
-    filtered_df = find_matching_mass_relationships(df, mass_error_ppm)
-
-    print("\n=== Remaining DataFrame After Removing m/z 2 Matches ===")
-    print(filtered_df)
-
-
-if __name__ == "__main__":
-    main()
