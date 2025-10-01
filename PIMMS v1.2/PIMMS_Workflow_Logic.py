@@ -143,7 +143,7 @@ def run_pimms_workflow(config):
 
         # --- BLANK SUBTRACTION (unchanged) ---
 
-        adjusted_df, _, _ = perform_blank_subtraction(
+        adjusted_df = perform_blank_subtraction(
             method=config.blank_subtraction_method,
             control_df=control_df,
             experimental_df=experimental_df,

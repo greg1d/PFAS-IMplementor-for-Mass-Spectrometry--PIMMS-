@@ -1,4 +1,4 @@
 Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (abs),Sample 1 ,Sample 2,Sample 3
 "Name                          PFDoS
 Name    perfluorododecanesulfonate 
-Name: 0, dtype: object (M-H)",CCS Library,likely,2722.0,2.0,28.478,203.67,698.9174,0.0,0.0,N/A,9838.931639747703,9838.931639747703,9838.931639747703
+Name: 0, dtype: object (M-H)",CCS Library,likely,2722.0,2.0,28.478,203.67,698.9174,0.0,0.0,N/A,9890.0,9890.0,9890.0

@@ -309,7 +309,7 @@ def method_2_blank_subtraction(
     adjusted_df = pd.concat([metadata_df, adjusted_values], axis=1)
     print("Final Adjusted DataFrame:", adjusted_df)
     # --- 5. Return Consistent Tuple Output ---
-    return adjusted_df, control_mean, control_std
+    return adjusted_df
 
 
 # Replace the existing function in your modules/blank_subtraction.py file
@@ -338,22 +338,22 @@ def perform_blank_subtraction(
     print(f"--- Performing Blank Subtraction using Method {method} ---")
     if method == "1":
         # Call Method 1 with the required metadata and ID column arguments
-        adjusted_df, control_mean, control_std = method_1_blank_subtraction(
+        adjusted_df = method_1_blank_subtraction(
             control_df=control_df,
             experimental_df=experimental_df,
             metadata_cols=metadata_cols,
         )
-        return adjusted_df, control_mean, control_std
+        return adjusted_df
 
     elif method == "2":
         # Call Method 2 with the required metadata and ID column arguments
-        adjusted_df, control_mean, control_std = method_2_blank_subtraction(
+        adjusted_df = method_2_blank_subtraction(
             control_df=control_df,
             experimental_df=experimental_df,
             metadata_cols=metadata_cols,
             std_deviation_factor=std_devs,
         )
-        return adjusted_df, control_mean, control_std
+        return adjusted_df
 
     else:
         raise ValueError("Invalid method selected. Please choose '1' or '2'.")
