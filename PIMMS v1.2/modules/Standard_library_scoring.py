@@ -55,6 +55,10 @@ def column_letter_to_index(letter):
     return index - 1
 
 
+# Assuming find_similar_peaks is available from another module in your project
+# from .helpers import find_similar_peaks
+
+
 def level_2_library_matching(
     adjusted_df,
     metadata_cols,
@@ -82,7 +86,7 @@ def level_2_library_matching(
         )
 
     # --- 2. Robustly identify sample columns by excluding metadata ---
-    intensity_cols = [col for col in adjusted_df.columns if col not in metadata_cols]
+    sample_cols = [col for col in adjusted_df.columns if col not in metadata_cols]
 
     # --- 3. Perform Matching ---
     matched_rows = []
@@ -120,7 +124,7 @@ def level_2_library_matching(
                     "Match Source": match_source,
                     "ID": row["ID"],
                     "RT": row["RT"],
-                    "DT": row.get("DT"),  # Use .get() for optional 'DT' column
+                    "DT": row.get("DT"),
                     "CCS": row["CCS"],
                     "m/z": row["m/z"],
                     "Mass Error (ppm)": round(mass_error, 2),
@@ -132,23 +136,24 @@ def level_2_library_matching(
                     ),
                 }
 
-                # Add all intensity columns with their values
-                for col in intensity_cols:
+                # Add all sample columns with their values
+                for col in sample_cols:
                     new_row[col] = row[col]
 
                 matched_rows.append(new_row)
 
-    # --- 4. Assemble Final DataFrames ---
+    # --- 4. Assemble and Standardize Final DataFrames ---
     matched_df = pd.DataFrame(matched_rows)
     unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
 
     unmatched_df["Match"] = "No Match"
     unmatched_df["Match Source"] = "None"
 
-    # Define a consistent final column order
+    # Define the standard order for output columns, including Classification Type
     output_cols_front = [
         "Match",
         "Match Source",
+        "Classification Type",
         "ID",
         "RT",
         "DT",
@@ -159,19 +164,24 @@ def level_2_library_matching(
         "RT Error (abs)",
     ]
 
-    # Ensure both dataframes have the same final columns for easy concatenation later
-    final_cols = output_cols_front + intensity_cols
+    # Construct the final full column list, ensuring uniqueness
+    final_cols = output_cols_front.copy()
+    front_cols_set = set(final_cols)
+    for col in sample_cols:
+        if col not in front_cols_set:
+            final_cols.append(col)
 
-    # Re-order and add missing columns filled with None/NaN
+    # Assign classification types before reindexing
+    if not matched_df.empty:
+        matched_df["Classification Type"] = "likely"
+    if not unmatched_df.empty:
+        unmatched_df["Classification Type"] = "unmatched"
+
+    # Re-order and add missing columns to ensure both DataFrames have identical structure
     if not matched_df.empty:
         matched_df = matched_df.reindex(columns=final_cols)
     if not unmatched_df.empty:
         unmatched_df = unmatched_df.reindex(columns=final_cols)
-
-    # Add classification type to matched
-    matched_df["Classification Type"] = "likely"
-    # Add classification type to unmatched
-    unmatched_df["Classification Type"] = "unmatched"
 
     return matched_df, unmatched_df
 
