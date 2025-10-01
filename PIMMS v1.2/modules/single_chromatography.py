@@ -110,7 +110,7 @@ def group_and_eliminate(adjusted_df):
     return filtered_df.reset_index(drop=True)
 
 
-def unsaturated_chain_elimination(adjusted_df, mass_error_ppm=15):
+def unsaturated_chain_elimination(adjusted_df):
     """
     Removes features matching the CnF2n-1 pattern: exact mass = 12*n_C + 18.9984032*(2*n_C - 1)
 
@@ -125,7 +125,7 @@ def unsaturated_chain_elimination(adjusted_df, mass_error_ppm=15):
     C = 12.0000000
 
     to_exclude = set()
-
+    mass_error_ppm = 50
     for n_C in range(1, 40):  # reasonable carbon range
         formula_mass = C * n_C + F * (2 * n_C - 1)
         ppm_tol = formula_mass * mass_error_ppm * 1e-6
@@ -149,5 +149,5 @@ def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
         return adjusted_df
     adjusted_df = prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm)
     adjusted_df = group_and_eliminate(adjusted_df)
-    adjusted_df = unsaturated_chain_elimination(adjusted_df, mass_error_ppm)
+    adjusted_df = unsaturated_chain_elimination(adjusted_df)
     return adjusted_df
