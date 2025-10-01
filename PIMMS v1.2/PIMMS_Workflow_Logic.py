@@ -150,12 +150,10 @@ def run_pimms_workflow(config):
             metadata_cols=metadata_cols,  # Pass the list of metadata columns
             std_devs=config.blank_subtraction_std_dev,
         )
-        print("after blank subtraction in the main", adjusted_df)
         # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
         adjusted_df = apply_min_intensity_filter(
             adjusted_df, metadata_cols, config.min_intensity
         )
-        print("after min intensity filter in the main", adjusted_df)
 
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
 
@@ -201,7 +199,6 @@ def run_pimms_workflow(config):
             ccs_error_percentage=config.ccs_tolerance,
             z=1,
         )
-        print("after standards library removal", adjusted_df)
 
         # Using keyword arguments for clarity and safety
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
@@ -213,11 +210,6 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             include_rt_scoring=config.include_rt_scoring,
         )
-        print("after level 2 library matching, likely matched:", len(likely_matched_df))
-        print(
-            "after level 2 library matching, likely unmatched:",
-            len(likely_unmatched_df),
-        )
 
         # --- 2. Perform Level 5 Library Matching on the remaining features ---
         external_matched_df, external_unmatched_df = level_5_library_matching(
@@ -225,14 +217,6 @@ def run_pimms_workflow(config):
             metadata_cols=metadata_cols,
             external_targets_library=external_targets_library,
             mass_error_ppm=config.mass_error_ppm,
-        )
-        print(
-            "after level 5 library matching, external matched:",
-            len(external_matched_df),
-        )
-        print(
-            "after level 5 library matching, external unmatched:",
-            len(external_unmatched_df),
         )
 
         # --- 3. Consolidate all results into a single DataFrame ---

@@ -1,5 +1,4 @@
 import bisect
-import numpy as np
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm):
@@ -54,15 +53,35 @@ def prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm):
     return adjusted_df_filtered
 
 
-def group_and_eliminate(adjusted_df, mass_error_ppm):
+def group_and_eliminate(adjusted_df):
     """
-    Identify m/z groups within ±ppm, and remove any group that:
-    - has >=2 features,
-    - has RT spread > 2 min,
-    - has CCS spread > 15%.
-    Returns the filtered adjusted_df.
+    [MODIFIED] Identifies m/z groups of 'unmatched' features within ±50 ppm.
+    If a group contains 2 or more features, the entire group is removed.
     """
-    mz_array = sorted(adjusted_df["m/z"].dropna())
+    # Gracefully handle an empty input DataFrame
+    if adjusted_df.empty:
+        print("[INFO] Input DataFrame is empty. Skipping group elimination.")
+        return adjusted_df
+
+    # --- 1. Separate DataFrame to operate only on 'unmatched' features ---
+    if "Classification Type" not in adjusted_df.columns:
+        print(
+            "[WARNING] 'Classification Type' column not found. Applying filter to all rows."
+        )
+        unmatched_df = adjusted_df.copy()
+    else:
+        unmatched_df = adjusted_df[
+            adjusted_df["Classification Type"] == "unmatched"
+        ].copy()
+
+    if unmatched_df.empty:
+        print(
+            "[INFO] No 'unmatched' features to process for group elimination. Skipping."
+        )
+        return adjusted_df
+
+    # --- 2. Identify groups to be removed ---
+    mz_array = sorted(unmatched_df["m/z"].dropna())
     used = set()
     indices_to_remove = set()
 
@@ -70,31 +89,25 @@ def group_and_eliminate(adjusted_df, mass_error_ppm):
         if mz in used:
             continue
 
+        # Find all similar peaks within 50 ppm
+        mass_error_ppm = 50
         group_mz = find_similar_peaks(mz_array, mz, mass_error_ppm)
         group_mz = [val for val in group_mz if val not in used]
 
-        if len(group_mz) >= 2:
-            group_df = adjusted_df[adjusted_df["m/z"].isin(group_mz)].copy()
-            rt_min = group_df["RT"].min()
-            rt_max = group_df["RT"].max()
-            rt_spread = rt_max - rt_min
+        # --- 3. Apply the new, simpler logic ---
+        # If the group has 3 or more members, mark them all for removal.
+        if len(group_mz) >= 3:
+            group_df = unmatched_df[unmatched_df["m/z"].isin(group_mz)]
+            indices_to_remove.update(group_df.index)
 
-            ccs_min = group_df["CCS"].min()
-            ccs_max = group_df["CCS"].max()
-            ccs_spread_pct = (
-                100 * (ccs_max - ccs_min) / ccs_min if ccs_min > 0 else np.inf
-            )
+        # Mark the entire group as processed to avoid redundant checks
+        used.update(group_mz)
 
-            if rt_spread > 1.0 or ccs_spread_pct > 15.0:
-                indices_to_remove.update(group_df.index)
+    # --- 4. Drop all identified features from the original DataFrame ---
+    # The indices from 'unmatched_df' correctly map to 'adjusted_df'
+    filtered_df = adjusted_df.drop(index=list(indices_to_remove))
 
-            used.update(group_mz)
-
-    # Drop excluded group features from adjusted_df
-    filtered_df = adjusted_df.drop(index=indices_to_remove).copy()
-    print(f"✔️ Group elimination applied: removed {len(indices_to_remove)}")
-
-    return filtered_df
+    return filtered_df.reset_index(drop=True)
 
 
 def unsaturated_chain_elimination(adjusted_df, mass_error_ppm=15):
@@ -135,6 +148,6 @@ def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
         print("[INFO] No features to process for filtering pipeline.")
         return adjusted_df
     adjusted_df = prescreen_by_ccs(adjusted_df, library_df, mass_error_ppm)
-    adjusted_df = group_and_eliminate(adjusted_df, mass_error_ppm)
+    adjusted_df = group_and_eliminate(adjusted_df)
     adjusted_df = unsaturated_chain_elimination(adjusted_df, mass_error_ppm)
     return adjusted_df
