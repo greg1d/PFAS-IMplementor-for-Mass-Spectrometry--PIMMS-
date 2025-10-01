@@ -181,7 +181,6 @@ def run_pimms_workflow(config):
             ccs_tolerance=config.ccs_tolerance,
         )
         adjusted_df = mono_merge(adjusted_df, groups)
-        print("after mono", adjusted_df)
         adjusted_df = fluorinated_density_filter(adjusted_df)
         adjusted_df = mass_defect_filter(
             adjusted_df,
@@ -210,15 +209,20 @@ def run_pimms_workflow(config):
             config.rt_tolerance,
             config.include_rt_scoring,
         )
-
+        print("after level 2 library matching", likely_matched_df)
+        print("after level 2 library matching", likely_unmatched_df)
         external_matched_df, external_unmatched_df = level_5_library_matching(
             likely_unmatched_df, external_targets_library, config.mass_error_ppm
         )
+        print("after level 5 library matching", external_matched_df)
+        print("after level 5 library matching", external_unmatched_df)
+
         adjusted_df = pd.concat(
             [likely_matched_df, external_matched_df, external_unmatched_df],
             ignore_index=True,
         )
-        print("after library matching", adjusted_df)
+        print("after concatenation", adjusted_df)
+
         # --- FINAL ANALYSIS STEPS (unchanged) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
         adjusted_df = produce_filtered_df(
