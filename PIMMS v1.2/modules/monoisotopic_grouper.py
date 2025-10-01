@@ -2,11 +2,13 @@ import bisect
 
 
 def calculate_mass_error(mass, mass_error_ppm=10, z=1):
+    """Calculate the absolute mass error based on ppm."""
     mass_error = mass * mass_error_ppm * 1e-6
     return mass_error / z
 
 
 def find_peaks_within_bounds(array, z, M, i, mass_error_ppm=10):
+    """Finds peaks within the mass error bounds using binary search."""
     mass_bound = calculate_mass_error(array[i], mass_error_ppm, z)
     lower_bound = array[i] + (M / z) - mass_bound
     upper_bound = array[i] + (M / z) + mass_bound
@@ -25,6 +27,7 @@ def expand_group(
     rt_tolerance=0.5,
     ccs_tolerance=2.0,
 ):
+    """Expands a group of related isotopic peaks from an initial seed peak."""
     array = adjusted_df["m/z"].tolist()
     rt_array = adjusted_df["RT"].tolist()
     ccs_array = adjusted_df["CCS"].tolist()
@@ -54,7 +57,6 @@ def expand_group(
                     identified_features.add(peak)
                     group.append(peak)
                     to_process.append(peak)
-
     return group
 
 
@@ -65,7 +67,14 @@ def analyze_adjusted_df(
     rt_tolerance=0.5,
     ccs_tolerance=2.0,
 ):
-    adjusted_df = adjusted_df.sort_values(by="m/z")
+    """
+    Iterates through a DataFrame to find and group related isotopic features.
+    """
+    # Gracefully handle empty inputs
+    if adjusted_df.empty:
+        return []
+
+    adjusted_df = adjusted_df.sort_values(by="m/z").reset_index(drop=True)
     array = adjusted_df["m/z"].tolist()
 
     identified_features = set()
@@ -92,14 +101,14 @@ def analyze_adjusted_df(
 
 def merge_groups_into_adjusted_df(adjusted_df, groups):
     """
-    Merges groups into a single feature in the adjusted_df.
-    The representative feature is the row with the lowest m/z in the group.
-    The intensity values are preserved from the first peak.
+    Merges identified groups back into the DataFrame, keeping the feature with
+    the lowest m/z as the representative for each group.
     """
-    if adjusted_df.empty:
-        print("[INFO] Input DataFrame is empty. Skipping neutral loss checking.")
+    # Gracefully handle empty inputs
+    if adjusted_df.empty or not groups:
         return adjusted_df
 
+    # Identify intensity columns (assumed to be non-metadata)
     intensity_columns = [
         col
         for col in adjusted_df.columns
@@ -107,10 +116,16 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
     ]
 
     for group in groups:
-        # Find the rows corresponding to the group
+        # Find all rows in the DataFrame that correspond to the current group
         group_df = adjusted_df[adjusted_df["m/z"].isin(group)]
-        # Identify the representative row (lowest m/z)
+
+        # Skip if the group is somehow not in the DataFrame
+        if group_df.empty:
+            continue
+
+        # Identify the representative row (the one with the lowest m/z)
         representative_row = group_df.loc[group_df["m/z"].idxmin()]
+        representative_mz = representative_row["m/z"]
 
         # Set intensity columns of other rows in the group to match the representative row
         for col in intensity_columns:
@@ -118,12 +133,11 @@ def merge_groups_into_adjusted_df(adjusted_df, groups):
                 col
             ]
 
-        # Remove all other rows in the group except the representative row
-        adjusted_df = adjusted_df[
-            ~(
-                adjusted_df["m/z"].isin(group)
-                & (adjusted_df["m/z"] != representative_row["m/z"])
-            )
-        ]
+        # Identify m/z values to remove (all except the representative one)
+        mz_to_remove = [mz for mz in group if mz != representative_mz]
 
-    return adjusted_df
+        # Remove the non-representative rows from the DataFrame
+        if mz_to_remove:
+            adjusted_df = adjusted_df[~adjusted_df["m/z"].isin(mz_to_remove)]
+
+    return adjusted_df.reset_index(drop=True)
