@@ -22,10 +22,10 @@ class Config:
             "CCS": "D",
             "m/z": "E",
         }
-        self.control_start_col = "AY"
-        self.control_end_col = "BG"
+        self.control_start_col = "I"
+        self.control_end_col = "K"
         self.experimental_start_col = "F"
-        self.experimental_end_col = "AX"
+        self.experimental_end_col = "H"
         self.level_2_library_mapping = {
             "Name": "B",
             "Adduct": "D",

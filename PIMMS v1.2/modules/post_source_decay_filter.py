@@ -23,6 +23,7 @@ def remove_post_source_decay(adjusted_df):
     if adjusted_df.empty:
         print("[INFO] Input DataFrame is empty. Skipping post-source-decay filters.")
         return adjusted_df
+
     # Extract 'likely' features
     likely_df = adjusted_df[adjusted_df["Classification Type"] == "likely"].copy()
 
@@ -67,5 +68,5 @@ def remove_post_source_decay(adjusted_df):
 
     # Remove post-source decay candidates using ID
     adjusted_df = adjusted_df[~adjusted_df["ID"].isin(decay_ids)].reset_index(drop=True)
-
+    print("after post source decay", adjusted_df)
     return adjusted_df

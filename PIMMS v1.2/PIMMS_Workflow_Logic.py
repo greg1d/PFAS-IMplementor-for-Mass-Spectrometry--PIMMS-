@@ -85,12 +85,7 @@ def run_pimms_workflow(config):
             return
         # ...
 
-        print("[INFO] Starting PIMMS workflow...")
-        print(f"  - Input File: {config.raw_data_input_location}")
-        print(f"  - Output File: {config.output_path}")
-
         # --- DATA LOADING ---
-        print("[INFO] Loading and preparing initial data...")
         combined_data = robust_process_and_combine_files(
             [config.raw_data_input_location]
         )
@@ -99,7 +94,6 @@ def run_pimms_workflow(config):
         standards_df = pd.read_csv(config.standards_file)
 
         # --- CENTRALIZED TRANSLATION & RENAMING LOGIC ---
-        print("[INFO] Translating column mappings and standardizing column names...")
 
         config.clean_metadata_map = {
             k: combined_data.columns[column_letter_to_index(v)]
@@ -138,10 +132,6 @@ def run_pimms_workflow(config):
             columns={v: k for k, v in config.clean_standards_map.items()}, inplace=True
         )
 
-        print(
-            "[DEBUG] Main data, L2, L5, and Standards library columns have been renamed."
-        )
-
         # --- DATA SEPARATION (unchanged) ---
         _, control_df, experimental_df, metadata_cols = define_and_separate_samples(
             combined_data,
@@ -150,12 +140,9 @@ def run_pimms_workflow(config):
             config.experimental_start_col,
             config.experimental_end_col,
         )
-        print("[INFO] Data separation complete.")
 
         # --- BLANK SUBTRACTION (unchanged) ---
-        print(
-            f"[INFO] Performing Blank Subtraction (Method: {config.blank_subtraction_method})..."
-        )
+
         adjusted_df, _, _ = perform_blank_subtraction(
             method=config.blank_subtraction_method,
             control_df=control_df,
@@ -165,22 +152,17 @@ def run_pimms_workflow(config):
         )
 
         # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
-        print("[INFO] Applying filters to adjusted dataset...")
         adjusted_df = apply_min_intensity_filter(
             experimental_df, metadata_cols, config.min_intensity
         )
-        print("after intensity filter", len(adjusted_df))
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
-        print("after rt  filter", len(adjusted_df))
 
         adjusted_df = apply_mass_filter(adjusted_df, config.mz_min, config.mz_max)
-        print("after mass filter", len(adjusted_df))
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-        print("after smearing filter", len(adjusted_df))
         groups = branching_analyze(
             adjusted_df,
             mass_error_ppm=config.mass_error_ppm,
@@ -191,7 +173,6 @@ def run_pimms_workflow(config):
         adjusted_df = branching_merge(
             group_dfs=groups, original_df=adjusted_df, metadata_cols=metadata_cols
         )
-        print("after branching", len(adjusted_df))
         groups = mono_analyze(
             adjusted_df,
             z_range=range(1, 4),
@@ -199,21 +180,17 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-        print(len(groups), "mono groups found")
         adjusted_df = mono_merge(adjusted_df, groups)
-        print("after monoisotopic merging", len(adjusted_df))
+        print("after mono", adjusted_df)
         adjusted_df = fluorinated_density_filter(adjusted_df)
-        print("after density filter", len(adjusted_df))
         adjusted_df = mass_defect_filter(
             adjusted_df,
             lower_mass_filter_bound=config.mass_defect_lower_bound,
             upper_mass_filter_bound=config.mass_defect_upper_bound,
         )
-        print("after mass defect filter", len(adjusted_df))
         adjusted_df = detection_frequency_filter(
             adjusted_df, metadata_cols, config.frequency_threshold
         )
-        print("after detection frequency filter", len(adjusted_df))
         # --- FIX: The call now passes the prepared 'standards_df' DataFrame ---
         adjusted_df = remove_standards_library(
             adjusted_df,
@@ -222,9 +199,9 @@ def run_pimms_workflow(config):
             ccs_error_percentage=config.ccs_tolerance,
             z=1,
         )
-        print("after standards removal", len(adjusted_df))
+        print("after standards library removal", adjusted_df)
+
         # --- LIBRARY MATCHING (unchanged) ---
-        print("[INFO] Matching features against Level 2 Library...")
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
             adjusted_df,
             pfas_library,
@@ -234,7 +211,6 @@ def run_pimms_workflow(config):
             config.include_rt_scoring,
         )
 
-        print("[INFO] Matching remaining features against Level 5 Library...")
         external_matched_df, external_unmatched_df = level_5_library_matching(
             likely_unmatched_df, external_targets_library, config.mass_error_ppm
         )
@@ -242,7 +218,7 @@ def run_pimms_workflow(config):
             [likely_matched_df, external_matched_df, external_unmatched_df],
             ignore_index=True,
         )
-        print("After scoring:", len(adjusted_df))
+        print("after library matching", adjusted_df)
         # --- FINAL ANALYSIS STEPS (unchanged) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
         adjusted_df = produce_filtered_df(
@@ -252,16 +228,12 @@ def run_pimms_workflow(config):
             rt_regression_filter=config.rt_regression_filter,
             ccs_regression_filter=config.ccs_regression_filter,
         )
-        print("After regression:", len(adjusted_df))
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )
-        print("After combined filtering:", len(adjusted_df))
 
         adjusted_df = find_matching_mass_relationships(adjusted_df)
-        print("After adducts:", len(adjusted_df))
         adjusted_df = find_neutral_loss_matches(adjusted_df)
-        print("After neutral loss:", len(adjusted_df))
 
         # --- SAVE OUTPUT (unchanged) ---
         output_dir = os.path.dirname(config.output_path)
@@ -269,7 +241,6 @@ def run_pimms_workflow(config):
             os.makedirs(output_dir, exist_ok=True)
         adjusted_df.to_csv(config.output_path, index=False)
 
-        print(f"[SUCCESS] Final adjusted dataset saved to {config.output_path}")
         print(adjusted_df)
         messagebox.showinfo(
             "Success",
