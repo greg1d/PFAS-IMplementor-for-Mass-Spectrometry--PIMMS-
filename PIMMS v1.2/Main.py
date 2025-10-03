@@ -1,4 +1,5 @@
 import sys
+
 from GUI.app import PimmsGUI
 from GUI.text_redirector import TextRedirector
 

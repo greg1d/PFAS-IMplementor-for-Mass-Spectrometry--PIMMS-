@@ -1,80 +1,75 @@
-from creating_single_df import stack_library_with_adjusted
-import pandas as pd
+import bisect  # Import the bisect module
 import time
 
-
-import bisect  # Import the bisect module
-
-
 import networkx as nx  # You may need to install this: pip install networkx
+import pandas as pd
+from creating_single_df import stack_library_with_adjusted
+
+# --- This is the full, correct function ---
 
 
-def mz_repeating_unit_analysis(df, selected_repeating_units, mass_error_ppm=10):
+def mz_repeating_unit_analysis(
+    df, selected_repeating_units, mass_error_ppm=10, min_valid_points=3
+):
     """
-    Identifies homologous series using a graph-based approach to ensure all
-    connected members are correctly placed in the same group.
+    Identifies homologous series using a graph-based approach.
+
+    Args:
+        df (pd.DataFrame): Input data.
+        selected_repeating_units (dict): Dictionary of repeating units.
+        mass_error_ppm (int): Mass error tolerance.
+        min_valid_points (int): The minimum number of well-spaced points required
+                                to form a valid homologous series.
     """
-    # --- Input Validation and Preparation ---
     required_cols = ["Name", "Classification Type", "CCS", "RT", "m/z", "ID"]
     if not all(col in df.columns for col in required_cols):
         missing = [col for col in required_cols if col not in df.columns]
-        print(f"[ERROR] Input DataFrame is missing required columns: {missing}")
+        print(f"[ERROR] Missing required columns for analysis: {missing}")
         return pd.DataFrame()
 
     for col in ["m/z", "CCS", "RT", "ID"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     df.dropna(subset=["m/z", "CCS"], inplace=True)
-
     df = df.sort_values(by="m/z").reset_index(drop=True)
     mz_list = df["m/z"].tolist()
 
     print(f"[INFO] Starting graph-based series search on {len(df)} records...")
+    print(
+        f"[INFO] A valid series must have at least {min_valid_points} well-spaced points."
+    )
     start_time = time.perf_counter()
 
-    # --- 1. Build a Graph of Connections ---
     G = nx.Graph()
-    G.add_nodes_from(df.index)  # Each row in the DataFrame is a node
+    G.add_nodes_from(df.index)
 
     for current_idx in range(len(df)):
         current_mz = df.at[current_idx, "m/z"]
-
         for unit_name, M in selected_repeating_units.items():
             target_mz = current_mz + M
             ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
             lower_bound = target_mz - ppm_tolerance
             upper_bound = target_mz + ppm_tolerance
-
             start_slice = bisect.bisect_left(mz_list, lower_bound, lo=current_idx + 1)
             end_slice = bisect.bisect_right(mz_list, upper_bound, lo=start_slice)
-
             candidate_indices = df.index[start_slice:end_slice]
-
             if not candidate_indices.empty:
-                # Find the best match among candidates
                 best_candidate_idx = (
                     (df.loc[candidate_indices, "m/z"] - target_mz).abs().idxmin()
                 )
-                # Add an edge in the graph connecting these two features
                 G.add_edge(current_idx, best_candidate_idx, unit=unit_name)
 
-    # --- 2. Extract Connected Components (Groups) ---
-    # Each connected component in the graph is one complete homologous series
     connected_components = list(nx.connected_components(G))
-
-    # --- 3. Validate and Format Groups ---
     all_groups = []
     group_counter = 0
-    for component in connected_components:
-        group_indices = list(component)
 
-        # Validation 1: Must have at least 3 members
-        if len(group_indices) < 3:
+    for component in connected_components:
+        if len(component) < min_valid_points:
             continue
 
+        group_indices = list(component)
         group_df_rows = df.loc[group_indices]
         mz_values = group_df_rows["m/z"].tolist()
 
-        # Validation 2: Spacing check
         unique_sorted_mz = sorted(list(set(mz_values)))
         valid_points_count = 0
         if len(unique_sorted_mz) > 0:
@@ -85,32 +80,26 @@ def mz_repeating_unit_analysis(df, selected_repeating_units, mass_error_ppm=10):
                     valid_points_count += 1
                     last_counted_mz = mz
 
-        if valid_points_count < 3:
+        if valid_points_count < min_valid_points:
             continue
 
-        # Validation 3: Must contain at least one non-standard
         if not (group_df_rows["Classification Type"] != "External Standard").any():
             continue
 
-        # If all validations pass, save the group
         group_counter += 1
         final_group = group_df_rows[required_cols].copy()
         final_group["GroupID"] = group_counter
-        # Simple assignment of repeating unit for the whole group
         final_group["Repeating Unit"] = list(selected_repeating_units.keys())[0]
-
         all_groups.append(final_group)
 
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
+    elapsed_time = time.perf_counter() - start_time
     print(f"[INFO] Series identification finished in {elapsed_time:.4f} seconds.")
 
     if not all_groups:
         print("[INFO] No valid homologous series were found.")
         return pd.DataFrame()
 
-    final_df = pd.concat(all_groups, ignore_index=True)
-    return final_df
+    return pd.concat(all_groups, ignore_index=True)
 
 
 def mz_group_refinement(mass_groups_df, min_library_points=0, min_valid_points=3):
