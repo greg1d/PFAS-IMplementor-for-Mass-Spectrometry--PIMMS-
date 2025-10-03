@@ -113,8 +113,60 @@ def mz_repeating_unit_analysis(df, selected_repeating_units, mass_error_ppm=10):
     return final_df
 
 
+def mz_group_refinement(mass_groups_df):
+    """
+    Refines homologous series groups by removing points that do not follow an
+    increasing trend in CCS and RT after a significant m/z jump.
+
+    Args:
+        mass_groups_df (pd.DataFrame): The DataFrame containing groups found by
+                                       mz_repeating_unit_analysis.
+
+    Returns:
+        pd.DataFrame: A refined DataFrame with non-trending points removed.
+    """
+    if mass_groups_df.empty:
+        return mass_groups_df
+
+    print("\n[INFO] Starting group refinement process...")
+
+    indices_to_drop = []
+
+    # Process each group independently
+    for group_id, group in mass_groups_df.groupby("GroupID"):
+        # Ensure the group is sorted by m/z to compare sequential points
+        group = group.sort_values(by="m/z")
+
+        # Iterate from the second point onwards to compare with the previous one
+        for i in range(1, len(group)):
+            current_point = group.iloc[i]
+            previous_point = group.iloc[i - 1]
+
+            # Condition 1: The m/z gap must be at least 10
+            if current_point["m/z"] - previous_point["m/z"] >= 10:
+                # Condition 2: Both CCS and RT must be strictly greater
+                if not (
+                    current_point["CCS"] > previous_point["CCS"]
+                    and current_point["RT"] > previous_point["RT"]
+                ):
+                    # If the trend is broken, flag the current point for removal
+                    print(
+                        f"[DEBUG] Dropping point ID {current_point['ID']} (m/z: {current_point['m/z']:.4f}) from Group {group_id} for breaking trend."
+                    )
+                    indices_to_drop.append(
+                        current_point.name
+                    )  # .name gets the original index
+
+    # Drop all flagged indices from the original DataFrame at once
+    refined_df = mass_groups_df.drop(indices_to_drop)
+
+    print(f"[INFO] Refinement complete. Removed {len(indices_to_drop)} points.")
+
+    return refined_df
+
+
 if __name__ == "__main__":
-    adjusted_df = r"PIMMS v1.2\import folder\Dummy test output.csv"
+    adjusted_df = r"C:\Users\Greg Kudzin\Downloads\250918_SealsPIMMS.csv"
     pfas_library = r"PIMMS v1.2\import folder\Dummy test output_used_library.csv"
     adjusted_df = pd.read_csv(adjusted_df)
     pfas_library = pd.read_csv(pfas_library)
@@ -127,3 +179,5 @@ if __name__ == "__main__":
         stacked_df, selected_repeating_units, mass_error_ppm=10
     )
     print(mass_groups)
+    mass_groups_refined = mz_group_refinement(mass_groups)
+    print(mass_groups_refined)
