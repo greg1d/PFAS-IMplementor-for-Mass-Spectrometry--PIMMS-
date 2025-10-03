@@ -13,7 +13,7 @@ from .Tabs.files_tab import FilesTab
 from .Tabs.mapping_tab import MappingTab
 from .Tabs.params_tab import ParamsTab
 from .Tabs.run_tab import RunTab
-from .Tabs.visualizations_tab import VisualizationsTab  # <-- IMPORT THE NEW TAB
+from .Tabs.visualizations_tab import VisualizationsTab
 
 
 class PimmsGUI(tk.Tk):
@@ -39,7 +39,7 @@ class PimmsGUI(tk.Tk):
         self.run_tab = RunTab(notebook, self.run_workflow_thread)
         self.visualizations_tab = VisualizationsTab(
             notebook
-        )  # <-- INSTANTIATE THE NEW TAB
+        )  # <-- 2. INSTANTIATE THE TAB
 
         # --- Add tabs to the notebook ---
         # The main app adds the fully-formed tabs to the notebook.
