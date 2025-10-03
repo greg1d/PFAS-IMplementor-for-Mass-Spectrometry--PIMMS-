@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 
+import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from sklearn.linear_model import LinearRegression
 
 
 class PlotWidget(ttk.Frame):
@@ -18,39 +20,59 @@ class PlotWidget(ttk.Frame):
 
         self.update_plot(None, None)  # Draw initial empty state
 
-    def update_plot(self, raw_df, analyzed_df):
-        """Clears and redraws the Matplotlib plot based on the provided data."""
+    def update_plot(self, context_df, highlighted_df):
+        """
+        Clears and redraws the plot.
+        - context_df: Plotted in gray in the background.
+        - highlighted_df: Plotted in color with a trend line.
+        """
         self.ax.clear()
 
-        if raw_df is not None:
+        # Plot the full parent group (context) in gray if it exists
+        if context_df is not None and not context_df.empty:
+            parent_id = int(context_df["GroupID"].iloc[0])
             self.ax.scatter(
-                raw_df["m/z"],
-                raw_df["CCS"],
-                color="gray",
-                alpha=0.2,
-                label="All Features",
+                context_df["m/z"],
+                context_df["CCS"],
+                color="lightgray",
+                s=30,
+                label=f"Parent Group {parent_id}",
             )
 
-        if analyzed_df is None or analyzed_df.empty:
-            message = (
-                "No homologous series found."
-                if raw_df is not None
-                else "Load a report file to begin."
+        # Plot the selected trend in color with a line
+        if highlighted_df is not None and not highlighted_df.empty:
+            trend_id = highlighted_df["trend_group"].iloc[0]
+            # Plot the points for the highlighted trend
+            self.ax.plot(
+                highlighted_df["m/z"],
+                highlighted_df["CCS"],
+                marker="o",
+                linestyle="",
+                label=f"Trend {trend_id}",
             )
-            self.ax.text(
-                0.5, 0.5, message, ha="center", va="center", transform=self.ax.transAxes
+
+            # Fit a model and plot the trend line
+            model = LinearRegression().fit(
+                highlighted_df[["m/z"]].values, highlighted_df["CCS"].values
             )
+            x_range = np.linspace(
+                highlighted_df["m/z"].min(), highlighted_df["m/z"].max(), 100
+            )
+            y_pred = model.predict(x_range.reshape(-1, 1))
+            self.ax.plot(x_range, y_pred, linestyle="--", color="red")
+
+            self.ax.set_title(f"Viewing Trend {trend_id}")
         else:
-            for group_id, group_data in analyzed_df.groupby("GroupID"):
-                self.ax.plot(
-                    group_data["m/z"],
-                    group_data["CCS"],
-                    marker="o",
-                    linestyle="-",
-                    label=f"Group {group_id}",
-                )
+            self.ax.text(
+                0.5,
+                0.5,
+                "Load data and run analysis to view trends.",
+                ha="center",
+                va="center",
+                transform=self.ax.transAxes,
+            )
+            self.ax.set_title("Analysis Viewer")
 
-        self.ax.set_title("CCS vs. m/z Homologous Series")
         self.ax.set_xlabel("m/z")
         self.ax.set_ylabel("CCS ($Å^2$)")
         self.ax.grid(True)
