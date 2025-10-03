@@ -113,19 +113,25 @@ def mz_repeating_unit_analysis(df, selected_repeating_units, mass_error_ppm=10):
     return final_df
 
 
-def mz_group_refinement(mass_groups_df):
+def mz_group_refinement(mass_groups_df, min_library_points=0, min_valid_points=3):
     """
-    Refines homologous series groups by removing non-trending points, then
-    re-validates and discards/prints any groups that are now too small.
+    Refines groups by removing non-trending points and then validates groups
+    based on size, spacing, and the minimum number of library points.
+
+    Args:
+        mass_groups_df (pd.DataFrame): The DataFrame from mz_repeating_unit_analysis.
+        min_library_points (int): The minimum number of points with Classification Type
+                                  'External Standard' required for a group to be valid.
     """
     if mass_groups_df.empty:
         return mass_groups_df
 
     print("\n[INFO] Starting group refinement process...")
+    print(
+        f"[INFO] A valid group must contain at least {min_library_points} 'External Standard' points."
+    )
 
     indices_to_drop = []
-
-    # Step 1: Identify and flag individual points that break the trend
     for group_id, group in mass_groups_df.groupby("GroupID"):
         group = group.sort_values(by="m/z")
         for i in range(1, len(group)):
@@ -136,27 +142,20 @@ def mz_group_refinement(mass_groups_df):
                     current_point["CCS"] > previous_point["CCS"]
                     and current_point["RT"] > previous_point["RT"]
                 ):
-                    print(
-                        f"[DEBUG] Flagging point ID {current_point['ID']} (m/z: {current_point['m/z']:.4f}) from Group {group_id} for breaking trend."
-                    )
                     indices_to_drop.append(current_point.name)
 
-    # Step 2: Drop the flagged points to create a refined DataFrame
     refined_df = mass_groups_df.drop(indices_to_drop)
 
     if refined_df.empty:
-        print("[INFO] Refinement complete. No groups remain.")
+        print("[INFO] Refinement complete. No groups remain after trend filtering.")
         return refined_df
 
-    # Step 3: Post-refinement validation to eliminate groups that are now too small
-    print("[INFO] Validating group sizes after refinement...")
+    print("[INFO] Validating groups for size, spacing, and library point count...")
     valid_group_ids = []
-
-    # Iterate through the remaining groups to check their validity
     for group_id, group in refined_df.groupby("GroupID"):
+        # Check 1: Validate size and spacing
         mz_values = group["m/z"].tolist()
         unique_sorted_mz = sorted(list(set(mz_values)))
-
         valid_points_count = 0
         if len(unique_sorted_mz) > 0:
             valid_points_count = 1
@@ -166,33 +165,36 @@ def mz_group_refinement(mass_groups_df):
                     valid_points_count += 1
                     last_counted_mz = mz
 
-        # If the group still has at least 3 well-spaced points, its ID is kept.
-        if valid_points_count >= 3:
-            valid_group_ids.append(group_id)
-        else:
-            # --- MODIFIED PART: Print the full group being discarded ---
+        if valid_points_count < min_valid_points:
             print(
-                "\n------------------------------------------------------------------"
-            )
-            print(
-                f"[INFO] Discarding Group {group_id} (Reason: Fewer than 3 well-spaced points after refinement)"
+                f"\n--- Discarding Group {group_id} (Reason: Fewer than {min_valid_points} well-spaced points) ---"
             )
             print(group)
-            print("------------------------------------------------------------------")
-            # --- END MODIFICATION ---
+            continue  # Skip to the next group
 
-    # Step 4: Filter the DataFrame to only include the fully validated groups
+        # --- NEW: Check 2: Validate minimum number of library points ---
+        library_points_count = (
+            group["Classification Type"] == "External Standard"
+        ).sum()
+
+        if library_points_count >= min_library_points:
+            valid_group_ids.append(group_id)  # Group is valid
+        else:
+            print(
+                f"\n--- Discarding Group {group_id} (Reason: Has {library_points_count} library points, requires {min_library_points}) ---"
+            )
+            print(group)
+
     fully_refined_df = refined_df[refined_df["GroupID"].isin(valid_group_ids)].copy()
 
     print(
         f"\n[INFO] Post-refinement validation complete. {len(valid_group_ids)} groups remain."
     )
-
     return fully_refined_df
 
 
 if __name__ == "__main__":
-    adjusted_df = r"C:\Users\Greg Kudzin\Downloads\250918_SealsPIMMS.csv"
+    adjusted_df = r"PIMMS v1.2\import folder\Dummy test output.csv"
     pfas_library = r"PIMMS v1.2\import folder\Dummy test output_used_library.csv"
     adjusted_df = pd.read_csv(adjusted_df)
     pfas_library = pd.read_csv(pfas_library)
@@ -205,6 +207,7 @@ if __name__ == "__main__":
         stacked_df, selected_repeating_units, mass_error_ppm=10
     )
 
-    mass_groups_refined = mz_group_refinement(mass_groups)
-
-    mass_groups_refined.to_csv("mass_groups_refined.csv")
+    mass_groups = mz_group_refinement(
+        mass_groups, min_library_points=2, min_valid_points=4
+    )
+    print(mass_groups)
