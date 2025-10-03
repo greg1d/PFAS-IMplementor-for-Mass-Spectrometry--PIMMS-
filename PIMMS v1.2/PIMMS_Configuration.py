@@ -1,3 +1,6 @@
+import json
+
+
 class Config:
     """
     A centralized configuration class to hold all parameters for the PIMMS workflow.
@@ -58,3 +61,24 @@ class Config:
         self.frequency_threshold = 15.0
         self.rt_regression_filter = False
         self.ccs_regression_filter = True
+        self.repeating_units = {}  # Initialize as empty dictionary
+        self.load_from_json()
+
+    def load_from_json(self, filepath="PIMMS v1.2\GUI\widgets\config.json"):
+        """Loads configuration settings from a JSON file."""
+        try:
+            with open(filepath, "r") as f:
+                config_data = json.load(f)
+                # Load the repeating units into the config object
+                self.repeating_units = config_data.get("repeating_units", {})
+                print(
+                    f"[INFO] Loaded {len(self.repeating_units)} repeating units from {filepath}."
+                )
+        except FileNotFoundError:
+            print(
+                f"[WARNING] Configuration file '{filepath}' not found. Using default values."
+            )
+            # Define a default in case the file is missing
+            self.repeating_units = {"CF2": 49.9968}
+        except Exception as e:
+            print(f"[ERROR] Failed to load config file: {e}")

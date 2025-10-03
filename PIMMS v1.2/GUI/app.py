@@ -20,7 +20,7 @@ class PimmsGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PIMMS v1.2")
-        self.geometry("850x700")
+        self.geometry("1200x800")
 
         # The Config object acts as the central data model
         self.config = Config()
@@ -37,9 +37,7 @@ class PimmsGUI(tk.Tk):
 
         # The RunTab is given a "callback" function to execute when its button is pressed.
         self.run_tab = RunTab(notebook, self.run_workflow_thread)
-        self.visualizations_tab = VisualizationsTab(
-            notebook
-        )  # <-- 2. INSTANTIATE THE TAB
+        self.visualizations_tab = VisualizationsTab(notebook, self.config)
 
         # --- Add tabs to the notebook ---
         # The main app adds the fully-formed tabs to the notebook.
