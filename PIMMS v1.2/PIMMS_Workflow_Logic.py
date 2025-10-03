@@ -262,7 +262,9 @@ def run_pimms_workflow(config):
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
         adjusted_df.to_csv(config.output_path, index=False)
-
+        pfas_library.to_csv(
+            os.path.splitext(config.output_path)[0] + "_used_library.csv", index=False
+        )
         print(adjusted_df)
         messagebox.showinfo(
             "Success",
