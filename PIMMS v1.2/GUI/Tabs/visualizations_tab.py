@@ -2,10 +2,23 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 # Import your pipeline controller and modular widgets
-from modules.visualization_analysis_pipeline import run_analysis_pipeline
+try:
+    from modules.visualization_analysis_pipeline import run_analysis_pipeline
 
-from ..widgets.controls_widget import ControlsWidget
-from ..widgets.plot_widget import PlotWidget
+    from ..widgets.controls_widget import ControlsWidget
+    from ..widgets.plot_widget import PlotWidget
+except ImportError:
+    # Fallback for running file directly or path issues
+    import os
+    import sys
+
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    from modules.visualization_analysis_pipeline import run_analysis_pipeline
+
+    from GUI.widgets.controls_widget import ControlsWidget
+    from GUI.widgets.plot_widget import PlotWidget
 
 
 class VisualizationsTab(ttk.Frame):
@@ -14,9 +27,7 @@ class VisualizationsTab(ttk.Frame):
     analysis and display of trend groups.
     """
 
-    def __init__(
-        self, parent, config
-    ):  # It needs the 'config' object from the main app
+    def __init__(self, parent, config):
         super().__init__(parent)
         self.config = config
         self.experimental_filepath = None
@@ -26,7 +37,6 @@ class VisualizationsTab(ttk.Frame):
 
     def _create_widgets(self):
         # --- Main Layout ---
-        # The ControlsWidget handles all the buttons and entry fields
         self.controls = ControlsWidget(
             self,
             config=self.config,
@@ -36,7 +46,6 @@ class VisualizationsTab(ttk.Frame):
         )
         self.controls.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(10, 0))
 
-        # A separate frame for the Trend Selector dropdown
         selector_frame = ttk.Labelframe(self, text="Trend Group Viewer")
         selector_frame.pack(fill=tk.X, padx=10, pady=5)
         ttk.Label(selector_frame, text="Select Trend to View:").pack(
@@ -46,15 +55,12 @@ class VisualizationsTab(ttk.Frame):
         self.trend_selector.pack(side=tk.LEFT, padx=5, pady=5)
         self.trend_selector.bind("<<ComboboxSelected>>", self._on_trend_selected)
 
-        # --- Paned Window for resizable Plot and Table ---
         plot_table_pane = ttk.PanedWindow(self, orient=tk.VERTICAL)
         plot_table_pane.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # The PlotWidget is the dedicated Matplotlib canvas
         self.plot = PlotWidget(plot_table_pane)
         plot_table_pane.add(self.plot, weight=3)
 
-        # The Treeview is for displaying tabular data
         table_frame = ttk.Labelframe(plot_table_pane, text="Selected Trend Data")
         plot_table_pane.add(table_frame, weight=1)
         self.tree = ttk.Treeview(table_frame, show="headings")
@@ -82,31 +88,35 @@ class VisualizationsTab(ttk.Frame):
             self.controls.set_lib_file_label(path.split("/")[-1])
 
     def _run_pipeline(self):
-        """Collects parameters and calls the main pipeline controller."""
+        """Collects parameters from the GUI and calls the main pipeline controller."""
         if not self.experimental_filepath or not self.library_filepath:
             messagebox.showwarning(
                 "Missing Files", "Please select both an experimental and library file."
             )
             return
-        repeating_units = self.controls.get_repeating_units()
-        if repeating_units is None:
-            return
 
-        # In a real app, these would come from more GUI widgets in the ControlsWidget
-        params = {
+        # --- MODIFICATION: Get all parameters from the ControlsWidget ---
+        gui_params = self.controls.get_parameters()
+        if gui_params is None:
+            return  # An error occurred in parameter parsing (e.g., invalid number)
+
+        # Create the full parameter dictionary for the pipeline
+        pipeline_params = {
             "experimental_filepath": self.experimental_filepath,
             "library_filepath": self.library_filepath,
-            "selected_repeating_units": repeating_units,
-            "mass_error_ppm": 10,
-            "min_valid_points": 3,
-            "min_library_points": 0,
-            "ransac_threshold": 4.0,
-            "min_ransac_samples": 3,
+            "selected_repeating_units": gui_params["repeating_unit"],
+            "mass_error_ppm": gui_params["mass_error_ppm"],
+            "min_valid_points": gui_params["min_valid_points"],
+            "min_library_points": gui_params["min_library_points"],
+            "ransac_threshold_percentage": gui_params["ransac_threshold_percentage"],
+            "min_ransac_samples": 3,  # This can also be made into a GUI control if needed
         }
+        # --- END MODIFICATION ---
 
         try:
             self.update_idletasks()
-            final_df = run_analysis_pipeline(**params)
+            # Run the pipeline with the parameters collected from the GUI
+            final_df = run_analysis_pipeline(**pipeline_params)
 
             if final_df is not None and not final_df.empty:
                 self.full_results_df = final_df
@@ -115,8 +125,7 @@ class VisualizationsTab(ttk.Frame):
                     self.trend_selector.current(0)
                     self._on_trend_selected(None)
                 messagebox.showinfo(
-                    "Success",
-                    "Analysis complete. Select a trend to view from the dropdown.",
+                    "Success", "Analysis complete. Select a trend to view."
                 )
             else:
                 self._populate_trend_selector()
@@ -129,7 +138,6 @@ class VisualizationsTab(ttk.Frame):
             messagebox.showerror("Pipeline Error", f"A critical error occurred: {e}")
 
     def _populate_trend_selector(self):
-        """Populates the trend selector Combobox with trend_group IDs."""
         if self.full_results_df is not None and not self.full_results_df.empty:
             trend_ids = sorted(
                 [g for g in self.full_results_df["trend_group"].unique() if g != -1]
@@ -142,28 +150,23 @@ class VisualizationsTab(ttk.Frame):
             self.trend_selector.config(state="disabled")
 
     def _on_trend_selected(self, event):
-        """Called when the user selects a new trend from the Combobox."""
         selected_trend_str = self.trend_selector.get()
         if not selected_trend_str or self.full_results_df is None:
             return
-
         selected_trend_id = float(selected_trend_str)
         selected_trend_df = self.full_results_df[
             self.full_results_df["trend_group"] == selected_trend_id
         ]
         if selected_trend_df.empty:
             return
-
         parent_group_id = selected_trend_df["GroupID"].iloc[0]
         parent_group_df = self.full_results_df[
             self.full_results_df["GroupID"] == parent_group_id
         ]
-
         self.plot.update_plot(parent_group_df, selected_trend_df)
         self._update_table(selected_trend_df)
 
     def _update_table(self, df):
-        """Manages the data table (Treeview)."""
         self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
             return

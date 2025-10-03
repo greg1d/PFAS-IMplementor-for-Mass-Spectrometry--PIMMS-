@@ -1,28 +1,41 @@
+import traceback
+
 import pandas as pd
 
-from .ccsvmz_analysis import process_all_groups
+# Import all the necessary analysis modules from their respective files
+# Ensure these files are in the same 'modules' directory or your Python path is set correctly.
+try:
+    from .ccsvmz_analysis import SLOPE_VALIDATOR, process_all_groups
+    from .repeat_unit_analysis import (
+        mz_group_refinement,
+        mz_repeating_unit_analysis,
+        stack_library_with_adjusted,
+    )
+except ImportError:
+    # Fallback for running script directly
+    from ccsvmz_analysis import SLOPE_VALIDATOR, process_all_groups
+    from repeat_unit_analysis import (
+        mz_group_refinement,
+        mz_repeating_unit_analysis,
+        stack_library_with_adjusted,
+    )
 
-# Import all the necessary analysis modules
-from .repeat_unit_analysis import (
-    mz_group_refinement,
-    mz_repeating_unit_analysis,
-    stack_library_with_adjusted,
-)
 
-
-# --- THIS IS THE CORRECTED FUNCTION DEFINITION ---
 def run_analysis_pipeline(
-    experimental_filepath,  # <-- Takes a file path
-    library_filepath,  # <-- Takes a file path
-    selected_repeating_units,  # <-- Has the correct parameter name
+    experimental_filepath,
+    library_filepath,
+    selected_repeating_units,
     mass_error_ppm,
     min_valid_points,
     min_library_points,
-    ransac_threshold,
+    ransac_threshold_percentage,
     min_ransac_samples,
+    slope_range=(0.05, 0.25),
+    min_r_squared=0.9,
 ):
     """
-    Orchestrates the entire analysis workflow from file loading to RANSAC.
+    Orchestrates the entire analysis workflow from file loading to RANSAC,
+    including all validation parameters.
     """
     print("\n==============================================")
     print("====== RUNNING FULL ANALYSIS PIPELINE ======")
@@ -60,18 +73,30 @@ def run_analysis_pipeline(
             min_valid_points=min_valid_points,
         )
         if refined_groups.empty:
-            print("[PIPELIPELINE INFO] No groups remained after refinement.")
+            print("[PIPELINE INFO] No groups remained after refinement.")
             return pd.DataFrame()
 
         # --- Step 5: Run RANSAC Trend Analysis ---
         print("\n[Step 5] Running RANSAC trend analysis on refined groups...")
+
+        # Calculate the dynamic RANSAC threshold based on the percentage
+        average_ccs = refined_groups["CCS"].mean()
+        actual_ransac_threshold = average_ccs * ransac_threshold_percentage
+        print(
+            f"[INFO] Dynamic RANSAC threshold calculated as: {actual_ransac_threshold:.2f}"
+        )
+
+        # Set the slope range on the validator object before running RANSAC
+        SLOPE_VALIDATOR.set_range(slope_range[0], slope_range[1])
+
         final_df = process_all_groups(
             df=refined_groups,
             group_id_col="GroupID",
             x_col="m/z",
             y_col="CCS",
-            residual_threshold=ransac_threshold,
+            residual_threshold=actual_ransac_threshold,
             min_trend_samples=min_ransac_samples,
+            min_r_squared=min_r_squared,
         )
 
         print("\n====== PIPELINE FINISHED SUCCESSFULLY ======")
@@ -82,4 +107,5 @@ def run_analysis_pipeline(
         return None
     except Exception as e:
         print(f"[PIPELINE ERROR] An unexpected error occurred: {e}")
+        traceback.print_exc()  # Print full error details for debugging
         return None
