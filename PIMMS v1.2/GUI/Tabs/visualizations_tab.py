@@ -1,14 +1,14 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-# Import your pipeline controller and modular widgets
+# This robustly imports your pipeline controller and modular widgets
 try:
     from modules.visualization_analysis_pipeline import run_analysis_pipeline
 
     from ..widgets.controls_widget import ControlsWidget
     from ..widgets.plot_widget import PlotWidget
 except ImportError:
-    # Fallback for running file directly or path issues
+    # Fallback for different run environments
     import os
     import sys
 
@@ -36,7 +36,7 @@ class VisualizationsTab(ttk.Frame):
         self._create_widgets()
 
     def _create_widgets(self):
-        # --- Main Layout ---
+        # The ControlsWidget handles all the buttons and parameter inputs
         self.controls = ControlsWidget(
             self,
             config=self.config,
@@ -46,6 +46,7 @@ class VisualizationsTab(ttk.Frame):
         )
         self.controls.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(10, 0))
 
+        # A separate frame for the Trend Selector dropdown
         selector_frame = ttk.Labelframe(self, text="Trend Group Viewer")
         selector_frame.pack(fill=tk.X, padx=10, pady=5)
         ttk.Label(selector_frame, text="Select Trend to View:").pack(
@@ -55,6 +56,7 @@ class VisualizationsTab(ttk.Frame):
         self.trend_selector.pack(side=tk.LEFT, padx=5, pady=5)
         self.trend_selector.bind("<<ComboboxSelected>>", self._on_trend_selected)
 
+        # Paned Window for resizable Plot and Table
         plot_table_pane = ttk.PanedWindow(self, orient=tk.VERTICAL)
         plot_table_pane.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -95,10 +97,9 @@ class VisualizationsTab(ttk.Frame):
             )
             return
 
-        # --- MODIFICATION: Get all parameters from the ControlsWidget ---
         gui_params = self.controls.get_parameters()
         if gui_params is None:
-            return  # An error occurred in parameter parsing (e.g., invalid number)
+            return
 
         # Create the full parameter dictionary for the pipeline
         pipeline_params = {
@@ -108,14 +109,14 @@ class VisualizationsTab(ttk.Frame):
             "mass_error_ppm": gui_params["mass_error_ppm"],
             "min_valid_points": gui_params["min_valid_points"],
             "min_library_points": gui_params["min_library_points"],
-            "ransac_threshold_percentage": gui_params["ransac_threshold_percentage"],
-            "min_ransac_samples": 3,  # This can also be made into a GUI control if needed
+            "ransac_threshold_percentage": gui_params[
+                "trend_ccs_threshold_percentage"
+            ],  # <-- CORRECTED KEY
+            "min_ransac_samples": 3,
         }
-        # --- END MODIFICATION ---
 
         try:
             self.update_idletasks()
-            # Run the pipeline with the parameters collected from the GUI
             final_df = run_analysis_pipeline(**pipeline_params)
 
             if final_df is not None and not final_df.empty:
@@ -138,6 +139,7 @@ class VisualizationsTab(ttk.Frame):
             messagebox.showerror("Pipeline Error", f"A critical error occurred: {e}")
 
     def _populate_trend_selector(self):
+        """Populates the trend selector Combobox with trend_group IDs."""
         if self.full_results_df is not None and not self.full_results_df.empty:
             trend_ids = sorted(
                 [g for g in self.full_results_df["trend_group"].unique() if g != -1]
@@ -150,23 +152,28 @@ class VisualizationsTab(ttk.Frame):
             self.trend_selector.config(state="disabled")
 
     def _on_trend_selected(self, event):
+        """Called when the user selects a new trend from the Combobox."""
         selected_trend_str = self.trend_selector.get()
         if not selected_trend_str or self.full_results_df is None:
             return
+
         selected_trend_id = float(selected_trend_str)
         selected_trend_df = self.full_results_df[
             self.full_results_df["trend_group"] == selected_trend_id
         ]
         if selected_trend_df.empty:
             return
+
         parent_group_id = selected_trend_df["GroupID"].iloc[0]
         parent_group_df = self.full_results_df[
             self.full_results_df["GroupID"] == parent_group_id
         ]
+
         self.plot.update_plot(parent_group_df, selected_trend_df)
         self._update_table(selected_trend_df)
 
     def _update_table(self, df):
+        """Manages the data table (Treeview)."""
         self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
             return
