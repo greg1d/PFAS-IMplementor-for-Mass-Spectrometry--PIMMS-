@@ -2,3 +2,4 @@ MoleculeGroup,Name,PrecursorFormula,Adduct,CCS,RT,m/z,PrecursorCharge,CAS,Synony
 PFAS (-) PFSA,PFDoS,C12HF25O3S,M-H,139.5,12.83,368.9766,-1,79780-39-5,PFDoDS,perfluorododecanesulfonate ,
 PFAS (-) PFSA,PFDS,C10HF21O3S,M-H,139.5,11.76,368.9765,-1,335-77-3,,perfluorodecanesulfonate ,
 PFAS (-) PFSA,PFDS,C10HF21O3S,M-H,146.6,11.76,418.9733,-1,335-77-3,,perfluorodecanesulfonate ,
+PFAS (-) PFSA,PFDS,C10HF21O3S,M-H,153.7,11.76,468.9701064,-1,335-77-3,,perfluorodecanesulfonate ,

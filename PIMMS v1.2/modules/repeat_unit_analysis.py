@@ -6,85 +6,76 @@ import time
 import bisect  # Import the bisect module
 
 
-def mz_repeating_unit_analysis(stacked_df, selected_repeating_units, mass_error_ppm=10):
+import networkx as nx  # You may need to install this: pip install networkx
+
+
+def mz_repeating_unit_analysis(df, selected_repeating_units, mass_error_ppm=10):
     """
-    Identifies homologous series trends. A group is valid if it contains at least 3
-    points that are each separated by a minimum of 10 m/z units.
+    Identifies homologous series using a graph-based approach to ensure all
+    connected members are correctly placed in the same group.
     """
     # --- Input Validation and Preparation ---
     required_cols = ["Name", "Classification Type", "CCS", "RT", "m/z", "ID"]
-    if not all(col in stacked_df.columns for col in required_cols):
-        missing = [col for col in required_cols if col not in stacked_df.columns]
+    if not all(col in df.columns for col in required_cols):
+        missing = [col for col in required_cols if col not in df.columns]
         print(f"[ERROR] Input DataFrame is missing required columns: {missing}")
         return pd.DataFrame()
 
     for col in ["m/z", "CCS", "RT", "ID"]:
-        stacked_df[col] = pd.to_numeric(stacked_df[col], errors="coerce")
-    stacked_df.dropna(subset=["m/z", "CCS"], inplace=True)
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    df.dropna(subset=["m/z", "CCS"], inplace=True)
 
-    stacked_df = stacked_df.sort_values(by="m/z").reset_index(drop=True)
-    mz_list = stacked_df["m/z"].tolist()
+    df = df.sort_values(by="m/z").reset_index(drop=True)
+    mz_list = df["m/z"].tolist()
 
-    # --- Series Identification ---
-    processed_indices = set()
-    group_counter = 0
-    all_groups = []
-
-    print(f"[INFO] Starting homologous series search on {len(stacked_df)} records...")
+    print(f"[INFO] Starting graph-based series search on {len(df)} records...")
     start_time = time.perf_counter()
 
-    for start_idx in range(len(stacked_df)):
-        if start_idx in processed_indices:
+    # --- 1. Build a Graph of Connections ---
+    G = nx.Graph()
+    G.add_nodes_from(df.index)  # Each row in the DataFrame is a node
+
+    for current_idx in range(len(df)):
+        current_mz = df.at[current_idx, "m/z"]
+
+        for unit_name, M in selected_repeating_units.items():
+            target_mz = current_mz + M
+            ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
+            lower_bound = target_mz - ppm_tolerance
+            upper_bound = target_mz + ppm_tolerance
+
+            start_slice = bisect.bisect_left(mz_list, lower_bound, lo=current_idx + 1)
+            end_slice = bisect.bisect_right(mz_list, upper_bound, lo=start_slice)
+
+            candidate_indices = df.index[start_slice:end_slice]
+
+            if not candidate_indices.empty:
+                # Find the best match among candidates
+                best_candidate_idx = (
+                    (df.loc[candidate_indices, "m/z"] - target_mz).abs().idxmin()
+                )
+                # Add an edge in the graph connecting these two features
+                G.add_edge(current_idx, best_candidate_idx, unit=unit_name)
+
+    # --- 2. Extract Connected Components (Groups) ---
+    # Each connected component in the graph is one complete homologous series
+    connected_components = list(nx.connected_components(G))
+
+    # --- 3. Validate and Format Groups ---
+    all_groups = []
+    group_counter = 0
+    for component in connected_components:
+        group_indices = list(component)
+
+        # Validation 1: Must have at least 3 members
+        if len(group_indices) < 3:
             continue
 
-        group_counter += 1
-        current_group = []
-        queue = [start_idx]
-        group_indices = {start_idx}
+        group_df_rows = df.loc[group_indices]
+        mz_values = group_df_rows["m/z"].tolist()
 
-        while queue:
-            current_idx = queue.pop(0)
-            current_group.append(
-                {
-                    "GroupID": group_counter,
-                    "m/z": stacked_df.at[current_idx, "m/z"],
-                    "RT": stacked_df.at[current_idx, "RT"],
-                    "ID": stacked_df.at[current_idx, "ID"],
-                    "CCS": stacked_df.at[current_idx, "CCS"],
-                    "Classification Type": stacked_df.at[
-                        current_idx, "Classification Type"
-                    ],
-                    "Name": stacked_df.at[current_idx, "Name"],
-                }
-            )
-            current_mz = stacked_df.at[current_idx, "m/z"]
-            for unit_name, M in selected_repeating_units.items():
-                for k in range(1, 4):
-                    target_mz = current_mz + k * M
-                    ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
-                    lower_bound = target_mz - ppm_tolerance
-                    upper_bound = target_mz + ppm_tolerance
-                    start_slice = bisect.bisect_left(
-                        mz_list, lower_bound, lo=current_idx + 1
-                    )
-                    end_slice = bisect.bisect_right(
-                        mz_list, upper_bound, lo=start_slice
-                    )
-                    candidate_indices = stacked_df.index[start_slice:end_slice]
-                    for cand_idx in candidate_indices:
-                        if (
-                            cand_idx not in processed_indices
-                            and cand_idx not in group_indices
-                        ):
-                            queue.append(cand_idx)
-                            group_indices.add(cand_idx)
-
-        # After exploring all branches, if the group is valid, save it
-        mz_values = [entry["m/z"] for entry in current_group]
-
-        # --- NEW, PRECISE VALIDATION LOGIC ---
+        # Validation 2: Spacing check
         unique_sorted_mz = sorted(list(set(mz_values)))
-
         valid_points_count = 0
         if len(unique_sorted_mz) > 0:
             valid_points_count = 1
@@ -94,17 +85,25 @@ def mz_repeating_unit_analysis(stacked_df, selected_repeating_units, mass_error_
                     valid_points_count += 1
                     last_counted_mz = mz
 
-        # Now, check if the count of these well-spaced points is 3 or more.
-        if valid_points_count >= 3:
-            unit_name_found = list(selected_repeating_units.keys())[0]
-            for entry in current_group:
-                entry["Repeating Unit"] = unit_name_found
-            all_groups.append(pd.DataFrame(current_group))
-            processed_indices.update(group_indices)
+        if valid_points_count < 3:
+            continue
+
+        # Validation 3: Must contain at least one non-standard
+        if not (group_df_rows["Classification Type"] != "External Standard").any():
+            continue
+
+        # If all validations pass, save the group
+        group_counter += 1
+        final_group = group_df_rows[required_cols].copy()
+        final_group["GroupID"] = group_counter
+        # Simple assignment of repeating unit for the whole group
+        final_group["Repeating Unit"] = list(selected_repeating_units.keys())[0]
+
+        all_groups.append(final_group)
 
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
-    print(f"[INFO] Series identification loop finished in {elapsed_time:.4f} seconds.")
+    print(f"[INFO] Series identification finished in {elapsed_time:.4f} seconds.")
 
     if not all_groups:
         print("[INFO] No valid homologous series were found.")
@@ -119,6 +118,7 @@ if __name__ == "__main__":
     pfas_library = r"PIMMS v1.2\import folder\Dummy test output_used_library.csv"
     adjusted_df = pd.read_csv(adjusted_df)
     pfas_library = pd.read_csv(pfas_library)
+    print(adjusted_df)
     stacked_df = stack_library_with_adjusted(adjusted_df, pfas_library)
     selected_repeating_units = {
         "CF2": 49.9968,
