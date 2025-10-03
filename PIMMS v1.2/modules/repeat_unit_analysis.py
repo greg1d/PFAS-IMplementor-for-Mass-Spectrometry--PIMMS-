@@ -115,15 +115,8 @@ def mz_repeating_unit_analysis(df, selected_repeating_units, mass_error_ppm=10):
 
 def mz_group_refinement(mass_groups_df):
     """
-    Refines homologous series groups by removing points that do not follow an
-    increasing trend in CCS and RT after a significant m/z jump.
-
-    Args:
-        mass_groups_df (pd.DataFrame): The DataFrame containing groups found by
-                                       mz_repeating_unit_analysis.
-
-    Returns:
-        pd.DataFrame: A refined DataFrame with non-trending points removed.
+    Refines homologous series groups by removing non-trending points, then
+    re-validates and discards/prints any groups that are now too small.
     """
     if mass_groups_df.empty:
         return mass_groups_df
@@ -132,37 +125,70 @@ def mz_group_refinement(mass_groups_df):
 
     indices_to_drop = []
 
-    # Process each group independently
+    # Step 1: Identify and flag individual points that break the trend
     for group_id, group in mass_groups_df.groupby("GroupID"):
-        # Ensure the group is sorted by m/z to compare sequential points
         group = group.sort_values(by="m/z")
-
-        # Iterate from the second point onwards to compare with the previous one
         for i in range(1, len(group)):
             current_point = group.iloc[i]
             previous_point = group.iloc[i - 1]
-
-            # Condition 1: The m/z gap must be at least 10
             if current_point["m/z"] - previous_point["m/z"] >= 10:
-                # Condition 2: Both CCS and RT must be strictly greater
                 if not (
                     current_point["CCS"] > previous_point["CCS"]
                     and current_point["RT"] > previous_point["RT"]
                 ):
-                    # If the trend is broken, flag the current point for removal
                     print(
-                        f"[DEBUG] Dropping point ID {current_point['ID']} (m/z: {current_point['m/z']:.4f}) from Group {group_id} for breaking trend."
+                        f"[DEBUG] Flagging point ID {current_point['ID']} (m/z: {current_point['m/z']:.4f}) from Group {group_id} for breaking trend."
                     )
-                    indices_to_drop.append(
-                        current_point.name
-                    )  # .name gets the original index
+                    indices_to_drop.append(current_point.name)
 
-    # Drop all flagged indices from the original DataFrame at once
+    # Step 2: Drop the flagged points to create a refined DataFrame
     refined_df = mass_groups_df.drop(indices_to_drop)
 
-    print(f"[INFO] Refinement complete. Removed {len(indices_to_drop)} points.")
+    if refined_df.empty:
+        print("[INFO] Refinement complete. No groups remain.")
+        return refined_df
 
-    return refined_df
+    # Step 3: Post-refinement validation to eliminate groups that are now too small
+    print("[INFO] Validating group sizes after refinement...")
+    valid_group_ids = []
+
+    # Iterate through the remaining groups to check their validity
+    for group_id, group in refined_df.groupby("GroupID"):
+        mz_values = group["m/z"].tolist()
+        unique_sorted_mz = sorted(list(set(mz_values)))
+
+        valid_points_count = 0
+        if len(unique_sorted_mz) > 0:
+            valid_points_count = 1
+            last_counted_mz = unique_sorted_mz[0]
+            for mz in unique_sorted_mz[1:]:
+                if mz - last_counted_mz >= 10:
+                    valid_points_count += 1
+                    last_counted_mz = mz
+
+        # If the group still has at least 3 well-spaced points, its ID is kept.
+        if valid_points_count >= 3:
+            valid_group_ids.append(group_id)
+        else:
+            # --- MODIFIED PART: Print the full group being discarded ---
+            print(
+                "\n------------------------------------------------------------------"
+            )
+            print(
+                f"[INFO] Discarding Group {group_id} (Reason: Fewer than 3 well-spaced points after refinement)"
+            )
+            print(group)
+            print("------------------------------------------------------------------")
+            # --- END MODIFICATION ---
+
+    # Step 4: Filter the DataFrame to only include the fully validated groups
+    fully_refined_df = refined_df[refined_df["GroupID"].isin(valid_group_ids)].copy()
+
+    print(
+        f"\n[INFO] Post-refinement validation complete. {len(valid_group_ids)} groups remain."
+    )
+
+    return fully_refined_df
 
 
 if __name__ == "__main__":
@@ -178,6 +204,7 @@ if __name__ == "__main__":
     mass_groups = mz_repeating_unit_analysis(
         stacked_df, selected_repeating_units, mass_error_ppm=10
     )
-    print(mass_groups)
+
     mass_groups_refined = mz_group_refinement(mass_groups)
-    print(mass_groups_refined)
+
+    mass_groups_refined.to_csv("mass_groups_refined.csv")
