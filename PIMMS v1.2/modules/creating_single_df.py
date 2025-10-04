@@ -35,7 +35,16 @@ def stack_library_with_adjusted(adjusted_df, pfas_library):
     stacked_df = stacked_df.fillna(0)
 
     # ✅ Drop additional error-related columns if they exist
-    columns_to_keep = ["Name", "Classification Type", "CCS", "RT", "m/z", "ID"]
+    columns_to_keep = [
+        "Name",
+        "Classification Type",
+        "CCS",
+        "RT",
+        "m/z",
+        "ID",
+        "Average Abundance",
+        "Detection Frequency (%)",
+    ]
     stacked_df = stacked_df[columns_to_keep]
     final_columns = [col for col in columns_to_keep if col in stacked_df.columns]
     stacked_df = stacked_df[final_columns]

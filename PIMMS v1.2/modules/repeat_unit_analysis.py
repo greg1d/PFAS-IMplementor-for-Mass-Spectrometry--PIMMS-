@@ -21,7 +21,16 @@ def mz_repeating_unit_analysis(
         min_valid_points (int): The minimum number of well-spaced points required
                                 to form a valid homologous series.
     """
-    required_cols = ["Name", "Classification Type", "CCS", "RT", "m/z", "ID"]
+    required_cols = [
+        "Name",
+        "Classification Type",
+        "CCS",
+        "RT",
+        "m/z",
+        "ID",
+        "Average Abundance",
+        "Detection Frequency (%)",
+    ]
     if not all(col in df.columns for col in required_cols):
         missing = [col for col in required_cols if col not in df.columns]
         print(f"[ERROR] Missing required columns for analysis: {missing}")
@@ -186,7 +195,7 @@ def validate_ransac_trends(ransac_df, min_well_spaced_points, min_library_points
         return pd.DataFrame()
 
     print("\n[INFO] Starting post-RANSAC validation of trend lines...")
-
+    print("ransac df", ransac_df.head())
     # Define the fixed R-squared threshold internally.
     FIXED_R_SQUARED_THRESHOLD = 0.90
 

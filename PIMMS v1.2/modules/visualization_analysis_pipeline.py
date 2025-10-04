@@ -44,28 +44,43 @@ def standardize_columns(df, file_type="Library", **kwargs):
     Standardizes column names based on user input, which can be either a
     column name (e.g., "Mass") or a column position (e.g., "B").
 
+    It will only map 'Average Abundance' and 'Detection Frequency (%)' if the
+    file_type is 'Experimental'.
+
     Args:
         df (pd.DataFrame): The input DataFrame with original headers.
-        file_type (str): Label for error messages.
-        **kwargs: Mapping of standard_name=user_identifier (e.g., mz_col='B').
+        file_type (str): Label for error messages ('Library' or 'Experimental').
+        **kwargs: Mapping of standard_name=user_identifier (e.g., mz_col_pos='B').
 
     Returns:
         pd.DataFrame: DataFrame with standardized column names.
     """
     rename_map = {}
 
-    # This defines the standard names we expect internally
+    # UPDATED: The dictionary now includes the new standard names.
     standard_names = {
         "name_col_pos": "Name",
         "mz_col_pos": "m/z",
         "ccs_col_pos": "CCS",
         "rt_col_pos": "RT",
         "id_col_pos": "ID",
+        "avg_abundance_col_pos": "Average Abundance",
+        "det_frequency_col_pos": "Detection Frequency (%)",
     }
 
     for key, user_identifier in kwargs.items():
         if not user_identifier:  # Skip if the user left the input box blank
             continue
+
+        # --- NEW: Conditional logic for experimental-only columns ---
+        # If the key is for abundance or frequency, but the file is not the
+        # experimental file, skip this iteration of the loop.
+        if (
+            key in ["avg_abundance_col_pos", "det_frequency_col_pos"]
+            and file_type != "Experimental"
+        ):
+            continue
+        # -----------------------------------------------------------
 
         standard_name = standard_names[key]
         original_col_name = None
@@ -84,7 +99,7 @@ def standardize_columns(df, file_type="Library", **kwargs):
                     f"Column mapping error in {file_type} file: Position '{user_identifier}' (Index {col_idx}) is out of range. "
                     f"The file only has {len(df.columns)} columns."
                 )
-        # Otherwise, assume the identifier is a column NAME (e.g., "m/zs")
+        # Otherwise, assume the identifier is a column NAME
         else:
             if user_identifier in df.columns:
                 original_col_name = user_identifier
@@ -170,11 +185,11 @@ def run_analysis_pipeline(
             library_data_df["RT"] = pd.NA
         if "RT" not in experimental_data_df.columns:
             experimental_data_df["RT"] = pd.NA
-
+        print(experimental_data_df.columns)
         stacked_df = stack_library_with_adjusted(experimental_data_df, library_data_df)
         if stacked_df is None or stacked_df.empty:
             raise ValueError("Data stacking resulted in an empty DataFrame.")
-
+        print(stacked_df.head())
         # --- Step 3: Find Homologous Series ---
         print("\n[Step 3] Finding homologous series...")
         mass_groups = mz_repeating_unit_analysis(
