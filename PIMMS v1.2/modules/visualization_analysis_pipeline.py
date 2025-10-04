@@ -3,13 +3,14 @@ import traceback
 import pandas as pd
 
 # Import all the necessary analysis modules from their respective files
-# Ensure these files are in the same 'modules' directory or your Python path is set correctly.
+# Ensure these files are in the same directory or your Python path is set correctly.
 try:
     from .ccsvmz_analysis import SLOPE_VALIDATOR, process_all_groups
     from .repeat_unit_analysis import (
-        mz_group_refinement,
+        mz_group_refinement,  # Make sure this is the simplified version
         mz_repeating_unit_analysis,
         stack_library_with_adjusted,
+        validate_ransac_trends,  # Make sure you've added the new function
     )
 except ImportError:
     # Fallback for running script directly
@@ -18,6 +19,7 @@ except ImportError:
         mz_group_refinement,
         mz_repeating_unit_analysis,
         stack_library_with_adjusted,
+        validate_ransac_trends,
     )
 
 
@@ -31,7 +33,7 @@ def run_analysis_pipeline(
     ransac_threshold_percentage,
     min_ransac_samples,
     slope_range=(0.05, 0.25),
-    min_r_squared=0.9,
+    # min_r_squared is no longer a direct parameter here, as it's fixed in validation
 ):
     """
     Orchestrates the entire analysis workflow from file loading to RANSAC,
@@ -42,13 +44,10 @@ def run_analysis_pipeline(
     print("==============================================")
 
     try:
-        # --- Step 1: Load Data ---
-        print("\n[Step 1] Loading data...")
+        # --- Step 1 & 2: Load and Stack Data ---
+        print("\n[Step 1 & 2] Loading and stacking data...")
         experimental_data_df = pd.read_csv(experimental_filepath)
         library_data_df = pd.read_csv(library_filepath)
-
-        # --- Step 2: Stack and Standardize ---
-        print("\n[Step 2] Stacking and standardizing dataframes...")
         stacked_df = stack_library_with_adjusted(experimental_data_df, library_data_df)
         if stacked_df is None or stacked_df.empty:
             raise ValueError("Data stacking resulted in an empty DataFrame.")
@@ -59,79 +58,50 @@ def run_analysis_pipeline(
             stacked_df,
             selected_repeating_units,
             mass_error_ppm=mass_error_ppm,
-            min_valid_points=min_valid_points,
         )
         if mass_groups.empty:
             print("[PIPELINE INFO] No initial homologous groups were found.")
             return pd.DataFrame()
 
-        # --- Step 4: Refine Groups ---
-        print("\n[Step 4] Refining found groups...")
+        # --- Step 4: Pre-RANSAC Refinement ---
+        # This simplified function only checks for well-spaced points.
+        print("\n[Step 4] Refining homologous groups before RANSAC...")
         refined_groups = mz_group_refinement(
             mass_groups,
-            min_library_points=min_library_points,
             min_valid_points=min_valid_points,
         )
         if refined_groups.empty:
-            print("[PIPELINE INFO] No groups remained after refinement.")
+            print("[PIPELINE INFO] No groups remained after pre-RANSAC refinement.")
             return pd.DataFrame()
 
         # --- Step 5: Run RANSAC Trend Analysis ---
         print("\n[Step 5] Running RANSAC trend analysis on refined groups...")
-
-        # Calculate the dynamic RANSAC threshold based on the percentage
         average_ccs = refined_groups["CCS"].mean()
         actual_ransac_threshold = average_ccs * ransac_threshold_percentage
         print(
             f"[INFO] Dynamic RANSAC threshold calculated as: {actual_ransac_threshold:.2f}"
         )
 
-        # Set the slope range on the validator object before running RANSAC
         SLOPE_VALIDATOR.set_range(slope_range[0], slope_range[1])
 
+        # Let RANSAC find all possible trends; we will filter them robustly in the next step.
         ransac_results_df = process_all_groups(
             df=refined_groups,
             group_id_col="GroupID",
             x_col="m/z",
             y_col="CCS",
             residual_threshold=actual_ransac_threshold,
-            min_trend_samples=min_ransac_samples,
-            min_r_squared=min_r_squared,
-        )
-        print(
-            f"\n[Step 6] Filtering sub-trends with min_library_points = {min_library_points}..."
+            min_trend_samples=0,  # Disable filtering here; handled in validation
+            min_r_squared=0.0,  # Disable filtering here; handled in validation
         )
 
-        # Define the correct column and value for identifying external standards
-        STANDARD_COLUMN = "Classification Type"
-        STANDARD_LABEL = "External Standard"
-        TREND_GROUP_COL = "trend_group"
-
-        # Calculate the number of external standard points for each unique sub-trend
-        standard_counts_per_trend = (
-            ransac_results_df[ransac_results_df[STANDARD_COLUMN] == STANDARD_LABEL]
-            .groupby(TREND_GROUP_COL)
-            .size()
+        # --- Step 6: Post-RANSAC Validation ---
+        # The new, dedicated function applies all the final quality checks.
+        final_df = validate_ransac_trends(
+            ransac_df=ransac_results_df,
+            min_well_spaced_points=min_valid_points,  # min_valid_points now applies to the final trends
+            min_library_points=min_library_points,
         )
-
-        # Get a list of trend_groups that meet the criteria
-        valid_trends = standard_counts_per_trend[
-            standard_counts_per_trend >= min_library_points
-        ].index
-
-        # Filter the final dataframe to keep only the valid trends
-        final_df = ransac_results_df[
-            ransac_results_df[TREND_GROUP_COL].isin(valid_trends)
-        ].copy()
-
-        print(
-            f"Found {ransac_results_df[TREND_GROUP_COL].nunique()} trends before filtering."
-        )
-        print(
-            f"Keeping {final_df[TREND_GROUP_COL].nunique()} trends that meet the minimum external standard requirement."
-        )
-
-        # ======================= CORRECTED CODE END =========================
 
         print("\n====== PIPELINE FINISHED SUCCESSFULLY ======")
         return final_df

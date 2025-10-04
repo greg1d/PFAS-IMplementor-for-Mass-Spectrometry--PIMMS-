@@ -102,84 +102,147 @@ def mz_repeating_unit_analysis(
     return pd.concat(all_groups, ignore_index=True)
 
 
-def mz_group_refinement(mass_groups_df, min_library_points=0, min_valid_points=3):
+def mz_group_refinement(mass_groups_df, min_valid_points=3):
     """
-    Refines groups by removing non-trending points and then validates groups
-    based on size, spacing, and the minimum number of library points.
+    Refines homologous groups by removing non-monotonic points and validates
+    groups based on the number of well-spaced points.
 
     Args:
-        mass_groups_df (pd.DataFrame): The DataFrame from mz_repeating_unit_analysis.
-        min_library_points (int): The minimum number of points with Classification Type
-                                  'External Standard' required for a group to be valid.
+        mass_groups_df (pd.DataFrame): DataFrame from mz_repeating_unit_analysis.
+        min_valid_points (int): Minimum number of well-spaced (m/z >= 10) points
+                                required for a group to be valid.
+
+    Returns:
+        pd.DataFrame: A refined DataFrame ready for RANSAC analysis.
     """
     if mass_groups_df.empty:
         return mass_groups_df
 
-    print("\n[INFO] Starting group refinement process...")
-    print(
-        f"[INFO] A valid group must contain at least {min_library_points} 'External Standard' points."
-    )
+    print("\n[INFO] Starting pre-RANSAC group refinement...")
+    df = mass_groups_df.copy()
 
-    indices_to_drop = []
-    for group_id, group in mass_groups_df.groupby("GroupID"):
-        group = group.sort_values(by="m/z")
-        for i in range(1, len(group)):
-            current_point = group.iloc[i]
-            previous_point = group.iloc[i - 1]
-            if current_point["m/z"] - previous_point["m/z"] >= 10:
-                if not (
-                    current_point["CCS"] > previous_point["CCS"]
-                    and current_point["RT"] > previous_point["RT"]
-                ):
-                    indices_to_drop.append(current_point.name)
+    # --- Step 1: Filter individual non-monotonic points (Vectorized) ---
+    df.sort_values(by=["GroupID", "m/z"], inplace=True)
+    df["prev_m/z"] = df.groupby("GroupID")["m/z"].shift(1)
+    df["prev_CCS"] = df.groupby("GroupID")["CCS"].shift(1)
+    df["prev_RT"] = df.groupby("GroupID")["RT"].shift(1)
 
-    refined_df = mass_groups_df.drop(indices_to_drop)
+    mz_jump = (df["m/z"] - df["prev_m/z"]) >= 10
+    non_monotonic = (df["CCS"] <= df["prev_CCS"]) | (df["RT"] <= df["prev_RT"])
+    points_to_drop_mask = mz_jump & non_monotonic
+
+    refined_df = df[~points_to_drop_mask].copy()
+    print(f"[INFO] Removed {points_to_drop_mask.sum()} non-monotonic points.")
+    refined_df.drop(columns=["prev_m/z", "prev_CCS", "prev_RT"], inplace=True)
 
     if refined_df.empty:
-        print("[INFO] Refinement complete. No groups remain after trend filtering.")
         return refined_df
 
-    print("[INFO] Validating groups for size, spacing, and library point count...")
-    valid_group_ids = []
-    for group_id, group in refined_df.groupby("GroupID"):
-        # Check 1: Validate size and spacing
-        mz_values = group["m/z"].tolist()
-        unique_sorted_mz = sorted(list(set(mz_values)))
-        valid_points_count = 0
-        if len(unique_sorted_mz) > 0:
-            valid_points_count = 1
-            last_counted_mz = unique_sorted_mz[0]
-            for mz in unique_sorted_mz[1:]:
-                if mz - last_counted_mz >= 10:
-                    valid_points_count += 1
-                    last_counted_mz = mz
+    # --- Step 2: Filter entire groups that lack enough well-spaced points ---
+    print(
+        f"[INFO] Validating groups for at least {min_valid_points} well-spaced points..."
+    )
 
-        if valid_points_count < min_valid_points:
-            print(
-                f"\n--- Discarding Group {group_id} (Reason: Fewer than {min_valid_points} well-spaced points) ---"
-            )
-            print(group)
-            continue  # Skip to the next group
+    # Define a standard function to check for well-spaced points.
+    def _has_enough_well_spaced_points(group):
+        """Checks if a group has enough points spaced by at least 10 m/z."""
+        # .diff() calculates the difference between consecutive m/z values.
+        # .fillna(10) ensures the first point in each group (which has a diff of NaN) is counted.
+        well_spaced_count = (group["m/z"].diff().fillna(10) >= 10).sum()
+        return well_spaced_count >= min_valid_points
 
-        # --- NEW: Check 2: Validate minimum number of library points ---
-        library_points_count = (
-            group["Classification Type"] == "External Standard"
-        ).sum()
-
-        if library_points_count >= min_library_points:
-            valid_group_ids.append(group_id)  # Group is valid
-        else:
-            print(
-                f"\n--- Discarding Group {group_id} (Reason: Has {library_points_count} library points, requires {min_library_points}) ---"
-            )
-            print(group)
-
-    fully_refined_df = refined_df[refined_df["GroupID"].isin(valid_group_ids)].copy()
+    # Apply the filter using the named function
+    final_refined_df = refined_df.groupby("GroupID").filter(
+        _has_enough_well_spaced_points
+    )
 
     print(
-        f"\n[INFO] Post-refinement validation complete. {len(valid_group_ids)} groups remain."
+        f"[INFO] Pre-refinement complete. {final_refined_df['GroupID'].nunique()} groups are valid for RANSAC."
     )
-    return fully_refined_df
+
+    return final_refined_df
+
+
+def validate_ransac_trends(ransac_df, min_well_spaced_points, min_library_points):
+    """
+    Validates the final trend lines produced by RANSAC analysis.
+
+    This function filters trends based on three primary quality criteria:
+    1. The minimum number of points that are well-spaced (m/z difference >= 10).
+    2. The minimum number of external standard points.
+    3. A fixed, internal R-squared threshold of 0.90.
+
+    Args:
+        ransac_df (pd.DataFrame): The DataFrame returned by the RANSAC process.
+        min_well_spaced_points (int): The minimum number of points with an m/z spacing
+                                      of at least 10 from the previous point.
+        min_library_points (int): The minimum number of 'External Standard' points
+                                  a trend must have.
+
+    Returns:
+        pd.DataFrame: A fully validated DataFrame containing only high-quality trends.
+    """
+    if ransac_df is None or ransac_df.empty:
+        return pd.DataFrame()
+
+    print("\n[INFO] Starting post-RANSAC validation of trend lines...")
+
+    # Define the fixed R-squared threshold internally.
+    FIXED_R_SQUARED_THRESHOLD = 0.90
+
+    initial_trends = ransac_df["trend_group"].nunique()
+    validated_df = ransac_df.copy()
+
+    # --- Filter 1: Minimum well-spaced points per trend ---
+    if min_well_spaced_points > 0:
+
+        def _has_enough_well_spaced_points(group):
+            """Checks if a trend group has enough points with significant m/z spacing."""
+            sorted_group = group.sort_values(by="m/z")
+            well_spaced_count = (sorted_group["m/z"].diff().fillna(10) >= 10).sum()
+            return well_spaced_count >= min_well_spaced_points
+
+        validated_df = validated_df.groupby("trend_group").filter(
+            _has_enough_well_spaced_points
+        )
+        print(
+            f"[INFO] {initial_trends - validated_df['trend_group'].nunique()} trends removed by min_well_spaced_points ({min_well_spaced_points})."
+        )
+        initial_trends = validated_df["trend_group"].nunique()
+
+    # --- Filter 2: Minimum external standard points per trend ---
+    if min_library_points > 0:
+
+        def _has_min_library_points(group):
+            """Checks if a trend group meets the minimum external standard point requirement."""
+            standard_count = (group["Classification Type"] == "External Standard").sum()
+            return standard_count >= min_library_points
+
+        validated_df = validated_df.groupby("trend_group").filter(
+            _has_min_library_points
+        )
+        print(
+            f"[INFO] {initial_trends - validated_df['trend_group'].nunique()} trends removed by min_library_points ({min_library_points})."
+        )
+        initial_trends = validated_df["trend_group"].nunique()
+
+    # --- Filter 3: Fixed R-squared value ---
+    if "r_squared" in validated_df.columns:
+
+        def _has_min_r_squared(group):
+            """Checks if a trend group meets the fixed R-squared requirement."""
+            return group["r_squared"].iloc[0] >= 0.9
+
+        validated_df = validated_df.groupby("trend_group").filter(_has_min_r_squared)
+        print(
+            f"[INFO] {initial_trends - validated_df['trend_group'].nunique()} trends removed by fixed R-squared threshold (>{0.9})."
+        )
+
+    print(
+        f"\n[INFO] Post-RANSAC validation complete. {validated_df['trend_group'].nunique()} trends remain."
+    )
+
+    return validated_df
 
 
 if __name__ == "__main__":
