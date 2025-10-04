@@ -267,13 +267,11 @@ def run_pimms_workflow(config):
         output_dir = os.path.dirname(config.output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
-        adjusted_df.to_csv(config.output_path, index=False)
         adjusted_df = detection_frequency_calculation(adjusted_df)
         adjusted_df = average_abundance(adjusted_df)
         adjusted_df = significant_figures_rounding(adjusted_df)
-        pfas_library.to_csv(
-            os.path.splitext(config.output_path)[0] + "_used_library.csv", index=False
-        )
+        adjusted_df.to_csv(config.output_path, index=False)
+
         print(adjusted_df)
         messagebox.showinfo(
             "Success",

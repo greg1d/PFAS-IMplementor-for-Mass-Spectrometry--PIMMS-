@@ -63,7 +63,7 @@ def calculate_KMD(df):
 
 
 def main():
-    adjusted_df = pd.read_csv("PIMMS v1.2/import folder/Dummy test output.csv")
+    adjusted_df = pd.read_csv("PIMMS v1.2\data\stacked_output.csv")
 
     adjusted_df = calculate_KMD(adjusted_df)
     print(adjusted_df.head())

@@ -261,14 +261,5 @@ if __name__ == "__main__":
     pfas_library = pd.read_csv(pfas_library)
     print(adjusted_df)
     stacked_df = stack_library_with_adjusted(adjusted_df, pfas_library)
-    selected_repeating_units = {
-        "CF2": 49.9968,
-    }
-    mass_groups = mz_repeating_unit_analysis(
-        stacked_df, selected_repeating_units, mass_error_ppm=10
-    )
 
-    mass_groups = mz_group_refinement(
-        mass_groups, min_library_points=2, min_valid_points=4
-    )
-    print(mass_groups)
+    stacked_df.to_csv(r"PIMMS v1.2\data\stacked_output.csv", index=False)

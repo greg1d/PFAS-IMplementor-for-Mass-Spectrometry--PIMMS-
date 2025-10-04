@@ -50,3 +50,17 @@ def stack_library_with_adjusted(adjusted_df, pfas_library):
     stacked_df = stacked_df[final_columns]
 
     return stacked_df
+
+
+def main():
+    library_df = pd.read_csv(
+        "PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+    )
+    adjusted_df = pd.read_csv("PIMMS v1.2\data\SealsPIMMS.csv")
+
+    combined_df = stack_library_with_adjusted(adjusted_df, library_df)
+    combined_df.to_csv("PIMMS v1.2\data\stacked_output.csv")
+
+
+if __name__ == "__main__":
+    main()
