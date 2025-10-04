@@ -21,6 +21,10 @@ from crude_filters import (  # type: ignore
     apply_min_intensity_filter,
     apply_rt_filter,
 )
+from detection_frequency_and_abundance import (  # type: ignore
+    average_abundance,
+    detection_frequency_calculation,
+)
 from detection_frequency_filter import detection_frequency_filter  # type: ignore
 from mass_defect_filter import mass_defect_filter  # type: ignore
 from ML_algorithm_density import fluorinated_density_filter  # type: ignore
@@ -57,8 +61,6 @@ def column_letter_to_index(letter):
 
 
 def robust_process_and_combine_files(file_paths):
-    # This function is unchanged
-    # ...
     all_data_frames = []
     for fp in file_paths:
         try:
@@ -266,6 +268,8 @@ def run_pimms_workflow(config):
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
         adjusted_df.to_csv(config.output_path, index=False)
+        adjusted_df = detection_frequency_calculation(adjusted_df)
+        adjusted_df = average_abundance(adjusted_df)
         adjusted_df = significant_figures_rounding(adjusted_df)
         pfas_library.to_csv(
             os.path.splitext(config.output_path)[0] + "_used_library.csv", index=False

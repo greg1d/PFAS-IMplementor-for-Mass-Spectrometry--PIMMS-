@@ -22,7 +22,17 @@ def significant_figures_rounding(df):
     df_rounded = df.copy()
 
     # Define the rounding rules: {'column_name': decimal_places}
-    rounding_rules = {"CCS": 1, "RT": 1, "m/z": 4, "DT": 2}
+    rounding_rules = {
+        "CCS": 1,
+        "RT": 1,
+        "m/z": 4,
+        "DT": 2,
+        "Mass Error (ppm)": 2,
+        "CCS Error (%)": 2,
+        "RT Error (abs)": 2,
+        "Average Abundance": 0,
+        "Detection Frequency (%)": 1,
+    }
 
     print("[INFO] Applying rounding rules...")
     for column, decimal_places in rounding_rules.items():
