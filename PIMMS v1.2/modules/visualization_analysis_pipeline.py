@@ -23,6 +23,67 @@ except ImportError:
     )
 
 
+def standardize_columns(df, file_type="Library", **kwargs):
+    """
+    Standardizes column names based on user input, which can be either a
+    column name (e.g., "Mass") or a column position (e.g., "B").
+
+    Args:
+        df (pd.DataFrame): The input DataFrame with original headers.
+        file_type (str): Label for error messages.
+        **kwargs: Mapping of standard_name=user_identifier (e.g., mz_col='B').
+
+    Returns:
+        pd.DataFrame: DataFrame with standardized column names.
+    """
+    rename_map = {}
+
+    # This defines the standard names we expect internally
+    standard_names = {
+        "name_col_pos": "Name",
+        "mz_col_pos": "m/z",
+        "ccs_col_pos": "CCS",
+        "rt_col_pos": "RT",
+        "id_col_pos": "ID",
+    }
+
+    for key, user_identifier in kwargs.items():
+        if not user_identifier:  # Skip if the user left the input box blank
+            continue
+
+        standard_name = standard_names[key]
+        original_col_name = None
+
+        # Check if the identifier is a column POSITION (e.g., "A", "B")
+        if (
+            isinstance(user_identifier, str)
+            and len(user_identifier) == 1
+            and user_identifier.isalpha()
+        ):
+            col_idx = ord(user_identifier.upper()) - ord("A")
+            if 0 <= col_idx < len(df.columns):
+                original_col_name = df.columns[col_idx]
+            else:
+                raise ValueError(
+                    f"Column mapping error in {file_type} file: Position '{user_identifier}' (Index {col_idx}) is out of range. "
+                    f"The file only has {len(df.columns)} columns."
+                )
+        # Otherwise, assume the identifier is a column NAME (e.g., "m/zs")
+        else:
+            if user_identifier in df.columns:
+                original_col_name = user_identifier
+            else:
+                raise ValueError(
+                    f"Column mapping error in {file_type} file: Column name '{user_identifier}' not found. "
+                    f"Available columns are: {df.columns.tolist()}"
+                )
+
+        if original_col_name:
+            rename_map[original_col_name] = standard_name
+
+    return df.rename(columns=rename_map)
+
+
 def run_analysis_pipeline(
     experimental_filepath,
     library_filepath,
@@ -32,8 +93,17 @@ def run_analysis_pipeline(
     min_library_points,
     ransac_threshold_percentage,
     min_ransac_samples,
+    library_name_col_pos,
+    library_mz_col_pos,
+    library_ccs_col_pos,
+    library_rt_col_pos,
+    library_id_col_pos,
+    exp_name_col_pos,
+    exp_mz_col_pos,
+    exp_ccs_col_pos,
+    exp_rt_col_pos,
+    exp_id_col_pos,
     slope_range=(0.05, 0.25),
-    # min_r_squared is no longer a direct parameter here, as it's fixed in validation
 ):
     """
     Orchestrates the entire analysis workflow from file loading to RANSAC,
@@ -44,10 +114,47 @@ def run_analysis_pipeline(
     print("==============================================")
 
     try:
-        # --- Step 1 & 2: Load and Stack Data ---
-        print("\n[Step 1 & 2] Loading and stacking data...")
+        # Step 1: Load Data, PRESERVING Original Headers
+        print("\n[Step 1] Loading data with original headers...")
         experimental_data_df = pd.read_csv(experimental_filepath)
         library_data_df = pd.read_csv(library_filepath)
+
+        # Step 1.5: Map Columns using the new flexible method
+        print("\n[Step 1.5] Standardizing columns by name or position...")
+
+        # Pass all the user inputs from the GUI to the new function
+        library_data_df = standardize_columns(
+            library_data_df,
+            file_type="Library",
+            name_col_pos=library_name_col_pos,
+            mz_col_pos=library_mz_col_pos,
+            ccs_col_pos=library_ccs_col_pos,
+            rt_col_pos=library_rt_col_pos,
+            id_col_pos=library_id_col_pos,
+        )
+        experimental_data_df = standardize_columns(
+            experimental_data_df,
+            file_type="Experimental",
+            name_col_pos=exp_name_col_pos,
+            mz_col_pos=exp_mz_col_pos,
+            ccs_col_pos=exp_ccs_col_pos,
+            rt_col_pos=exp_rt_col_pos,
+            id_col_pos=exp_id_col_pos,
+        )
+
+        # Step 1.7: Harmonize Columns (add placeholders if still missing)
+        print("\n[Step 1.7] Harmonizing columns before stacking...")
+        if "ID" not in experimental_data_df.columns:
+            raise ValueError(
+                "An 'ID' column must be specified for the experimental file."
+            )
+        if "ID" not in library_data_df.columns:
+            library_data_df["ID"] = 0
+        if "RT" not in library_data_df.columns:
+            library_data_df["RT"] = pd.NA
+        if "RT" not in experimental_data_df.columns:
+            experimental_data_df["RT"] = pd.NA
+
         stacked_df = stack_library_with_adjusted(experimental_data_df, library_data_df)
         if stacked_df is None or stacked_df.empty:
             raise ValueError("Data stacking resulted in an empty DataFrame.")

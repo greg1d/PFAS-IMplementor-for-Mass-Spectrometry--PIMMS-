@@ -2,7 +2,11 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 # Make sure the Tooltip class is in the same 'widgets' folder
-from .tooltip import Tooltip
+try:
+    from .tooltip import Tooltip
+except ImportError:
+    # Fallback if Tooltip is in a different relative path
+    from tooltip import Tooltip
 
 
 class ControlsWidget(ttk.Labelframe):
@@ -26,12 +30,13 @@ class ControlsWidget(ttk.Labelframe):
         # --- Define all help texts for this widget ---
         help_texts = {
             "load_exp": "Load the main experimental data file containing all detected features.",
-            "load_lib": "Load the PFAS library file used for matching and annotation. Columns should include 'Name', 'm/z', 'CCS', and 'RT'.",
+            "load_lib": "Load the library file used for matching and annotation.",
+            "col_pos": "Specify the column letter (A, B, C...) for the required data.",
             "repeating_unit": "Select the chemical moiety (e.g., CF2) to search for when identifying homologous series.",
             "ppm_error": "The mass tolerance in parts-per-million (ppm) used to find the next member of a homologous series.",
             "min_series_points": "A homologous series must contain at least this many well-spaced points to be considered valid.",
             "min_lib_points": "A refined homologous series must contain at least this many points originating from a library (e.g., 'External Standard').",
-            "trend_ccs_thresh": "The maximum allowed error for a point to be included in a trend, as a percentage of the average CCS. Controls how tightly points must fit a trend line.",  # RENAMED
+            "trend_ccs_thresh": "The maximum allowed error for a point to be included in a trend, as a percentage of the average CCS.",
         }
 
         # --- Layout Configuration ---
@@ -39,12 +44,24 @@ class ControlsWidget(ttk.Labelframe):
         self.columnconfigure(1, weight=0)  # Parameters area is fixed size
         self.columnconfigure(2, weight=0)  # Run button is fixed size
 
-        # --- Column 0: File Loading ---
-        file_frame = ttk.Labelframe(self, text="Input Files")
+        # --- Column 0: File Loading & Column Mapping ---
+        file_frame = ttk.Labelframe(self, text="Input Files & Column Mapping")
         file_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        file_frame.columnconfigure(1, weight=1)  # Allow label to expand
+        file_frame.columnconfigure(1, weight=1)
 
-        # Experimental File Widgets
+        # Get default column mappings from the config object
+        lib_cols = (
+            self.config.library_mapping
+            if hasattr(self.config, "library_mapping")
+            else {}
+        )
+        exp_cols = (
+            self.config.experimental_mapping
+            if hasattr(self.config, "experimental_mapping")
+            else {}
+        )
+
+        # --- Experimental File Widgets ---
         ttk.Button(
             file_frame, text="Load Experimental File...", command=self.load_exp_callback
         ).grid(row=0, column=0, sticky="w", pady=5, padx=5)
@@ -56,22 +73,92 @@ class ControlsWidget(ttk.Labelframe):
         help_exp.grid(row=0, column=2, sticky="w", padx=(0, 5))
         Tooltip(help_exp, text=help_texts["load_exp"])
 
-        # Library File Widgets
+        # --- NEW: Frame for Experimental Column Selectors ---
+        exp_cols_frame = ttk.Frame(file_frame)
+        exp_cols_frame.grid(
+            row=1, column=0, columnspan=3, sticky="w", padx=15, pady=(0, 5)
+        )
+
+        ttk.Label(exp_cols_frame, text="Name:").pack(side=tk.LEFT, padx=(0, 2))
+        self.exp_name_pos_entry = ttk.Entry(exp_cols_frame, width=3)
+        self.exp_name_pos_entry.insert(0, exp_cols.get("Name", ""))
+        self.exp_name_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(exp_cols_frame, text="m/z:").pack(side=tk.LEFT, padx=(0, 2))
+        self.exp_mz_pos_entry = ttk.Entry(exp_cols_frame, width=3)
+        self.exp_mz_pos_entry.insert(0, exp_cols.get("m/z", ""))
+        self.exp_mz_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(exp_cols_frame, text="CCS:").pack(side=tk.LEFT, padx=(0, 2))
+        self.exp_ccs_pos_entry = ttk.Entry(exp_cols_frame, width=3)
+        self.exp_ccs_pos_entry.insert(0, exp_cols.get("CCS", ""))
+        self.exp_ccs_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(exp_cols_frame, text="RT:").pack(side=tk.LEFT, padx=(0, 2))
+        self.exp_rt_pos_entry = ttk.Entry(exp_cols_frame, width=3)
+        self.exp_rt_pos_entry.insert(0, exp_cols.get("RT", ""))
+        self.exp_rt_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(exp_cols_frame, text="ID:").pack(side=tk.LEFT, padx=(0, 2))
+        self.exp_id_pos_entry = ttk.Entry(exp_cols_frame, width=3)
+        self.exp_id_pos_entry.insert(0, exp_cols.get("ID", ""))
+        self.exp_id_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        help_exp_cols = ttk.Label(exp_cols_frame, text=" (?) ", cursor="question_arrow")
+        help_exp_cols.pack(side=tk.LEFT)
+        Tooltip(help_exp_cols, text=help_texts["col_pos"])
+
+        # --- Library File Widgets ---
         ttk.Button(
             file_frame, text="Load Library File...", command=self.load_lib_callback
-        ).grid(row=1, column=0, sticky="w", pady=5, padx=5)
+        ).grid(row=2, column=0, sticky="w", pady=5, padx=5)
         self.lib_file_label = ttk.Label(
             file_frame, text="No file loaded.", width=40, anchor="w"
         )
-        self.lib_file_label.grid(row=1, column=1, sticky="ew", padx=5)
+        self.lib_file_label.grid(row=2, column=1, sticky="ew", padx=5)
         help_lib = ttk.Label(file_frame, text=" (?) ", cursor="question_arrow")
-        help_lib.grid(row=1, column=2, sticky="w", padx=(0, 5))
+        help_lib.grid(row=2, column=2, sticky="w", padx=(0, 5))
         Tooltip(help_lib, text=help_texts["load_lib"])
+
+        # --- NEW: Frame for Library Column Selectors ---
+        lib_cols_frame = ttk.Frame(file_frame)
+        lib_cols_frame.grid(
+            row=3, column=0, columnspan=3, sticky="w", padx=15, pady=(0, 5)
+        )
+
+        ttk.Label(lib_cols_frame, text="Name:").pack(side=tk.LEFT, padx=(0, 2))
+        self.lib_name_pos_entry = ttk.Entry(lib_cols_frame, width=3)
+        self.lib_name_pos_entry.insert(0, lib_cols.get("Name", ""))
+        self.lib_name_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(lib_cols_frame, text="m/z:").pack(side=tk.LEFT, padx=(0, 2))
+        self.lib_mz_pos_entry = ttk.Entry(lib_cols_frame, width=3)
+        self.lib_mz_pos_entry.insert(0, lib_cols.get("m/z", ""))
+        self.lib_mz_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(lib_cols_frame, text="CCS:").pack(side=tk.LEFT, padx=(0, 2))
+        self.lib_ccs_pos_entry = ttk.Entry(lib_cols_frame, width=3)
+        self.lib_ccs_pos_entry.insert(0, lib_cols.get("CCS", ""))
+        self.lib_ccs_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(lib_cols_frame, text="RT (Opt):").pack(side=tk.LEFT, padx=(0, 2))
+        self.lib_rt_pos_entry = ttk.Entry(lib_cols_frame, width=3)
+        self.lib_rt_pos_entry.insert(0, lib_cols.get("RT", ""))
+        self.lib_rt_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Label(lib_cols_frame, text="ID (Opt):").pack(side=tk.LEFT, padx=(0, 2))
+        self.lib_id_pos_entry = ttk.Entry(lib_cols_frame, width=3)
+        self.lib_id_pos_entry.insert(0, lib_cols.get("ID", ""))
+        self.lib_id_pos_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        help_lib_cols = ttk.Label(lib_cols_frame, text=" (?) ", cursor="question_arrow")
+        help_lib_cols.pack(side=tk.LEFT)
+        Tooltip(help_lib_cols, text=help_texts["col_pos"])
 
         # --- Column 1: Analysis Parameters ---
         params_frame = ttk.Labelframe(self, text="Analysis Parameters")
         params_frame.grid(row=0, column=1, padx=(0, 10), pady=5, sticky="ns")
-
+        # ... (rest of parameter widgets are unchanged) ...
         # Repeating Unit
         ttk.Label(params_frame, text="Repeating Unit:").grid(
             row=0, column=0, sticky="w", padx=5, pady=2
@@ -126,23 +213,22 @@ class ControlsWidget(ttk.Labelframe):
         help_lib_pts.grid(row=3, column=2, sticky="w")
         Tooltip(help_lib_pts, text=help_texts["min_lib_points"])
 
-        # RANSAC Threshold
-        # --- Trend CCS Threshold (Formerly RANSAC Threshold) ---
+        # Trend CCS Threshold
         ttk.Label(params_frame, text="Trend CCS Threshold (%):").grid(
             row=4, column=0, sticky="w", padx=5, pady=2
-        )  # RENAMED
-        self.trend_ccs_thresh_var = tk.DoubleVar(value=2.0)  # RENAMED
+        )
+        self.trend_ccs_thresh_var = tk.DoubleVar(value=2.0)
         ttk.Spinbox(
             params_frame,
             from_=0.1,
             to=10.0,
             increment=0.1,
             textvariable=self.trend_ccs_thresh_var,
-            width=5,  # RENAMED
+            width=5,
         ).grid(row=4, column=1, sticky="w", padx=5, pady=2)
         help_ransac = ttk.Label(params_frame, text=" (?) ", cursor="question_arrow")
         help_ransac.grid(row=4, column=2, sticky="w")
-        Tooltip(help_ransac, text=help_texts["trend_ccs_thresh"])  # RENAMED
+        Tooltip(help_ransac, text=help_texts["trend_ccs_thresh"])
 
         # --- Column 2: Run Button ---
         run_btn = ttk.Button(
@@ -162,7 +248,18 @@ class ControlsWidget(ttk.Labelframe):
                 "min_valid_points": self.min_series_points_var.get(),
                 "min_library_points": self.min_lib_points_var.get(),
                 "trend_ccs_threshold_percentage": self.trend_ccs_thresh_var.get()
-                / 100.0,  # RENAMED
+                / 100.0,
+                # --- NEW: Get all column positions ---
+                "library_name_col_pos": self.lib_name_pos_entry.get(),
+                "library_mz_col_pos": self.lib_mz_pos_entry.get(),
+                "library_ccs_col_pos": self.lib_ccs_pos_entry.get(),
+                "library_rt_col_pos": self.lib_rt_pos_entry.get(),
+                "library_id_col_pos": self.lib_id_pos_entry.get(),
+                "exp_name_col_pos": self.exp_name_pos_entry.get(),
+                "exp_mz_col_pos": self.exp_mz_pos_entry.get(),
+                "exp_ccs_col_pos": self.exp_ccs_pos_entry.get(),
+                "exp_rt_col_pos": self.exp_rt_pos_entry.get(),
+                "exp_id_col_pos": self.exp_id_pos_entry.get(),
             }
             if params["repeating_unit"] is None:
                 return None

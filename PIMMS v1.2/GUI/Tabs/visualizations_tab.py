@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -34,6 +35,7 @@ class VisualizationsTab(ttk.Frame):
         self.library_filepath = None
         self.full_results_df = None
         self._create_widgets()
+        self._load_defaults()  # Auto-load files on startup
 
     def _create_widgets(self):
         # The ControlsWidget handles all the buttons and parameter inputs
@@ -73,13 +75,29 @@ class VisualizationsTab(ttk.Frame):
         hsb.pack(side="bottom", fill="x")
         self.tree.pack(fill="both", expand=True)
 
+    def _load_defaults(self):
+        """Checks the config object for default file paths and loads them."""
+        print("[INFO] Checking for default files specified in config...")
+
+        lib_path = self.config.library_filepath
+        if lib_path and os.path.exists(lib_path):
+            self.library_filepath = lib_path
+            self.controls.set_lib_file_label(os.path.basename(lib_path))
+            print(f"[INFO] Auto-loaded default library: {lib_path}")
+
+        exp_path = self.config.experimental_filepath
+        if exp_path and os.path.exists(exp_path):
+            self.experimental_filepath = exp_path
+            self.controls.set_exp_file_label(os.path.basename(exp_path))
+            print(f"[INFO] Auto-loaded default experimental file: {exp_path}")
+
     def _load_experimental_data(self):
         path = filedialog.askopenfilename(
             title="Select Experimental Data File", filetypes=[("CSV Files", "*.csv")]
         )
         if path:
             self.experimental_filepath = path
-            self.controls.set_exp_file_label(path.split("/")[-1])
+            self.controls.set_exp_file_label(os.path.basename(path))
 
     def _load_library_data(self):
         path = filedialog.askopenfilename(
@@ -87,7 +105,7 @@ class VisualizationsTab(ttk.Frame):
         )
         if path:
             self.library_filepath = path
-            self.controls.set_lib_file_label(path.split("/")[-1])
+            self.controls.set_lib_file_label(os.path.basename(path))
 
     def _run_pipeline(self):
         """Collects parameters from the GUI and calls the main pipeline controller."""
@@ -101,18 +119,28 @@ class VisualizationsTab(ttk.Frame):
         if gui_params is None:
             return
 
-        # Create the full parameter dictionary for the pipeline
+        # --- UPDATED: Create the full parameter dictionary for the pipeline ---
         pipeline_params = {
             "experimental_filepath": self.experimental_filepath,
             "library_filepath": self.library_filepath,
+            # Analysis parameters from the controls
             "selected_repeating_units": gui_params["repeating_unit"],
             "mass_error_ppm": gui_params["mass_error_ppm"],
             "min_valid_points": gui_params["min_valid_points"],
             "min_library_points": gui_params["min_library_points"],
-            "ransac_threshold_percentage": gui_params[
-                "trend_ccs_threshold_percentage"
-            ],  # <-- CORRECTED KEY
+            "ransac_threshold_percentage": gui_params["trend_ccs_threshold_percentage"],
             "min_ransac_samples": 3,
+            # Column mapping parameters from the controls
+            "library_name_col_pos": gui_params["library_name_col_pos"],
+            "library_mz_col_pos": gui_params["library_mz_col_pos"],
+            "library_ccs_col_pos": gui_params["library_ccs_col_pos"],
+            "library_rt_col_pos": gui_params["library_rt_col_pos"],
+            "library_id_col_pos": gui_params["library_id_col_pos"],
+            "exp_name_col_pos": gui_params["exp_name_col_pos"],
+            "exp_mz_col_pos": gui_params["exp_mz_col_pos"],
+            "exp_ccs_col_pos": gui_params["exp_ccs_col_pos"],
+            "exp_rt_col_pos": gui_params["exp_rt_col_pos"],
+            "exp_id_col_pos": gui_params["exp_id_col_pos"],
         }
 
         try:
@@ -129,6 +157,7 @@ class VisualizationsTab(ttk.Frame):
                     "Success", "Analysis complete. Select a trend to view."
                 )
             else:
+                self.full_results_df = None  # Clear previous results
                 self._populate_trend_selector()
                 self.plot.update_plot(None, None)
                 self._update_table(None)
@@ -136,7 +165,12 @@ class VisualizationsTab(ttk.Frame):
                     "Analysis Complete", "No valid trend groups were found."
                 )
         except Exception as e:
-            messagebox.showerror("Pipeline Error", f"A critical error occurred: {e}")
+            messagebox.showerror("Pipeline Error", f"A critical error occurred:\n\n{e}")
+            # Also clear the UI in case of an error
+            self.full_results_df = None
+            self._populate_trend_selector()
+            self.plot.update_plot(None, None)
+            self._update_table(None)
 
     def _populate_trend_selector(self):
         """Populates the trend selector Combobox with trend_group IDs."""
@@ -177,9 +211,26 @@ class VisualizationsTab(ttk.Frame):
         self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
             return
-        self.tree["columns"] = list(df.columns)
-        for col in df.columns:
+
+        # Define columns to display and their order
+        cols_to_display = [
+            col
+            for col in [
+                "Name",
+                "m/z",
+                "CCS",
+                "RT",
+                "ID",
+                "Classification Type",
+                "r_squared",
+            ]
+            if col in df.columns
+        ]
+        self.tree["columns"] = cols_to_display
+
+        for col in cols_to_display:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=100, anchor="center")
-        for index, row in df.iterrows():
+
+        for index, row in df[cols_to_display].iterrows():
             self.tree.insert("", "end", values=list(row.values))
