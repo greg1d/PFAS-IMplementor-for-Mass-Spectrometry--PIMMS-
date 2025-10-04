@@ -16,10 +16,8 @@ class Config:
         self.output_path = "PIMMS v1.2\import folder\Dummy test output.csv"
         self.level_2_library = "PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         self.level_5_library = "PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only test.csv"
-        self.experimental_filepath = (
-            "PIMMS v1.2\\data\\Dummy test blank subtracted data.csv"
-        )
-        self.library_filepath = "PIMMS v1.2\\import folder\\MPFAC HIF ES SIL peaks.csv"
+        self.experimental_filepath = "PIMMS v1.2\\data\\250918_SealsPIMMS.csv"
+        self.library_filepath = "PIMMS v1.2\\import folder\\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
 
         # --- Column Mappings ---
         self.metadata_mapping = {

@@ -1,0 +1,78 @@
+Date : 2025-10-04 13:15:38
+Directory : c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-
+Total : 43 files,  1601 codes, 336 comments, 270 blanks, all 2207 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |         37 |      1,417 |        336 |        266 |      2,019 |
+| CSV      |          5 |        175 |          0 |          4 |        179 |
+| JSON     |          1 |          9 |          0 |          0 |          9 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                       | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                          |         43 |      1,601 |        336 |        270 |      2,207 |
+| PIMMS v1.2                                                                                                                                 |         43 |      1,601 |        336 |        270 |      2,207 |
+| PIMMS v1.2 (Files)                                                                                                                         |          3 |        -87 |         17 |        -14 |        -84 |
+| PIMMS v1.2\GUI                                                                                                                             |         13 |      1,020 |        131 |        184 |      1,335 |
+| PIMMS v1.2\GUI (Files)                                                                                                                     |          3 |         60 |         16 |         19 |         95 |
+| PIMMS v1.2\GUI\Tabs                                                                                                                        |          6 |        607 |         72 |         98 |        777 |
+| PIMMS v1.2\GUI\widgets                                                                                                                     |          4 |        353 |         43 |         67 |        463 |
+| PIMMS v1.2\import folder                                                                                                                   |          5 |        175 |          0 |          4 |        179 |
+| PIMMS v1.2\modules                                                                                                                         |         21 |        493 |        188 |         95 |        776 |
+| PIMMS v1.2\testing_expanded_library                                                                                                        |          1 |          0 |          0 |          1 |          1 |
++--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                   | language | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\Tabs\__init__.py                                              | Python   |          0 |          0 |          1 |          1 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\Tabs\files_tab.py                                             | Python   |         61 |         12 |         17 |         90 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\Tabs\mapping_tab.py                                           | Python   |        167 |         14 |         17 |        198 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\Tabs\params_tab.py                                            | Python   |        170 |         19 |         20 |        209 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\Tabs\run_tab.py                                               | Python   |         23 |          8 |         11 |         42 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\Tabs\visualizations_tab.py                                    | Python   |        186 |         19 |         32 |        237 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\__init__.py                                                   | Python   |          0 |          0 |          1 |          1 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\app.py                                                        | Python   |         49 |         13 |         14 |         76 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\text_redirector.py                                            | Python   |         11 |          3 |          4 |         18 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\widgets\config.json                                           | JSON     |          9 |          0 |          0 |          9 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\widgets\controls_widget.py                                    | Python   |        227 |         23 |         38 |        288 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\widgets\plot_widget.py                                        | Python   |         85 |         12 |         18 |        115 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\GUI\widgets\tooltip.py                                            | Python   |         32 |          8 |         11 |         51 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Main.py                                                           | Python   |       -388 |        -26 |        -53 |       -467 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\PIMMS_Configuration.py                                            | Python   |         83 |         12 |         10 |        105 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\PIMMS_Workflow_Logic.py                                           | Python   |        218 |         31 |         29 |        278 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Dummy test output.csv                               | CSV      |          3 |          0 |          1 |          4 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Dummy test output_used_library.csv                  | CSV      |        120 |          0 |          1 |        121 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only test.csv | CSV      |         -1 |          0 |          0 |         -1 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\big_mass_group.csv                                  | CSV      |         50 |          0 |          1 |         51 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\import folder\test_library.csv                                    | CSV      |          3 |          0 |          1 |          4 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\ML_algorithm_density.py                                   | Python   |          3 |          0 |          1 |          4 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\Standard_library_scoring.py                               | Python   |         16 |         20 |         10 |         46 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\adduct_checker.py                                         | Python   |         -9 |          0 |         -5 |        -14 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\blank_subtraction.py                                      | Python   |         -5 |         33 |          1 |         29 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\branching_filter.py                                       | Python   |         -2 |          3 |         -5 |         -4 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\ccsvmz_analysis.py                                        | Python   |         88 |          4 |         17 |        109 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\creating_single_df.py                                     | Python   |         18 |         17 |          9 |         44 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\crude_filters.py                                          | Python   |          6 |        -11 |         -5 |        -10 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\detection_frequency_filter.py                             | Python   |        -14 |          7 |         -6 |        -13 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\mass_defect_filter.py                                     | Python   |         11 |          6 |          3 |         20 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\monoisotopic_grouper.py                                   | Python   |          8 |         10 |          4 |         22 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\neutral_loss_checker.py                                   | Python   |          3 |          0 |          1 |          4 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\post_source_decay_filter.py                               | Python   |          4 |          0 |         -1 |          3 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\quantile_regression_model_CCS.py                          | Python   |          4 |          0 |         -5 |         -1 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\quantile_regression_model_RT.py                           | Python   |         11 |          5 |          0 |         16 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\regression_analysis.py                                    | Python   |         -9 |         -5 |         -5 |        -19 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\removing_standards.py                                     | Python   |         18 |         -7 |          3 |         14 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\repeat_unit_analysis.py                                   | Python   |        161 |         55 |         50 |        266 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\single_chromatography.py                                  | Python   |          0 |          5 |         -2 |          3 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\smearing_filter.py                                        | Python   |         17 |         13 |          4 |         34 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\modules\visualization_analysis_pipeline.py                        | Python   |        164 |         33 |         26 |        223 |
+| c:\Users\grego\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\testing_expanded_library\library_reading.py                       | Python   |          0 |          0 |          1 |          1 |
+| Total                                                                                                                                      |          |      1,601 |        336 |        270 |      2,207 |
++--------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

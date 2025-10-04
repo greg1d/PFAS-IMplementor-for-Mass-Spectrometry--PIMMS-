@@ -46,7 +46,7 @@ class PimmsGUI(tk.Tk):
         notebook.add(self.params_tab, text="Parameters")
         notebook.add(self.run_tab, text="Run Workflow")
         notebook.add(
-            self.visualizations_tab, text="Visualizations"
+            self.visualizations_tab, text="CCS vs m/z Analysis"
         )  # <-- ADD THE NEW TAB
 
     def run_workflow_thread(self):

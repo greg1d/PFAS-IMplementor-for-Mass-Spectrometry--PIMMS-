@@ -1,9 +1,10 @@
+import csv
 import os
 import sys
 import tkinter.messagebox as messagebox
-import pandas as pd
-import csv
 import traceback
+
+import pandas as pd
 
 # Add the 'modules' subdirectory to the Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
@@ -25,12 +26,15 @@ from mass_defect_filter import mass_defect_filter  # type: ignore
 from ML_algorithm_density import fluorinated_density_filter  # type: ignore
 from monoisotopic_grouper import (  # type: ignore
     analyze_adjusted_df as mono_analyze,
+)
+from monoisotopic_grouper import (  # type: ignore
     merge_groups_into_adjusted_df as mono_merge,
 )
 from neutral_loss_checker import find_neutral_loss_matches  # type: ignore
 from post_source_decay_filter import remove_post_source_decay  # type: ignore
 from regression_analysis import produce_filtered_df  # type: ignore
 from removing_standards import remove_standards_library  # type: ignore
+from rounding import significant_figures_rounding  # type: ignore
 from single_chromatography import combined_filter_pipeline  # type: ignore
 from smearing_filter import smearing_filter  # type: ignore
 from Standard_library_scoring import (  # type: ignore
@@ -262,6 +266,7 @@ def run_pimms_workflow(config):
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
         adjusted_df.to_csv(config.output_path, index=False)
+        adjusted_df = significant_figures_rounding(adjusted_df)
         pfas_library.to_csv(
             os.path.splitext(config.output_path)[0] + "_used_library.csv", index=False
         )

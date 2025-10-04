@@ -4,7 +4,10 @@ from tkinter import filedialog, messagebox, ttk
 
 # This robustly imports your pipeline controller and modular widgets
 try:
-    from modules.visualization_analysis_pipeline import run_analysis_pipeline
+    from modules.visualization_analysis_pipeline import (
+        run_analysis_pipeline,
+        significant_figures_rounding,
+    )
 
     from ..widgets.controls_widget import ControlsWidget
     from ..widgets.plot_widget import PlotWidget
@@ -16,7 +19,10 @@ except ImportError:
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
-    from modules.visualization_analysis_pipeline import run_analysis_pipeline
+    from modules.visualization_analysis_pipeline import (
+        run_analysis_pipeline,
+        significant_figures_rounding,
+    )
 
     from GUI.widgets.controls_widget import ControlsWidget
     from GUI.widgets.plot_widget import PlotWidget
@@ -206,31 +212,21 @@ class VisualizationsTab(ttk.Frame):
         self.plot.update_plot(parent_group_df, selected_trend_df)
         self._update_table(selected_trend_df)
 
+    # --- METHOD TO UPDATE ---
     def _update_table(self, df):
-        """Manages the data table (Treeview)."""
+        """
+        Manages the data table (Treeview), rounding values for display.
+        """
         self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
             return
 
-        # Define columns to display and their order
-        cols_to_display = [
-            col
-            for col in [
-                "Name",
-                "m/z",
-                "CCS",
-                "RT",
-                "ID",
-                "Classification Type",
-                "r_squared",
-            ]
-            if col in df.columns
-        ]
-        self.tree["columns"] = cols_to_display
+        # --- NEW: Call the rounding function on the data before displaying it ---
+        df_for_display = significant_figures_rounding(df)
 
-        for col in cols_to_display:
+        self.tree["columns"] = list(df_for_display.columns)
+        for col in df_for_display.columns:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=100, anchor="center")
-
-        for index, row in df[cols_to_display].iterrows():
+        for index, row in df_for_display.iterrows():
             self.tree.insert("", "end", values=list(row.values))

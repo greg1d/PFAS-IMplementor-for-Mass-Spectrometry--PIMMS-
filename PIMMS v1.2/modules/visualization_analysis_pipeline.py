@@ -23,6 +23,22 @@ except ImportError:
     )
 
 
+def significant_figures_rounding(df):
+    """
+    Rounds specific columns in a DataFrame to a set number of decimal places.
+    """
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return df
+    df_rounded = df.copy()
+    rounding_rules = {"CCS": 1, "RT": 1, "m/z": 4, "DT": 2}
+    for column, places in rounding_rules.items():
+        if column in df_rounded.columns and pd.api.types.is_numeric_dtype(
+            df_rounded[column]
+        ):
+            df_rounded[column] = df_rounded[column].round(decimals=places)
+    return df_rounded
+
+
 def standardize_columns(df, file_type="Library", **kwargs):
     """
     Standardizes column names based on user input, which can be either a
