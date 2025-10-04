@@ -89,7 +89,7 @@ def run_analysis_pipeline(
         # Set the slope range on the validator object before running RANSAC
         SLOPE_VALIDATOR.set_range(slope_range[0], slope_range[1])
 
-        final_df = process_all_groups(
+        ransac_results_df = process_all_groups(
             df=refined_groups,
             group_id_col="GroupID",
             x_col="m/z",
@@ -98,6 +98,40 @@ def run_analysis_pipeline(
             min_trend_samples=min_ransac_samples,
             min_r_squared=min_r_squared,
         )
+        print(
+            f"\n[Step 6] Filtering sub-trends with min_library_points = {min_library_points}..."
+        )
+
+        # Define the correct column and value for identifying external standards
+        STANDARD_COLUMN = "Classification Type"
+        STANDARD_LABEL = "External Standard"
+        TREND_GROUP_COL = "trend_group"
+
+        # Calculate the number of external standard points for each unique sub-trend
+        standard_counts_per_trend = (
+            ransac_results_df[ransac_results_df[STANDARD_COLUMN] == STANDARD_LABEL]
+            .groupby(TREND_GROUP_COL)
+            .size()
+        )
+
+        # Get a list of trend_groups that meet the criteria
+        valid_trends = standard_counts_per_trend[
+            standard_counts_per_trend >= min_library_points
+        ].index
+
+        # Filter the final dataframe to keep only the valid trends
+        final_df = ransac_results_df[
+            ransac_results_df[TREND_GROUP_COL].isin(valid_trends)
+        ].copy()
+
+        print(
+            f"Found {ransac_results_df[TREND_GROUP_COL].nunique()} trends before filtering."
+        )
+        print(
+            f"Keeping {final_df[TREND_GROUP_COL].nunique()} trends that meet the minimum external standard requirement."
+        )
+
+        # ======================= CORRECTED CODE END =========================
 
         print("\n====== PIPELINE FINISHED SUCCESSFULLY ======")
         return final_df
