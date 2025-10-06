@@ -1,4 +1,5 @@
 import bisect
+import pandas as pd
 
 
 def calculate_mass_error_no_charge(mass, mass_error_ppm):
@@ -71,7 +72,7 @@ def group_and_eliminate(adjusted_df):
         unmatched_df = adjusted_df.copy()
     else:
         unmatched_df = adjusted_df[
-            adjusted_df["Classification Type"] == "unmatched"
+            adjusted_df["Classification Type"] != "likely"
         ].copy()
 
     if unmatched_df.empty:
@@ -151,3 +152,15 @@ def combined_filter_pipeline(adjusted_df, library_df, mass_error_ppm=15):
     adjusted_df = group_and_eliminate(adjusted_df)
     adjusted_df = unsaturated_chain_elimination(adjusted_df)
     return adjusted_df
+
+
+def main():
+    adjusted_df = pd.read_csv(r"PIMMS v1.2\import folder\Dummy test output.csv")
+    print(adjusted_df.head())
+    adjusted_df = group_and_eliminate(adjusted_df)
+
+    print(adjusted_df.head())
+
+
+if __name__ == "__main__":
+    main()

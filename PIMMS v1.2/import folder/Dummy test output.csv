@@ -1,4 +1,4 @@
-Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (abs),NIST SRM-1957 1.d.DeMP, NIST SRM-1957 10.d.DeMP, NIST SRM-1957 2.d.DeMP, NIST SRM-1957 3.d.DeMP, NIST SRM-1957 6.d.DeMP, NIST SRM-1957 7.d.DeMP, NIST SRM-1957 8.d.DeMP, NIST SRM-1957 9.d.DeMP,Detection Frequency (%),Average Abundance
+Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (abs),My finest moment, NIST SRM-1957 10.d.DeMP, NIST SRM-1957 2.d.DeMP, NIST SRM-1957 3.d.DeMP, NIST SRM-1957 6.d.DeMP, NIST SRM-1957 7.d.DeMP, NIST SRM-1957 8.d.DeMP, NIST SRM-1957 9.d.DeMP,Detection Frequency (%),Average Abundance
 PFHpA (M-H-CO2),CCS Library,likely,3289.0,8.4,17.54,132.5,318.9777,-6.58,0.11,N/A,149.999,0.0,191.999,176.999,0.0,167.999,0.0,0.0,50.0,82.0
 PFPeS (M-H),CCS Library,likely,5422.0,7.2,18.92,142.2,348.935,-13.76,-0.01,N/A,0.0,68.999,61.999,0.0,105.999,107.999,0.0,0.0,50.0,44.0
 PFOA (M-H-CO2),CCS Library,likely,4708.0,9.5,18.61,139.5,368.9714,-14.03,0.03,N/A,4632.999,3408.999,4505.999,4029.999,4468.999,3914.999,2759.999,2718.999,100.0,3393.0
@@ -12,67 +12,25 @@ NMeFOSAA (M-H),CCS Library,likely,2437.0,12.5,25.93,192.2,569.9636,-6.49,1.17,N/
 PFDS (M-H),CCS Library,likely,6190.0,11.9,25.17,186.5,598.9175,-10.52,0.17,N/A,140.999,0.0,132.999,0.0,0.0,0.0,0.0,0.0,25.0,33.0
 "2,2,3,3-Tetrafluoro-1,4-butanediol or 2,2,3,3-Tetrafluoro-1-methoxypropan-1-ol",Suspects Library,tentative,2529.0,2.1,16.24,127.2,161.0231,-0.08,N/A,N/A,173.999,73.999,192.999,167.999,0.0,154.999,112.999,66.999,87.5,115.0
 "1,1-bis(Trifluoromethyl)methoxy-2-ethanol or 2-ethoxy-1,1,1,3,3,3-hexafluoropropan-2-ol or 3,3,4,5,5,5-Hexafluoropentane-1,2-diol or Hexafluoroamylene glycol",Suspects Library,tentative,7185.0,4.6,17.36,133.8,211.022,9.86,N/A,N/A,123.999,0.0,80.999,0.0,0.0,0.0,0.0,0.0,25.0,26.0
-"(-)-1-Perfluoropropylethanol or (2S)-3,3,4,4,5,5,5-Heptafluoropentan-2-ol or 1-Perfluoropropylethanol or 2(Perfluoro-2-propyl)ethanol or 3:2 Fluorotelomer alcohol",Suspects Library,tentative,1596.0,15.4,17.8,136.7,213.0132,-11.18,N/A,N/A,0.0,565.999,0.0,0.0,0.0,0.0,518.999,572.999,37.5,188.0
-"Methyl 3-amino-4,4,5,5,5-pentafluoropent-2-enoate",Suspects Library,tentative,1840.0,8.3,17.86,137.4,218.0267,9.68,N/A,N/A,1078.999,0.0,314.999,0.0,0.0,0.0,0.0,0.0,25.0,158.0
 "7,7,8,8,8-pentafluorooctan-1-ol",Suspects Library,tentative,7313.0,7.5,17.5,134.7,219.0819,2.39,N/A,N/A,131.999,0.0,0.0,64.999,0.0,0.0,0.0,0.0,25.0,25.0
-"2,2,3,3-Tetrafluoro-2,3-dihydro-1,4-benzodioxin-5-amine or 2,2,3,3-Tetrafluoro-2,3-dihydro-1,4-benzodioxin-6-amine or 2,2,4,4-Tetrafluoro-2H,4H-1,3-benzodioxin-6-amine",Suspects Library,tentative,7805.0,4.7,16.75,128.6,222.0195,5.13,N/A,N/A,0.0,0.0,0.0,116.999,0.0,0.0,0.0,53.999,25.0,22.0
 "2,2,3,3,3-pentafluoro-N-(3H-1,2,4-triazol-3-yl)propanamide or 2,2,3,3,3-pentafluoro-N-(4H-1,2,4-triazol-4-yl)propanamide",Suspects Library,tentative,6790.0,3.7,19.13,146.6,229.0176,9.51,N/A,N/A,0.0,0.0,66.999,111.999,0.0,0.0,49.999,0.0,37.5,30.0
-"2-(2,2,3,3,4,4,4-Heptafluorobutoxy)ethan-1-ol or 3-(Perfluoro-1-propyl)-1,2-propanediol or Heptafluorobutyraldehyde ethyl hemiacetal",Suspects Library,tentative,851.0,14.8,17.49,133.6,243.0289,11.19,N/A,N/A,0.0,460.999,0.0,0.0,0.0,0.0,188.999,0.0,25.0,75.0
-"2-(2,2,3,3,4,4,4-Heptafluorobutoxy)ethan-1-ol or 3-(Perfluoro-1-propyl)-1,2-propanediol or 4-(1,1,1,3,3,3-Hexafluoropropan-2-yl)phenol or Benzenemethanol, .alpha.,.alpha.-bis(trifluoromethyl)- or Heptafluorobutyraldehyde ethyl hemiacetal",Suspects Library,tentative,5293.0,13.3,18.39,140.4,243.0278,7.01 or 11.71,N/A,N/A,0.0,174.999,0.0,182.999,0.0,162.999,0.0,0.0,37.5,62.0
-"2-(2,2,3,3,4,4,4-Heptafluorobutoxy)ethan-1-ol or 3-(Perfluoro-1-propyl)-1,2-propanediol or 4-(1,1,1,3,3,3-Hexafluoropropan-2-yl)phenol or Benzenemethanol, .alpha.,.alpha.-bis(trifluoromethyl)- or Heptafluorobutyraldehyde ethyl hemiacetal",Suspects Library,tentative,5345.0,13.8,19.01,145.3,243.0279,7.42 or 12.12,N/A,N/A,0.0,0.0,174.999,0.0,0.0,176.999,0.0,0.0,25.0,42.0
-5-fluoro-2-methyl-6-(pentafluoroethyl)pyrimidin-4(1h)-one,Suspects Library,tentative,5051.0,13.4,19.01,144.7,245.019,14.07,N/A,N/A,0.0,202.999,0.0,0.0,0.0,0.0,0.0,182.999,25.0,46.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol",Suspects Library,tentative,6720.0,2.7,19.29,147.4,246.9786,-10.07,N/A,N/A,0.0,0.0,106.999,127.999,0.0,0.0,0.0,0.0,25.0,29.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol",Suspects Library,tentative,3774.0,7.4,19.32,147.4,246.9782,-11.69,N/A,N/A,203.999,0.0,122.999,0.0,0.0,0.0,132.999,116.999,50.0,70.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol",Suspects Library,tentative,3668.0,8.0,19.3,147.5,246.9792,-7.64,N/A,N/A,198.999,0.0,235.999,164.999,0.0,0.0,0.0,0.0,37.5,71.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol or 1H,1H,5H-Perfluoropentane-1-thiol",Suspects Library,tentative,4811.0,10.3,19.34,147.5,246.98,-13.63 or -4.61,N/A,N/A,0.0,0.0,191.999,0.0,0.0,87.999,0.0,136.999,37.5,50.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol",Suspects Library,tentative,3255.0,11.3,19.33,147.6,246.9786,-10.07,N/A,N/A,203.999,0.0,226.999,0.0,0.0,128.999,135.999,0.0,50.0,83.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol",Suspects Library,tentative,5426.0,11.9,19.33,147.7,246.9792,-7.64,N/A,N/A,153.999,0.0,189.999,0.0,0.0,0.0,0.0,0.0,25.0,41.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol or 1H,1H,5H-Perfluoropentane-1-thiol",Suspects Library,tentative,5697.0,12.6,19.34,147.8,246.9798,-14.1 or -5.08,N/A,N/A,201.999,0.0,169.999,232.999,0.0,0.0,0.0,0.0,37.5,71.0
-"1,1,1,3,4,4-Hexafluoro-2-(trifluoromethyl)but-3-en-2-ol or 1H,1H,5H-Perfluoropentane-1-thiol",Suspects Library,tentative,6680.0,16.0,19.38,147.8,246.9815,-7.36 or 1.67,N/A,N/A,0.0,0.0,0.0,0.0,131.999,104.999,0.0,0.0,25.0,29.0
 "4-[(2,2,3,3-Tetrafluoropropyl)sulfanyl]benzene-1,2-diamine",Suspects Library,tentative,6556.0,4.8,17.76,135.4,253.0404,-9.49,N/A,N/A,0.0,90.999,76.999,0.0,78.999,0.0,0.0,0.0,37.5,32.0
-"2-(2-aminophenyl)-1,1,1,3,3,3-hexafluoropropan-2-ol or 2-(3-Aminophenyl)-1,1,1,3,3,3-hexafluoropropan-2-ol or 2-(4-Aminophenyl)-1,1,1,3,3,3-hexafluoropropan-2-ol or 2-[(1,1,1,3,3,3-Hexafluoropropan-2-yl)amino]phenol or 4-(1,1,2,3,3,3-Hexafluoropropoxy)aniline",Suspects Library,tentative,7807.0,12.9,18.5,141.1,258.0398,14.91,N/A,N/A,103.999,0.0,66.999,0.0,0.0,0.0,0.0,0.0,25.0,22.0
 [(Heptafluoropropyl)sulfanyl]acetic acid,Suspects Library,tentative,834.0,2.0,18.48,140.6,258.9645,-9.34,N/A,N/A,419.999,344.999,425.999,473.999,429.999,522.999,339.999,306.999,100.0,374.0
 1H-Pyrrol-2-yl(perfluoropropyl)methanol,Suspects Library,tentative,5750.0,13.0,18.66,141.8,264.0278,5.0,N/A,N/A,0.0,0.0,0.0,0.0,0.0,151.999,158.999,0.0,25.0,37.0
-"2,4-Heptanedione, 6-hydroxy-7,7,7-trifluoro-6-trifluoromethyl- or 2,4-Pentanedione, 3-(1-hydroxy-2,2,2-trifluoro-1-(trifluoromethyl)ethyl)- or 3-[3,3,3-Trifluoro-2-hydroxy-2-(trifluoromethyl)propyl]oxolan-2-one",Suspects Library,tentative,4727.0,11.9,18.77,142.7,265.0286,-7.11,N/A,N/A,0.0,0.0,0.0,233.999,0.0,0.0,0.0,191.999,25.0,50.0
-"2,4-Heptanedione, 6-hydroxy-7,7,7-trifluoro-6-trifluoromethyl- or 2,4-Pentanedione, 3-(1-hydroxy-2,2,2-trifluoro-1-(trifluoromethyl)ethyl)- or 3-[3,3,3-Trifluoro-2-hydroxy-2-(trifluoromethyl)propyl]oxolan-2-one",Suspects Library,tentative,2724.0,13.8,18.67,141.9,265.0292,-4.84,N/A,N/A,0.0,0.0,0.0,417.999,0.0,0.0,450.999,0.0,25.0,99.0
-"2,4-Heptanedione, 6-hydroxy-7,7,7-trifluoro-6-trifluoromethyl- or 2,4-Pentanedione, 3-(1-hydroxy-2,2,2-trifluoro-1-(trifluoromethyl)ethyl)- or 3-[3,3,3-Trifluoro-2-hydroxy-2-(trifluoromethyl)propyl]oxolan-2-one",Suspects Library,tentative,1778.0,14.4,18.67,142.0,265.0294,-4.09,N/A,N/A,522.999,0.0,0.0,519.999,0.0,0.0,418.999,0.0,37.5,167.0
-"5-(Heptafluoropropyl)-N-methyl-1,3,4-oxadiazol-2-amine",Suspects Library,tentative,4917.0,3.5,18.08,137.6,266.0176,2.33,N/A,N/A,155.999,0.0,0.0,0.0,125.999,120.999,0.0,0.0,37.5,49.0
-"5-(Heptafluoropropyl)-N-methyl-1,3,4-oxadiazol-2-amine",Suspects Library,tentative,3095.0,13.7,19.27,146.3,266.0155,-5.56,N/A,N/A,0.0,232.999,0.0,0.0,133.999,158.999,0.0,210.999,50.0,87.0
 "7,8,8,8-Tetrafluoro-7-(trifluoromethyl)octan-1-ol",Suspects Library,tentative,1869.0,5.7,20.71,157.3,269.0757,-9.22,N/A,N/A,219.999,111.999,265.999,203.999,72.999,254.999,131.999,113.999,100.0,164.0
 "3-(1,1,1,3,3,3-Hexafluoro-2-hydroxypropan-2-yl)bicyclo[2.2.1]heptan-2-one or 3-(2-Methylprop-1-en-1-yl)-2,2-bis(trifluoromethyl)cyclopropane-1-carboxylic acid",Suspects Library,tentative,4315.0,12.2,19.87,150.7,275.0533,7.57,N/A,N/A,185.999,294.999,0.0,0.0,0.0,0.0,0.0,0.0,25.0,56.0
 2-(Perfluorobutyl)ethanethiol,Suspects Library,tentative,4559.0,10.5,18.59,140.7,278.9907,4.14,N/A,N/A,0.0,221.999,0.0,0.0,0.0,0.0,225.999,0.0,25.0,53.0
 2-(Perfluorobutyl)ethanethiol,Suspects Library,tentative,4857.0,11.3,18.59,140.9,278.9933,13.46,N/A,N/A,0.0,0.0,0.0,0.0,178.999,0.0,232.999,0.0,25.0,49.0
-"(1z,6z)-2,2,3,3,4,4,5,5-octafluorohexanediimidamide",Suspects Library,tentative,2730.0,13.6,19.19,145.5,285.0422,10.67,N/A,N/A,336.999,0.0,77.50582119481226,365.999,421.999,447.999,0.0,0.0,62.5,190.0
-"(1z,6z)-2,2,3,3,4,4,5,5-octafluorohexanediimidamide or 3,3,3-Trifluoro-N-(4-methylpyridin-2-yl)-2-(trifluoromethyl)propanimidic acid",Suspects Library,tentative,2763.0,14.3,19.2,145.5,285.043,-13.34 or 13.36,N/A,N/A,276.999,282.999,26.423160745815437,0.0,289.999,77.42316074581544,0.0,0.0,62.5,113.0
-"(1z,6z)-2,2,3,3,4,4,5,5-octafluorohexanediimidamide or 3,3,3-Trifluoro-N-(4-methylpyridin-2-yl)-2-(trifluoromethyl)propanimidic acid",Suspects Library,tentative,1838.0,14.8,19.2,145.5,285.043,-13.34 or 13.36,N/A,N/A,276.999,282.999,26.423160745815437,0.0,289.999,77.42316074581544,0.0,0.0,62.5,113.0
-"(1z,6z)-2,2,3,3,4,4,5,5-octafluorohexanediimidamide or 3,3,3-Trifluoro-N-(4-methylpyridin-2-yl)-2-(trifluoromethyl)propanimidic acid",Suspects Library,tentative,8858.0,12.6,20.55,155.8,285.0433,-12.29 or 14.41,N/A,N/A,0.0,0.0,64.999,0.0,0.0,53.999,0.0,0.0,25.0,16.0
-"(1z,6z)-2,2,3,3,4,4,5,5-octafluorohexanediimidamide",Suspects Library,tentative,7647.0,14.1,20.56,155.3,285.0417,8.8,N/A,N/A,0.0,60.999,0.0,0.0,0.0,0.0,56.999,61.999,37.5,24.0
-"3,3,3-Trifluoro-N-(4-methylpyridin-2-yl)-2-(trifluoromethyl)propanimidic acid",Suspects Library,tentative,3148.0,14.0,19.19,145.4,285.0447,-7.37,N/A,N/A,0.0,0.0,0.0,0.0,351.999,372.999,0.0,0.0,25.0,83.0
-"3,3,3-Trifluoro-N-(4-methylpyridin-2-yl)-2-(trifluoromethyl)propanimidic acid",Suspects Library,tentative,5364.0,15.0,19.18,145.4,285.0449,-6.67,N/A,N/A,0.0,0.0,0.0,0.0,189.999,160.999,0.0,0.0,25.0,42.0
 "2-Ethyl-4-(1,1,1,2,3,3,3-heptafluoropropan-2-yl)aniline or 4-(1,1,1,2,3,3,3-Heptafluoropropan-2-yl)-2,6-dimethylaniline",Suspects Library,tentative,7523.0,10.8,19.07,144.2,288.0663,11.92,N/A,N/A,0.0,0.0,0.0,0.0,0.0,119.999,65.999,0.0,25.0,23.0
-N-2-Pyridinylperfluorobutanamide,Suspects Library,tentative,6114.0,10.2,19.49,147.7,289.0214,-1.14,N/A,N/A,111.999,0.0,0.0,0.0,167.999,0.0,0.0,0.0,25.0,34.0
-B-(4-(Perfluoro-1-methylethyl)phenyl)boronic acid,Suspects Library,tentative,1234.0,13.1,19.23,145.3,289.0289,4.29,N/A,N/A,0.0,1557.999,0.0,0.0,0.0,1292.999,0.0,1347.999,37.5,471.0
-B-(4-(Perfluoro-1-methylethyl)phenyl)boronic acid,Suspects Library,tentative,6407.0,11.1,19.61,148.3,289.0261,-5.28,N/A,N/A,0.0,0.0,0.0,0.0,0.0,134.999,0.0,121.999,25.0,31.0
-"N-Ethyl-2,2,3,3,4,4,5,5,5-nonafluoropentanamide or N-Ethyl-2,3,3,4,4,4-hexafluoro-2-(trifluoromethyl)butanamide",Suspects Library,tentative,8180.0,9.7,20.11,152.6,290.0273,13.72,N/A,N/A,94.999,0.0,75.999,57.999,0.0,0.0,0.0,0.0,37.5,30.0
-"N-Ethyl-2,2,3,3,4,4,5,5,5-nonafluoropentanamide or N-Ethyl-2,3,3,4,4,4-hexafluoro-2-(trifluoromethyl)butanamide",Suspects Library,tentative,8707.0,10.2,20.19,153.2,290.0271,13.15,N/A,N/A,69.999,0.0,0.0,56.999,0.0,0.0,0.0,0.0,25.0,17.0
-"N-Ethyl-2,2,3,3,4,4,5,5,5-nonafluoropentanamide or N-Ethyl-2,3,3,4,4,4-hexafluoro-2-(trifluoromethyl)butanamide",Suspects Library,tentative,6161.0,10.9,20.16,152.7,290.0267,11.77,N/A,N/A,86.999,0.0,0.0,102.999,0.0,0.0,86.999,0.0,37.5,35.0
-"4-(2,2,3,3,4,4,4-Heptafluorobutoxy)phenol or Methyl(3,3,4,4,5,5,6,6,6-nonafluorohexyl)silane",Suspects Library,tentative,4439.0,8.5,18.9,143.1,291.0241,-7.03 or -5.5,N/A,N/A,0.0,0.0,84.25349197980086,0.0,0.0,0.0,27.253491979800856,0.0,25.0,15.0
-"4-(2,2,3,3,4,4,4-Heptafluorobutoxy)phenol or Methyl(3,3,4,4,5,5,6,6,6-nonafluorohexyl)silane",Suspects Library,tentative,4694.0,11.9,18.84,142.5,291.0258,-1.19 or 0.34,N/A,N/A,0.0,0.0,0.0,0.0,106.999,0.0,0.0,322.999,25.0,51.0
-"4-(2,2,3,3,4,4,4-Heptafluorobutoxy)phenol or Methyl(3,3,4,4,5,5,6,6,6-nonafluorohexyl)silane",Suspects Library,tentative,3785.0,12.4,18.89,143.0,291.0245,-5.66 or -4.12,N/A,N/A,0.0,0.0,0.0,101.999,0.0,93.999,0.0,379.999,37.5,68.0
-"[4,4-Bis(trifluoromethyl)-4,5-dihydro-1H-pyrazol-3-yl](phenyl)methanone",Suspects Library,tentative,8328.0,11.0,20.39,153.9,309.0441,-8.74,N/A,N/A,0.0,0.0,82.999,0.0,0.0,0.0,60.999,0.0,25.0,19.0
-"5-(Heptafluoropropyl)-3-phenyl-1H-1,2,4-triazole",Suspects Library,tentative,4242.0,12.0,19.71,148.8,312.0357,-6.35,N/A,N/A,66.999,0.0,0.0,51.999,0.0,0.0,80.999,95.999,50.0,38.0
-"5-(Heptafluoropropyl)-3-phenyl-1H-1,2,4-triazole",Suspects Library,tentative,8281.0,12.7,19.75,148.9,312.0342,-11.26,N/A,N/A,0.0,0.0,0.0,0.0,0.0,0.0,58.999,86.999,25.0,19.0
-"5-(Heptafluoropropyl)-3-phenyl-1H-1,2,4-triazole",Suspects Library,tentative,5709.0,12.3,19.77,149.0,312.0371,-1.97,N/A,N/A,0.0,69.999,68.999,0.0,0.0,0.0,87.999,87.999,50.0,41.0
+"1H-Pyrrole, 2-(4-chloro-1,1,2,2,3,3,4,4-octafluorobutyl)-",Suspects Library,tentative,7720.0,8.4,17.49,132.5,299.9834,0.76,N/A,N/A,0.0,0.0,113.999,60.999,0.0,0.0,0.0,0.0,25.0,22.0
+"2,2,3,3-Tetrafluoropropyl 4-(2H-tetrazol-5-yl)benzoate",Suspects Library,tentative,4265.0,4.8,19.26,145.6,303.0536,8.39,N/A,N/A,0.0,0.0,143.999,100.999,0.0,122.999,121.999,0.0,50.0,60.0
 "(2Z)-4,4,5,5,6,6,6-Heptafluoro-3-phenylhex-2-enoic acid or 3,3,3-Trifluoro-N-(4-nitrophenyl)-2-(trifluoromethyl)propanamide",Suspects Library,tentative,6844.0,11.2,19.72,148.9,315.0256,-1.74 or 14.66,N/A,N/A,68.999,0.0,65.999,90.999,0.0,0.0,0.0,0.0,37.5,29.0
 "(2Z)-4,4,5,5,6,6,6-Heptafluoro-3-phenylhex-2-enoic acid",Suspects Library,tentative,8457.0,13.5,19.64,148.5,315.0285,7.47,N/A,N/A,79.999,0.0,0.0,58.999,0.0,0.0,0.0,0.0,25.0,18.0
-"4,4,4-Trifluoro-1-(4-fluorophenyl)-2-methyl-3-(trifluoromethyl)butane-1,3-diol",Suspects Library,tentative,6946.0,13.7,21.4,161.6,319.0617,13.33,N/A,N/A,90.999,76.999,78.999,52.999,0.0,0.0,0.0,0.0,50.0,39.0
 "3-[(1,1,1,2,3,3,3-Heptafluoropropan-2-yl)sulfanyl]benzoic acid or 3-[(Heptafluoropropyl)sulfanyl]benzoic acid or 4-[(1,1,1,2,3,3,3-Heptafluoropropan-2-yl)sulfanyl]benzoic acid or Benzoic acid, 4-[(heptafluoropropyl)thio]-",Suspects Library,tentative,4709.0,8.4,17.56,132.6,320.983,1.35,N/A,N/A,143.999,0.0,94.999,0.0,85.999,102.999,0.0,0.0,50.0,53.0
 "2-(3,3,4,4,5,5,6,6,6-Nonafluorohexyl)propane-1,3-diol or Ethyl [5-(heptafluoropropyl)-1H-pyrazol-3-yl]acetate",Suspects Library,tentative,5813.0,13.8,21.47,161.7,321.0522,-6.39 or 13.25,N/A,N/A,0.0,77.999,0.0,0.0,113.999,0.0,0.0,0.0,25.0,24.0
-"4,4,5,5,6,6,7,7-Octafluoro-1-phenylhept-1-yn-3-ol",Suspects Library,tentative,1694.0,13.4,21.2,159.3,331.042,13.81,N/A,N/A,0.0,0.0,0.0,0.0,251.999,345.999,394.999,0.0,37.5,114.0
-"4,4,5,5,6,6,7,7-Octafluoro-1-phenylhept-1-yn-3-ol",Suspects Library,tentative,8391.0,11.6,22.05,165.5,331.0409,10.39,N/A,N/A,0.0,0.0,0.0,0.0,0.0,0.0,76.999,63.999,25.0,18.0
-N-[4-(Pentafluoroethoxy)phenyl]pyridine-3-carboxamide or N-[4-(Pentafluoroethoxy)phenyl]pyridine-4-carboxamide,Suspects Library,tentative,8818.0,12.7,22.08,166.4,331.049,-6.46,N/A,N/A,62.999,0.0,0.0,0.0,57.999,0.0,0.0,0.0,25.0,16.0
 "4,4,4-trifluoro-1-(4-nitrophenyl)-3-(trifluoromethyl)butane-1,3-diol",Suspects Library,tentative,4175.0,15.2,21.31,160.1,332.0383,6.03,N/A,N/A,0.0,212.999,0.0,0.0,0.0,182.999,0.0,109.999,37.5,60.0
 "4,4,4-trifluoro-1-(4-nitrophenyl)-3-(trifluoromethyl)butane-1,3-diol",Suspects Library,tentative,6482.0,10.6,22.06,166.2,332.0379,4.83,N/A,N/A,50.999,0.0,60.999,84.999,0.0,0.0,0.0,54.999,50.0,34.0
+2-(Nonafluorobutyl)-1H-indole or 3-(Nonafluorobutyl)-1H-indole,Suspects Library,tentative,6280.0,8.9,21.15,159.3,334.033,13.85,N/A,N/A,0.0,0.0,71.999,76.999,61.999,0.0,56.999,0.0,50.0,35.0
 "Malononitrile, (6-(2-hydroxy-3,3,3-trifluoro-2-trifluoromethylpropyl)-2-pyridylmethylene)-",Suspects Library,tentative,6208.0,12.3,21.26,159.8,334.038,-12.13,N/A,N/A,0.0,0.0,0.0,0.0,21.918502315792807,0.0,21.918502315792807,0.0,25.0,8.0
 "4,4'-(1,2,2,3,3,3-Hexafluoropropane-1,1-diyl)diphenol or 4-[1,1,2,2,3,3-hexafluoro-3-(4-hydroxyphenyl)propyl]phenol or Bisphenol AF",Suspects Library,tentative,6675.0,6.8,22.79,171.9,335.0501,-3.34,N/A,N/A,0.0,0.0,123.999,113.999,0.0,0.0,0.0,0.0,25.0,29.0
 "(1r,4r)-4-(Nonafluorobutyl)cyclohexane-1-carboxylic acid or (1s,4s)-4-(Nonafluorobutyl)cyclohexane-1-carboxylic acid",Suspects Library,tentative,7501.0,10.7,22.08,166.3,345.0591,14.05,N/A,N/A,66.999,0.0,119.999,0.0,0.0,0.0,0.0,0.0,25.0,24.0
@@ -81,13 +39,9 @@ N-[4-(Pentafluoroethoxy)phenyl]pyridine-3-carboxamide or N-[4-(Pentafluoroethoxy
 "4-[1,1,2-Trifluoro-2-(heptafluoropropoxy)ethoxy]butan-1-ol",Suspects Library,tentative,3560.0,10.1,21.7,163.0,355.0443,12.83,N/A,N/A,104.999,106.999,118.999,159.999,0.0,0.0,0.0,128.999,62.5,76.0
 "4-[1,1,2-Trifluoro-2-(heptafluoropropoxy)ethoxy]butan-1-ol",Suspects Library,tentative,4419.0,11.1,21.72,163.1,355.044,11.98,N/A,N/A,170.999,136.999,0.0,0.0,0.0,0.0,0.0,157.999,37.5,56.0
 "2-(1,1,1,3,3,3-hexafluoro-2-hydroxypropan-2-yl)-7-nitro-3,4-dihydronaphthalen-1(2h)-one or N-(Perfluoro-1-oxobutyl)aspartic acid 1-ethyl ester",Suspects Library,tentative,7405.0,13.2,22.49,168.7,356.0384,2.7 or 5.91,N/A,N/A,0.0,64.999,71.999,0.0,0.0,0.0,0.0,55.999,37.5,26.0
-2-C-(Nonafluorobutyl)-?-L-ribofuranose,Suspects Library,tentative,2689.0,12.4,22.74,170.6,367.0268,9.41,N/A,N/A,149.999,70.999,188.999,172.999,149.999,151.999,0.0,0.0,75.0,107.0
 "5,5,6,6,7,7,7-heptafluoro-4,4-bis(trifluoromethyl)heptanoic Acid or 6:3 Fluorotelomer carboxylic acid",Suspects Library,tentative,7692.0,8.6,21.52,160.7,391.0067,14.79,N/A,N/A,0.0,61.999,0.0,0.0,55.999,0.0,0.0,58.999,37.5,24.0
 "3-(Bromomethyl)-1,1,1,2,2,4,4,5,5,6,6,6-dodecafluorohexan-3-ol",Suspects Library,tentative,5041.0,10.3,24.86,186.0,408.9164,14.95,N/A,N/A,115.999,0.0,149.999,0.0,0.0,120.999,0.0,0.0,37.5,47.0
-"Butanamide, N-(2-bromo-4-nitrophenyl)-2,2,3,3,4,4,4-heptafluoro- or Propanamide, N-(2-bromo-4-nitrophenyl)-2,3,3,3-tetrafluoro-2-(trifluoromethyl)-",Suspects Library,tentative,5055.0,10.3,24.8,185.7,410.9178,-10.4,N/A,N/A,116.999,0.0,155.999,112.999,0.0,0.0,0.0,0.0,37.5,47.0
 "Propanamide, 2,2,3,3,3-pentafluoro-N-(2-((propylsulfonyl)amino)-5-(trifluoromethyl)-3-pyridinyl)-",Suspects Library,tentative,6363.0,11.8,23.72,177.2,428.0373,12.25,N/A,N/A,71.999,0.0,127.999,89.999,0.0,0.0,0.0,0.0,37.5,36.0
-4-Chloro-5-methyl-3-(perfluorohexyl)pyrazole,Suspects Library,tentative,8465.0,14.1,24.63,183.3,432.9822,8.98,N/A,N/A,0.0,69.999,0.0,0.0,0.0,0.0,0.0,67.999,25.0,18.0
-4-Chloro-5-methyl-3-(perfluorohexyl)pyrazole,Suspects Library,tentative,7272.0,14.9,24.64,183.3,432.9814,7.36,N/A,N/A,0.0,68.999,0.0,0.0,0.0,0.0,70.999,58.999,37.5,26.0
 "2,3-Dibromo-6-(1,1,1,3,3,3-hexafluoro-2-hydroxypropan-2-yl)-3,5,5-trimethylcyclohexan-1-one or [2-(3-chloro-1,1,2,2,3,3-hexafluoropropoxy)-1,1,2,3,3,3-hexafluoropropoxy](difluoro)acetic acid",Suspects Library,tentative,6847.0,9.4,20.82,155.1,460.9257,-2.17 or 14.11,N/A,N/A,65.999,93.999,65.999,0.0,0.0,0.0,0.0,0.0,37.5,29.0
 "1,2,2,3,3,4,4,4a,5,5,6,6,7,7,8,8,8a-Heptadecafluorodecahydronaphthalene-1-carboxylic acid",Suspects Library,tentative,4519.0,7.0,26.8,198.7,486.967,7.85,N/A,N/A,0.0,235.999,0.0,0.0,0.0,0.0,216.999,0.0,25.0,53.0
 "1,2,2,3,3,4,4,4a,5,5,6,6,7,7,8,8,8a-Heptadecafluorodecahydronaphthalene-1-carboxylic acid",Suspects Library,tentative,2988.0,7.8,26.75,198.7,486.9683,10.42,N/A,N/A,0.0,170.999,160.999,192.999,0.0,0.0,247.999,0.0,50.0,91.0
@@ -95,10 +49,6 @@ N-[4-(Pentafluoroethoxy)phenyl]pyridine-3-carboxamide or N-[4-(Pentafluoroethoxy
 "1,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,9-Heptadecafluoronon-1-ene-1-sulfonic acid",Suspects Library,tentative,4580.0,4.1,25.99,192.6,510.9307,0.95,N/A,N/A,0.0,0.0,0.0,0.0,152.999,144.999,145.999,0.0,37.5,53.0
 "1,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,9-Heptadecafluoronon-1-ene-1-sulfonic acid",Suspects Library,tentative,6053.0,10.2,25.98,193.0,510.9309,1.34,N/A,N/A,67.999,0.0,93.999,0.0,0.0,122.999,0.0,0.0,37.5,36.0
 "((Perfluorooctyl)ethyl)silanetriol or 6-(1,1,2,2,3,3,4,4,5,5,6,6,6-tridecafluorohexylsulfonyl)naphthalen-2-ol",Suspects Library,tentative,6516.0,11.9,24.7,183.0,524.9803,-6.29 or -3.37,N/A,N/A,211.999,113.999,221.999,218.999,148.999,136.999,135.999,0.0,87.5,142.0
-"4-chloro-3-(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-heptadecafluorooctyl)-5-methyl-1H-pyrazole",Suspects Library,tentative,8709.0,3.1,27.12,201.2,532.9782,11.87,N/A,N/A,0.0,0.0,62.999,0.0,0.0,63.999,0.0,0.0,25.0,17.0
-"4-[(Heptadecafluorooctyl)oxy]-4-oxobut-2-enoic acid or 4-chloro-3-(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-heptadecafluorooctyl)-5-methyl-1H-pyrazole",Suspects Library,tentative,7743.0,6.1,27.08,201.0,532.9756,6.99 or 12.93,N/A,N/A,50.999,0.0,57.999,0.0,0.0,64.999,0.0,0.0,37.5,23.0
-"4-chloro-3-(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-heptadecafluorooctyl)-5-methyl-1H-pyrazole",Suspects Library,tentative,8889.0,9.4,26.96,200.1,532.9774,10.37,N/A,N/A,0.0,0.0,0.0,66.999,50.999,0.0,0.0,0.0,25.0,16.0
-"4-[(Heptadecafluorooctyl)oxy]-4-oxobut-2-enoic acid or 4-chloro-3-(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,8-heptadecafluorooctyl)-5-methyl-1H-pyrazole",Suspects Library,tentative,6919.0,10.6,27.08,200.5,532.973,2.11 or 8.05,N/A,N/A,0.0,0.0,0.0,0.0,60.999,82.999,76.999,0.0,37.5,29.0
 2'-Deoxy-5-(tridecafluorohexyl)uridine,Suspects Library,tentative,7551.0,13.1,27.63,205.2,545.0326,-11.3,N/A,N/A,108.999,0.0,74.999,0.0,0.0,0.0,0.0,0.0,25.0,23.0
 17-H-Perfluoroheptadecanoic acid,Suspects Library,tentative,554.0,13.6,27.75,203.7,844.9389,-9.71,N/A,N/A,1143.076329501842,0.0,259.0763295018421,233.0763295018421,145.0763295018421,21.07632950184211,0.0,0.0,62.5,207.0
 "2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18-tetratriacontafluorooctadecanoic acid",Suspects Library,tentative,563.0,14.1,28.7,210.5,894.9338,-11.35,N/A,N/A,909.098792678841,0.0,500.09879267884105,394.09879267884105,441.09879267884105,360.09879267884105,19.09879267884105,0.0,75.0,300.0
@@ -146,12 +96,12 @@ No Match,None,unmatched,6361.0,13.5,18.09,139.4,208.9769,,,,0.0,0.0,0.0,0.0,117.
 No Match,None,unmatched,5831.0,4.4,17.03,131.3,210.9441,,,,50.999,0.0,0.0,156.999,0.0,94.999,0.0,0.0,37.5,38.0
 No Match,None,unmatched,8929.0,2.5,18.05,139.2,212.0021,,,,62.999,0.0,51.999,0.0,0.0,0.0,0.0,0.0,25.0,16.0
 No Match,None,unmatched,2128.0,13.0,17.54,134.9,215.0407,,,,172.999,0.0,169.999,0.0,0.0,0.0,143.999,0.0,37.5,58.0
+No Match,None,unmatched,5146.0,13.7,17.53,134.8,215.0404,,,,199.999,0.0,0.0,0.0,0.0,0.0,0.0,175.999,25.0,45.0
 No Match,None,unmatched,2685.0,13.5,17.58,135.0,216.0367,,,,0.0,540.999,703.999,0.0,0.0,0.0,460.999,612.999,50.0,263.0
 No Match,None,unmatched,822.0,14.7,17.55,134.9,216.0373,,,,0.0,0.0,1318.999,1402.999,0.0,337.999,652.999,0.0,50.0,418.0
 No Match,None,unmatched,4414.0,3.2,18.5,142.4,217.0148,,,,190.999,0.0,0.0,275.999,0.0,0.0,0.0,0.0,25.0,55.0
 No Match,None,unmatched,5900.0,8.5,17.58,134.8,217.0602,,,,0.0,0.0,0.0,0.0,0.0,0.0,151.999,144.999,25.0,36.0
 No Match,None,unmatched,4714.0,7.9,19.45,149.3,217.0861,,,,71.59537029076444,0.0,21.595370290764436,0.0,0.0,0.0,0.0,0.0,25.0,13.0
-No Match,None,unmatched,2210.0,14.0,18.98,145.6,218.0288,,,,0.0,235.999,0.0,273.999,0.0,0.0,277.999,321.999,50.0,129.0
 No Match,None,unmatched,961.0,7.9,19.7,151.3,218.0942,,,,211.94792294449007,0.0,261.9479229444901,25.947922944490074,0.0,0.0,0.0,0.0,37.5,60.0
 No Match,None,unmatched,4103.0,13.6,19.1,146.7,219.0976,,,,143.999,0.0,0.0,165.999,0.0,93.999,112.999,0.0,50.0,63.0
 No Match,None,unmatched,878.0,5.9,17.1,131.3,220.9389,,,,592.999,316.999,467.999,397.999,112.999,582.999,335.999,297.999,100.0,356.0
@@ -178,7 +128,6 @@ No Match,None,unmatched,2299.0,6.6,17.62,134.7,239.0848,,,,271.999,108.999,150.9
 No Match,None,unmatched,1819.0,3.9,18.42,140.7,240.9115,,,,356.999,193.999,379.999,334.999,0.0,0.0,61.999,94.999,75.0,166.0
 No Match,None,unmatched,1984.0,3.9,18.43,140.9,242.9101,,,,217.999,0.0,281.999,188.999,251.999,208.999,112.999,0.0,75.0,149.0
 No Match,None,unmatched,5072.0,3.2,19.43,148.5,242.9967,,,,0.0,0.0,75.999,138.999,89.999,78.999,0.0,0.0,50.0,48.0
-No Match,None,unmatched,5782.0,4.2,20.0,152.8,243.0323,,,,0.0,105.999,108.999,92.999,0.0,0.0,0.0,0.0,37.5,38.0
 No Match,None,unmatched,6582.0,13.6,20.11,153.7,243.1004,,,,143.999,0.0,236.999,0.0,103.999,140.999,0.0,0.0,50.0,75.0
 No Match,None,unmatched,77.0,6.6,17.93,136.7,244.9059,,,,5877.999,5244.999,5253.999,4597.999,6988.999,6520.999,4088.999,3481.999,100.0,4684.0
 No Match,None,unmatched,2536.0,7.0,17.93,136.6,244.9048,,,,0.0,347.999,0.0,0.0,0.0,0.0,277.999,311.999,37.5,108.0
@@ -192,7 +141,9 @@ No Match,None,unmatched,6193.0,6.4,17.89,136.4,250.897,,,,0.0,154.999,0.0,118.99
 No Match,None,unmatched,4583.0,6.0,18.43,140.5,251.999,,,,201.999,0.0,0.0,0.0,0.0,0.0,0.0,241.999,25.0,52.0
 No Match,None,unmatched,6372.0,13.2,18.49,140.8,252.0023,,,,0.0,0.0,0.0,0.0,148.999,0.0,111.999,0.0,25.0,32.0
 No Match,None,unmatched,784.0,2.0,18.48,140.7,256.966,,,,482.999,371.999,591.999,520.999,411.999,507.999,321.999,323.999,100.0,404.0
+No Match,None,unmatched,7557.0,13.5,18.5,140.9,257.045,,,,0.0,0.0,0.0,0.0,51.999,73.999,57.999,0.0,37.5,25.0
 No Match,None,unmatched,717.0,7.9,20.92,159.2,258.0856,,,,217.042380491975,0.0,123.042380491975,114.042380491975,0.0,0.0,0.0,0.0,37.5,55.0
+No Match,None,unmatched,1227.0,3.1,17.79,135.5,259.0094,,,,386.999,0.0,343.999,89.999,455.999,509.999,209.999,212.999,87.5,255.0
 No Match,None,unmatched,2875.0,12.7,19.02,144.8,260.0408,,,,0.0,400.999,0.0,413.999,0.0,0.0,0.0,0.0,25.0,93.0
 No Match,None,unmatched,9039.0,9.9,19.9,151.7,260.0771,,,,0.0,0.0,53.999,50.999,0.0,0.0,0.0,0.0,25.0,14.0
 No Match,None,unmatched,4807.0,12.7,19.91,151.6,261.0724,,,,53.999,83.999,128.999,90.999,59.999,0.0,0.0,0.0,62.5,53.0
@@ -206,21 +157,16 @@ No Match,None,unmatched,5076.0,14.1,18.59,141.0,276.9975,,,,0.0,130.999,126.999,
 No Match,None,unmatched,1789.0,16.0,19.9,150.8,277.0472,,,,296.999,286.999,0.0,280.999,0.0,0.0,316.999,271.999,62.5,168.0
 No Match,None,unmatched,3969.0,12.8,18.59,140.9,277.9958,,,,0.0,281.999,0.0,0.0,0.0,314.999,0.0,0.0,25.0,69.0
 No Match,None,unmatched,2992.0,15.2,19.21,145.4,286.0388,,,,0.0,0.0,0.0,0.0,428.999,0.0,0.0,341.999,25.0,88.0
-No Match,None,unmatched,5543.0,12.6,20.18,152.8,290.0285,,,,69.999,0.0,92.999,64.999,0.0,0.0,56.999,56.999,62.5,45.0
-No Match,None,unmatched,6977.0,11.4,20.2,153.2,290.0318,,,,77.999,0.0,72.999,66.999,0.0,0.0,0.0,0.0,37.5,28.0
-No Match,None,unmatched,7627.0,13.9,19.52,147.7,291.0121,,,,84.999,0.0,0.0,0.0,0.0,0.0,0.0,95.999,25.0,23.0
-No Match,None,unmatched,8351.0,14.1,19.48,147.6,291.017,,,,0.0,75.999,0.0,88.999,92.999,0.0,0.0,0.0,37.5,33.0
+No Match,None,unmatched,5772.0,10.6,19.25,145.4,289.0561,,,,0.0,195.999,0.0,0.0,0.0,0.0,0.0,112.999,25.0,37.0
 No Match,None,unmatched,6421.0,13.3,19.49,147.7,292.0098,,,,25.252249731794834,0.0,27.252249731794834,0.0,0.0,0.0,0.0,0.0,25.0,9.0
 No Match,None,unmatched,6203.0,12.6,20.12,152.1,300.0548,,,,0.0,0.0,65.999,100.999,0.0,0.0,105.999,0.0,37.5,34.0
 No Match,None,unmatched,866.0,9.8,21.13,159.7,304.9075,,,,286.65785022323576,0.0,69.999,0.0,0.0,0.0,135.999,127.999,50.0,75.0
 No Match,None,unmatched,3349.0,9.8,21.77,164.4,316.9345,,,,246.16896815879505,0.0,0.0,62.16896815879507,0.0,0.0,0.0,0.0,25.0,37.0
-No Match,None,unmatched,4802.0,11.1,21.48,162.0,319.0645,,,,80.999,78.999,106.999,52.999,0.0,0.0,97.999,0.0,62.5,53.0
-No Match,None,unmatched,8545.0,14.5,21.49,162.4,319.065,,,,0.0,0.0,68.999,65.999,0.0,0.0,0.0,0.0,25.0,18.0
 No Match,None,unmatched,5914.0,4.8,21.59,162.9,322.9653,,,,108.999,0.0,0.0,186.999,0.0,0.0,0.0,0.0,25.0,36.0
 No Match,None,unmatched,5142.0,6.0,21.65,163.1,322.9647,,,,118.999,0.0,0.0,0.0,112.999,0.0,143.999,0.0,37.5,46.0
 No Match,None,unmatched,8867.0,2.3,20.66,155.6,328.8989,,,,87.999,79.999,77.999,0.0,0.0,89.999,69.999,54.999,75.0,60.0
+No Match,None,unmatched,4822.0,12.0,22.24,167.6,328.9822,,,,201.999,175.999,170.999,244.999,0.0,0.0,183.999,0.0,62.5,116.0
 No Match,None,unmatched,8463.0,6.8,20.02,150.5,329.9826,,,,0.0,64.999,0.0,0.0,72.999,0.0,0.0,0.0,25.0,18.0
-No Match,None,unmatched,1422.0,13.8,21.27,160.0,331.0426,,,,0.0,392.999,0.0,0.0,373.999,383.999,331.999,409.999,62.5,217.0
 No Match,None,unmatched,8526.0,11.9,21.93,165.4,333.0361,,,,69.999,0.0,0.0,64.999,0.0,0.0,0.0,0.0,25.0,18.0
 No Match,None,unmatched,572.0,8.1,22.96,172.5,334.0701,,,,0.0,0.0,0.0,0.0,44.62894911873741,0.0,83.999,108.999,37.5,31.0
 No Match,None,unmatched,9053.0,3.9,19.6,147.6,334.8935,,,,50.999,0.0,0.0,0.0,50.999,0.0,0.0,0.0,25.0,14.0
@@ -229,6 +175,7 @@ No Match,None,unmatched,5885.0,13.3,21.86,164.4,335.0209,,,,57.999,64.999,56.999
 No Match,None,unmatched,6737.0,11.0,21.82,164.4,336.0169,,,,57.999,0.0,0.0,79.999,0.0,0.0,0.0,0.0,25.0,18.0
 No Match,None,unmatched,6622.0,9.7,22.01,165.3,346.0532,,,,0.0,64.999,0.0,98.999,0.0,0.0,77.999,0.0,37.5,31.0
 No Match,None,unmatched,8334.0,11.6,21.94,165.2,346.0661,,,,0.0,0.0,80.999,62.999,0.0,0.0,0.0,0.0,25.0,19.0
+No Match,None,unmatched,7300.0,10.8,20.68,155.2,347.002,,,,0.0,0.0,0.0,0.0,65.999,0.0,68.999,62.999,37.5,26.0
 No Match,None,unmatched,8491.0,11.5,20.76,155.6,347.9934,,,,0.0,60.999,0.0,0.0,0.0,0.0,0.0,75.999,25.0,18.0
 No Match,None,unmatched,9042.0,10.1,22.1,165.6,348.0592,,,,0.0,51.999,0.0,0.0,0.0,0.0,51.999,0.0,25.0,14.0
 No Match,None,unmatched,5470.0,14.3,22.07,165.6,348.0581,,,,0.0,130.999,0.0,50.999,0.0,0.0,76.999,80.999,50.0,43.0
@@ -242,18 +189,17 @@ No Match,None,unmatched,2112.0,15.1,23.59,177.1,357.011,,,,124.999,238.999,154.9
 No Match,None,unmatched,9049.0,10.8,22.52,169.0,358.0375,,,,0.0,0.0,0.0,49.999,0.0,0.0,0.0,52.999,25.0,14.0
 No Match,None,unmatched,8798.0,8.2,22.82,171.6,362.9563,,,,0.0,0.0,58.999,62.999,0.0,0.0,0.0,0.0,25.0,16.0
 No Match,None,unmatched,235.0,9.6,23.03,172.4,366.8979,,,,1829.999,1587.999,1746.999,1468.999,2030.999,2055.999,1258.999,1201.999,100.0,1476.0
-No Match,None,unmatched,8254.0,14.8,22.61,169.5,367.0351,,,,0.0,0.0,0.0,0.0,56.999,89.999,0.0,0.0,25.0,19.0
 No Match,None,unmatched,6011.0,9.6,23.05,172.4,368.8926,,,,0.0,115.999,0.0,0.0,0.0,0.0,51.999,120.999,37.5,36.0
 No Match,None,unmatched,8010.0,9.5,23.04,172.4,370.8914,,,,0.0,0.0,0.0,0.0,0.0,66.999,0.0,92.999,25.0,21.0
 No Match,None,unmatched,7298.0,3.3,23.7,177.6,372.1074,,,,0.0,0.0,95.999,0.0,0.0,0.0,101.999,0.0,25.0,25.0
+No Match,None,unmatched,7916.0,10.9,22.57,168.9,373.043,,,,0.0,0.0,0.0,0.0,0.0,73.999,0.0,90.999,25.0,21.0
 No Match,None,unmatched,2043.0,4.7,22.95,171.8,381.0236,,,,172.999,0.0,229.999,208.999,273.999,0.0,170.999,161.999,75.0,144.0
 No Match,None,unmatched,6360.0,6.4,22.3,166.9,386.9167,,,,109.999,0.0,0.0,0.0,0.0,0.0,151.999,0.0,25.0,32.0
 No Match,None,unmatched,4796.0,7.3,22.3,166.8,386.9179,,,,145.999,0.0,0.0,0.0,0.0,135.999,135.999,0.0,37.5,51.0
 No Match,None,unmatched,7006.0,10.2,23.09,173.2,387.0631,,,,118.999,0.0,97.999,0.0,0.0,0.0,0.0,0.0,25.0,27.0
-No Match,None,unmatched,7680.0,2.9,24.1,180.0,389.0903,,,,0.0,80.999,0.0,0.0,0.0,96.999,0.0,0.0,25.0,23.0
 No Match,None,unmatched,4234.0,10.8,22.94,171.4,402.036,,,,95.999,86.999,96.999,94.999,0.0,0.0,49.999,69.999,75.0,63.0
 No Match,None,unmatched,6448.0,6.1,24.09,179.8,404.9693,,,,0.0,0.0,0.0,0.0,66.999,101.999,84.999,0.0,37.5,32.0
-No Match,None,unmatched,8728.0,2.1,23.48,175.3,410.9076,,,,0.0,0.0,0.0,0.0,49.999,75.999,0.0,0.0,25.0,17.0
+No Match,None,unmatched,4640.0,15.6,23.67,177.0,404.9877,,,,99.999,177.999,159.999,0.0,0.0,0.0,0.0,0.0,37.5,53.0
 No Match,None,unmatched,7143.0,2.4,24.37,182.0,412.9735,,,,0.0,90.999,0.0,115.999,0.0,0.0,0.0,0.0,25.0,26.0
 No Match,None,unmatched,4971.0,2.9,22.4,167.3,416.8937,,,,88.999,0.0,70.999,71.999,0.0,0.0,73.999,89.999,62.5,51.0
 No Match,None,unmatched,9019.0,4.8,22.38,167.5,416.9024,,,,0.0,0.0,57.999,49.999,0.0,0.0,0.0,0.0,25.0,15.0
@@ -262,25 +208,23 @@ No Match,None,unmatched,8936.0,7.9,22.77,170.0,418.0039,,,,0.0,0.0,0.0,0.0,59.99
 No Match,None,unmatched,9021.0,12.7,24.74,184.8,420.9924,,,,56.999,0.0,0.0,0.0,49.999,0.0,0.0,0.0,25.0,15.0
 No Match,None,unmatched,6998.0,10.6,23.72,177.4,428.0401,,,,68.999,0.0,88.999,58.999,0.0,0.0,0.0,0.0,37.5,28.0
 No Match,None,unmatched,4108.0,4.9,24.36,181.5,428.9252,,,,158.999,0.0,0.0,0.0,0.0,0.0,169.999,186.999,37.5,61.0
-No Match,None,unmatched,4287.0,15.7,24.56,183.2,432.9865,,,,97.999,152.999,0.0,79.999,0.0,154.999,0.0,0.0,50.0,60.0
 No Match,None,unmatched,7059.0,2.3,23.8,176.9,450.8908,,,,0.0,57.999,0.0,0.0,71.999,0.0,0.0,82.999,37.5,28.0
 No Match,None,unmatched,7681.0,3.4,24.61,183.1,450.9735,,,,49.999,0.0,0.0,0.0,0.0,0.0,53.999,73.999,37.5,24.0
 No Match,None,unmatched,6467.0,8.1,24.67,183.6,450.9736,,,,66.999,58.999,0.0,0.0,0.0,0.0,0.0,75.999,37.5,27.0
 No Match,None,unmatched,8593.0,7.1,24.36,181.4,462.9048,,,,0.0,0.0,0.0,50.999,80.999,0.0,0.0,0.0,25.0,17.0
 No Match,None,unmatched,3338.0,11.2,20.88,155.4,468.963,,,,137.999,133.999,0.0,183.999,148.999,0.0,0.0,68.999,62.5,82.0
 No Match,None,unmatched,2076.0,12.4,25.53,189.8,469.0327,,,,179.999,82.999,235.999,157.999,148.999,0.0,188.999,202.999,87.5,143.0
+No Match,None,unmatched,7641.0,15.1,26.12,194.0,487.0635,,,,0.0,64.999,114.999,0.0,0.0,0.0,0.0,0.0,25.0,23.0
 No Match,None,unmatched,1120.0,4.9,26.95,199.9,487.08,,,,203.999,287.999,232.999,180.999,511.999,448.999,326.999,209.999,100.0,278.0
 No Match,None,unmatched,8804.0,2.1,25.09,185.8,492.8986,,,,0.0,0.0,0.0,0.0,0.0,0.0,54.999,66.999,25.0,16.0
 No Match,None,unmatched,7170.0,2.7,25.21,186.9,492.9012,,,,0.0,76.999,0.0,0.0,0.0,65.999,0.0,62.999,37.5,27.0
 No Match,None,unmatched,8650.0,15.7,25.06,186.0,498.895,,,,0.0,0.0,0.0,0.0,59.999,68.999,0.0,0.0,25.0,17.0
 No Match,None,unmatched,3791.0,14.6,26.34,196.1,499.082,,,,194.999,0.0,208.999,170.999,0.0,0.0,0.0,0.0,37.5,68.0
 No Match,None,unmatched,5671.0,15.8,26.35,196.1,499.0806,,,,107.999,0.0,74.999,135.999,0.0,0.0,0.0,0.0,37.5,40.0
-No Match,None,unmatched,7525.0,12.7,27.28,202.7,501.1052,,,,116.999,0.0,0.0,0.0,68.999,0.0,0.0,0.0,25.0,23.0
 No Match,None,unmatched,6450.0,10.4,22.77,168.6,502.9328,,,,0.0,126.999,0.0,0.0,0.0,0.0,0.0,126.999,25.0,31.0
 No Match,None,unmatched,8305.0,14.5,25.81,191.3,502.9848,,,,0.0,0.0,0.0,0.0,0.0,73.999,70.999,88.999,37.5,30.0
 No Match,None,unmatched,2652.0,11.7,22.9,169.9,504.9622,,,,0.0,119.999,0.0,265.999,186.999,174.999,0.0,147.999,62.5,106.0
 No Match,None,unmatched,1829.0,11.7,22.9,170.2,507.9639,,,,315.999,154.999,266.999,232.999,226.999,206.999,0.0,0.0,75.0,164.0
-No Match,None,unmatched,8931.0,2.3,26.36,196.0,516.9523,,,,53.999,0.0,0.0,60.999,0.0,0.0,0.0,0.0,25.0,16.0
 No Match,None,unmatched,8153.0,2.6,25.98,193.1,534.8921,,,,62.999,0.0,0.0,89.999,0.0,0.0,0.0,0.0,25.0,20.0
 No Match,None,unmatched,2475.0,13.7,27.41,203.1,543.0523,,,,162.999,0.0,165.999,171.999,150.999,133.999,162.999,156.999,87.5,133.0
 No Match,None,unmatched,6335.0,15.0,27.43,203.3,543.0538,,,,189.999,385.999,124.999,259.999,457.999,335.999,253.999,0.0,87.5,233.0
@@ -289,6 +233,7 @@ No Match,None,unmatched,818.0,14.5,28.24,209.0,557.1036,,,,649.999,241.999,651.9
 No Match,None,unmatched,7090.0,4.1,28.06,207.1,586.9156,,,,0.0,51.999,0.0,0.0,49.999,55.999,0.0,52.999,50.0,29.0
 No Match,None,unmatched,8642.0,4.4,28.03,206.8,598.9441,,,,0.0,59.999,0.0,0.0,0.0,64.999,65.999,0.0,37.5,25.0
 No Match,None,unmatched,8552.0,3.9,28.01,206.9,598.9578,,,,0.0,0.0,0.0,0.0,68.999,64.999,0.0,0.0,25.0,18.0
+No Match,None,unmatched,5706.0,12.4,28.81,212.9,599.0748,,,,0.0,0.0,105.999,0.0,98.999,0.0,0.0,109.999,37.5,39.0
 No Match,None,unmatched,7166.0,3.1,29.14,214.8,614.9785,,,,0.0,63.999,0.0,0.0,66.999,0.0,74.999,0.0,37.5,27.0
 No Match,None,unmatched,1909.0,12.9,28.03,207.0,623.0464,,,,290.999,74.999,332.999,279.999,114.999,121.999,0.0,117.999,87.5,158.0
 No Match,None,unmatched,8761.0,2.6,28.94,213.2,632.9341,,,,0.0,0.0,0.0,0.0,0.0,53.999,69.999,0.0,25.0,17.0
