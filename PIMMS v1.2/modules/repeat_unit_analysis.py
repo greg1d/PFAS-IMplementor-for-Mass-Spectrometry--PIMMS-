@@ -1,7 +1,7 @@
 import bisect  # Import the bisect module
 import time
 
-import networkx as nx  # You may need to install this: pip install networkx
+import networkx as nx
 import pandas as pd
 from creating_single_df import stack_library_with_adjusted
 
@@ -22,7 +22,6 @@ def mz_repeating_unit_analysis(
                                 to form a valid homologous series.
     """
     required_cols = [
-        "Name",
         "Classification Type",
         "CCS",
         "RT",
