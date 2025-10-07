@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.path import Path
 from calculating_Kaufman_parameters_file_2 import compute_kaufman_constants
 from CEF_PIMMS_reader_workflow_file_1 import (
     parse_all_cef_files_in_folder,
@@ -60,42 +59,6 @@ def plot_kaufman_scatter(kaufman_df):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
     plt.show()
-
-
-def is_point_in_kde_boundary(kaufman_df, contour_path):
-    """
-    Adds a column 'inside_PFAS_boundary' to indicate if the Kaufman point lies inside the KDE contour.
-    """
-
-    points = kaufman_df[["m_over_C", "md_over_C"]].values
-    inside_flags = [contour_path.contains_point(pt) for pt in points]
-
-    kaufman_df["inside_PFAS_boundary"] = inside_flags
-    return kaufman_df
-
-
-def classify_points(matches, cef_folder, boundary_path):
-    """
-    Filters multi-peak compounds, computes Kaufman constants, plots scatter with contour overlay,
-    and classifies points using a KDE boundary.
-
-    Parameters:
-        matches (list): Output from match_PIMMS_to_CEF containing (sample, match_df)
-        cef_folder (str): Path to folder containing CEF files
-        boundary_path (str): Path to CSV file containing the KDE boundary
-
-    Returns:
-        pd.DataFrame: Kaufman dataframe with classification results
-    """
-
-    kaufman_df = compute_kaufman_constants(multi_peak_df)
-    plot_kaufman_scatter(kaufman_df, boundary_path)
-
-    boundary_df = pd.read_csv(boundary_path)
-    contour = Path(boundary_df[["m/C", "MD/C"]].values)
-    classified_df = is_point_in_kde_boundary(kaufman_df, contour)
-
-    return classified_df
 
 
 def main():
