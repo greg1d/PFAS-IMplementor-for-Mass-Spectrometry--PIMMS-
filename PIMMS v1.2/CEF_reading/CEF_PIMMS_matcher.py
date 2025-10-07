@@ -14,46 +14,35 @@ def get_cef_sample_names(cef_folder):
     return sample_names
 
 
-def get_cef_path(sample_name, cef_folder):
+def extract_filtered_sample_data(pimms_df):
     """
-    Finds and returns the full path to a .cef file that matches the sample_name.
+    Splits a PIMMS DataFrame into two DataFrames: one with sample
+    intensity data and one with metadata.
+
+    Args:
+        pimms_df (pd.DataFrame): The input DataFrame containing all PIMMS data.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame]: A tuple containing two DataFrames:
+                                           (sample_df, metadata_df).
     """
-    cef_files = glob.glob(os.path.join(cef_folder, "*.cef"))
-    for path in cef_files:
-        base = os.path.splitext(os.path.basename(path))[0].strip()
-        if base == sample_name.strip():
-            return path
-    raise FileNotFoundError(
-        f"[ERROR] No matching .cef file found for sample: '{sample_name}'"
-    )
+    # 1. Define the columns that constitute metadata
+    metadata_cols = ["CCS", "m/z", "RT", "DT", "ID"]
 
+    # Ensure all metadata columns exist in the DataFrame
+    missing_cols = [col for col in metadata_cols if col not in pimms_df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required metadata columns: {missing_cols}")
 
-def extract_filtered_sample_data(sample_name, pimms_file_path):
-    """
-    For a given sample_name, extracts core columns + the matching sample column
-    from the PIMMS dataset where values > 0.
-    """
-    pimms_df = pd.read_csv(pimms_file_path)
+    # 2. Create the metadata_df by selecting only the metadata columns
+    metadata_df = pimms_df[metadata_cols]
 
-    # Strip spaces from column names
-    pimms_df.columns = [col.strip() for col in pimms_df.columns]
+    # 3. Create the sample_df by dropping the metadata columns from the original DataFrame
+    # This leaves all other columns, which are assumed to be sample intensity data.
+    sample_df = pimms_df.drop(columns=metadata_cols)
 
-    # Also strip the sample_name input
-    sample_name = sample_name.strip()
-
-    # Skip columns that are labeled as blanks
-    if "Blank" in sample_name:
-        print(f"[INFO] Skipping blank sample: {sample_name}")
-        return None
-
-    core_cols = pimms_df.columns[3:8].tolist()
-    print(pimms_df.columns)
-    if sample_name not in pimms_df.columns:
-        print(f"[WARN] Sample column '{sample_name}' not found in PIMMS data.")
-        return None
-
-    filtered_df = pimms_df[pimms_df[sample_name] > 0].copy()
-    return filtered_df[core_cols + [sample_name]]
+    # 4. Return both DataFrames
+    return sample_df, metadata_df
 
 
 def parse_cef_file(cef_file_path):
@@ -158,13 +147,16 @@ def print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path):
 
 
 def main():
-    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file_path = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    pimms_file_path = r"PIMMS v1.2\import folder\Dummy test output.csv"
 
+    pimms_df = pd.read_csv(pimms_file_path)
+    sample_df, metadata_df = extract_filtered_sample_data(pimms_df)
+
+    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder"
     sample_names = get_cef_sample_names(cef_folder)
-
-    for sample_name in sample_names:
-        print_sample_and_cef_report(sample_name, cef_folder, pimms_file_path)
+    print(sample_names)
+    CEF_sample_information = parse_cef_file(cef_folder)
+    print(CEF_sample_information)
 
 
 if __name__ == "__main__":
