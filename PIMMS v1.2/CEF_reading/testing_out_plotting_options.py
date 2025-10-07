@@ -13,7 +13,7 @@ def create_interactive_figure(
     """
     Creates a highly customized interactive Plotly scatter plot with a shaded undefined region.
     """
-    # --- 1. SETUP AND LOAD GRID DATA ---
+    # --- 1. SETUP AND DATA PREPARATION ---
     fig = go.Figure()
 
     try:
@@ -22,13 +22,59 @@ def create_interactive_figure(
     except FileNotFoundError:
         messagebox.showerror(
             "Error",
-            f"Grid data file not found at {grid_data_path}.\nCannot draw plot background. Please run the calculation script first.",
+            f"Grid data file not found at {grid_data_path}.\nPlease run the calculation script first.",
         )
         return None
 
+    # Helper function to build the detailed hover text for a given dataframe
+    def build_hover_text(df):
+        custom_hover_texts = []
+        non_sample_cols = {
+            "AlignmentID",
+            "Match_ID",
+            "Classification_Type",
+            "Peak_mz_1",
+            "Intensity_1",
+            "PIMMS_CCS",
+            "Peak_mz_2",
+            "Intensity_2",
+            "Intensity_3",
+            "Kaufman_C",
+            "m_over_C",
+            "mass_defect",
+            "md_over_C",
+            "Short_Match_ID",
+        }
+        sample_cols = sorted([c for c in df.columns if c not in non_sample_cols])
+
+        for i, row in df.iterrows():
+            text = ""
+            if "Classification_Type" in row and pd.notna(row["Classification_Type"]):
+                text += f"<b>Classification:</b> {row['Classification_Type']}<br>"
+            if "PIMMS_CCS" in row and pd.notna(row["PIMMS_CCS"]):
+                text += f"<b>PIMMS_CCS:</b> {row['PIMMS_CCS']:.2f}<br>"
+            if "Peak_mz_1" in row and pd.notna(row["Peak_mz_1"]):
+                text += f"<b>Peak_mz_1:</b> {row['Peak_mz_1']:.4f}<br>"
+
+            text += "<br><b>--- Intensities (> 0) ---</b><br>"
+            has_intensity = any(col in row and row[col] > 0 for col in sample_cols)
+            if has_intensity:
+                for col in sample_cols:
+                    if col in row and row[col] > 0:
+                        text += f"<b>{col}:</b> {row[col]:,.0f}<br>"
+            else:
+                text += "Not detected in any sample<br>"
+            custom_hover_texts.append(text)
+        return custom_hover_texts
+
+    # Create the truncated ID column for the hover title
+    summary_df["Short_Match_ID"] = summary_df["Match_ID"].apply(
+        lambda x: (str(x)[:27] + "...") if len(str(x)) > 30 else str(x)
+    )
+
     # --- 2. ADD PLOT LAYERS (FROM BOTTOM TO TOP) ---
 
-    # Layer 1: A white filled contour to define the "mapped" or "defined" area
+    # Layer 1: Background (white for defined area, grey for undefined)
     fig.add_trace(
         go.Contour(
             x=X[0],
@@ -38,72 +84,17 @@ def create_interactive_figure(
             contours_coloring="fill",
             colorscale=[[0, "white"], [1, "white"]],
             hoverinfo="none",
-            name="Defined Region",
             showlegend=False,
         )
     )
 
-    # Layer 2: The scatter points, colored by classification
-    summary_df["Short_Match_ID"] = summary_df["Match_ID"].apply(
-        lambda x: (str(x)[:27] + "...") if len(str(x)) > 30 else str(x)
-    )
+    # Layer 2: Scatter points, colored by classification
     color_map = {"likely": "#648FFF", "tentative": "#DC267F", "unmatched": "#FFB000"}
-
     if "Classification_Type" in summary_df.columns:
         for classification, color in color_map.items():
             df_subset = summary_df[summary_df["Classification_Type"] == classification]
             if df_subset.empty:
                 continue
-
-            # =================================================================================
-            # === THIS SECTION CONTAINS THE HOVER TEXT LOGIC YOU PROVIDED ===
-            # =================================================================================
-            def build_hover_text(df):
-                custom_hover_texts = []
-                non_sample_cols = {
-                    "AlignmentID",
-                    "Match_ID",
-                    "Classification_Type",
-                    "Peak_mz_1",
-                    "Intensity_1",
-                    "PIMMS_CCS",
-                    "Peak_mz_2",
-                    "Intensity_2",
-                    "Intensity_3",
-                    "Kaufman_C",
-                    "m_over_C",
-                    "mass_defect",
-                    "md_over_C",
-                    "Short_Match_ID",
-                }
-                sample_cols = sorted(
-                    [c for c in df.columns if c not in non_sample_cols]
-                )
-
-                for i, row in df.iterrows():
-                    text = ""
-                    if "Classification_Type" in row and pd.notna(
-                        row["Classification_Type"]
-                    ):
-                        text += (
-                            f"<b>Classification:</b> {row['Classification_Type']}<br>"
-                        )
-                    if "PIMMS_CCS" in row and pd.notna(row["PIMMS_CCS"]):
-                        text += f"<b>PIMMS_CCS:</b> {row['PIMMS_CCS']:.2f}<br>"
-                    if "Peak_mz_1" in row and pd.notna(row["Peak_mz_1"]):
-                        text += f"<b>Peak_mz_1:</b> {row['Peak_mz_1']:.4f}<br>"
-                    has_intensity = False
-                    for col in sample_cols:
-                        if col in row and row[col] > 0:
-                            text += f"<b>{col}:</b> {row[col]:,.0f}<br>"
-                            has_intensity = True
-                    if not has_intensity:
-                        text += "Not detected in any sample<br>"
-                    custom_hover_texts.append(text)
-                return custom_hover_texts
-
-            custom_texts = build_hover_text(df_subset)
-            # =================================================================================
 
             fig.add_trace(
                 go.Scatter(
@@ -115,12 +106,12 @@ def create_interactive_figure(
                     ),
                     name=classification,
                     text=df_subset["Short_Match_ID"],
-                    customdata=custom_texts,  # Use the generated texts
+                    customdata=build_hover_text(df_subset),
                     hovertemplate="<b>%{text}</b><br><br>%{customdata}<extra></extra>",
                 )
             )
 
-    # Layer 3: Overlay boundary and trend lines
+    # Layer 3: Boundary and Trend Lines
     if not summary_df.empty:
         m_CF, i_CF = -8.40596e-05, 0.0010087
         m_CHF, i_CHF = -0.0005237, 0.0229902
@@ -135,6 +126,7 @@ def create_interactive_figure(
                 line=dict(color="purple", width=2, dash="dot"),
                 name="CF Line",
                 hoverinfo="none",
+                visible="legendonly",
             )
         )
         fig.add_trace(
@@ -145,6 +137,7 @@ def create_interactive_figure(
                 line=dict(color="green", width=2, dash="dashdot"),
                 name="CHF Line",
                 hoverinfo="none",
+                visible="legendonly",
             )
         )
 
@@ -159,63 +152,91 @@ def create_interactive_figure(
                     line=dict(color="red", dash="dash", width=2),
                     name="PFAS 90% KDE",
                     hoverinfo="none",
+                    visible="legendonly",
                 )
             )
     except Exception as e:
-        print(f"[ERROR] Could not plot PFAS boundary file: {e}")
+        print(f"Could not plot PFAS boundary: {e}")
 
-    # Layer 4: Overlay the calculated contour lines
+    # Layer 4: Dummy traces for custom legend entries
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines",
+            line=dict(color="black", width=2, dash="solid"),
+            name="Mean F/C ratio for PFAS<br>with %mass F > 50%<sup>1</sup>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="markers",
+            marker=dict(
+                symbol="square",
+                color="#E5E5E5",
+                size=30,
+                line=dict(width=1, color="darkgrey"),
+            ),
+            name="Region not bound <br>within %mass F > 50%<sup>1</sup>",
+            hoverinfo="none",
+        )
+    )
+
+    # Layer 5: Calculated contour lines with inline labels
     try:
         if os.path.exists(contour_boundary_path):
-            contour_df = pd.read_csv(contour_boundary_path)
-            grouping_col = (
-                "segment_id" if "segment_id" in contour_df.columns else "level"
-            )
+            cdf = pd.read_csv(contour_boundary_path)
             major_levels = {0.8, 1.0, 1.5, 2.0, 2.5, 3.0}
-            added_major_levels, added_minor_levels = set(), set()
-            for i, (group_id, group) in enumerate(contour_df.groupby(grouping_col)):
+            grouping_col = "segment_id" if "segment_id" in cdf.columns else "level"
+            labeled_levels = set()
+
+            for _, group in cdf.groupby(grouping_col):
                 level = group["level"].iloc[0]
-                if level in major_levels:
-                    line_color, line_dash, line_width, show_legend, name_prefix = (
-                        "black",
-                        "solid",
-                        2,
-                        level not in added_major_levels,
-                        "Major Contour ",
-                    )
-                    added_major_levels.add(level)
-                else:
-                    line_color, line_dash, line_width, show_legend, name_prefix = (
-                        "grey",
-                        "dash",
-                        1,
-                        level not in added_minor_levels,
-                        "Minor Contour ",
-                    )
-                    added_minor_levels.add(level)
+                is_major = level in major_levels
+                style = (
+                    dict(color="black", width=2, dash="solid")
+                    if is_major
+                    else dict(color="grey", width=1, dash="dash")
+                )
                 fig.add_trace(
                     go.Scatter(
                         x=group["m/C"],
                         y=group["MD/C"],
                         mode="lines",
-                        line=dict(color=line_color, width=line_width, dash=line_dash),
-                        name=f"{name_prefix}Level {level}",
-                        legendgroup=f"level_{level}",
-                        showlegend=show_legend,
-                        hoverinfo="skip",
+                        line=style,
+                        name=f"Contour {level}",
+                        showlegend=False,
+                        hoverinfo="none",
                     )
                 )
-    except Exception as e:
-        print(f"[ERROR] Could not plot calculated contour boundaries: {e}")
 
-    # --- 3. FINAL LAYOUT AND STYLING ---
+                if is_major and level not in labeled_levels:
+                    mid_index = len(group) // 2
+                    label_x = group["m/C"].iloc[mid_index]
+                    label_y = group["MD/C"].iloc[mid_index]
+                    fig.add_annotation(
+                        x=label_x,
+                        y=label_y,
+                        text=f"<b>{level}</b>",
+                        showarrow=False,
+                        font=dict(color="black", size=10),
+                        bgcolor="rgba(255, 255, 255, 0.7)",
+                        borderpad=2,
+                    )
+                    labeled_levels.add(level)
+    except Exception as e:
+        print(f"Could not plot calculated contour boundaries: {e}")
+
+    # --- 3. FINAL LAYOUT ---
     fig.update_layout(
         title="Interactive Kaufman Plot of Aligned Features",
         xaxis_title="Average m / C",
         yaxis_title="Average md / C",
         template="plotly_white",
-        legend_title_text="Legend",
-        plot_bgcolor="#E5E5E5",  # Set the "undefined" region to light grey
+        legend_title_text="Classification",
+        plot_bgcolor="#E5E5E5",
         xaxis_showgrid=False,
         yaxis_showgrid=False,
     )
