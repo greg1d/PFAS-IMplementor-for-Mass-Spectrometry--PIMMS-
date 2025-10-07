@@ -32,7 +32,7 @@ def merging_pimms_report_with_halogen_data(all_matches_df, multi_peak_df):
 
 def main():
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder_test"
-    pimms_file = r"PIMMS v1.2\Data_output\PIMMS Processed Data set.csv"
+    pimms_file = r"PIMMS v1.2\import folder\Dummy test output.csv"
     all_matches = run_heavy_halogen_kaufman_pipeline(cef_folder, pimms_file)
     matches = match_PIMMS_to_CEF(cef_folder, pimms_file)
     multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
