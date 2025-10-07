@@ -43,9 +43,6 @@ def calculate_KMD(df):
     kmd_rules = {
         "KMD (CF2)": 50 / 49.99681,
         "KMD (OCF2)": 66 / 65.99172,
-        "KMD (CH2)": 14 / 14.01565,
-        "KMD (CHF)": 32 / 32.00623,
-        "KMD (OCH2)": 30 / 30.01056,
     }
 
     # --- Loop through the rules and calculate each KMD ---
