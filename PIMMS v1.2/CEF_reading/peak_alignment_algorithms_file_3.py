@@ -15,8 +15,18 @@ from CEF_PIMMS_reader_workflow_file_1 import (
 def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
     if combined_df.empty:
         return pd.DataFrame()
+    # Include Match_ID in the feature definition
     features_df = (
-        combined_df[["Sample", "Compound", "PIMMS_m/z", "CCS_PIMMS", "PIMMS_Intensity"]]
+        combined_df[
+            [
+                "Sample",
+                "Compound",
+                "Match_ID",
+                "PIMMS_m/z",
+                "CCS_PIMMS",
+                "PIMMS_Intensity",
+            ]
+        ]
         .drop_duplicates()
         .reset_index(drop=True)
     )
@@ -46,47 +56,29 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
 
 
 def create_summary_table(final_df):
-    """
-    Pivots the long-format aligned data into a wide-format summary table.
-    Each row is a unique AlignmentID, and columns contain aggregated metrics
-    and per-sample intensities.
-    """
+    """Creates a wide-format summary table, now including Match_ID and Intensity_3."""
     if "AlignmentID" not in final_df.columns or final_df["AlignmentID"].isna().all():
-        print("[INFO] No valid AlignmentIDs found to create a summary table.")
         return pd.DataFrame()
-
-    # 1. Define the columns to average for each aligned feature
     agg_cols = {
+        "Match_ID": "first",  # Take the first Match_ID in the group
         "Peak_mz_1": "mean",
-        "PIMMS_CCS": "mean",  # Use the PIMMS_CCS as the representative CCS
+        "PIMMS_CCS": "mean",
         "Peak_mz_2": "mean",
+        "Intensity_1": "mean",  # Added average for Peak 1 Intensity
+        "Intensity_3": "mean",  # Add Intensity_3 to the summary
         "Kaufman_C": "mean",
         "m_over_C": "mean",
         "mass_defect": "mean",
         "md_over_C": "mean",
     }
-
-    # Filter for columns that actually exist in the DataFrame to avoid KeyErrors
     cols_to_agg = {k: v for k, v in agg_cols.items() if k in final_df.columns}
-
     summary_metrics = final_df.groupby("AlignmentID").agg(cols_to_agg).reset_index()
-
-    # 2. Pivot the table to get PIMMS_Intensity for each sample as a new column
     intensity_pivot = final_df.pivot_table(
-        index="AlignmentID",
-        columns="Sample",
-        values="PIMMS_Intensity",
-        aggfunc="mean",  # Use mean to handle cases where one sample has multiple features in an alignment group
+        index="AlignmentID", columns="Sample", values="PIMMS_Intensity", aggfunc="mean"
     ).reset_index()
-
-    # 3. Merge the averaged metrics with the pivoted intensities
     summary_table = pd.merge(
         summary_metrics, intensity_pivot, on="AlignmentID", how="outer"
-    )
-
-    # Fill any missing intensity values with 0 (meaning not detected)
-    summary_table = summary_table.fillna(0)
-
+    ).fillna(0)
     return summary_table
 
 
@@ -144,39 +136,39 @@ def plot_kaufman_scatter(kaufman_df):
 
 
 def main():
-    """
-    Main function to load data, run the full pipeline, and generate a summary table.
-    """
+    """Main function to run the full workflow."""
     pimms_file_path = r"PIMMS v1.2\import folder\Dummy test output.csv"
     cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder"
 
     try:
-        # 1. Load Data
+        # Load Data
         pimms_df = pd.read_csv(pimms_file_path)
+        print(pimms_df.head())
         pimms_df.columns = pimms_df.columns.str.strip()
         all_cef_data = parse_all_cef_files_in_folder(cef_folder)
 
-        # 2. Pre-calculate Kaufman Constants
+        # Pre-calculate Kaufman Constants (now includes Intensity_3)
         kaufman_df = compute_kaufman_constants(all_cef_data)
 
-        # 3. Run Matching and Alignment Pipeline
+        # Run Matching and Alignment Pipeline
         sample_names = get_cef_sample_names(cef_folder)
         combined_df = run_matching_pipeline(pimms_df, all_cef_data, sample_names)
+
         if combined_df.empty:
             print("\n--- No matches were found, skipping alignment. ---")
             return
 
         aligned_df = align_features(combined_df)
 
-        # 4. Merge Kaufman data with Aligned Features
+        # Merge Kaufman data with Aligned Features
         final_long_df = pd.merge(
             aligned_df, kaufman_df, on=["Sample", "Compound"], how="left"
         )
 
-        # 5. NEW: Create the final summary table
+        # Create the final summary table
         summary_table = create_summary_table(final_long_df)
 
-        # 6. Report Final Summary Table
+        #  Report Final Summary Table
         print("\n\n--- Final Feature Summary Table ---")
         if summary_table.empty:
             print("Could not generate a summary table.")
@@ -190,10 +182,6 @@ def main():
         print(f"\n[ERROR] {e}")
     except Exception as e:
         print(f"\n[UNEXPECTED ERROR] An error occurred: {e}")
-
-    # 7. Plot Kaufman Scatter
-    plot_kaufman_scatter(summary_table)
-    summary_table.to_csv("aligned_feature_summary.csv", index=False)
 
 
 if __name__ == "__main__":
