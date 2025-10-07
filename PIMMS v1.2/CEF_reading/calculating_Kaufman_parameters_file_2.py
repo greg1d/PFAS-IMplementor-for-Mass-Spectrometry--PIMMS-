@@ -1,51 +1,71 @@
 import pandas as pd
-import os
-import numpy as np
+import networkx as nx
 
 
-def compute_kaufman_constants(cef_data_df):
-    """
-    Computes Kaufman C and derived metrics. Now also extracts the 3rd peak's intensity.
-    """
-    kaufman_data = []
-    grouped = cef_data_df.groupby(["SourceFile", "Compound"])
-    for (source_file, compound_id), group in grouped:
-        if len(group) < 2:
-            continue
+def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
+    if combined_df.empty:
+        return pd.DataFrame()
+    features_df = (
+        combined_df[
+            [
+                "Sample",
+                "Compound",
+                "Match_ID",
+                "PIMMS_m/z",
+                "CCS_PIMMS",
+                "PIMMS_Intensity",
+            ]
+        ]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+    features_df["feature_id"] = list(
+        zip(features_df["Sample"], features_df["Compound"])
+    )
+    G = nx.Graph(list(features_df["feature_id"]))
+    features_df_sorted = features_df.sort_values("PIMMS_m/z").reset_index(drop=True)
+    mz_array = features_df_sorted["PIMMS_m/z"]
+    for _, base in features_df_sorted.iterrows():
+        err = base["PIMMS_m/z"] * ppm_tolerance * 1e-6
+        idxs = mz_array.searchsorted([base["PIMMS_m/z"] - err, base["PIMMS_m/z"] + err])
+        for _, target in features_df_sorted.iloc[idxs[0] : idxs[1]].iterrows():
+            if (
+                base["Sample"] != target["Sample"]
+                and (abs(base["CCS_PIMMS"] - target["CCS_PIMMS"]) / base["CCS_PIMMS"])
+                * 100
+                <= ccs_tolerance
+            ):
+                G.add_edge(base["feature_id"], target["feature_id"])
+    id_map = {
+        fid: i + 1 for i, grp in enumerate(nx.connected_components(G)) for fid in grp
+    }
+    features_df["AlignmentID"] = features_df["feature_id"].map(id_map)
+    features_df.rename(columns={"CCS_PIMMS": "PIMMS_CCS"}, inplace=True)
+    return features_df.drop(columns=["feature_id"])
 
-        sorted_group = group.sort_values("Peak_mz").reset_index(drop=True)
-        intensity1 = sorted_group.loc[0, "Peak_intensity"]
-        intensity2 = sorted_group.loc[1, "Peak_intensity"]
-        mz1 = sorted_group.loc[0, "Peak_mz"]
-        mz2 = sorted_group.loc[1, "Peak_mz"]
 
-        # NEW: Safely get the third peak's intensity if it exists
-        intensity3 = np.nan
-        if len(sorted_group) >= 3:
-            intensity3 = sorted_group.loc[2, "Peak_intensity"]
-
-        if intensity1 == 0:
-            continue
-        kaufman_C = (intensity2 / intensity1) * (1 / 0.011145)
-        if kaufman_C == 0:
-            continue
-
-        mass_defect = mz1 - round(mz1)
-        sample_name = os.path.splitext(source_file)[0].strip()
-
-        kaufman_data.append(
-            {
-                "Sample": sample_name,
-                "Compound": compound_id,
-                "Peak_mz_1": mz1,
-                "Intensity_1": intensity1,
-                "Peak_mz_2": mz2,
-                "Intensity_2": intensity2,
-                "Intensity_3": intensity3,  # Add the new field
-                "Kaufman_C": kaufman_C,
-                "m_over_C": mz1 / kaufman_C,
-                "mass_defect": mass_defect,
-                "md_over_C": mass_defect / kaufman_C,
-            }
-        )
-    return pd.DataFrame(kaufman_data)
+def create_summary_table(final_df):
+    if "AlignmentID" not in final_df.columns or final_df["AlignmentID"].isna().all():
+        return pd.DataFrame()
+    agg_cols = {
+        "Match_ID": "first",
+        "Peak_mz_1": "mean",
+        "Intensity_1": "mean",
+        "PIMMS_CCS": "mean",
+        "Peak_mz_2": "mean",
+        "Intensity_2": "mean",
+        "Intensity_3": "mean",
+        "Kaufman_C": "mean",
+        "m_over_C": "mean",
+        "mass_defect": "mean",
+        "md_over_C": "mean",
+    }
+    cols_to_agg = {k: v for k, v in agg_cols.items() if k in final_df.columns}
+    summary_metrics = final_df.groupby("AlignmentID").agg(cols_to_agg).reset_index()
+    intensity_pivot = final_df.pivot_table(
+        index="AlignmentID", columns="Sample", values="PIMMS_Intensity", aggfunc="mean"
+    ).reset_index()
+    summary_table = pd.merge(
+        summary_metrics, intensity_pivot, on="AlignmentID", how="outer"
+    ).fillna(0)
+    return summary_table
