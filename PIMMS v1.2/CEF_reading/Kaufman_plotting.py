@@ -1,61 +1,7 @@
-from CEF_matching_algorithm import match_PIMMS_to_CEF, compound_lookup, parse_cef_file
-import os
+from CEF_matching_algorithm import match_PIMMS_to_CEF
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
-
-
-def extract_multi_peak_compounds(cef_df):
-    """Filters for compounds with more than one Peak_mz."""
-    peak_counts = cef_df.groupby("Compound")["Peak_mz"].count()
-    multi_peak_ids = peak_counts[peak_counts > 1].index
-    return cef_df[cef_df["Compound"].isin(multi_peak_ids)].copy()
-
-
-def show_multi_peak_compound_matches(matches, cef_folder, verbose=False):
-    """
-    Optimized: For each sample, show compound lookups where matched compounds have >1 Peak_mz.
-    Returns a DataFrame of all matched multi-peak compounds with sample info.
-    """
-    import time
-
-    all_multi_peaks = []
-    start = time.time()
-
-    # Cache for parsed CEF files (avoid re-reading if reused)
-    cef_cache = {}
-
-    for sample_name, match_df in matches:
-        if sample_name not in cef_cache:
-            cef_path = os.path.join(cef_folder, f"{sample_name}.cef")
-            cef_cache[sample_name] = parse_cef_file(cef_path)
-        cef_df = cef_cache[sample_name]
-
-        multi_peak_df = extract_multi_peak_compounds(cef_df)
-
-        # Use efficient set operations
-        matched_ids = set(match_df["Compound"])
-        multi_peak_ids = set(multi_peak_df["Compound"])
-        valid_ids = matched_ids & multi_peak_ids
-
-        if not valid_ids:
-            continue
-
-        filtered_df = multi_peak_df[multi_peak_df["Compound"].isin(valid_ids)].copy()
-        filtered_df["SampleName"] = sample_name
-        all_multi_peaks.append(filtered_df)
-
-        if verbose:
-            for compound_id in sorted(valid_ids):
-                compound_lookup(sample_name, cef_folder, int(compound_id))
-
-    total_time = time.time() - start
-
-    return (
-        pd.concat(all_multi_peaks, ignore_index=True)
-        if all_multi_peaks
-        else pd.DataFrame()
-    )
 
 
 def compute_kaufman_constants(multi_peak_df):
@@ -182,10 +128,6 @@ def classify_points(matches, cef_folder, boundary_path):
     Returns:
         pd.DataFrame: Kaufman dataframe with classification results
     """
-    multi_peak_df = show_multi_peak_compound_matches(matches, cef_folder)
-    if multi_peak_df.empty:
-        print("[INFO] No multi-peak compound matches to compute Kaufman constants.")
-        return pd.DataFrame()
 
     kaufman_df = compute_kaufman_constants(multi_peak_df)
     plot_kaufman_scatter(kaufman_df, boundary_path)
