@@ -4,12 +4,12 @@ import pandas as pd
 import os
 import plotly.express as px
 import webview
-import numpy as np  # <-- Make sure to add this import
+import numpy as np
 
 
-def create_interactive_figure(summary_df, boundary_csv_path):
+def create_interactive_figure(summary_df, pfas_boundary_path, contour_boundary_path):
     """
-    Creates a highly customized interactive Plotly scatter plot with line overlays.
+    Creates a highly customized interactive Plotly scatter plot with multiple line overlays.
     """
     required_cols = {"m_over_C", "md_over_C", "Match_ID"}
     if not required_cols.issubset(summary_df.columns):
@@ -83,20 +83,16 @@ def create_interactive_figure(summary_df, boundary_csv_path):
         hovertemplate="<b>%{hovertext}</b><br><br>%{customdata[0]}<extra></extra>"
     )
 
-    # --- 3. NEW: Add CF and CHF Lines ---
-    if not summary_df.empty and "m_over_C" in summary_df.columns:
-        m_CF, intercept_CF = -8.40596e-05, 0.0010087
-        m_CHF, intercept_CHF = -0.0005237, 0.0229902
-
+    # --- 3. OVERLAY LINES (CF, CHF, and PFAS Boundary) ---
+    if not summary_df.empty:
+        m_CF, i_CF = -8.40596e-05, 0.0010087
+        m_CHF, i_CHF = -0.0005237, 0.0229902
         x_range = np.linspace(
             summary_df["m_over_C"].min(), summary_df["m_over_C"].max(), 100
         )
-        y_CF = m_CF * x_range + intercept_CF
-        y_CHF = m_CHF * x_range + intercept_CHF
-
         fig.add_scatter(
             x=x_range,
-            y=y_CF,
+            y=m_CF * x_range + i_CF,
             mode="lines",
             line=dict(color="purple", width=2, dash="dot"),
             name="CF Line",
@@ -104,19 +100,16 @@ def create_interactive_figure(summary_df, boundary_csv_path):
         )
         fig.add_scatter(
             x=x_range,
-            y=y_CHF,
+            y=m_CHF * x_range + i_CHF,
             mode="lines",
             line=dict(color="green", width=2, dash="dashdot"),
             name="CHF Line",
             hoverinfo="skip",
         )
-        print("Overlaying CF and CHF trend lines.")
-    # --- End of New Code ---
 
-    # 4. Overlay the boundary file
     try:
-        if os.path.exists(boundary_csv_path):
-            boundary_df = pd.read_csv(boundary_csv_path)
+        if os.path.exists(pfas_boundary_path):
+            boundary_df = pd.read_csv(pfas_boundary_path)
             fig.add_scatter(
                 x=boundary_df["m/C"],
                 y=boundary_df["MD/C"],
@@ -126,10 +119,59 @@ def create_interactive_figure(summary_df, boundary_csv_path):
                 hoverinfo="skip",
             )
     except Exception as e:
-        print(f"[ERROR] Could not plot boundary file: {e}")
+        print(f"[ERROR] Could not plot PFAS boundary file: {e}")
+
+    # --- 4. OVERLAY THE CALCULATED CONTOUR BOUNDARIES ---
+    try:
+        if os.path.exists(contour_boundary_path):
+            print(
+                f"Loading calculated contour boundaries from: {contour_boundary_path}"
+            )
+            contour_df = pd.read_csv(contour_boundary_path)
+
+            grouping_col = (
+                "segment_id" if "segment_id" in contour_df.columns else "level"
+            )
+
+            major_levels = {0.8, 1.0, 1.5, 2.0, 2.5, 3.0}
+            added_major_levels = set()
+            added_minor_levels = set()
+
+            for i, (group_id, group) in enumerate(contour_df.groupby(grouping_col)):
+                level = group["level"].iloc[0]
+
+                if level in major_levels:
+                    line_color, line_dash, line_width = "black", "solid", 2
+                    show_legend = level not in added_major_levels
+                    added_major_levels.add(level)
+                    name_prefix = "Major Contour "
+                else:
+                    line_color, line_dash, line_width = "grey", "dash", 1
+                    show_legend = level not in added_minor_levels
+                    added_minor_levels.add(level)
+                    name_prefix = "Minor Contour "
+
+                fig.add_scatter(
+                    x=group["m/C"],
+                    y=group["MD/C"],
+                    mode="lines",
+                    line=dict(color=line_color, width=line_width, dash=line_dash),
+                    name=f"{name_prefix}Level {level}",
+                    legendgroup=f"level_{level}",
+                    showlegend=show_legend,
+                    hoverinfo="skip",
+                )
+    except Exception as e:
+        print(f"[ERROR] Could not plot calculated contour boundaries: {e}")
+    # --- End of Contour Logic ---
 
     # 5. Final layout and styling
-    fig.update_layout(template="plotly_white", legend_title_text="Classification")
+    fig.update_layout(
+        template="plotly_white",
+        legend_title_text="Legend",
+        xaxis_showgrid=False,
+        yaxis_showgrid=False,
+    )
     fig.update_traces(
         marker=dict(size=10, line=dict(width=1, color="black")),
         selector=dict(mode="markers"),
@@ -138,8 +180,6 @@ def create_interactive_figure(summary_df, boundary_csv_path):
 
 
 # --- Main Application (Unchanged) ---
-
-
 class PlotLauncherApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -156,13 +196,18 @@ class PlotLauncherApp(tk.Tk):
 
     def launch_plot(self):
         summary_path = r"PIMMS v1.2\import folder\summary_table.csv"
-        boundary_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
+        pfas_boundary_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
+        contour_boundary_path = (
+            "PIMMS v1.2\CEF_reading\kaufman_contour_boundaries_SMOOTH.csv"
+        )
         if not os.path.exists(summary_path):
             messagebox.showerror("Error", f"File not found:\n{summary_path}")
             return
         try:
             summary_df = pd.read_csv(summary_path)
-            fig = create_interactive_figure(summary_df, boundary_path)
+            fig = create_interactive_figure(
+                summary_df, pfas_boundary_path, contour_boundary_path
+            )
             if fig:
                 html_content = fig.to_html(include_plotlyjs="cdn")
                 self.destroy()
