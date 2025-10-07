@@ -9,7 +9,7 @@ from CEF_PIMMS_reader_workflow_file_1 import (
 )
 
 
-def plot_kaufman_scatter(kaufman_df, boundary_csv_path):
+def plot_kaufman_scatter(kaufman_df):
     """
     Plots an XY scatter plot of md/C (mass defect over C) vs. m/C and overlays the PFAS KDE boundary.
 
@@ -20,7 +20,7 @@ def plot_kaufman_scatter(kaufman_df, boundary_csv_path):
     if kaufman_df.empty:
         print("[INFO] No Kaufman data to plot.")
         return
-
+    boundary_csv_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
     plt.figure(figsize=(7, 5))
 
     # === Plot Kaufman Points ===
@@ -124,6 +124,8 @@ def main():
     )
     final_combined_df = compute_kaufman_constants(final_combined_df)
     print(final_combined_df)
+
+    plot_kaufman_scatter(final_combined_df)
 
 
 if __name__ == "__main__":
