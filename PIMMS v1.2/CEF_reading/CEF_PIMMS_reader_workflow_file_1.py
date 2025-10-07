@@ -4,7 +4,8 @@ import glob
 import os
 import bisect
 import numpy as np
-# --- Data Extraction and Matching Functions ---
+
+# --- Data Extraction and Calculation Functions ---
 
 
 def get_cef_sample_names(cef_folder):
@@ -14,9 +15,7 @@ def get_cef_sample_names(cef_folder):
 
 
 def parse_cef_file(cef_file_path):
-    """
-    Parses a .cef XML file. (CORRECTED: No longer extracts 'Match' ID).
-    """
+    """Parses a .cef XML file."""
     tree = ET.parse(cef_file_path)
     root = tree.getroot()
     all_peaks = []
@@ -76,8 +75,10 @@ def compute_kaufman_constants(cef_data_df):
         kaufman_C = (intensity2 / intensity1) * (1 / 0.011145)
         if kaufman_C == 0:
             continue
-        mass_defect = mz1 - round(mz1)
-        sample_name = os.path.splitext(source_file)[0].strip()
+        mass_defect, sample_name = (
+            mz1 - round(mz1),
+            os.path.splitext(source_file)[0].strip(),
+        )
         kaufman_data.append(
             {
                 "Sample": sample_name,
@@ -123,30 +124,30 @@ def filter_by_ccs_tolerance(df, tol=2.0):
 
 def match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm, sample_name):
     """
-    MODIFIED: Now passes the 'Match' ID from the PIMMS data through to the matched results.
+    MODIFIED: Now passes 'Match_ID' and 'Classification_Type' from PIMMS data.
     """
     cef_mz_array, matched = sorted(cef_df["Peak_mz"].dropna().values), []
     for _, prow in pimms_df.iterrows():
         hits = find_similar_peaks(cef_mz_array, prow["m/z"], mass_error_ppm)
         for cef_mz in hits:
             for _, crow in cef_df[cef_df["Peak_mz"] == cef_mz].iterrows():
-                matched.append(
-                    {
-                        "PIMMS_m/z": prow["m/z"],
-                        "CEF_Peak_mz": cef_mz,
-                        "ppm_error": abs(prow["m/z"] - cef_mz) / prow["m/z"] * 1e6,
-                        "RT_PIMMS": prow["RT"],
-                        "RT_CEF": crow["RT"],
-                        "CCS_PIMMS": prow["CCS"],
-                        "CCS_CEF": crow["CCS"],
-                        "Peak_intensity": crow["Peak_intensity"],
-                        sample_name: prow[sample_name],
-                        "Compound": crow["Compound"],
-                        "Match_ID": prow[
-                            "Match"
-                        ],  # NEW: Carry the Match ID from the PIMMS row
-                    }
-                )
+                match_data = {
+                    "PIMMS_m/z": prow["m/z"],
+                    "CEF_Peak_mz": cef_mz,
+                    "ppm_error": abs(prow["m/z"] - cef_mz) / prow["m/z"] * 1e6,
+                    "RT_PIMMS": prow["RT"],
+                    "RT_CEF": crow["RT"],
+                    "CCS_PIMMS": prow["CCS"],
+                    "CCS_CEF": crow["CCS"],
+                    "Peak_intensity": crow["Peak_intensity"],
+                    sample_name: prow[sample_name],
+                    "Compound": crow["Compound"],
+                    "Match_ID": prow.get("Match", "N/A"),  # Safely get 'Match'
+                    "Classification_Type": prow.get(
+                        "Classification_Type", "N/A"
+                    ),  # Safely get 'Classification_Type'
+                }
+                matched.append(match_data)
     return pd.DataFrame(matched)
 
 
@@ -159,12 +160,11 @@ def run_matching_pipeline(
     rt_tolerance=1.0,
 ):
     all_results_list = []
-    # MODIFIED: Add "Match" to the list of columns to keep from PIMMS data
-    metadata_cols = ["CCS", "m/z", "RT", "DT", "ID", "Match"]
+    # MODIFIED: Add "Classification_Type" to the list of columns to keep
+    metadata_cols = ["CCS", "m/z", "RT", "DT", "ID", "Match", "Classification_Type"]
     for sample in sample_names:
         if sample not in pimms_df.columns:
             continue
-        # Ensure 'Match' column exists before proceeding
         cols_to_select = [col for col in metadata_cols if col in pimms_df.columns] + [
             sample
         ]
@@ -195,7 +195,7 @@ def run_matching_pipeline(
         full_compound_data = multi_peak_cef_df[
             multi_peak_cef_df["Compound"].isin(matched_compound_ids)
         ].copy()
-        # MODIFIED: Include 'Match_ID' when defining the anchor features
+        # MODIFIED: Include 'Classification_Type' when defining the anchor features
         pimms_anchor_cols = [
             "PIMMS_m/z",
             "RT_PIMMS",
@@ -203,6 +203,7 @@ def run_matching_pipeline(
             sample,
             "Compound",
             "Match_ID",
+            "Classification_Type",
         ]
         pimms_anchors = anchor_matches_df[pimms_anchor_cols].drop_duplicates().copy()
         pimms_anchors.rename(columns={sample: "PIMMS_Intensity"}, inplace=True)

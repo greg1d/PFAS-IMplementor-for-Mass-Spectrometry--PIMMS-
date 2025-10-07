@@ -5,20 +5,17 @@ import networkx as nx
 def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
     if combined_df.empty:
         return pd.DataFrame()
-    features_df = (
-        combined_df[
-            [
-                "Sample",
-                "Compound",
-                "Match_ID",
-                "PIMMS_m/z",
-                "CCS_PIMMS",
-                "PIMMS_Intensity",
-            ]
-        ]
-        .drop_duplicates()
-        .reset_index(drop=True)
-    )
+    # MODIFIED: Add 'Classification_Type' to the feature definition
+    feature_cols = [
+        "Sample",
+        "Compound",
+        "Match_ID",
+        "Classification_Type",
+        "PIMMS_m/z",
+        "CCS_PIMMS",
+        "PIMMS_Intensity",
+    ]
+    features_df = combined_df[feature_cols].drop_duplicates().reset_index(drop=True)
     features_df["feature_id"] = list(
         zip(features_df["Sample"], features_df["Compound"])
     )
@@ -47,8 +44,10 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
 def create_summary_table(final_df):
     if "AlignmentID" not in final_df.columns or final_df["AlignmentID"].isna().all():
         return pd.DataFrame()
+    # MODIFIED: Add 'Classification_Type' to the aggregation rules
     agg_cols = {
         "Match_ID": "first",
+        "Classification_Type": "first",
         "Peak_mz_1": "mean",
         "Intensity_1": "mean",
         "PIMMS_CCS": "mean",
