@@ -11,38 +11,48 @@ from scipy.interpolate import interpn  # Required for the new calculation
 def calculate_and_classify_ratio(summary_df, grid_data_path):
     """
     Calculates the 'Predicted C/F ratio' by interpolating from the grid,
-    then classifies each feature as 'in bounds' or 'out of bounds'.
+    then classifies each feature and formats the column for display.
     """
-    print("Calculating 'Predicted C/F ratio' for each feature...")
     try:
         grid_data = np.load(grid_data_path)
         X, Y, Z_smoothed = grid_data["X"], grid_data["Y"], grid_data["Z_smoothed"]
     except FileNotFoundError:
-        messagebox.showerror("Error", f"Grid data file not found at {grid_data_path}.")
-        return None  # Return None on failure
+        print(f"ERROR: Grid data file not found at {grid_data_path}.")
+        return None
 
     # Interpolate the Z-value for each point from the smoothed grid
     points_to_check = summary_df[["md_over_C", "m_over_C"]].values
     interpolated_z_values = interpn(
-        (Y[:, 0], X[0, :]),  # The grid axes
-        Z_smoothed,  # The grid data
-        points_to_check,  # The points to find values for
+        (Y[:, 0], X[0, :]),
+        Z_smoothed,
+        points_to_check,
         method="linear",
         bounds_error=False,
         fill_value=np.nan,
     )
     summary_df["Predicted C/F ratio"] = interpolated_z_values
 
-    # Define the condition for being "out of bounds"
+    # --- CORRECTED LOGIC ORDER ---
+
+    # 1. Define the condition for being "out of bounds"
     out_of_bounds_condition = (summary_df["Predicted C/F ratio"].isna()) | (
         summary_df["Predicted C/F ratio"] < 0.8
     )
 
-    # Round the "in bounds" values to 1 decimal place
-    summary_df["Predicted C/F ratio"] = summary_df["Predicted C/F ratio"].round(1)
+    # 2. Explicitly change the column's data type to 'object' FIRST.
+    #    This prepares it to accept a mix of numbers and strings.
+    summary_df["Predicted C/F ratio"] = summary_df["Predicted C/F ratio"].astype(object)
 
-    # Use .loc to replace values with the "out of bounds" string where the condition is met
+    # 3. Use .loc to insert the "out of bounds" string.
+    #    The original NaN and float values are still present at this point.
     summary_df.loc[out_of_bounds_condition, "Predicted C/F ratio"] = "out of bounds"
+
+    # 4. NOW, round the remaining numerical values in the column.
+    #    We can use .apply() to safely round only the numbers and leave the strings untouched.
+    summary_df["Predicted C/F ratio"] = summary_df["Predicted C/F ratio"].apply(
+        lambda x: round(x, 1) if isinstance(x, (int, float)) else x
+    )
+    # --- End of Correction ---
 
     return summary_df
 
@@ -53,7 +63,11 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
     """
     # --- 1. SETUP AND DATA PREPARATION ---
     fig = go.Figure()
-
+    # --- DEBUG ---
+    print("\n--- DEBUG: START of create_interactive_figure ---")
+    print("Initial summary_df columns:", summary_df.columns.tolist())
+    print("First 2 rows of summary_df:\n", summary_df.head(2))
+    # --- END DEBUG ---
     try:
         grid_data = np.load(grid_data_path)
         X, Y, Z_smoothed = grid_data["X"], grid_data["Y"], grid_data["Z_smoothed"]
@@ -83,8 +97,13 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
             "md_over_C",
             "Short_Match_ID",
             "Predicted C/F ratio",
+            "Isotopic_analysis",
+            "M/M+2 Distribution",
         }
         sample_cols = sorted([c for c in df.columns if c not in non_sample_cols])
+        # --- DEBUG ---
+        print("Identified sample_cols:", sample_cols)
+        # --- END DEBUG ---
 
         for i, row in df.iterrows():
             text = ""
@@ -113,6 +132,8 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
             else:
                 text += "Not detected in any sample<br>"
             custom_hover_texts.append(text)
+        if custom_hover_texts:
+            print("First generated hover text:\n", custom_hover_texts[0])
         return custom_hover_texts
 
     # Create the truncated ID column for the hover title
@@ -282,7 +303,9 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
         xaxis_showgrid=False,
         yaxis_showgrid=False,
     )
-    print(summary_df.columns)
+    # --- DEBUG ---
+    print("--- DEBUG: END of create_interactive_figure. Returning figure object. ---")
+    # --- END DEBUG ---
     return fig
 
 
@@ -304,9 +327,9 @@ class PlotLauncherApp(tk.Tk):
     def launch_plot(self):
         summary_path = r"PIMMS v1.2\import folder\summary_table.csv"
         contour_boundary_path = (
-            r"PIMMS v1.2\CEF_reading\kaufman_contour_boundaries_SMOOTH.csv"
+            r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv"
         )
-        grid_data_path = r"PIMMS v1.2\CEF_reading\kaufman_grid_data.npz"
+        grid_data_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
 
         if not os.path.exists(summary_path) or not os.path.exists(grid_data_path):
             messagebox.showerror("Error", "Required files not found.")

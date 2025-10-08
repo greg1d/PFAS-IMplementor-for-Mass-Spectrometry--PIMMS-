@@ -14,6 +14,7 @@ from .Tabs.mapping_tab import MappingTab
 from .Tabs.params_tab import ParamsTab
 from .Tabs.run_tab import RunTab
 from .Tabs.visualizations_tab import VisualizationsTab
+from .Tabs.isotopic_analysis_tab import IsotopicAnalysisTab  # <-- 1. ADD THIS IMPORT
 
 
 class PimmsGUI(tk.Tk):
@@ -38,24 +39,29 @@ class PimmsGUI(tk.Tk):
         # The RunTab is given a "callback" function to execute when its button is pressed.
         self.run_tab = RunTab(notebook, self.run_workflow_thread)
         self.visualizations_tab = VisualizationsTab(notebook, self.config)
-
+        self.isotopic_analysis_tab = IsotopicAnalysisTab(
+            notebook, self.config
+        )  # <-- 2. FIX THIS LINE
         # --- Add tabs to the notebook ---
         # The main app adds the fully-formed tabs to the notebook.
         notebook.add(self.files_tab, text="File Paths")
         notebook.add(self.mapping_tab, text="Column Mappings")
         notebook.add(self.params_tab, text="Parameters")
         notebook.add(self.run_tab, text="Run Workflow")
+        notebook.add(self.visualizations_tab, text="CCS vs m/z Analysis")
         notebook.add(
-            self.visualizations_tab, text="CCS vs m/z Analysis"
-        )  # <-- ADD THE NEW TAB
+            self.isotopic_analysis_tab, text="Isotopic Analysis"
+        )  # <-- 3. FIX THIS LINE
 
     def run_workflow_thread(self):
         """Orchestrates data collection from tabs and runs the workflow."""
         try:
-            # Tell each tab to update the shared config object with its current values.
+            # --- CORRECTED: Only update the config from INPUT tabs ---
+            print("Gathering settings from input tabs...")
             self.files_tab.update_config(self.config)
             self.mapping_tab.update_config(self.config)
             self.params_tab.update_config(self.config)
+            # Do NOT call update_config on VisualizationsTab or IsotopicAnalysisTab
 
             # The workflow logic now has the fully updated config.
             print("Starting PIMMS workflow...")
@@ -65,11 +71,7 @@ class PimmsGUI(tk.Tk):
 
         except ValueError as e:
             messagebox.showerror(
-                "Invalid Input",
-                f"Please check your parameters. A numeric value is required.\n\nError: {e}",
+                "Invalid Input", f"Please check your parameters.\n\nError: {e}"
             )
         except Exception as e:
-            messagebox.showerror(
-                "Error",
-                f"An unexpected error occurred: {e}",
-            )
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
