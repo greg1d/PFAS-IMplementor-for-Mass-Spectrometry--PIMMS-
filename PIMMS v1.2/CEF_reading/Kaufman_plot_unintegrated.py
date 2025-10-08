@@ -8,9 +8,46 @@ import numpy as np
 from scipy.interpolate import interpn  # Required for the new calculation
 
 
-def create_interactive_figure(
-    summary_df, pfas_boundary_path, contour_boundary_path, grid_data_path
-):
+def calculate_and_classify_ratio(summary_df, grid_data_path):
+    """
+    Calculates the 'Predicted C/F ratio' by interpolating from the grid,
+    then classifies each feature as 'in bounds' or 'out of bounds'.
+    """
+    print("Calculating 'Predicted C/F ratio' for each feature...")
+    try:
+        grid_data = np.load(grid_data_path)
+        X, Y, Z_smoothed = grid_data["X"], grid_data["Y"], grid_data["Z_smoothed"]
+    except FileNotFoundError:
+        messagebox.showerror("Error", f"Grid data file not found at {grid_data_path}.")
+        return None  # Return None on failure
+
+    # Interpolate the Z-value for each point from the smoothed grid
+    points_to_check = summary_df[["md_over_C", "m_over_C"]].values
+    interpolated_z_values = interpn(
+        (Y[:, 0], X[0, :]),  # The grid axes
+        Z_smoothed,  # The grid data
+        points_to_check,  # The points to find values for
+        method="linear",
+        bounds_error=False,
+        fill_value=np.nan,
+    )
+    summary_df["Predicted C/F ratio"] = interpolated_z_values
+
+    # Define the condition for being "out of bounds"
+    out_of_bounds_condition = (summary_df["Predicted C/F ratio"].isna()) | (
+        summary_df["Predicted C/F ratio"] < 0.8
+    )
+
+    # Round the "in bounds" values to 1 decimal place
+    summary_df["Predicted C/F ratio"] = summary_df["Predicted C/F ratio"].round(1)
+
+    # Use .loc to replace values with the "out of bounds" string where the condition is met
+    summary_df.loc[out_of_bounds_condition, "Predicted C/F ratio"] = "out of bounds"
+
+    return summary_df
+
+
+def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path):
     """
     Creates a highly customized interactive Plotly scatter plot with a shaded undefined region.
     """
@@ -236,7 +273,7 @@ def create_interactive_figure(
     )
     # --- 3. FINAL LAYOUT ---
     fig.update_layout(
-        title="Interactive Kaufman Plot of Aligned Features",
+        title="Interactive Kauffman Plot of Aligned Features",
         xaxis_title="m/C",
         yaxis_title="md/C",
         template="plotly_white",
@@ -245,6 +282,7 @@ def create_interactive_figure(
         xaxis_showgrid=False,
         yaxis_showgrid=False,
     )
+    print(summary_df.columns)
     return fig
 
 
@@ -256,68 +294,43 @@ class PlotLauncherApp(tk.Tk):
         self.geometry("350x150")
         main_frame = ttk.Frame(self, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
-        ttk.Label(main_frame, text="Generate the interactive Kaufman plot.").pack(
-            pady=10
-        )
-        ttk.Button(
+        label = ttk.Label(main_frame, text="Generate the interactive Kaufman plot.")
+        label.pack(pady=10)
+        plot_button = ttk.Button(
             main_frame, text="Launch Interactive Plot", command=self.launch_plot
-        ).pack(pady=10)
+        )
+        plot_button.pack(pady=10)
 
     def launch_plot(self):
         summary_path = r"PIMMS v1.2\import folder\summary_table.csv"
-        pfas_boundary_path = r"PIMMS v1.2\CEF_reading\PFAS_90_percent_KDE_boundary.csv"
         contour_boundary_path = (
             r"PIMMS v1.2\CEF_reading\kaufman_contour_boundaries_SMOOTH.csv"
         )
         grid_data_path = r"PIMMS v1.2\CEF_reading\kaufman_grid_data.npz"
 
-        if not os.path.exists(summary_path):
-            messagebox.showerror("Error", f"File not found:\n{summary_path}")
+        if not os.path.exists(summary_path) or not os.path.exists(grid_data_path):
+            messagebox.showerror("Error", "Required files not found.")
             return
         try:
             summary_df = pd.read_csv(summary_path)
-            fig = create_interactive_figure(
-                summary_df, pfas_boundary_path, contour_boundary_path, grid_data_path
-            )
-            # --- MODIFIED SECTION ---
-            print("Calculating 'Predicted C/F ratio' for each feature...")
-            grid_data = np.load(grid_data_path)
-            X, Y, Z_smoothed = grid_data["X"], grid_data["Y"], grid_data["Z_smoothed"]
 
-            points_to_check = summary_df[["md_over_C", "m_over_C"]].values
-            interpolated_z_values = interpn(
-                (Y[:, 0], X[0, :]),
-                Z_smoothed,
-                points_to_check,
-                method="linear",
-                bounds_error=False,
-                fill_value=np.nan,
-            )
-            summary_df["Predicted C/F ratio"] = interpolated_z_values
+            # --- MODIFIED: Call the new, separate function ---
+            summary_df = calculate_and_classify_ratio(summary_df, grid_data_path)
 
-            # Define the condition for being "out of bounds"
-            out_of_bounds_condition = (summary_df["Predicted C/F ratio"].isna()) | (
-                summary_df["Predicted C/F ratio"] < 0.8
-            )
-
-            # CORRECTED: Round the "in bounds" values to 1 decimal place
-            summary_df["Predicted C/F ratio"] = summary_df["Predicted C/F ratio"].round(
-                1
-            )
-
-            # Use .loc to replace values with the "out of bounds" string where the condition is met
-            summary_df.loc[out_of_bounds_condition, "Predicted C/F ratio"] = (
-                "out of bounds"
-            )
+            if summary_df is None:  # Check if the function failed
+                return
 
             # Save the enriched dataframe to a new file
             output_path = r"PIMMS v1.2\import folder\summary_table_with_predictions.csv"
             summary_df.to_csv(output_path, index=False)
             messagebox.showinfo(
                 "Export Successful",
-                f"Data with updated 'Predicted C/F ratio' saved to:\n{output_path}",
+                f"Data with 'Predicted C/F ratio' saved to:\n{output_path}",
             )
-            # --- End of Modified Section ---
+
+            fig = create_interactive_figure(
+                summary_df, contour_boundary_path, grid_data_path
+            )
             if fig:
                 html_content = fig.to_html(include_plotlyjs="cdn")
                 self.destroy()
