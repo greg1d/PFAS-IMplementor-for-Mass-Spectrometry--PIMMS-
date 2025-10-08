@@ -5,6 +5,7 @@ import os
 import plotly.graph_objects as go
 import webview
 import numpy as np
+from scipy.interpolate import interpn  # Required for the new calculation
 
 
 def create_interactive_figure(
@@ -44,6 +45,7 @@ def create_interactive_figure(
             "mass_defect",
             "md_over_C",
             "Short_Match_ID",
+            "Predicted C/F ratio",
         }
         sample_cols = sorted([c for c in df.columns if c not in non_sample_cols])
 
@@ -52,10 +54,19 @@ def create_interactive_figure(
             if "Classification_Type" in row and pd.notna(row["Classification_Type"]):
                 text += f"<b>Classification:</b> {row['Classification_Type']}<br>"
             if "PIMMS_CCS" in row and pd.notna(row["PIMMS_CCS"]):
-                text += f"<b>PIMMS_CCS:</b> {row['PIMMS_CCS']:.2f}<br>"
+                text += f"<b>CCS:</b> {row['PIMMS_CCS']:.2f}<br>"
             if "Peak_mz_1" in row and pd.notna(row["Peak_mz_1"]):
-                text += f"<b>Peak_mz_1:</b> {row['Peak_mz_1']:.4f}<br>"
-
+                text += f"<b>m/z:</b> {row['Peak_mz_1']:.4f}<br>"
+            # --- MODIFIED: Explicitly format the number to 1 decimal place here ---
+            if "Predicted C/F ratio" in row and pd.notna(row["Predicted C/F ratio"]):
+                value = row["Predicted C/F ratio"]
+                if isinstance(value, (int, float)):
+                    # If it's a number, format it to one decimal place
+                    text += f"<b>Predicted C/F Ratio:</b> {value:.1f}<br>"
+                else:
+                    # If it's a string (like "out of bounds"), display it directly
+                    text += f"<b>Predicted C/F Ratio:</b> {value}<br>"
+            # --- End of Modification ---
             text += "<br><b>--- Intensities (> 0) ---</b><br>"
             has_intensity = any(col in row and row[col] > 0 for col in sample_cols)
             if has_intensity:
@@ -124,7 +135,7 @@ def create_interactive_figure(
                 y=m_CF * x_range + i_CF,
                 mode="lines",
                 line=dict(color="purple", width=2, dash="dot"),
-                name="CF Line",
+                name="CF2 Line",
                 hoverinfo="none",
                 visible="legendonly",
             )
@@ -140,24 +151,6 @@ def create_interactive_figure(
                 visible="legendonly",
             )
         )
-
-    try:
-        if os.path.exists(pfas_boundary_path):
-            bdf = pd.read_csv(pfas_boundary_path)
-            fig.add_trace(
-                go.Scatter(
-                    x=bdf["m/C"],
-                    y=bdf["MD/C"],
-                    mode="lines",
-                    line=dict(color="red", dash="dash", width=2),
-                    name="PFAS 90% KDE",
-                    hoverinfo="none",
-                    visible="legendonly",
-                )
-            )
-    except Exception as e:
-        print(f"Could not plot PFAS boundary: {e}")
-
     # Layer 4: Dummy traces for custom legend entries
     fig.add_trace(
         go.Scatter(
@@ -228,12 +221,24 @@ def create_interactive_figure(
                     labeled_levels.add(level)
     except Exception as e:
         print(f"Could not plot calculated contour boundaries: {e}")
-
+    citation_text = "<sup>1</sup>Zweigle, J., Bugsel, B. & Zwiener, <br><i>Anal Bioanal Chem</i>, 415, 1791-1801 (2023). <br>https://doi.org/10.1007/s00216-023-04601-1"
+    fig.add_annotation(
+        showarrow=False,
+        text=citation_text,
+        xref="paper",  # Positions relative to the entire figure
+        yref="paper",
+        x=1.01,  # x=0 is the left edge
+        y=0.6,  # y=-0.15 is below the x-axis
+        xanchor="left",
+        yanchor="top",
+        align="left",
+        font=dict(size=8, color="grey"),
+    )
     # --- 3. FINAL LAYOUT ---
     fig.update_layout(
         title="Interactive Kaufman Plot of Aligned Features",
-        xaxis_title="Average m / C",
-        yaxis_title="Average md / C",
+        xaxis_title="m/C",
+        yaxis_title="md/C",
         template="plotly_white",
         legend_title_text="Classification",
         plot_bgcolor="#E5E5E5",
@@ -274,6 +279,45 @@ class PlotLauncherApp(tk.Tk):
             fig = create_interactive_figure(
                 summary_df, pfas_boundary_path, contour_boundary_path, grid_data_path
             )
+            # --- MODIFIED SECTION ---
+            print("Calculating 'Predicted C/F ratio' for each feature...")
+            grid_data = np.load(grid_data_path)
+            X, Y, Z_smoothed = grid_data["X"], grid_data["Y"], grid_data["Z_smoothed"]
+
+            points_to_check = summary_df[["md_over_C", "m_over_C"]].values
+            interpolated_z_values = interpn(
+                (Y[:, 0], X[0, :]),
+                Z_smoothed,
+                points_to_check,
+                method="linear",
+                bounds_error=False,
+                fill_value=np.nan,
+            )
+            summary_df["Predicted C/F ratio"] = interpolated_z_values
+
+            # Define the condition for being "out of bounds"
+            out_of_bounds_condition = (summary_df["Predicted C/F ratio"].isna()) | (
+                summary_df["Predicted C/F ratio"] < 0.8
+            )
+
+            # CORRECTED: Round the "in bounds" values to 1 decimal place
+            summary_df["Predicted C/F ratio"] = summary_df["Predicted C/F ratio"].round(
+                1
+            )
+
+            # Use .loc to replace values with the "out of bounds" string where the condition is met
+            summary_df.loc[out_of_bounds_condition, "Predicted C/F ratio"] = (
+                "out of bounds"
+            )
+
+            # Save the enriched dataframe to a new file
+            output_path = r"PIMMS v1.2\import folder\summary_table_with_predictions.csv"
+            summary_df.to_csv(output_path, index=False)
+            messagebox.showinfo(
+                "Export Successful",
+                f"Data with updated 'Predicted C/F ratio' saved to:\n{output_path}",
+            )
+            # --- End of Modified Section ---
             if fig:
                 html_content = fig.to_html(include_plotlyjs="cdn")
                 self.destroy()
