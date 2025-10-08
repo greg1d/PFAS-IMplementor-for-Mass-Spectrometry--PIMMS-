@@ -2,14 +2,12 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 import os
-import webview
-import threading
+import webbrowser  # <-- CORRECTED: Replaced webview and threading
+import tempfile  # <-- CORRECTED: Added tempfile
 
-# Import the newly organized analysis and plotting modules
+# Import your analysis and plotting modules
 try:
-    from modules.isotopic_analysis import (
-        heavy_halogen_hunter,
-    )
+    from modules.isotopic_analysis import heavy_halogen_hunter
     from modules.Kaufman_plot_unintegrated import (
         calculate_and_classify_ratio,
         create_interactive_figure,
@@ -20,9 +18,7 @@ except ImportError:
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
-    from modules.isotopic_analysis import (
-        heavy_halogen_hunter,
-    )
+    from modules.isotopic_analysis import heavy_halogen_hunter
     from modules.Kaufman_plot_unintegrated import (
         calculate_and_classify_ratio,
         create_interactive_figure,
@@ -33,8 +29,8 @@ class IsotopicAnalysisTab(ttk.Frame):
     def __init__(self, parent, config):
         super().__init__(parent)
         self.config = config
-        self.raw_data_df = None  # Holds the originally loaded data
-        self.analysis_df = None  # Holds the data after isotopic analysis
+        self.raw_data_df = None
+        self.analysis_df = None
 
         self._create_widgets()
         self._load_defaults()
@@ -42,16 +38,12 @@ class IsotopicAnalysisTab(ttk.Frame):
     def _create_widgets(self):
         control_frame = ttk.Labelframe(self, text="Workflow", padding="10")
         control_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
-
         table_frame = ttk.Labelframe(self, text="Isotopic Analysis Data", padding="10")
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
-
-        # --- Control Widgets ---
         self.load_button = ttk.Button(
             control_frame, text="1. Load Data File...", command=self._load_data_file
         )
         self.load_button.pack(side=tk.LEFT, padx=5, pady=5)
-
         self.analyze_button = ttk.Button(
             control_frame,
             text="2. Run Isotopic Analysis",
@@ -59,7 +51,6 @@ class IsotopicAnalysisTab(ttk.Frame):
             state="disabled",
         )
         self.analyze_button.pack(side=tk.LEFT, padx=5, pady=5)
-
         self.plot_button = ttk.Button(
             control_frame,
             text="3. Generate Kaufman Plot",
@@ -67,13 +58,10 @@ class IsotopicAnalysisTab(ttk.Frame):
             state="disabled",
         )
         self.plot_button.pack(side=tk.LEFT, padx=5, pady=5)
-
         self.file_label = ttk.Label(
             control_frame, text="No file loaded.", width=40, anchor="w"
         )
         self.file_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5, pady=5)
-
-        # --- Table Widget ---
         self.tree = ttk.Treeview(table_frame, show="headings")
         vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
         hsb = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
@@ -83,7 +71,6 @@ class IsotopicAnalysisTab(ttk.Frame):
         self.tree.pack(fill="both", expand=True)
 
     def _load_defaults(self):
-        # Using a general path from your main config object
         if hasattr(self.config, "output_filepath") and self.config.output_filepath:
             default_path = self.config.output_filepath
             if default_path and os.path.exists(default_path):
@@ -103,9 +90,7 @@ class IsotopicAnalysisTab(ttk.Frame):
             self.raw_data_df = pd.read_csv(path)
             self._update_table(self.raw_data_df)
             self.analyze_button.config(state="normal")
-            self.plot_button.config(
-                state="disabled"
-            )  # Disable plot until analysis is run
+            self.plot_button.config(state="disabled")
             messagebox.showinfo(
                 "Success", f"Loaded {len(self.raw_data_df)} rows. Ready for analysis."
             )
@@ -128,47 +113,49 @@ class IsotopicAnalysisTab(ttk.Frame):
                 "Analysis Error", f"An error occurred during analysis:\n{e}"
             )
 
+    # --- MODIFIED: This function now uses 'webbrowser' to open the plot, fixing the error ---
     def _launch_plot(self):
-        if self.analysis_df is None:
+        if self.analysis_df is None or self.analysis_df.empty:
+            messagebox.showwarning(
+                "No Data", "Please run the analysis first to generate results to plot."
+            )
             return
 
-        # Define required file paths for plotting overlays
         contour_boundary_path = (
             r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv"
         )
         grid_data_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
+        # The pfas_boundary_path is missing from your import list, so it has been omitted here.
+
         print("loaded data", self.analysis_df.head())
         try:
-            # Add the 'Predicted C/F ratio' column for plotting and export
             df_to_plot = calculate_and_classify_ratio(self.analysis_df, grid_data_path)
-
             if df_to_plot is None:
                 return
-            print("data about to be plotted", df_to_plot.head())
 
-            # Create the interactive figure
+            print("data about to be plotted", df_to_plot.head())
             fig = create_interactive_figure(
                 df_to_plot, contour_boundary_path, grid_data_path
             )
 
             if fig:
-                # This helper runs webview in a separate thread so the main GUI doesn't freeze
-                def run_webview():
-                    html_content = fig.to_html(include_plotlyjs="cdn")
-                    webview.create_window(
-                        "Interactive Kaufman Plot",
-                        html=html_content,
-                        width=900,
-                        height=700,
-                    )
-                    webview.start()
+                # 1. Save plot to a temporary HTML file with UTF-8 encoding
+                with tempfile.NamedTemporaryFile(
+                    "w", delete=False, suffix=".html", encoding="utf-8"
+                ) as f:
+                    fig.write_html(f, include_plotlyjs="cdn")
+                    file_path = f.name
 
-                thread = threading.Thread(target=run_webview)
-                thread.daemon = True
-                thread.start()
+                # 2. Open the temporary file in the default web browser
+                webbrowser.open("file://" + os.path.realpath(file_path))
+                print(
+                    "Plot opened in default web browser. Your main application remains open."
+                )
 
         except Exception as e:
             messagebox.showerror("Plotting Error", f"Failed to generate plot:\n{e}")
+
+    # --- End of Modification ---
 
     def _update_table(self, df):
         self.tree.delete(*self.tree.get_children())
