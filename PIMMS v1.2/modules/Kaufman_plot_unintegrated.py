@@ -96,6 +96,8 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
             "Peak_mz_1",
             "Intensity_1",
             "PIMMS_CCS",
+            "DT_PIMMS",
+            "RT_PIMMS",
             "Peak_mz_2",
             "Intensity_2",
             "Intensity_3",
@@ -121,15 +123,19 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
                 text += f"<b>CCS:</b> {row['PIMMS_CCS']:.2f}<br>"
             if "Peak_mz_1" in row and pd.notna(row["Peak_mz_1"]):
                 text += f"<b>m/z:</b> {row['Peak_mz_1']:.4f}<br>"
+            if "DT_PIMMS" in row and pd.notna(row["DT_PIMMS"]):
+                text += f"<b>DT:</b> {row['DT_PIMMS']:.2f}<br>"
+            if "RT_PIMMS" in row and pd.notna(row["RT_PIMMS"]):
+                text += f"<b>RT:</b> {row['RT_PIMMS']:.2f}<br>"
             # --- MODIFIED: Explicitly format the number to 1 decimal place here ---
             if "Predicted C/F ratio" in row and pd.notna(row["Predicted C/F ratio"]):
                 value = row["Predicted C/F ratio"]
                 if isinstance(value, (int, float)):
                     # If it's a number, format it to one decimal place
-                    text += f"<b>Predicted C/F Ratio:</b> {value:.1f}<br>"
+                    text += f"<b>Predicted F/C Ratio:</b> {value:.1f}<br>"
                 else:
                     # If it's a string (like "out of bounds"), display it directly
-                    text += f"<b>Predicted C/F Ratio:</b> {value}<br>"
+                    text += f"<b>Predicted F/C Ratio:</b> {value}<br>"
             # --- End of Modification ---
             text += "<br><b>--- Intensities (> 0) ---</b><br>"
             has_intensity = any(col in row and row[col] > 0 for col in sample_cols)

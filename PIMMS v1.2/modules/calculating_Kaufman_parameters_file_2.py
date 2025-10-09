@@ -14,6 +14,8 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
         "PIMMS_m/z",
         "CCS_PIMMS",
         "PIMMS_Intensity",
+        "DT_PIMMS",
+        "RT_PIMMS",
     ]
     features_df = combined_df[feature_cols].drop_duplicates().reset_index(drop=True)
     features_df["feature_id"] = list(
@@ -58,6 +60,8 @@ def create_summary_table(final_df):
         "m_over_C": "mean",
         "mass_defect": "mean",
         "md_over_C": "mean",
+        "DT_PIMMS": "mean",
+        "RT_PIMMS": "mean",
     }
     cols_to_agg = {k: v for k, v in agg_cols.items() if k in final_df.columns}
     summary_metrics = final_df.groupby("AlignmentID").agg(cols_to_agg).reset_index()

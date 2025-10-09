@@ -139,6 +139,7 @@ def match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm, sample_name):
                     "RT_CEF": crow["RT"],
                     "CCS_PIMMS": prow["CCS"],
                     "CCS_CEF": crow["CCS"],
+                    "DT_PIMMS": prow["DT"],
                     "Peak_intensity": crow["Peak_intensity"],
                     sample_name: prow[sample_name],
                     "Compound": crow["Compound"],
@@ -189,6 +190,7 @@ def run_matching_pipeline(
         anchor_matches_df = rt_filtered_df[
             rt_filtered_df[sample].round() == rt_filtered_df["Peak_intensity"].round()
         ]
+        print("anchor_matches_df columns:", anchor_matches_df.columns)
         if anchor_matches_df.empty:
             continue
         matched_compound_ids = anchor_matches_df["Compound"].unique()
@@ -200,6 +202,7 @@ def run_matching_pipeline(
             "PIMMS_m/z",
             "RT_PIMMS",
             "CCS_PIMMS",
+            "DT_PIMMS",
             sample,
             "Compound",
             "Match_ID",
@@ -212,6 +215,7 @@ def run_matching_pipeline(
             pimms_anchors, full_compound_data, on="Compound", how="left"
         )
         all_results_list.append(final_report_df)
+
     if not all_results_list:
         return pd.DataFrame()
     return pd.concat(all_results_list, ignore_index=True)

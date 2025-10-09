@@ -33,8 +33,10 @@ TABLE_DISPLAY_CONFIG = {
         "Isotopic_analysis": "Isotope Status",
         "Peak_mz_1": "m/z",
         "PIMMS_CCS": "CCS",
-        "Predicted C/F ratio": "Pred. C/F Ratio",
-        "Intensity_1": "Intensity",
+        "Predicted C/F ratio": "Pred. F/C Ratio",
+        "Intensity_1": "Average Abundance",
+        "DT_PIMMS": "DT",
+        "RT_PIMMS": "RT",
     },
     # Defines the order of the main columns. Sample columns will be added after these.
     "order": [
@@ -43,8 +45,10 @@ TABLE_DISPLAY_CONFIG = {
         "Isotope Status",
         "m/z",
         "CCS",
-        "Intensity",
-        "Pred. C/F Ratio",
+        "DT",
+        "RT",
+        "Average Abundance",
+        "Pred. F/C Ratio",
     ],
     # List of original column names to completely hide from the table view.
     "hide": [
@@ -59,8 +63,6 @@ TABLE_DISPLAY_CONFIG = {
         "md_over_C",
         "Kaufman_C",
         "m_over_C",
-        "DT",
-        "RT",
         "Peak_mz",
         "Peak_intensity",
         "SourceFile",
@@ -70,6 +72,8 @@ TABLE_DISPLAY_CONFIG = {
         "Peak_mz_1": 4,
         "Intensity_1": 0,
         "PIMMS_CCS": 2,
+        "DT_PIMMS": 2,
+        "RT_PIMMS": 2,
     },
 }
 
@@ -126,7 +130,7 @@ class IsotopicAnalysisTab(ttk.Frame):
         self.run_button.pack(side=tk.LEFT, padx=5)
         self.plot_button = ttk.Button(
             action_frame,
-            text="2. Generate Kaufman Plot",
+            text="2. Generate Kauffman Plot",
             command=self._launch_plot,
             state="disabled",
         )
