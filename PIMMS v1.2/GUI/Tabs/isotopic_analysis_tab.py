@@ -164,10 +164,23 @@ class IsotopicAnalysisTab(ttk.Frame):
             self._check_inputs()
 
     def _select_cef_folder(self):
-        path = filedialog.askdirectory(title="Select CEF Folder")
-        if path:
-            self.cef_folder.set(path)
+        """
+        Opens a file dialog to select any .cef file, then extracts the
+        parent folder path from it.
+        """
+        filepath = filedialog.askopenfilename(
+            title="Select any .cef file in the target folder",
+            filetypes=[("CEF Files", "*.cef"), ("All files", "*.*")],
+        )
+
+        if filepath:
+            # The pipeline needs the folder, not the file.
+            # os.path.dirname() extracts the directory path from a full file path.
+            folder_path = os.path.dirname(filepath)
+            self.cef_folder.set(folder_path)
             self._check_inputs()
+
+    # --- End of Modification ---
 
     def _check_inputs(self):
         if self.pimms_filepath.get() and self.cef_folder.get():
