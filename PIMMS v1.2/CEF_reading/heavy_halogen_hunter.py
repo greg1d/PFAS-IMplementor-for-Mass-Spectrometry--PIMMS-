@@ -1,12 +1,38 @@
 import pandas as pd
 import numpy as np
-from CEF_PIMMS_reader_workflow_file_1 import (
-    parse_all_cef_files_in_folder,
-    compute_kaufman_constants,
-    get_cef_sample_names,
-    run_matching_pipeline,
-)
-from calculating_Kaufman_parameters_file_2 import align_features, create_summary_table
+import sys
+
+# --- 1. Define the path to your main project folder ---
+# This should be the absolute path to your "PIMMS v1.2" directory.
+# You can hardcode it like this:
+PROJECT_ROOT = r"F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2"
+# Or, if this script is inside the project, you can find it dynamically.
+
+# --- 2. Add the project folder to Python's path ---
+# This allows Python to find the 'modules' folder inside it.
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+# --- 3. Now, import your functions using standard Python syntax ---
+try:
+    from modules.CEF_PIMMS_reader_workflow_file_1 import (
+        parse_all_cef_files_in_folder,
+        compute_kaufman_constants,
+        get_cef_sample_names,
+        run_matching_pipeline,
+    )
+    from modules.calculating_Kaufman_parameters_file_2 import (
+        align_features,
+        create_summary_table,
+    )
+
+    print("Successfully imported analysis modules.")
+
+except ImportError as e:
+    print(
+        "[ERROR] Could not import modules. Please check your project structure and paths."
+    )
+    print(f"Details: {e}")
 
 # --- Data Extraction, Matching, and Alignment Functions (from previous steps) ---
 # For brevity, the full code of these functions is collapsed.
@@ -62,11 +88,12 @@ def heavy_halogen_hunter(df):
 
 def main():
     """Main function to run the full workflow."""
-    pimms_file_path = r"PIMMS v1.2\import folder\Dummy test output.csv"
-    cef_folder = r"PIMMS v1.2\modules\CEF_folder"
+    pimms_file_path = r"PIMMS v1.2\import folder\NIST_SRM_Profiler_PIMMS_report.csv"
+    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder"
 
     # Load Data
     pimms_df = pd.read_csv(pimms_file_path)
+    print(pimms_df.columns)
     pimms_df.columns = pimms_df.columns.str.strip()
     all_cef_data = parse_all_cef_files_in_folder(cef_folder)
 

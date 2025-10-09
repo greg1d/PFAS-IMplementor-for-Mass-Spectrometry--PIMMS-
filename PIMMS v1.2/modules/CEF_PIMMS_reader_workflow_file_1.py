@@ -143,8 +143,8 @@ def match_pimms_to_cef_by_mz(pimms_df, cef_df, mass_error_ppm, sample_name):
                     sample_name: prow[sample_name],
                     "Compound": crow["Compound"],
                     "Match_ID": prow.get("Match", "N/A"),  # Safely get 'Match'
-                    "Classification_Type": prow.get(
-                        "Classification_Type", "N/A"
+                    "Classification Type": prow.get(
+                        "Classification Type", "N/A"
                     ),  # Safely get 'Classification_Type'
                 }
                 matched.append(match_data)
@@ -161,7 +161,7 @@ def run_matching_pipeline(
 ):
     all_results_list = []
     # MODIFIED: Add "Classification_Type" to the list of columns to keep
-    metadata_cols = ["CCS", "m/z", "RT", "DT", "ID", "Match", "Classification_Type"]
+    metadata_cols = ["CCS", "m/z", "RT", "DT", "ID", "Match", "Classification Type"]
     for sample in sample_names:
         if sample not in pimms_df.columns:
             continue
@@ -203,7 +203,7 @@ def run_matching_pipeline(
             sample,
             "Compound",
             "Match_ID",
-            "Classification_Type",
+            "Classification Type",
         ]
         pimms_anchors = anchor_matches_df[pimms_anchor_cols].drop_duplicates().copy()
         pimms_anchors.rename(columns={sample: "PIMMS_Intensity"}, inplace=True)

@@ -10,7 +10,7 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
         "Sample",
         "Compound",
         "Match_ID",
-        "Classification_Type",
+        "Classification Type",
         "PIMMS_m/z",
         "CCS_PIMMS",
         "PIMMS_Intensity",
@@ -47,7 +47,7 @@ def create_summary_table(final_df):
     # MODIFIED: Add 'Classification_Type' to the aggregation rules
     agg_cols = {
         "Match_ID": "first",
-        "Classification_Type": "first",
+        "Classification Type": "first",
         "Peak_mz_1": "mean",
         "Intensity_1": "mean",
         "PIMMS_CCS": "mean",

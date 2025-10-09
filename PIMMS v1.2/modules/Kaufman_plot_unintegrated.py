@@ -92,7 +92,7 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
         non_sample_cols = {
             "AlignmentID",
             "Match_ID",
-            "Classification_Type",
+            "Classification Type",
             "Peak_mz_1",
             "Intensity_1",
             "PIMMS_CCS",
@@ -115,8 +115,8 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
 
         for i, row in df.iterrows():
             text = ""
-            if "Classification_Type" in row and pd.notna(row["Classification_Type"]):
-                text += f"<b>Classification:</b> {row['Classification_Type']}<br>"
+            if "Classification Type" in row and pd.notna(row["Classification Type"]):
+                text += f"<b>Classification:</b> {row['Classification Type']}<br>"
             if "PIMMS_CCS" in row and pd.notna(row["PIMMS_CCS"]):
                 text += f"<b>CCS:</b> {row['PIMMS_CCS']:.2f}<br>"
             if "Peak_mz_1" in row and pd.notna(row["Peak_mz_1"]):
@@ -167,9 +167,9 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
 
     # Layer 2: Scatter points, colored by classification
     color_map = {"likely": "#648FFF", "tentative": "#DC267F", "unmatched": "#FFB000"}
-    if "Classification_Type" in summary_df.columns:
+    if "Classification Type" in summary_df.columns:
         for classification, color in color_map.items():
-            df_subset = summary_df[summary_df["Classification_Type"] == classification]
+            df_subset = summary_df[summary_df["Classification Type"] == classification]
             if df_subset.empty:
                 continue
 
