@@ -21,7 +21,6 @@ except ImportError:
         sys.path.insert(0, project_root)
     from modules.isotopic_analysis import heavy_halogen_hunter
     from modules.Kaufman_plot_unintegrated import (
-        calculate_and_classify_ratio,
         create_interactive_figure,
         run_full_pipeline,
     )
@@ -181,6 +180,7 @@ class IsotopicAnalysisTab(ttk.Frame):
             def status_update(message):
                 print(message)
 
+            # Step 1: Run the full PIMMS-CEF pipeline to generate the summary table
             summary_table = run_full_pipeline(
                 self.pimms_filepath.get(), self.cef_folder.get(), status_update
             )
@@ -189,14 +189,22 @@ class IsotopicAnalysisTab(ttk.Frame):
                     "Complete", "Pipeline ran, but no matching features were found."
                 )
                 return
+
+            # Step 2: Run heavy halogen analysis
             status_update("Running heavy halogen analysis...")
-            self.results_df = heavy_halogen_hunter(summary_table)
+            analysis_df = heavy_halogen_hunter(summary_table)
+
+            # Step 3: Calculate the Predicted C/F ratio
+            status_update("Calculating Predicted C/F ratio...")
+            grid_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
+            self.results_df = calculate_and_classify_ratio(analysis_df, grid_path)
+
+            # Now, self.results_df contains ALL the data
             self._update_table(self.results_df)
 
             # Re-enable buttons on success
             self.plot_button.config(state="normal")
             self.save_button.config(state="normal")
-
             messagebox.showinfo(
                 "Success", "Full analysis complete! Results are in the table."
             )
@@ -205,22 +213,17 @@ class IsotopicAnalysisTab(ttk.Frame):
         finally:
             self.run_button.config(state="normal")
 
+    # --- MODIFIED: This function is now much simpler ---
     def _launch_plot(self):
         if self.results_df is None or self.results_df.empty:
             return
         try:
-            df_to_plot = self.results_df.copy()
-            grid_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
-            df_to_plot = calculate_and_classify_ratio(df_to_plot, grid_path)
-            if df_to_plot is None:
-                return
-
+            # The results_df is already fully processed, so we can use it directly
             fig = create_interactive_figure(
-                df_to_plot,
+                self.results_df,
                 r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv",
-                grid_path,
+                r"PIMMS v1.2\modules\kaufman_grid_data.npz",
             )
-            print(df_to_plot.columns)
             if fig:
                 with tempfile.NamedTemporaryFile(
                     "w", delete=False, suffix=".html", encoding="utf-8"
@@ -260,27 +263,24 @@ class IsotopicAnalysisTab(ttk.Frame):
         )
 
         final_order = initial_order + sample_cols
-
+        print("Plot columns: ", df_to_plot.columns)
         # Return only the desired columns in the specified order
         return df_to_plot[final_order]
 
     # --- NEW: Method to save the results to a user-chosen location ---
     def _save_results(self):
-        if self.results_df is None or self.results_df.empty:
-            messagebox.showwarning("No Data", "There are no results to save.")
+        if self.results_df is None:
             return
-
         save_path = filedialog.asksaveasfilename(
             title="Save Results As",
             filetypes=[("CSV Files", "*.csv")],
             defaultextension=".csv",
             initialfile="analysis_results.csv",
         )
-
-        if not save_path:  # User cancelled
+        if not save_path:
             return
-
         try:
+            # The results_df is already fully processed, so we can save it directly
             self.results_df.to_csv(save_path, index=False)
             messagebox.showinfo(
                 "Success",
