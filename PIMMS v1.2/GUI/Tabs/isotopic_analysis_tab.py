@@ -7,6 +7,7 @@ import tempfile
 import pandas as pd
 
 try:
+    from ..widgets.scrollable_table_widget import ScrollableTable
     from modules.isotopic_analysis import heavy_halogen_hunter
     from modules.Kaufman_plot_unintegrated import (
         calculate_and_classify_ratio,
@@ -146,14 +147,9 @@ class IsotopicAnalysisTab(ttk.Frame):
         self.save_button.pack(side=tk.LEFT, padx=5)
         # --- End of New Code ---
 
-        # --- Table Widget ---
-        self.tree = ttk.Treeview(table_frame, show="headings")
-        vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
-        hsb = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
-        self.tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-        vsb.pack(side="right", fill="y")
-        hsb.pack(side="bottom", fill="x")
-        self.tree.pack(fill="both", expand=True)
+        # Create an instance of our new, robust ScrollableTable widget
+        self.table = ScrollableTable(table_frame)
+        self.table.pack(fill="both", expand=True)
 
     def _load_defaults(self):
         # Your logic to load default paths from config can go here
@@ -317,21 +313,9 @@ class IsotopicAnalysisTab(ttk.Frame):
 
     # --- MODIFIED: This function now uses the formatter ---
     def _update_table(self, df):
-        """
-        Formats the DataFrame and then populates the Treeview.
-        """
-        self.tree.delete(*self.tree.get_children())
+        """Formats the DataFrame and then passes it to the ScrollableTable widget."""
         if df is None or df.empty:
+            self.table.update_table(pd.DataFrame())
             return
-
-        # Apply the formatting rules before displaying
         df_for_display = self._format_df_for_display(df)
-
-        self.tree["columns"] = list(df_for_display.columns)
-        for col in df_for_display.columns:
-            self.tree.heading(col, text=col, anchor=tk.W)  # Left-align headings
-            self.tree.column(col, width=120, anchor=tk.W)  # Left-align data
-
-        for index, row in df_for_display.iterrows():
-            # Fill NaN values with an empty string for cleaner display
-            self.tree.insert("", "end", values=[v if pd.notna(v) else "" for v in row])
+        self.table.update_table(df_for_display)
