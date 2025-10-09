@@ -84,6 +84,16 @@ class IsotopicAnalysisTab(ttk.Frame):
         )
         self.plot_button.pack(side=tk.LEFT, padx=5)
 
+        # --- NEW: Add a 'Save' button ---
+        self.save_button = ttk.Button(
+            action_frame,
+            text="3. Save Results...",
+            command=self._save_results,
+            state="disabled",
+        )
+        self.save_button.pack(side=tk.LEFT, padx=5)
+        # --- End of New Code ---
+
         # --- Table Widget ---
         self.tree = ttk.Treeview(table_frame, show="headings")
         vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
@@ -120,6 +130,7 @@ class IsotopicAnalysisTab(ttk.Frame):
     def _run_pipeline_thread(self):
         self.run_button.config(state="disabled")
         self.plot_button.config(state="disabled")
+        self.save_button.config(state="disabled")
         thread = threading.Thread(target=self._pipeline_target)
         thread.daemon = True
         thread.start()
@@ -130,27 +141,25 @@ class IsotopicAnalysisTab(ttk.Frame):
             def status_update(message):
                 print(message)
 
-            # Step 1: Run the full pipeline to generate the summary table
             summary_table = run_full_pipeline(
                 self.pimms_filepath.get(), self.cef_folder.get(), status_update
             )
-
             if summary_table is None or summary_table.empty:
                 messagebox.showinfo(
                     "Complete", "Pipeline ran, but no matching features were found."
                 )
                 return
-
-            # Step 2: Immediately run the heavy halogen hunter on the results
             status_update("Running heavy halogen analysis...")
             self.results_df = heavy_halogen_hunter(summary_table)
-
             self._update_table(self.results_df)
-            self.plot_button.config(state="normal")  # Enable plot button
+
+            # Re-enable buttons on success
+            self.plot_button.config(state="normal")
+            self.save_button.config(state="normal")
+
             messagebox.showinfo(
                 "Success", "Full analysis complete! Results are in the table."
             )
-
         except Exception as e:
             messagebox.showerror("Pipeline Error", f"An error occurred:\n{e}")
         finally:
@@ -181,6 +190,33 @@ class IsotopicAnalysisTab(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Plotting Error", f"Failed to generate plot:\n{e}")
 
+    # --- NEW: Method to save the results to a user-chosen location ---
+    def _save_results(self):
+        if self.results_df is None or self.results_df.empty:
+            messagebox.showwarning("No Data", "There are no results to save.")
+            return
+
+        save_path = filedialog.asksaveasfilename(
+            title="Save Results As",
+            filetypes=[("CSV Files", "*.csv")],
+            defaultextension=".csv",
+            initialfile="analysis_results.csv",
+        )
+
+        if not save_path:  # User cancelled
+            return
+
+        try:
+            self.results_df.to_csv(save_path, index=False)
+            messagebox.showinfo(
+                "Success",
+                f"Results successfully saved to:\n{os.path.basename(save_path)}",
+            )
+        except Exception as e:
+            messagebox.showerror("Save Error", f"Failed to save file:\n{e}")
+
+    # --- End of New Code ---
+
     def _update_table(self, df):
         self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
@@ -188,5 +224,6 @@ class IsotopicAnalysisTab(ttk.Frame):
         self.tree["columns"] = list(df.columns)
         for col in df.columns:
             self.tree.heading(col, text=col)
+            self.tree.column(col, width=120)
         for _, row in df.iterrows():
             self.tree.insert("", "end", values=list(row.values))
