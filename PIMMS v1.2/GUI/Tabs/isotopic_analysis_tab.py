@@ -249,7 +249,13 @@ class IsotopicAnalysisTab(ttk.Frame):
         Now dynamically rounds sample intensity columns.
         """
         df_display = df.copy()
-
+        max_len = 35
+        if "Match_ID" in df_display.columns:
+            df_display["Match_ID"] = (
+                df_display["Match_ID"]
+                .astype(str)
+                .apply(lambda x: (x[: max_len - 3] + "...") if len(x) > max_len else x)
+            )
         # 1. Apply rounding for specifically configured columns
         for col, decimals in TABLE_DISPLAY_CONFIG["round"].items():
             if col in df_display.columns:
