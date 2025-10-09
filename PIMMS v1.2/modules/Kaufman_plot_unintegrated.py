@@ -1,11 +1,19 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 import pandas as pd
 import os
 import plotly.graph_objects as go
-import webview
 import numpy as np
 from scipy.interpolate import interpn  # Required for the new calculation
+from CEF_PIMMS_reader_workflow_file_1 import (
+    parse_all_cef_files_in_folder,
+    get_cef_sample_names,
+    compute_kaufman_constants,
+    run_matching_pipeline,
+)
+from calculating_Kaufman_parameters_file_2 import (
+    align_features,
+    create_summary_table,
+)
 
 
 def calculate_and_classify_ratio(summary_df, grid_data_path):
@@ -309,62 +317,33 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
     return fig
 
 
-# --- Main Application Class (Unchanged) ---
-class PlotLauncherApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Plot Launcher")
-        self.geometry("350x150")
-        main_frame = ttk.Frame(self, padding="10")
-        main_frame.pack(fill=tk.BOTH, expand=True)
-        label = ttk.Label(main_frame, text="Generate the interactive Kaufman plot.")
-        label.pack(pady=10)
-        plot_button = ttk.Button(
-            main_frame, text="Launch Interactive Plot", command=self.launch_plot
-        )
-        plot_button.pack(pady=10)
+def run_full_pipeline(pimms_file_path, cef_folder, status_callback):
+    """
+    Executes the entire data processing workflow from file inputs to the
+    final summary table DataFrame.
+    """
+    status_callback("Loading PIMMS file...")
+    pimms_df = pd.read_csv(pimms_file_path)
+    pimms_df.columns = pimms_df.columns.str.strip()
 
-    def launch_plot(self):
-        summary_path = r"PIMMS v1.2\import folder\summary_table.csv"
-        contour_boundary_path = (
-            r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv"
-        )
-        grid_data_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
+    status_callback("Parsing all CEF files...")
+    all_cef_data = parse_all_cef_files_in_folder(cef_folder)
 
-        if not os.path.exists(summary_path) or not os.path.exists(grid_data_path):
-            messagebox.showerror("Error", "Required files not found.")
-            return
-        try:
-            summary_df = pd.read_csv(summary_path)
+    status_callback("Pre-calculating Kaufman Constants...")
+    kaufman_df = compute_kaufman_constants(all_cef_data)
 
-            # --- MODIFIED: Call the new, separate function ---
-            summary_df = calculate_and_classify_ratio(summary_df, grid_data_path)
+    status_callback("Running matching and alignment pipeline...")
+    sample_names = get_cef_sample_names(cef_folder)
+    combined_df = run_matching_pipeline(pimms_df, all_cef_data, sample_names)
 
-            if summary_df is None:  # Check if the function failed
-                return
+    if combined_df.empty:
+        status_callback("Pipeline complete: No matches were found.")
+        return None
 
-            # Save the enriched dataframe to a new file
-            output_path = r"PIMMS v1.2\import folder\summary_table_with_predictions.csv"
-            summary_df.to_csv(output_path, index=False)
-            messagebox.showinfo(
-                "Export Successful",
-                f"Data with 'Predicted C/F ratio' saved to:\n{output_path}",
-            )
+    aligned_df = align_features(combined_df)
+    final_long_df = pd.merge(
+        aligned_df, kaufman_df, on=["Sample", "Compound"], how="left"
+    )
+    summary_table = create_summary_table(final_long_df)
 
-            fig = create_interactive_figure(
-                summary_df, contour_boundary_path, grid_data_path
-            )
-            if fig:
-                html_content = fig.to_html(include_plotlyjs="cdn")
-                self.destroy()
-                webview.create_window(
-                    "Interactive Kaufman Plot", html=html_content, width=900, height=700
-                )
-                webview.start()
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load or plot data:\n{e}")
-
-
-if __name__ == "__main__":
-    app = PlotLauncherApp()
-    app.mainloop()
+    return summary_table

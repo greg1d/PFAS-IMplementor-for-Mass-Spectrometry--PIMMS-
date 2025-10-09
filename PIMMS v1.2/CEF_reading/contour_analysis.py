@@ -127,9 +127,9 @@ def find_and_plot_contours(
 
 if __name__ == "__main__":
     # --- USER CONFIGURATION ---
-    INPUT_CSV_PATH = r"PIMMS v1.2\CEF_reading\Kaufman_density_plot.csv"
+    INPUT_CSV_PATH = r"PIMMS v1.2\modules\Kaufman_density_plot.csv"
     OUTPUT_BOUNDARIES_CSV_PATH = (
-        r"PIMMS v1.2\CEF_reading\kaufman_contour_boundaries_SMOOTH.csv"
+        r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv"
     )
     OUTPUT_PLOT_PATH = "kaufman_density_contours_SMOOTH.png"
     CONTOUR_LEVELS = [

@@ -63,7 +63,7 @@ def heavy_halogen_hunter(df):
 def main():
     """Main function to run the full workflow."""
     pimms_file_path = r"PIMMS v1.2\import folder\Dummy test output.csv"
-    cef_folder = r"PIMMS v1.2\CEF_reading\CEF_folder"
+    cef_folder = r"PIMMS v1.2\modules\CEF_folder"
 
     # Load Data
     pimms_df = pd.read_csv(pimms_file_path)

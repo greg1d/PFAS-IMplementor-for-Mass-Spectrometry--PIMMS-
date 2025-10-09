@@ -1,16 +1,16 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-import pandas as pd
 import os
-import webbrowser  # <-- CORRECTED: Replaced webview and threading
-import tempfile  # <-- CORRECTED: Added tempfile
+import threading
+import webbrowser
+import tempfile
 
-# Import your analysis and plotting modules
 try:
     from modules.isotopic_analysis import heavy_halogen_hunter
     from modules.Kaufman_plot_unintegrated import (
         calculate_and_classify_ratio,
         create_interactive_figure,
+        run_full_pipeline,
     )
 except ImportError:
     import sys
@@ -22,6 +22,7 @@ except ImportError:
     from modules.Kaufman_plot_unintegrated import (
         calculate_and_classify_ratio,
         create_interactive_figure,
+        run_full_pipeline,
     )
 
 
@@ -29,8 +30,9 @@ class IsotopicAnalysisTab(ttk.Frame):
     def __init__(self, parent, config):
         super().__init__(parent)
         self.config = config
-        self.raw_data_df = None
-        self.analysis_df = None
+        self.pimms_filepath = tk.StringVar()
+        self.cef_folder = tk.StringVar()
+        self.results_df = None
 
         self._create_widgets()
         self._load_defaults()
@@ -38,30 +40,51 @@ class IsotopicAnalysisTab(ttk.Frame):
     def _create_widgets(self):
         control_frame = ttk.Labelframe(self, text="Workflow", padding="10")
         control_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
-        table_frame = ttk.Labelframe(self, text="Isotopic Analysis Data", padding="10")
+        control_frame.columnconfigure(1, weight=1)
+
+        table_frame = ttk.Labelframe(self, text="Analysis Results", padding="10")
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
-        self.load_button = ttk.Button(
-            control_frame, text="1. Load Data File...", command=self._load_data_file
+
+        # --- Input Widgets ---
+        ttk.Label(control_frame, text="PIMMS File:").grid(
+            row=0, column=0, sticky="w", padx=5, pady=2
         )
-        self.load_button.pack(side=tk.LEFT, padx=5, pady=5)
-        self.analyze_button = ttk.Button(
-            control_frame,
-            text="2. Run Isotopic Analysis",
-            command=self._run_analysis,
+        ttk.Entry(
+            control_frame, textvariable=self.pimms_filepath, state="readonly"
+        ).grid(row=0, column=1, sticky="ew", padx=5)
+        ttk.Button(
+            control_frame, text="Browse...", command=self._select_pimms_file
+        ).grid(row=0, column=2, padx=5)
+
+        ttk.Label(control_frame, text="CEF Folder:").grid(
+            row=1, column=0, sticky="w", padx=5, pady=2
+        )
+        ttk.Entry(control_frame, textvariable=self.cef_folder, state="readonly").grid(
+            row=1, column=1, sticky="ew", padx=5
+        )
+        ttk.Button(
+            control_frame, text="Browse...", command=self._select_cef_folder
+        ).grid(row=1, column=2, padx=5)
+
+        # --- Action Buttons ---
+        action_frame = ttk.Frame(self)
+        action_frame.pack(fill=tk.X, padx=10, pady=5)
+        self.run_button = ttk.Button(
+            action_frame,
+            text="1. Run Full Pipeline & Analysis",
+            command=self._run_pipeline_thread,
             state="disabled",
         )
-        self.analyze_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.run_button.pack(side=tk.LEFT, padx=5)
         self.plot_button = ttk.Button(
-            control_frame,
-            text="3. Generate Kaufman Plot",
+            action_frame,
+            text="2. Generate Kaufman Plot",
             command=self._launch_plot,
             state="disabled",
         )
-        self.plot_button.pack(side=tk.LEFT, padx=5, pady=5)
-        self.file_label = ttk.Label(
-            control_frame, text="No file loaded.", width=40, anchor="w"
-        )
-        self.file_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5, pady=5)
+        self.plot_button.pack(side=tk.LEFT, padx=5)
+
+        # --- Table Widget ---
         self.tree = ttk.Treeview(table_frame, show="headings")
         vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
         hsb = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
@@ -71,91 +94,92 @@ class IsotopicAnalysisTab(ttk.Frame):
         self.tree.pack(fill="both", expand=True)
 
     def _load_defaults(self):
-        if hasattr(self.config, "output_filepath") and self.config.output_filepath:
-            default_path = self.config.output_filepath
-            if default_path and os.path.exists(default_path):
-                self._load_file(default_path)
+        # Your logic to load default paths from config can go here
+        pass
 
-    def _load_data_file(self):
+    def _select_pimms_file(self):
         path = filedialog.askopenfilename(
-            title="Select Data Table", filetypes=[("CSV Files", "*.csv")]
+            title="Select PIMMS CSV", filetypes=[("CSV Files", "*.csv")]
         )
         if path:
-            self._load_file(path)
+            self.pimms_filepath.set(path)
+            self._check_inputs()
 
-    def _load_file(self, path):
-        self.filepath = path
-        self.file_label.config(text=os.path.basename(path))
+    def _select_cef_folder(self):
+        path = filedialog.askdirectory(title="Select CEF Folder")
+        if path:
+            self.cef_folder.set(path)
+            self._check_inputs()
+
+    def _check_inputs(self):
+        if self.pimms_filepath.get() and self.cef_folder.get():
+            self.run_button.config(state="normal")
+        else:
+            self.run_button.config(state="disabled")
+
+    def _run_pipeline_thread(self):
+        self.run_button.config(state="disabled")
+        self.plot_button.config(state="disabled")
+        thread = threading.Thread(target=self._pipeline_target)
+        thread.daemon = True
+        thread.start()
+
+    def _pipeline_target(self):
         try:
-            self.raw_data_df = pd.read_csv(path)
-            self._update_table(self.raw_data_df)
-            self.analyze_button.config(state="normal")
-            self.plot_button.config(state="disabled")
+
+            def status_update(message):
+                print(message)
+
+            # Step 1: Run the full pipeline to generate the summary table
+            summary_table = run_full_pipeline(
+                self.pimms_filepath.get(), self.cef_folder.get(), status_update
+            )
+
+            if summary_table is None or summary_table.empty:
+                messagebox.showinfo(
+                    "Complete", "Pipeline ran, but no matching features were found."
+                )
+                return
+
+            # Step 2: Immediately run the heavy halogen hunter on the results
+            status_update("Running heavy halogen analysis...")
+            self.results_df = heavy_halogen_hunter(summary_table)
+
+            self._update_table(self.results_df)
+            self.plot_button.config(state="normal")  # Enable plot button
             messagebox.showinfo(
-                "Success", f"Loaded {len(self.raw_data_df)} rows. Ready for analysis."
-            )
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load file:\n{e}")
-            self.raw_data_df = None
-            self.analyze_button.config(state="disabled")
-
-    def _run_analysis(self):
-        if self.raw_data_df is None:
-            return
-        try:
-            print("Running isotopic analysis...")
-            self.analysis_df = heavy_halogen_hunter(self.raw_data_df)
-            self._update_table(self.analysis_df)
-            self.plot_button.config(state="normal")
-            messagebox.showinfo("Success", "Isotopic analysis complete.")
-        except Exception as e:
-            messagebox.showerror(
-                "Analysis Error", f"An error occurred during analysis:\n{e}"
+                "Success", "Full analysis complete! Results are in the table."
             )
 
-    # --- MODIFIED: This function now uses 'webbrowser' to open the plot, fixing the error ---
+        except Exception as e:
+            messagebox.showerror("Pipeline Error", f"An error occurred:\n{e}")
+        finally:
+            self.run_button.config(state="normal")
+
     def _launch_plot(self):
-        if self.analysis_df is None or self.analysis_df.empty:
-            messagebox.showwarning(
-                "No Data", "Please run the analysis first to generate results to plot."
-            )
+        if self.results_df is None or self.results_df.empty:
             return
-
-        contour_boundary_path = (
-            r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv"
-        )
-        grid_data_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
-        # The pfas_boundary_path is missing from your import list, so it has been omitted here.
-
-        print("loaded data", self.analysis_df.head())
         try:
-            df_to_plot = calculate_and_classify_ratio(self.analysis_df, grid_data_path)
+            df_to_plot = self.results_df.copy()
+            grid_path = r"PIMMS v1.2\modules\kaufman_grid_data.npz"
+            df_to_plot = calculate_and_classify_ratio(df_to_plot, grid_path)
             if df_to_plot is None:
                 return
 
-            print("data about to be plotted", df_to_plot.head())
             fig = create_interactive_figure(
-                df_to_plot, contour_boundary_path, grid_data_path
+                df_to_plot,
+                r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv",
+                grid_path,
             )
-
             if fig:
-                # 1. Save plot to a temporary HTML file with UTF-8 encoding
                 with tempfile.NamedTemporaryFile(
                     "w", delete=False, suffix=".html", encoding="utf-8"
                 ) as f:
-                    fig.write_html(f, include_plotlyjs="cdn")
+                    fig.write_html(f)
                     file_path = f.name
-
-                # 2. Open the temporary file in the default web browser
                 webbrowser.open("file://" + os.path.realpath(file_path))
-                print(
-                    "Plot opened in default web browser. Your main application remains open."
-                )
-
         except Exception as e:
             messagebox.showerror("Plotting Error", f"Failed to generate plot:\n{e}")
-
-    # --- End of Modification ---
 
     def _update_table(self, df):
         self.tree.delete(*self.tree.get_children())
@@ -164,6 +188,5 @@ class IsotopicAnalysisTab(ttk.Frame):
         self.tree["columns"] = list(df.columns)
         for col in df.columns:
             self.tree.heading(col, text=col)
-            self.tree.column(col, width=120)
         for _, row in df.iterrows():
             self.tree.insert("", "end", values=list(row.values))
