@@ -26,17 +26,27 @@ except ImportError:
     )
 
 TABLE_DISPLAY_CONFIG = {
+    # Give columns user-friendly names for the table display
+    "relabel": {
+        "Match_ID": "Name",
+        "Classification Type": "Class",
+        "Isotopic_analysis": "Isotope Status",
+        "Peak_mz_1": "m/z",
+        "PIMMS_CCS": "CCS",
+        "Predicted C/F ratio": "Pred. C/F Ratio",
+        "Intensity_1": "Intensity",
+    },
     # Defines the order of the main columns. Sample columns will be added after these.
     "order": [
-        "Match_ID",
-        "Classification Type",
-        "Isotopic_analysis",
-        "Peak_mz_1",
-        "PIMMS_CCS",
-        "M/M+2 Distribution",
-        "Predicted C/F ratio",
+        "Name",
+        "Class",
+        "Isotope Status",
+        "m/z",
+        "CCS",
+        "Intensity",
+        "Pred. C/F Ratio",
     ],
-    # List of columns to completely hide from the table view.
+    # List of original column names to completely hide from the table view.
     "hide": [
         "AlignmentID",
         "Short_Match_ID",
@@ -55,14 +65,13 @@ TABLE_DISPLAY_CONFIG = {
         "Peak_intensity",
         "SourceFile",
     ],
-    # Dictionary defining rounding rules for specific columns (column_name: num_decimal_places).
+    # Dictionary defining rounding rules for specific original column names.
     "round": {
         "Peak_mz_1": 4,
         "Intensity_1": 0,
         "PIMMS_CCS": 2,
     },
 }
-# --- End of New Code ---
 
 
 class IsotopicAnalysisTab(ttk.Frame):
@@ -234,38 +243,51 @@ class IsotopicAnalysisTab(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Plotting Error", f"Failed to generate plot:\n{e}")
 
-    # --- NEW: Helper function to apply formatting rules ---
-    def _format_df_for_display(self, df_to_plot):
+    def _format_df_for_display(self, df):
         """
-        Applies rounding, reordering, and hiding of columns based on the
-        TABLE_DISPLAY_CONFIG dictionary.
+        Applies rounding, formatting, reordering, and hiding of columns.
+        Now dynamically rounds sample intensity columns.
         """
-        df_display = df_to_plot.copy()
+        df_display = df.copy()
 
-        # Apply rounding
+        # 1. Apply rounding for specifically configured columns
         for col, decimals in TABLE_DISPLAY_CONFIG["round"].items():
             if col in df_display.columns:
-                df_display[col] = pd.to_numeric(df_to_plot[col], errors="coerce").round(
+                df_display[col] = pd.to_numeric(df_display[col], errors="coerce").round(
                     decimals
                 )
 
-        # Determine final column order
-        initial_order = [
-            col for col in TABLE_DISPLAY_CONFIG["order"] if col in df_to_plot.columns
+        # 2. Identify all columns that are NOT samples
+        non_sample_cols = set(TABLE_DISPLAY_CONFIG["hide"]) | set(
+            TABLE_DISPLAY_CONFIG["relabel"].keys()
+        )
+
+        # 3. Identify sample columns by finding what's NOT in the non_sample_cols set
+        sample_cols = sorted([col for col in df.columns if col not in non_sample_cols])
+
+        # --- NEW: Dynamically apply integer rounding and formatting to all sample columns ---
+        print(f"DEBUG: Formatting sample columns: {sample_cols}")
+        for col in sample_cols:
+            if col in df_display.columns:
+                numeric_col = pd.to_numeric(df_display[col], errors="coerce")
+                # Format as an integer with comma separators
+                df_display[col] = numeric_col.apply(
+                    lambda x: f"{x:,.0f}" if pd.notna(x) else ""
+                )
+        # --- End of New Code ---
+
+        # 4. Relabel the columns for a user-friendly display
+        df_display.rename(columns=TABLE_DISPLAY_CONFIG["relabel"], inplace=True)
+
+        # 5. Construct the final column order
+        final_order = TABLE_DISPLAY_CONFIG["order"] + sample_cols
+
+        # 6. Filter for only the columns that exist and are desired
+        existing_cols_to_show = [
+            col for col in final_order if col in df_display.columns
         ]
 
-        # Find sample columns (anything not in 'order' or 'hide')
-        known_cols = set(TABLE_DISPLAY_CONFIG["order"]) | set(
-            TABLE_DISPLAY_CONFIG["hide"]
-        )
-        sample_cols = sorted(
-            [col for col in df_to_plot.columns if col not in known_cols]
-        )
-
-        final_order = initial_order + sample_cols
-        print("Plot columns: ", df_to_plot.columns)
-        # Return only the desired columns in the specified order
-        return df_to_plot[final_order]
+        return df_display[existing_cols_to_show]
 
     # --- NEW: Method to save the results to a user-chosen location ---
     def _save_results(self):
