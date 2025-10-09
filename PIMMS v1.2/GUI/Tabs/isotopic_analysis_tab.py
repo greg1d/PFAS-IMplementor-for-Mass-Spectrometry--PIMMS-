@@ -4,6 +4,7 @@ import os
 import threading
 import webbrowser
 import tempfile
+import pandas as pd
 
 try:
     from modules.isotopic_analysis import heavy_halogen_hunter
@@ -24,6 +25,45 @@ except ImportError:
         create_interactive_figure,
         run_full_pipeline,
     )
+
+TABLE_DISPLAY_CONFIG = {
+    # Defines the order of the main columns. Sample columns will be added after these.
+    "order": [
+        "Match_ID",
+        "Classification Type",
+        "Isotopic_analysis",
+        "Peak_mz_1",
+        "PIMMS_CCS",
+        "M/M+2 Distribution",
+        "Predicted C/F ratio",
+    ],
+    # List of columns to completely hide from the table view.
+    "hide": [
+        "AlignmentID",
+        "Short_Match_ID",
+        "M/M+2 Distribution",
+        "Expected_M+2_Ratio_from_C",
+        "Peak_mz_2",
+        "Intensity_2",
+        "Intensity_3",
+        "mass_defect",
+        "md_over_C",
+        "Kaufman_C",
+        "m_over_C",
+        "DT",
+        "RT",
+        "Peak_mz",
+        "Peak_intensity",
+        "SourceFile",
+    ],
+    # Dictionary defining rounding rules for specific columns (column_name: num_decimal_places).
+    "round": {
+        "Peak_mz_1": 4,
+        "Intensity_1": 0,
+        "PIMMS_CCS": 2,
+    },
+}
+# --- End of New Code ---
 
 
 class IsotopicAnalysisTab(ttk.Frame):
@@ -180,6 +220,7 @@ class IsotopicAnalysisTab(ttk.Frame):
                 r"PIMMS v1.2\modules\kaufman_contour_boundaries_SMOOTH.csv",
                 grid_path,
             )
+            print(df_to_plot.columns)
             if fig:
                 with tempfile.NamedTemporaryFile(
                     "w", delete=False, suffix=".html", encoding="utf-8"
@@ -189,6 +230,39 @@ class IsotopicAnalysisTab(ttk.Frame):
                 webbrowser.open("file://" + os.path.realpath(file_path))
         except Exception as e:
             messagebox.showerror("Plotting Error", f"Failed to generate plot:\n{e}")
+
+    # --- NEW: Helper function to apply formatting rules ---
+    def _format_df_for_display(self, df_to_plot):
+        """
+        Applies rounding, reordering, and hiding of columns based on the
+        TABLE_DISPLAY_CONFIG dictionary.
+        """
+        df_display = df_to_plot.copy()
+
+        # Apply rounding
+        for col, decimals in TABLE_DISPLAY_CONFIG["round"].items():
+            if col in df_display.columns:
+                df_display[col] = pd.to_numeric(df_to_plot[col], errors="coerce").round(
+                    decimals
+                )
+
+        # Determine final column order
+        initial_order = [
+            col for col in TABLE_DISPLAY_CONFIG["order"] if col in df_to_plot.columns
+        ]
+
+        # Find sample columns (anything not in 'order' or 'hide')
+        known_cols = set(TABLE_DISPLAY_CONFIG["order"]) | set(
+            TABLE_DISPLAY_CONFIG["hide"]
+        )
+        sample_cols = sorted(
+            [col for col in df_to_plot.columns if col not in known_cols]
+        )
+
+        final_order = initial_order + sample_cols
+
+        # Return only the desired columns in the specified order
+        return df_to_plot[final_order]
 
     # --- NEW: Method to save the results to a user-chosen location ---
     def _save_results(self):
@@ -215,15 +289,23 @@ class IsotopicAnalysisTab(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Save Error", f"Failed to save file:\n{e}")
 
-    # --- End of New Code ---
-
+    # --- MODIFIED: This function now uses the formatter ---
     def _update_table(self, df):
+        """
+        Formats the DataFrame and then populates the Treeview.
+        """
         self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
             return
-        self.tree["columns"] = list(df.columns)
-        for col in df.columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=120)
-        for _, row in df.iterrows():
-            self.tree.insert("", "end", values=list(row.values))
+
+        # Apply the formatting rules before displaying
+        df_for_display = self._format_df_for_display(df)
+
+        self.tree["columns"] = list(df_for_display.columns)
+        for col in df_for_display.columns:
+            self.tree.heading(col, text=col, anchor=tk.W)  # Left-align headings
+            self.tree.column(col, width=120, anchor=tk.W)  # Left-align data
+
+        for index, row in df_for_display.iterrows():
+            # Fill NaN values with an empty string for cleaner display
+            self.tree.insert("", "end", values=[v if pd.notna(v) else "" for v in row])
