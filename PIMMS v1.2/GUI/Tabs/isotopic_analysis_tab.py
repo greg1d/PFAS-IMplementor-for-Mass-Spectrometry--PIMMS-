@@ -1,21 +1,26 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
 import os
-import threading
-import webbrowser
 import tempfile
+import threading
+import tkinter as tk
+import webbrowser
+from tkinter import filedialog, messagebox, ttk
+
 import pandas as pd
 
 try:
-    from ..widgets.scrollable_table_widget import ScrollableTable
     from modules.isotopic_analysis import heavy_halogen_hunter
     from modules.Kaufman_plot_unintegrated import (
         calculate_and_classify_ratio,
         create_interactive_figure,
         run_full_pipeline,
     )
+
+    from ..widgets.scrollable_table_widget import ScrollableTable
+    from ..widgets.tooltip import Tooltip
 except ImportError:
     import sys
+
+    from GUI.widgets.tooltip import Tooltip
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     if project_root not in sys.path:
@@ -91,6 +96,16 @@ class IsotopicAnalysisTab(ttk.Frame):
         self._load_defaults()
 
     def _create_widgets(self):
+        # --- NEW: Define all help texts in one place for easy editing ---
+        help_texts = {
+            "pimms_file": "Select the primary input CSV file from the PIMMS processing pipeline. This file should contain the list of all detected features.",
+            "cef_folder": "Select any single .cef file from the folder containing all raw data files. The application will automatically use the folder path to find the necessary raw data for isotopic analysis.",
+            "run_pipeline": "1. Processes the PIMMS file to find potential halogenated compounds.\n2. Extracts isotopic profiles from the raw .cef files.\n3. Performs heavy halogen analysis.\n4. Calculates Kauffman plot parameters.\n\nThis can take several minutes to complete.",
+            "launch_plot": "Generates and opens an interactive Kauffman plot in your web browser. This button is enabled only after the main pipeline has been run successfully.",
+            "save_results": "Saves the full data table, including all calculated values, to a CSV file. This button is enabled only after the main pipeline has been run successfully.",
+            "results_table": "Displays the final results after the analysis is complete, showing key metrics and classification for each identified feature.",
+        }
+
         control_frame = ttk.Labelframe(self, text="Workflow", padding="10")
         control_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
         control_frame.columnconfigure(1, weight=1)
@@ -98,7 +113,7 @@ class IsotopicAnalysisTab(ttk.Frame):
         table_frame = ttk.Labelframe(self, text="Analysis Results", padding="10")
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
-        # --- Input Widgets ---
+        # --- MODIFIED: Added help icons to Input Widgets ---
         ttk.Label(control_frame, text="PIMMS File:").grid(
             row=0, column=0, sticky="w", padx=5, pady=2
         )
@@ -108,6 +123,10 @@ class IsotopicAnalysisTab(ttk.Frame):
         ttk.Button(
             control_frame, text="Browse...", command=self._select_pimms_file
         ).grid(row=0, column=2, padx=5)
+        # NEW: Help icon for PIMMS File
+        help_pimms = ttk.Label(control_frame, text=" (?) ", cursor="question_arrow")
+        help_pimms.grid(row=0, column=3, sticky="w")
+        Tooltip(help_pimms, text=help_texts["pimms_file"])
 
         ttk.Label(control_frame, text="CEF Folder:").grid(
             row=1, column=0, sticky="w", padx=5, pady=2
@@ -118,38 +137,58 @@ class IsotopicAnalysisTab(ttk.Frame):
         ttk.Button(
             control_frame, text="Browse...", command=self._select_cef_folder
         ).grid(row=1, column=2, padx=5)
+        # NEW: Help icon for CEF Folder
+        help_cef = ttk.Label(control_frame, text=" (?) ", cursor="question_arrow")
+        help_cef.grid(row=1, column=3, sticky="w")
+        Tooltip(help_cef, text=help_texts["cef_folder"])
 
-        # --- Action Buttons ---
+        # --- MODIFIED: Action Buttons now use grid for better layout with icons ---
         action_frame = ttk.Frame(self)
         action_frame.pack(fill=tk.X, padx=10, pady=5)
+
         self.run_button = ttk.Button(
             action_frame,
             text="1. Run Full Pipeline & Analysis",
             command=self._run_pipeline_thread,
             state="disabled",
         )
-        self.run_button.pack(side=tk.LEFT, padx=5)
+        self.run_button.grid(row=0, column=0, padx=(0, 2))
+        # NEW: Help icon for Run button
+        help_run = ttk.Label(action_frame, text=" (?) ", cursor="question_arrow")
+        help_run.grid(row=0, column=1, padx=(0, 10))
+        Tooltip(help_run, text=help_texts["run_pipeline"])
+
         self.plot_button = ttk.Button(
             action_frame,
             text="2. Generate Kauffman Plot",
             command=self._launch_plot,
             state="disabled",
         )
-        self.plot_button.pack(side=tk.LEFT, padx=5)
+        self.plot_button.grid(row=0, column=2, padx=(0, 2))
+        # NEW: Help icon for Plot button
+        help_plot = ttk.Label(action_frame, text=" (?) ", cursor="question_arrow")
+        help_plot.grid(row=0, column=3, padx=(0, 10))
+        Tooltip(help_plot, text=help_texts["launch_plot"])
 
-        # --- NEW: Add a 'Save' button ---
         self.save_button = ttk.Button(
             action_frame,
             text="3. Save Results...",
             command=self._save_results,
             state="disabled",
         )
-        self.save_button.pack(side=tk.LEFT, padx=5)
-        # --- End of New Code ---
+        self.save_button.grid(row=0, column=4, padx=(0, 2))
+        # NEW: Help icon for Save button
+        help_save = ttk.Label(action_frame, text=" (?) ", cursor="question_arrow")
+        help_save.grid(row=0, column=5, padx=(0, 10))
+        Tooltip(help_save, text=help_texts["save_results"])
 
-        # Create an instance of our new, robust ScrollableTable widget
+        # --- MODIFIED: Added a help icon to the results table frame ---
         self.table = ScrollableTable(table_frame)
         self.table.pack(fill="both", expand=True)
+        # NEW: Help icon for the table itself
+        help_table = ttk.Label(table_frame, text=" (?) ", cursor="question_arrow")
+        help_table.place(relx=1.0, rely=0.0, x=-5, y=-8, anchor="ne")
+        Tooltip(help_table, text=help_texts["results_table"])
 
     def _load_defaults(self):
         # Your logic to load default paths from config can go here

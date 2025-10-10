@@ -1,7 +1,7 @@
 def mass_defect_filter(
     experimental_df,
-    lower_mass_filter_bound=-0.11,
-    upper_mass_filter_bound=0.12,
+    lower_mass_filter_bound=-0.194,
+    upper_mass_filter_bound=0.09,
 ):
     """
     [MODIFIED] Filters a single DataFrame based on mass defect.

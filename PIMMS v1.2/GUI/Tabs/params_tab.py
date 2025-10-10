@@ -88,7 +88,9 @@ class ParamsTab(ttk.Frame):
             row=0, column=0, padx=5, pady=2, sticky="w"
         )
         mdf_lower = ttk.Entry(mdf_frame)
-        mdf_lower.insert(0, str(getattr(self.config, "mass_defect_lower_bound", -0.11)))
+        mdf_lower.insert(
+            0, str(getattr(self.config, "mass_defect_lower_bound", -0.194))
+        )
         mdf_lower.grid(row=0, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["mass_defect_lower_bound"] = mdf_lower
         help_lower = ttk.Label(mdf_frame, text=" (?) ", cursor="question_arrow")
@@ -98,7 +100,7 @@ class ParamsTab(ttk.Frame):
             row=1, column=0, padx=5, pady=2, sticky="w"
         )
         mdf_upper = ttk.Entry(mdf_frame)
-        mdf_upper.insert(0, str(getattr(self.config, "mass_defect_upper_bound", 0.12)))
+        mdf_upper.insert(0, str(getattr(self.config, "mass_defect_upper_bound", 0.09)))
         mdf_upper.grid(row=1, column=1, padx=5, pady=2, sticky="w")
         self.param_entries["mass_defect_upper_bound"] = mdf_upper
         help_upper = ttk.Label(mdf_frame, text=" (?) ", cursor="question_arrow")
