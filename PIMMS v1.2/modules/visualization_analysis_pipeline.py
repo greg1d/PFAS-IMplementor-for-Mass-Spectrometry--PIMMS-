@@ -151,7 +151,6 @@ def run_analysis_pipeline(
         print("\n[Step 1] Loading data with original headers...")
         experimental_data_df = pd.read_csv(experimental_filepath)
         library_data_df = pd.read_csv(library_filepath)
-
         # Step 1.5: Map Columns using the new flexible method
         print("\n[Step 1.5] Standardizing columns by name or position...")
 
@@ -174,7 +173,6 @@ def run_analysis_pipeline(
             rt_col_pos=exp_rt_col_pos,
             id_col_pos=exp_id_col_pos,
         )
-
         # Step 1.7: Harmonize Columns (add placeholders if still missing)
         print("\n[Step 1.7] Harmonizing columns before stacking...")
         if "ID" not in experimental_data_df.columns:
@@ -187,7 +185,7 @@ def run_analysis_pipeline(
             library_data_df["RT"] = pd.NA
         if "RT" not in experimental_data_df.columns:
             experimental_data_df["RT"] = pd.NA
-        print(experimental_data_df.columns)
+
         stacked_df = stack_library_with_adjusted(experimental_data_df, library_data_df)
         print("Columns after stacking:", stacked_df.columns)
         if stacked_df is None or stacked_df.empty:

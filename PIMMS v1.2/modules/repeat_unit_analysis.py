@@ -15,11 +15,40 @@ def mz_repeating_unit_analysis(
     df, selected_repeating_units, mass_error_ppm=10, min_valid_points=3
 ):
     """
-    Identifies homologous series using a graph-based approach.
+    Identifies homologous series using a graph-based approach, now dynamically
+    preserving all sample columns found in the input DataFrame.
     """
-    # --- MODIFIED: Added "Name" to the list of required columns ---
-    required_cols = [
-        "Name",  # <-- THE FIX IS HERE
+    # --- MODIFIED: Dynamic Column Preservation Logic ---
+
+    # 1. Define all known, non-sample columns that might be in the data.
+    known_non_sample_cols = {
+        "Name",
+        "Classification Type",
+        "CCS",
+        "RT",
+        "m/z",
+        "ID",
+        "Average Abundance",
+        "Detection Frequency (%)",
+        "Match Source",
+        "Mass Error (ppm)",
+        "CCS Error (%)",
+        "RT Error (abs)",
+        "DT",
+        "GroupID",
+        "Repeating Unit",  # Also exclude columns created by this function
+    }
+
+    # 2. Dynamically identify sample columns by finding what is NOT a known column.
+    sample_cols = sorted(
+        [col for col in df.columns if col not in known_non_sample_cols]
+    )
+    if sample_cols:
+        print(f"[INFO] Dynamically preserving sample columns: {sample_cols}")
+
+    # 3. Define the base columns we always want in a specific order.
+    base_cols = [
+        "Name",
         "Classification Type",
         "CCS",
         "RT",
@@ -28,18 +57,22 @@ def mz_repeating_unit_analysis(
         "Average Abundance",
         "Detection Frequency (%)",
     ]
+
+    # 4. The final list of columns to keep is the base list + the dynamic sample list.
+    cols_to_preserve = [col for col in base_cols if col in df.columns] + sample_cols
+
     # --- End of Modification ---
 
-    # Check if a 'Name' column exists, if not, create a placeholder
+    # Ensure placeholder 'Name' column exists if it wasn't in the input
     if "Name" not in df.columns:
-        print("[WARNING] 'Name' column not found. Using placeholders.")
         df["Name"] = "Unknown"
 
-    if not all(col in df.columns for col in required_cols):
-        missing = [col for col in required_cols if col not in df.columns]
-        print(f"[ERROR] Missing required columns for analysis: {missing}")
+    # Check for the absolute minimum columns needed for the algorithm to run
+    if not all(col in df.columns for col in ["m/z", "CCS"]):
+        print("[ERROR] Missing 'm/z' or 'CCS' columns required for analysis.")
         return pd.DataFrame()
 
+    # The rest of the function's logic for data prep and graph building remains the same
     for col in ["m/z", "CCS", "RT", "ID"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     df.dropna(subset=["m/z", "CCS"], inplace=True)
@@ -52,9 +85,10 @@ def mz_repeating_unit_analysis(
     )
     start_time = time.perf_counter()
 
+    # --- Graph building logic remains unchanged ---
     G = nx.Graph()
     G.add_nodes_from(df.index)
-
+    # ... (code for iterating and adding edges is unchanged) ...
     for current_idx in range(len(df)):
         current_mz = df.at[current_idx, "m/z"]
         for unit_name, M in selected_repeating_units.items():
@@ -71,11 +105,13 @@ def mz_repeating_unit_analysis(
                 )
                 G.add_edge(current_idx, best_candidate_idx, unit=unit_name)
 
+    # --- Processing components remains unchanged until the final step in the loop ---
     connected_components = list(nx.connected_components(G))
     all_groups = []
     group_counter = 0
 
     for component in connected_components:
+        # ... (all the filtering logic for min_points, well_spaced_points, etc. is unchanged) ...
         if len(component) < min_valid_points:
             continue
 
@@ -100,8 +136,11 @@ def mz_repeating_unit_analysis(
             continue
 
         group_counter += 1
-        # This line will now correctly include the 'Name' column in the final result
-        final_group = group_df_rows[required_cols].copy()
+
+        # --- MODIFIED: This line now uses the new dynamic list of columns ---
+        # It will preserve the 'Name' column AND all identified sample columns.
+        final_group = group_df_rows[cols_to_preserve].copy()
+
         final_group["GroupID"] = group_counter
         final_group["Repeating Unit"] = list(selected_repeating_units.keys())[0]
         all_groups.append(final_group)
