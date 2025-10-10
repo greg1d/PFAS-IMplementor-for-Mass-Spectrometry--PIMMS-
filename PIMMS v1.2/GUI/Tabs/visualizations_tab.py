@@ -2,6 +2,8 @@ import os
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
+import pandas as pd
+
 # This robustly imports your pipeline controller and modular widgets
 try:
     from modules.visualization_analysis_pipeline import (
@@ -11,6 +13,7 @@ try:
 
     from ..widgets.controls_widget import ControlsWidget
     from ..widgets.plot_widget import PlotWidget
+    from ..widgets.scrollable_table_widget import ScrollableTable
 except ImportError:
     # Fallback for different run environments
     import os
@@ -26,6 +29,7 @@ except ImportError:
 
     from GUI.widgets.controls_widget import ControlsWidget
     from GUI.widgets.plot_widget import PlotWidget
+    from GUI.widgets.scrollable_table_widget import ScrollableTable
 
 
 class VisualizationsTab(ttk.Frame):
@@ -85,13 +89,10 @@ class VisualizationsTab(ttk.Frame):
         table_frame = ttk.Labelframe(plot_table_pane, text="Selected Trend Data")
         plot_table_pane.add(table_frame, weight=1)
 
-        self.tree = ttk.Treeview(table_frame, show="headings")
-        vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
-        hsb = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
-        self.tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-        vsb.pack(side="right", fill="y")
-        hsb.pack(side="bottom", fill="x")
-        self.tree.pack(fill="both", expand=True)
+        # --- UPDATED: Replace manual Treeview with the ScrollableTable widget ---
+        self.table = ScrollableTable(table_frame)
+        self.table.pack(fill="both", expand=True, padx=5, pady=5)
+        # --- End of Update ---
 
     def _export_results(self):
         """
@@ -265,21 +266,17 @@ class VisualizationsTab(ttk.Frame):
         self.plot.update_plot(parent_group_df, selected_trend_df)
         self._update_table(selected_trend_df)
 
-    # --- METHOD TO UPDATE ---
     def _update_table(self, df):
         """
-        Manages the data table (Treeview), rounding values for display.
+        Manages the data table by passing the DataFrame to the ScrollableTable widget.
         """
-        self.tree.delete(*self.tree.get_children())
         if df is None or df.empty:
+            # Pass an empty DataFrame to clear the table
+            self.table.update_table(pd.DataFrame())
             return
 
-        # --- NEW: Call the rounding function on the data before displaying it ---
+        # Call the rounding function on the data before displaying it
         df_for_display = significant_figures_rounding(df)
 
-        self.tree["columns"] = list(df_for_display.columns)
-        for col in df_for_display.columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100, anchor="center")
-        for index, row in df_for_display.iterrows():
-            self.tree.insert("", "end", values=list(row.values))
+        # Delegate the table update logic to the widget itself
+        self.table.update_table(df_for_display)
