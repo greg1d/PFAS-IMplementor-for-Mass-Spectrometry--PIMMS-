@@ -4,6 +4,80 @@ import pandas as pd
 import statsmodels.formula.api as smf
 
 
+def optimize_linear_bounds(pfas_df, lipid_df):
+    """
+    Optimizes classification bounds using a parallel-line linear quantile regression model.
+    """
+    print("\n--- Optimizing LINEAR BOUNDS Model (Parallel Gradient) ---")
+
+    # --- 1. Define Model Parameters ---
+    target_col_y = "Mass_Defect_from_Integer"
+    target_col_x = "M-H-"
+    formula = f'{target_col_y} ~ Q("{target_col_x}")'
+
+    # --- 2. Fit Median Regression (q=0.5) to find the central slope ---
+    print(f"Fitting median regression (q=0.5) using formula: {formula}")
+    model_median = smf.quantreg(formula, data=pfas_df)
+    result_median = model_median.fit(q=0.5)
+
+    # Extract the common slope and the median intercept
+    slope = result_median.params[f'Q("{target_col_x}")']
+    intercept_median = result_median.params["Intercept"]
+
+    # --- 3. Calculate Residuals from the Median Line ---
+    predicted_median = slope * pfas_df[target_col_x] + intercept_median
+    residuals = pfas_df[target_col_y] - predicted_median
+
+    # --- 4. Find Percentiles of Residuals to use as offsets ---
+    resid_q05 = residuals.quantile(0.05)
+    resid_q95 = residuals.quantile(0.95)
+
+    # --- 5. Define Final Intercepts for the parallel lines ---
+    intercept_lower = intercept_median + resid_q05
+    intercept_upper = intercept_median + resid_q95
+
+    print("\nOptimal Model Parameters:")
+    print(f"  - Slope (m): {slope:.6E}")
+    print(f"  - Lower Intercept (b_lower): {intercept_lower:.6f}")
+    print(f"  - Upper Intercept (b_upper): {intercept_upper:.6f}")
+
+    # --- 6. Create callable lambda functions for the bounds ---
+    # These functions match the 'is_dynamic' structure in your helper functions
+    lower_bound_func = lambda x: slope * x + intercept_lower
+    upper_bound_func = lambda x: slope * x + intercept_upper
+
+    # --- 7. Evaluate Performance ---
+    print("\nEvaluating linear bounds model...")
+    performance_results = calculate_performance(
+        pfas_df, lipid_df, lower_bound_func, upper_bound_func
+    )
+
+    if performance_results:
+        print("\nPerformance Metrics:")
+        [
+            print(f"  - {key}: {value:.2%}")
+            for key, value in performance_results["metrics"].items()
+        ]
+
+        # --- 8. Generate Plot, passing the model parameters ---
+        print("\nGenerating performance plot for linear bounds model...")
+        model_params = (
+            slope,
+            intercept_lower,
+            intercept_upper,
+            False,
+        )  # log_mode is False
+        plot_model_performance(
+            pfas_df,
+            lipid_df,
+            lower_bound_func,
+            upper_bound_func,
+            performance_results,
+            "Linear Parallel Bounds",
+            model_params=model_params,
+        )
+
+
 # calculate_performance function is unchanged and correct
 def calculate_performance(pfas_df, lipid_df, lower_bound, upper_bound):
     target_col_x = "M-H-"
@@ -130,19 +204,6 @@ def plot_model_performance(
     else:
         ax.axhline(lower_bound, color="darkred", linestyle="--")
         ax.axhline(upper_bound, color="darkred", linestyle="--")
-    x_range = np.linspace(
-        pd.concat([pfas_df[target_col_x], lipid_df[target_col_x]]).min(),
-        pd.concat([pfas_df[target_col_x], lipid_df[target_col_x]]).max(),
-        200,
-    )
-
-    # Plot the model boundaries
-    if is_dynamic:
-        ax.plot(x_range, lower_bound(x_range), color="darkred", linestyle="--")
-        ax.plot(x_range, upper_bound(x_range), color="darkred", linestyle="--")
-    else:  # It's a constant value
-        ax.axhline(lower_bound, color="darkred", linestyle="--")
-        ax.axhline(upper_bound, color="darkred", linestyle="--")
 
     # --- MODIFIED: Add text annotations for the line equations on the RIGHT side ---
     # Position the text near the right edge of the plot
@@ -153,10 +214,7 @@ def plot_model_performance(
         x_var = "log(x)" if log_mode else "x"
         eq_lower = f"$y = {m:.2E} \\cdot {x_var} + {b_lower:.3f}$ (5th percentile)"
         eq_upper = f"$y = {m:.2E} \\cdot {x_var} + {b_upper:.3f}$ (95th percentile)"
-        # Define the style for the background box. You can reuse this for both text elements.
-        bbox_style = dict(boxstyle="round,pad=0.3", fc="white", ec="none", alpha=1)
-
-        # For the lower bound equation
+        box = dict(boxstyle="round,pad=0.3", fc="wheat", alpha=1)
         ax.text(
             text_x_pos,
             lower_bound(text_x_pos),
@@ -166,10 +224,8 @@ def plot_model_performance(
             ha="right",
             fontsize=8,
             fontweight="bold",
-            bbox=bbox_style,  # Add the bbox argument here
+            bbox=box,
         )
-
-        # For the upper bound equation
         ax.text(
             text_x_pos,
             upper_bound(text_x_pos),
@@ -179,37 +235,36 @@ def plot_model_performance(
             ha="right",
             fontsize=8,
             fontweight="bold",
-            bbox=bbox_style,  # And also here
+            bbox=box,
         )
 
     else:  # For Fixed Bounds model
-        bbox_style = dict(boxstyle="round,pad=0.3", fc="white", ec="none", alpha=0.75)
-
         eq_lower = f"$y = {lower_bound:.3f}$ (5th percentile)"
         eq_upper = f"$y = {upper_bound:.3f}$ (95th percentile)"
         # Use ha='right' to align the text to the right
+        box = dict(boxstyle="round,pad=0.3", fc="wheat", alpha=1)
         ax.text(
             text_x_pos,
             lower_bound,
             eq_lower,
-            color="darkred",
-            va="bottom",
+            color="black",
+            va="top",
             ha="right",
             fontsize=8,
-            fontweight="bold",
-            bbox=bbox_style,  # And also here
+            bbox=box,
         )
         ax.text(
             text_x_pos,
             upper_bound,
             eq_upper,
-            color="darkred",
+            color="black",
             va="bottom",
             ha="right",
             fontsize=8,
-            fontweight="bold",
-            bbox=bbox_style,  # And also here
+            bbox=box,
         )
+    # --- End of Modification ---
+
     # The rest of the plotting logic is unchanged
     pfas_lower = lower_bound(pfas_df[target_col_x]) if is_dynamic else lower_bound
     pfas_upper = upper_bound(pfas_df[target_col_x]) if is_dynamic else upper_bound
@@ -227,7 +282,6 @@ def plot_model_performance(
             > (upper_bound(lipid_df[target_col_x]) if is_dynamic else upper_bound)
         )
     ]
-    fp_df = lipid_df.drop(tn_df.index)
 
     metrics = results["metrics"]
     stats_text = f"Accuracy: {metrics['Accuracy']:.2%}\nSensitivity: {metrics['Sensitivity']:.2%}\nSelectivity: {metrics['Selectivity']:.2%}"
@@ -248,187 +302,13 @@ def plot_model_performance(
     ax.tick_params(axis="both", which="major", labelsize=8)
     plt.tight_layout()
 
-    output_path = r"PIMMS v1.2\testing_expanded_library\PFAS_performance\PFAS_performance_grid_search.png"
+    output_path = r"PIMMS v1.2\testing_expanded_library\halogenated_performance\fixed_combined_performance.png"
     plt.savefig(output_path)
     plt.show()
 
 
-def optimize_grid_search(pfas_df, lipid_df):
-    """
-    Performs a grid search to find the optimal slope and intercept offset
-    that maximize a combined score of Accuracy and Selectivity.
-    """
-    print("\n--- Optimizing with GRID SEARCH ---")
-
-    # --- 1. Find a stable central intercept to anchor the search ---
-    # This is the same logic from your parallel bounds model. It gives us a
-    # stable vertical center around which we can test different offsets.
-    target_col_y = "Mass_Defect_from_Integer"
-    target_col_x = "M-H-"
-    formula = f'{target_col_y} ~ Q("{target_col_x}")'
-    model_median = smf.quantreg(formula, data=pfas_df)
-    result_median = model_median.fit(q=0.5)
-    intercept_median = result_median.params["Intercept"]
-    print(f"  - Anchoring search around median intercept: {intercept_median:.3f}")
-
-    # --- 2. Define the Grid of Parameters to Search ---
-    # IMPORTANT: You can adjust these ranges and the number of steps.
-    # More steps = more precise but slower. Fewer steps = faster but less precise.
-    slopes_to_test = np.linspace(-5e-5, 5e-5, 31)  # 31 steps for the slope
-    offsets_to_test = np.linspace(0.01, 0.1, 31)  # 31 steps for the vertical offset
-
-    total_iterations = len(slopes_to_test) * len(offsets_to_test)
-    print(f"  - Testing {total_iterations} parameter combinations...")
-
-    # --- 3. Run the Search Loop ---
-    best_score = -1
-    best_params = None
-
-    # Use tqdm for a progress bar if available
-    try:
-        from tqdm import tqdm
-
-        search_iterator = tqdm(slopes_to_test, desc="Grid Search Progress")
-    except ImportError:
-        search_iterator = slopes_to_test
-
-    for slope in search_iterator:
-        for offset in offsets_to_test:
-            # Define the boundary functions for the current parameter set
-            lower_bound_func = lambda x: slope * x + (intercept_median - offset)
-            upper_bound_func = lambda x: slope * x + (intercept_median + offset)
-
-            # Calculate performance for this set
-            results = calculate_performance(
-                pfas_df, lipid_df, lower_bound_func, upper_bound_func
-            )
-            metrics = results["metrics"]
-
-            # The objective is to maximize the sum of Accuracy and Selectivity
-            current_score = metrics["Accuracy"] + metrics["Selectivity"]
-
-            # If this is the best score so far, save it
-            if current_score > best_score:
-                best_score = current_score
-                best_params = {"slope": slope, "offset": offset, "metrics": metrics}
-
-    # --- 4. Report and Plot the Best Result ---
-    if best_params:
-        slope = best_params["slope"]
-        offset = best_params["offset"]
-        intercept_lower = intercept_median - offset
-        intercept_upper = intercept_median + offset
-
-        print("\n--- Grid Search Complete ---")
-        print(f"  - Best Slope (m): {slope:.3E}")
-        print(f"  - Best Offset: {offset:.3f}")
-        print(f"  - Best Score (Acc + Sel): {best_score:.3f}")
-        print("  - Corresponding Metrics:")
-        print(f"    - Accuracy: {best_params['metrics']['Accuracy']:.2%}")
-        print(f"    - Selectivity: {best_params['metrics']['Selectivity']:.2%}")
-        print(f"    - Sensitivity: {best_params['metrics']['Sensitivity']:.2%}")
-
-        # Re-create the best functions and results for plotting
-        best_lower_bound = lambda x: slope * x + intercept_lower
-        best_upper_bound = lambda x: slope * x + intercept_upper
-        final_results = calculate_performance(
-            pfas_df, lipid_df, best_lower_bound, best_upper_bound
-        )
-
-        # Prepare parameters for the plot's equation text
-        model_params = (slope, intercept_lower, intercept_upper, False)
-
-        plot_model_performance(
-            pfas_df,
-            lipid_df,
-            best_lower_bound,
-            best_upper_bound,
-            final_results,
-            "Grid Search Optimized Bounds",
-            model_params=model_params,
-        )
-    else:
-        print("Grid search failed to find any valid parameters.")
-
-
-def optimize_linear_bounds(pfas_df, lipid_df):
-    """
-    Optimizes classification bounds using a parallel-line linear quantile regression model.
-    """
-    print("\n--- Optimizing LINEAR BOUNDS Model (Parallel Gradient) ---")
-
-    # --- 1. Define Model Parameters ---
-    target_col_y = "Mass_Defect_from_Integer"
-    target_col_x = "M-H-"
-    formula = f'{target_col_y} ~ Q("{target_col_x}")'
-
-    # --- 2. Fit Median Regression (q=0.5) to find the central slope ---
-    print(f"Fitting median regression (q=0.5) using formula: {formula}")
-    model_median = smf.quantreg(formula, data=pfas_df)
-    result_median = model_median.fit(q=0.5)
-
-    # Extract the common slope and the median intercept
-    slope = result_median.params[f'Q("{target_col_x}")']
-    intercept_median = result_median.params["Intercept"]
-
-    # --- 3. Calculate Residuals from the Median Line ---
-    predicted_median = slope * pfas_df[target_col_x] + intercept_median
-    residuals = pfas_df[target_col_y] - predicted_median
-
-    # --- 4. Find Percentiles of Residuals to use as offsets ---
-    resid_q05 = residuals.quantile(0.05)
-    resid_q95 = residuals.quantile(0.95)
-
-    # --- 5. Define Final Intercepts for the parallel lines ---
-    intercept_lower = intercept_median + resid_q05
-    intercept_upper = intercept_median + resid_q95
-
-    print("\nOptimal Model Parameters:")
-    print(f"  - Slope (m): {slope:.6E}")
-    print(f"  - Lower Intercept (b_lower): {intercept_lower:.6f}")
-    print(f"  - Upper Intercept (b_upper): {intercept_upper:.6f}")
-
-    # --- 6. Create callable lambda functions for the bounds ---
-    # These functions match the 'is_dynamic' structure in your helper functions
-    lower_bound_func = lambda x: slope * x + intercept_lower
-    upper_bound_func = lambda x: slope * x + intercept_upper
-
-    # --- 7. Evaluate Performance ---
-    print("\nEvaluating linear bounds model...")
-    performance_results = calculate_performance(
-        pfas_df, lipid_df, lower_bound_func, upper_bound_func
-    )
-
-    if performance_results:
-        print("\nPerformance Metrics:")
-        [
-            print(f"  - {key}: {value:.2%}")
-            for key, value in performance_results["metrics"].items()
-        ]
-
-        # --- 8. Generate Plot, passing the model parameters ---
-        print("\nGenerating performance plot for linear bounds model...")
-        model_params = (
-            slope,
-            intercept_lower,
-            intercept_upper,
-            False,
-        )  # log_mode is False
-        plot_model_performance(
-            pfas_df,
-            lipid_df,
-            lower_bound_func,
-            upper_bound_func,
-            performance_results,
-            "Linear Parallel Bounds",
-            model_params=model_params,
-        )
-
-
+# --- MODIFIED: optimize_fixed_bounds now passes the equation text ---
 def optimize_fixed_bounds(pfas_df, lipid_df):
-    """
-    Calculates and evaluates a fixed-bound model using 5th/95th percentiles.
-    """
     print("\n--- Optimizing FIXED BOUNDS Model (Gradient = 0) ---")
     target_col = "Mass_Defect_from_Integer"
     lower_bound = pfas_df[target_col].quantile(0.05)
@@ -454,7 +334,7 @@ def optimize_fixed_bounds(pfas_df, lipid_df):
             lower_bound,
             upper_bound,
             performance_results,
-            "Fixed Bounds",  # This string is used for the dynamic filename
+            "Fixed Bounds",
         )
 
 
@@ -496,26 +376,23 @@ def load_and_merge_data(pfas_path, halogenated_path, lipid_path):
 
 
 def main():
+    # Update the FILES dictionary to include the new library path
     FILES = {
-        "pfas": r"PIMMS v1.2\testing_expanded_library\pfas_processed_with_mass_defect.csv",
+        "pfas": r"PIMMS v1.2\testing_expanded_library\pfas_processed_with_mass_defect.csv",  # <-- IMPORTANT: UPDATE THIS PATH
         "halogenated": r"PIMMS v1.2\testing_expanded_library\halogenated_processed_with_mass_defect.csv",
         "lipids": r"PIMMS v1.2\testing_expanded_library\lipid_processed_with_defect.csv",
     }
-    pfas_data = FILES["pfas"]
-    lipid_data = FILES["lipids"]
-    halogenated_data = FILES["halogenated"]
+
     try:
+        # Use the new function to load and process all data
         positive_data, lipid_data = load_and_merge_data(
             FILES["pfas"], FILES["halogenated"], FILES["lipids"]
         )
 
         if positive_data is not None:
-            # Run the Grid Search to find and plot the best model
-            optimize_grid_search(pfas_data, lipid_data)
-
-            # You can still run your other models for comparison if you like
+            # Pass the combined 'positive_data' dataframe to your models
+            optimize_fixed_bounds(positive_data, lipid_data)
             # optimize_fixed_bounds(positive_data, lipid_data)
-            # optimize_linear_bounds(positive_data, lipid_data)
 
     except Exception as e:
         print(f"\n[ERROR] An unexpected error occurred in main: {e}")
