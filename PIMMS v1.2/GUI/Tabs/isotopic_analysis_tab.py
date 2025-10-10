@@ -258,7 +258,7 @@ class IsotopicAnalysisTab(ttk.Frame):
 
             # Step 3: Calculate the Predicted C/F ratio
             status_update("Calculating Predicted C/F ratio...")
-            grid_path = resource_path("data/kaufman_grid_data.npz")
+            grid_path = resource_path("PIMMS v1.2/data/kaufman_grid_data.npz")
             self.results_df = calculate_and_classify_ratio(analysis_df, grid_path)
 
             # Now, self.results_df contains ALL the data
@@ -283,8 +283,8 @@ class IsotopicAnalysisTab(ttk.Frame):
             # The results_df is already fully processed, so we can use it directly
             fig = create_interactive_figure(
                 self.results_df,
-                resource_path("data/kaufman_contour_boundaries_SMOOTH.csv"),
-                resource_path("data/kaufman_grid_data.npz"),
+                resource_path("PIMMS v1.2/data/kaufman_contour_boundaries_SMOOTH.csv"),
+                resource_path("PIMMS v1.2/data/kaufman_grid_data.npz"),
             )
             if fig:
                 with tempfile.NamedTemporaryFile(

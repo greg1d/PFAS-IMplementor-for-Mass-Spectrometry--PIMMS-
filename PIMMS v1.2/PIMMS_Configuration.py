@@ -2,7 +2,7 @@ import json
 import os
 
 # Assuming you have created 'utils.py' in your 'GUI' folder.
-# This import path works if this Config file is in the project root (PIMMS v1.2/).
+# This import path works if this Config file is in the project root.
 try:
     from GUI.utils import resource_path
 except ImportError:
@@ -21,30 +21,33 @@ class Config:
     """
 
     def __init__(self):
-        # --- File and Directory Paths (UPDATED FOR PACKAGING) ---
-        # NOTE: This assumes you have moved all the following files into your 'data' folder.
+        # --- File and Directory Paths (UPDATED with correct prefix) ---
+        # All input file paths now include the 'PIMMS v1.2' directory prefix.
 
-        # All INPUT files now use resource_path to find them in the 'data' folder.
         self.raw_data_input_location = resource_path(
-            "data/Dummy test blank subtracted data.csv"
+            "PIMMS v1.2/data/Dummy test blank subtracted data.csv"
         )
-        self.standards_file = resource_path("data/MPFAC HIF ES SIL peaks.csv")
+        self.standards_file = resource_path(
+            "PIMMS v1.2/data/MPFAC HIF ES SIL peaks.csv"
+        )
         self.level_2_library = resource_path(
-            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "PIMMS v1.2/data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
-        self.level_5_library = resource_path("data/NORMAN_PFAS_Negative_ESI.csv")
-        self.experimental_filepath = resource_path("data/250918_SealsPIMMS.csv")
+        self.level_5_library = resource_path(
+            "PIMMS v1.2/data/NORMAN_PFAS_Negative_ESI.csv"
+        )
+        self.experimental_filepath = resource_path(
+            "PIMMS v1.2/data/250918_SealsPIMMS.csv"
+        )
         self.library_filepath = resource_path(
-            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "PIMMS v1.2/data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
 
-        # --- VERY IMPORTANT: Do NOT use resource_path for OUTPUT files ---
-        # The output path is for SAVING a new file. We set a default FILENAME here,
-        # and let the GUI's "Save As" dialog handle the full path.
+        # The output path remains unchanged, as it should not use resource_path.
         self.output_path = "PIMMS_output.csv"
 
+        # --- (The rest of the __init__ method is unchanged) ---
         # --- Column Mappings ---
-        # (This section is unchanged)
         self.metadata_mapping = {
             "ID": "A",
             "RT": "B",
@@ -65,20 +68,14 @@ class Config:
         }
         self.level_5_library_mapping = {"Name": "B", "m/z": "AD"}
         self.standards_library_mapping = {"m/z": "C", "CCS": "B"}
-
         # --- Workflow Parameters ---
-        # (This section is unchanged)
         self.blank_subtraction_method = "2"
-
         # --- Tolerances ---
-        # (This section is unchanged)
         self.mass_error_ppm = 15.0
         self.ccs_tolerance = 2.0
         self.rt_tolerance = 0.5
         self.include_rt_scoring = False
-
         # --- Filter Settings ---
-        # (This section is unchanged)
         self.min_intensity = 100
         self.rt_min = 2.0
         self.rt_max = 16.0
@@ -91,7 +88,7 @@ class Config:
         self.ccs_regression_filter = True
         self.repeating_units = {}
 
-        self.load_from_json()  # This method is now updated
+        self.load_from_json()
 
         self.experimental_mapping = {
             "Name": "A",
@@ -105,12 +102,11 @@ class Config:
     def load_from_json(self, filepath=None):
         """
         Loads configuration settings from a JSON file.
-        The path is now resolved using the resource_path helper.
+        The path is now resolved using the resource_path helper with the correct prefix.
         """
-        # If no specific filepath is given, use the default from the data folder.
         if filepath is None:
-            # Assumes you have moved config.json into your 'data' folder.
-            filepath = resource_path("data/config.json")
+            # Assumes config.json is in the 'PIMMS v1.2/data' folder.
+            filepath = resource_path("PIMMS v1.2/data/config.json")
 
         try:
             with open(filepath, "r") as f:
@@ -123,7 +119,6 @@ class Config:
             print(
                 f"[WARNING] Configuration file '{os.path.basename(filepath)}' not found. Using default values."
             )
-            # Define a default in case the file is missing
             self.repeating_units = {"CF2": 49.9968}
         except Exception as e:
             print(f"[ERROR] Failed to load config file: {e}")
