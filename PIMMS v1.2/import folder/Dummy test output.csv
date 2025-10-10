@@ -1,3 +1,0 @@
-Match,Match Source,Classification Type,ID,RT,DT,CCS,m/z,Mass Error (ppm),CCS Error (%),RT Error (abs),Sample 1 ,Sample 2,Sample 3,Detection Frequency (%),Average Abundance
-PFHpA (M-H-CO2),CCS Library,likely,93348.0,9.4,28.48,132.4,318.9798,0.0,0.0,N/A,999879.346158591,9999879.34615859,9999879.34615859,100.0,5249935.0
-PFOA (M-H-CO2),CCS Library,likely,93348.0,9.1,28.48,139.5,368.9766,0.0,0.0,N/A,9879.346158590977,9879.346158590977,9879.346158590977,100.0,7435.0
