@@ -29,6 +29,8 @@ def significant_figures_rounding(df):
     """
     if not isinstance(df, pd.DataFrame) or df.empty:
         return df
+
+    print("df going into the rounding def", df.columns)
     df_rounded = df.copy()
     rounding_rules = {"CCS": 1, "RT": 1, "m/z": 4, "DT": 2}
     for column, places in rounding_rules.items():
@@ -187,9 +189,10 @@ def run_analysis_pipeline(
             experimental_data_df["RT"] = pd.NA
         print(experimental_data_df.columns)
         stacked_df = stack_library_with_adjusted(experimental_data_df, library_data_df)
+        print("Columns after stacking:", stacked_df.columns)
         if stacked_df is None or stacked_df.empty:
             raise ValueError("Data stacking resulted in an empty DataFrame.")
-        print(stacked_df.head())
+
         # --- Step 3: Find Homologous Series ---
         print("\n[Step 3] Finding homologous series...")
         mass_groups = mz_repeating_unit_analysis(
@@ -200,6 +203,7 @@ def run_analysis_pipeline(
         if mass_groups.empty:
             print("[PIPELINE INFO] No initial homologous groups were found.")
             return pd.DataFrame()
+        print("mass groups columns:", mass_groups.columns)
 
         # --- Step 4: Pre-RANSAC Refinement ---
         # This simplified function only checks for well-spaced points.
@@ -211,7 +215,7 @@ def run_analysis_pipeline(
         if refined_groups.empty:
             print("[PIPELINE INFO] No groups remained after pre-RANSAC refinement.")
             return pd.DataFrame()
-
+        print("refined groups columns:", refined_groups.columns)
         # --- Step 5: Run RANSAC Trend Analysis ---
         print("\n[Step 5] Running RANSAC trend analysis on refined groups...")
         average_ccs = refined_groups["CCS"].mean()
@@ -240,7 +244,7 @@ def run_analysis_pipeline(
             min_well_spaced_points=min_valid_points,  # min_valid_points now applies to the final trends
             min_library_points=min_library_points,
         )
-
+        print("final_df columns:", final_df.columns)
         print("\n====== PIPELINE FINISHED SUCCESSFULLY ======")
         return final_df
 

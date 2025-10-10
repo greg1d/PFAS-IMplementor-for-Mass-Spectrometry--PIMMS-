@@ -8,20 +8,18 @@ from creating_single_df import stack_library_with_adjusted
 # --- This is the full, correct function ---
 
 
+# Add these imports if they are not already at the top of your module file
+
+
 def mz_repeating_unit_analysis(
     df, selected_repeating_units, mass_error_ppm=10, min_valid_points=3
 ):
     """
     Identifies homologous series using a graph-based approach.
-
-    Args:
-        df (pd.DataFrame): Input data.
-        selected_repeating_units (dict): Dictionary of repeating units.
-        mass_error_ppm (int): Mass error tolerance.
-        min_valid_points (int): The minimum number of well-spaced points required
-                                to form a valid homologous series.
     """
+    # --- MODIFIED: Added "Name" to the list of required columns ---
     required_cols = [
+        "Name",  # <-- THE FIX IS HERE
         "Classification Type",
         "CCS",
         "RT",
@@ -30,6 +28,13 @@ def mz_repeating_unit_analysis(
         "Average Abundance",
         "Detection Frequency (%)",
     ]
+    # --- End of Modification ---
+
+    # Check if a 'Name' column exists, if not, create a placeholder
+    if "Name" not in df.columns:
+        print("[WARNING] 'Name' column not found. Using placeholders.")
+        df["Name"] = "Unknown"
+
     if not all(col in df.columns for col in required_cols):
         missing = [col for col in required_cols if col not in df.columns]
         print(f"[ERROR] Missing required columns for analysis: {missing}")
@@ -95,6 +100,7 @@ def mz_repeating_unit_analysis(
             continue
 
         group_counter += 1
+        # This line will now correctly include the 'Name' column in the final result
         final_group = group_df_rows[required_cols].copy()
         final_group["GroupID"] = group_counter
         final_group["Repeating Unit"] = list(selected_repeating_units.keys())[0]
