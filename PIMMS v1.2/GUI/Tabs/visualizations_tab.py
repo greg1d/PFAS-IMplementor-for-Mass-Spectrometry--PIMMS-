@@ -54,17 +54,28 @@ class VisualizationsTab(ttk.Frame):
         )
         self.controls.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(10, 0))
 
-        # A separate frame for the Trend Selector dropdown
+        # --- THIS IS THE CORRECT FRAME FOR THE DROPDOWN AND BUTTON ---
         selector_frame = ttk.Labelframe(self, text="Trend Group Viewer")
         selector_frame.pack(fill=tk.X, padx=10, pady=5)
+
         ttk.Label(selector_frame, text="Select Trend to View:").pack(
             side=tk.LEFT, padx=5, pady=5
         )
         self.trend_selector = ttk.Combobox(selector_frame, state="disabled", width=30)
-        self.trend_selector.pack(side=tk.LEFT, padx=5, pady=5)
+        # MODIFIED: Added expand=True, fill=tk.X to ensure button is pushed to the far right
+        self.trend_selector.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5, pady=5)
         self.trend_selector.bind("<<ComboboxSelected>>", self._on_trend_selected)
 
-        # Paned Window for resizable Plot and Table
+        # --- MOVED: The Export button is now created in the correct, visible frame ---
+        self.export_button = ttk.Button(
+            selector_frame,
+            text="Export Full Results...",
+            command=self._export_results,
+            state="disabled",
+        )
+        self.export_button.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        # --- Paned Window for resizable Plot and Table ---
         plot_table_pane = ttk.PanedWindow(self, orient=tk.VERTICAL)
         plot_table_pane.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -73,6 +84,7 @@ class VisualizationsTab(ttk.Frame):
 
         table_frame = ttk.Labelframe(plot_table_pane, text="Selected Trend Data")
         plot_table_pane.add(table_frame, weight=1)
+
         self.tree = ttk.Treeview(table_frame, show="headings")
         vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
         hsb = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
@@ -80,6 +92,37 @@ class VisualizationsTab(ttk.Frame):
         vsb.pack(side="right", fill="y")
         hsb.pack(side="bottom", fill="x")
         self.tree.pack(fill="both", expand=True)
+
+    def _export_results(self):
+        """
+        Opens a 'Save As' dialog and saves the full results DataFrame to a CSV file.
+        """
+        if self.full_results_df is None or self.full_results_df.empty:
+            messagebox.showwarning(
+                "No Data", "There are no analysis results to export."
+            )
+            return
+
+        save_path = filedialog.asksaveasfilename(
+            title="Save Full Results As",
+            filetypes=[("CSV Files", "*.csv")],
+            defaultextension=".csv",
+            initialfile="pfas_analysis_results.csv",  # Suggest a default filename
+        )
+
+        if not save_path:
+            # User cancelled the dialog
+            return
+
+        try:
+            # Use pandas to_csv to save the data; index=False avoids writing row numbers
+            self.full_results_df.to_csv(save_path, index=False)
+            messagebox.showinfo(
+                "Success",
+                f"Results successfully saved to:\n{os.path.basename(save_path)}",
+            )
+        except Exception as e:
+            messagebox.showerror("Save Error", f"Failed to save the file:\n\n{e}")
 
     def _load_defaults(self):
         """Checks the config object for default file paths and loads them."""
@@ -179,8 +222,14 @@ class VisualizationsTab(ttk.Frame):
             self._update_table(None)
 
     def _populate_trend_selector(self):
-        """Populates the trend selector Combobox with trend_group IDs."""
-        if self.full_results_df is not None and not self.full_results_df.empty:
+        """Populates the trend selector Combobox and manages result-dependent widgets."""
+
+        # --- MODIFIED: Check for results once at the top ---
+        has_results = (
+            self.full_results_df is not None and not self.full_results_df.empty
+        )
+
+        if has_results:
             trend_ids = sorted(
                 [g for g in self.full_results_df["trend_group"].unique() if g != -1]
             )
@@ -190,6 +239,10 @@ class VisualizationsTab(ttk.Frame):
             self.trend_selector["values"] = []
             self.trend_selector.set("")
             self.trend_selector.config(state="disabled")
+
+        # --- NEW: Enable or disable the export button based on results ---
+        self.export_button.config(state="normal" if has_results else "disabled")
+        # --- End of New Code ---
 
     def _on_trend_selected(self, event):
         """Called when the user selects a new trend from the Combobox."""
