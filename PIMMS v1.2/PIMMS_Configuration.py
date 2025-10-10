@@ -15,7 +15,7 @@ class Config:
         self.standards_file = "PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.csv"
         self.output_path = "PIMMS v1.2\import folder\Dummy test output.csv"
         self.level_2_library = "PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-        self.level_5_library = "PIMMS v1.2\import folder\Kauffman_M-H_external_PFAS_library_mz_only test.csv"
+        self.level_5_library = r"PIMMS v1.2\import folder\NORMAN_PFAS_Negative_ESI.csv"
         self.experimental_filepath = "PIMMS v1.2\\data\\250918_SealsPIMMS.csv"
         self.library_filepath = "PIMMS v1.2\\import folder\\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
 
@@ -38,7 +38,7 @@ class Config:
             "RT": "F",
             "m/z": "G",
         }
-        self.level_5_library_mapping = {"Name": "A", "m/z": "D"}
+        self.level_5_library_mapping = {"Name": "B", "m/z": "AD"}
         self.standards_library_mapping = {
             "m/z": "C",
             "CCS": "B",
@@ -53,13 +53,13 @@ class Config:
         self.include_rt_scoring = False
 
         # --- Filter Settings ---
-        self.min_intensity = 10.0
+        self.min_intensity = 100
         self.rt_min = 2.0
         self.rt_max = 16.0
         self.mz_min = 100.0
         self.mz_max = 2000.0
-        self.mass_defect_lower = -0.11
-        self.mass_defect_upper = 0.12
+        self.mass_defect_lower = -0.194
+        self.mass_defect_upper = 0.090
         self.frequency_threshold = 15.0
         self.rt_regression_filter = False
         self.ccs_regression_filter = True
