@@ -1,0 +1,3 @@
+  - Slope (m): -1.965068E-04
+  - Lower Intercept (b_lower): -0.166396
+  - Upper Intercept (b_upper): 0.157556
