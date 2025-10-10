@@ -1,4 +1,17 @@
 import json
+import os
+
+# Assuming you have created 'utils.py' in your 'GUI' folder.
+# This import path works if this Config file is in the project root (PIMMS v1.2/).
+try:
+    from GUI.utils import resource_path
+except ImportError:
+    # Fallback for different execution contexts
+    print(
+        "[WARNING] Could not import 'resource_path' helper. Default paths may not work in a packaged app."
+    )
+    # Define a dummy function so the app doesn't crash if the import fails
+    resource_path = lambda x: x
 
 
 class Config:
@@ -8,18 +21,30 @@ class Config:
     """
 
     def __init__(self):
-        # --- File and Directory Paths ---
-        self.raw_data_input_location = (
-            "PIMMS v1.2\data\Dummy test blank subtracted data.csv"
+        # --- File and Directory Paths (UPDATED FOR PACKAGING) ---
+        # NOTE: This assumes you have moved all the following files into your 'data' folder.
+
+        # All INPUT files now use resource_path to find them in the 'data' folder.
+        self.raw_data_input_location = resource_path(
+            "data/Dummy test blank subtracted data.csv"
         )
-        self.standards_file = "PIMMS v1.2\import folder\MPFAC HIF ES SIL peaks.csv"
-        self.output_path = "PIMMS v1.2\import folder\Dummy test output.csv"
-        self.level_2_library = "PIMMS v1.2\import folder\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-        self.level_5_library = r"PIMMS v1.2\import folder\NORMAN_PFAS_Negative_ESI.csv"
-        self.experimental_filepath = "PIMMS v1.2\\data\\250918_SealsPIMMS.csv"
-        self.library_filepath = "PIMMS v1.2\\import folder\\Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        self.standards_file = resource_path("data/MPFAC HIF ES SIL peaks.csv")
+        self.level_2_library = resource_path(
+            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        )
+        self.level_5_library = resource_path("data/NORMAN_PFAS_Negative_ESI.csv")
+        self.experimental_filepath = resource_path("data/250918_SealsPIMMS.csv")
+        self.library_filepath = resource_path(
+            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+        )
+
+        # --- VERY IMPORTANT: Do NOT use resource_path for OUTPUT files ---
+        # The output path is for SAVING a new file. We set a default FILENAME here,
+        # and let the GUI's "Save As" dialog handle the full path.
+        self.output_path = "PIMMS_output.csv"
 
         # --- Column Mappings ---
+        # (This section is unchanged)
         self.metadata_mapping = {
             "ID": "A",
             "RT": "B",
@@ -39,20 +64,21 @@ class Config:
             "m/z": "G",
         }
         self.level_5_library_mapping = {"Name": "B", "m/z": "AD"}
-        self.standards_library_mapping = {
-            "m/z": "C",
-            "CCS": "B",
-        }
+        self.standards_library_mapping = {"m/z": "C", "CCS": "B"}
+
         # --- Workflow Parameters ---
-        self.blank_subtraction_method = "2"  # Default to method 2
+        # (This section is unchanged)
+        self.blank_subtraction_method = "2"
 
         # --- Tolerances ---
+        # (This section is unchanged)
         self.mass_error_ppm = 15.0
         self.ccs_tolerance = 2.0
         self.rt_tolerance = 0.5
         self.include_rt_scoring = False
 
         # --- Filter Settings ---
+        # (This section is unchanged)
         self.min_intensity = 100
         self.rt_min = 2.0
         self.rt_max = 16.0
@@ -63,8 +89,9 @@ class Config:
         self.frequency_threshold = 15.0
         self.rt_regression_filter = False
         self.ccs_regression_filter = True
-        self.repeating_units = {}  # Initialize as empty dictionary
-        self.load_from_json()
+        self.repeating_units = {}
+
+        self.load_from_json()  # This method is now updated
 
         self.experimental_mapping = {
             "Name": "A",
@@ -73,28 +100,28 @@ class Config:
             "RT": "E",
             "ID": "D",
         }
+        self.library_mapping = {"Name": "B", "m/z": "G", "CCS": "E", "RT": "", "ID": ""}
 
-        self.library_mapping = {
-            "Name": "B",
-            "m/z": "G",
-            "CCS": "E",
-            "RT": "",  # Optional, leave blank if not applicable
-            "ID": "",  # Optional, leave blank if not applicable
-        }
+    def load_from_json(self, filepath=None):
+        """
+        Loads configuration settings from a JSON file.
+        The path is now resolved using the resource_path helper.
+        """
+        # If no specific filepath is given, use the default from the data folder.
+        if filepath is None:
+            # Assumes you have moved config.json into your 'data' folder.
+            filepath = resource_path("data/config.json")
 
-    def load_from_json(self, filepath="PIMMS v1.2\GUI\widgets\config.json"):
-        """Loads configuration settings from a JSON file."""
         try:
             with open(filepath, "r") as f:
                 config_data = json.load(f)
-                # Load the repeating units into the config object
                 self.repeating_units = config_data.get("repeating_units", {})
                 print(
-                    f"[INFO] Loaded {len(self.repeating_units)} repeating units from {filepath}."
+                    f"[INFO] Loaded {len(self.repeating_units)} repeating units from {os.path.basename(filepath)}."
                 )
         except FileNotFoundError:
             print(
-                f"[WARNING] Configuration file '{filepath}' not found. Using default values."
+                f"[WARNING] Configuration file '{os.path.basename(filepath)}' not found. Using default values."
             )
             # Define a default in case the file is missing
             self.repeating_units = {"CF2": 49.9968}
