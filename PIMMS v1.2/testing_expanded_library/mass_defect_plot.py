@@ -76,7 +76,7 @@ def plot_model_performance(
         # For the lower bound equation
         ax.text(
             text_x_pos,
-            lower_bound(text_x_pos) + 0.22,
+            lower_bound(text_x_pos),
             eq_lower,
             color="black",
             va="top",
@@ -89,7 +89,7 @@ def plot_model_performance(
         # For the upper bound equation
         ax.text(
             text_x_pos,
-            upper_bound(text_x_pos) + 0.22,
+            upper_bound(text_x_pos),
             eq_upper,
             color="darkred",
             va="bottom",
@@ -197,7 +197,7 @@ def plot_model_performance(
     ax.tick_params(axis="both", which="major", labelsize=8)
     plt.tight_layout()
     plt.savefig(
-        r"PIMMS v1.2\testing_expanded_library\PFAS_performance\fixed_performance.png"
+        r"PIMMS v1.2\testing_expanded_library\halogenated_performance\linear_performance.png"
     )
     plt.show()
 
@@ -317,7 +317,7 @@ def main():
     try:
         pfas_data = pd.read_csv(FILES["pfas"])
         lipid_data = pd.read_csv(FILES["lipids"])
-        optimize_fixed_bounds(pfas_data, lipid_data)
+        optimize_linear_bounds(pfas_data, lipid_data)
     except FileNotFoundError as e:
         print(f"\n[ERROR] File not found: {e}")
     except Exception as e:
