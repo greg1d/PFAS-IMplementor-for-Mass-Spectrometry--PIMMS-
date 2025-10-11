@@ -21,29 +21,25 @@ class Config:
     """
 
     def __init__(self):
-        # --- File and Directory Paths (UPDATED with correct prefix) ---
-        # All input file paths now include the 'PIMMS v1.2' directory prefix.
+        # --- File and Directory Paths (CORRECTED) ---
+        # All paths for bundled data files have had the "PIMMS v1.2/" prefix removed.
+        # The resource_path() function handles finding the correct base directory.
 
         self.raw_data_input_location = resource_path(
-            "PIMMS v1.2/data/Dummy test blank subtracted data.csv"
+            "data/Dummy test blank subtracted data.csv"
         )
-        self.standards_file = resource_path(
-            "PIMMS v1.2/data/MPFAC HIF ES SIL peaks.csv"
-        )
+        self.standards_file = resource_path("data/MPFAC HIF ES SIL peaks.csv")
         self.level_2_library = resource_path(
-            "PIMMS v1.2/data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
-        self.level_5_library = resource_path(
-            "PIMMS v1.2/data/NORMAN_PFAS_Negative_ESI.csv"
-        )
-        self.experimental_filepath = resource_path(
-            "PIMMS v1.2/data/250918_SealsPIMMS.csv"
-        )
+        self.level_5_library = resource_path("data/NORMAN_PFAS_Negative_ESI.csv")
+        self.experimental_filepath = resource_path("data/250918_SealsPIMMS.csv")
         self.library_filepath = resource_path(
-            "PIMMS v1.2/data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
 
-        # The output path remains unchanged, as it should not use resource_path.
+        # CORRECT: The output path is for WRITING a file, so it should NOT use
+        # resource_path. It will be created in the same folder as the .exe.
         self.output_path = "PIMMS_output.csv"
 
         # --- (The rest of the __init__ method is unchanged) ---
@@ -102,11 +98,12 @@ class Config:
     def load_from_json(self, filepath=None):
         """
         Loads configuration settings from a JSON file.
-        The path is now resolved using the resource_path helper with the correct prefix.
+        The path is now resolved using the resource_path helper correctly.
         """
         if filepath is None:
-            # Assumes config.json is in the 'PIMMS v1.2/data' folder.
-            filepath = resource_path("PIMMS v1.2/data/config.json")
+            # CORRECTED: Assumes config.json is in the 'data' folder.
+            # The "PIMMS v1.2/" prefix has been removed.
+            filepath = resource_path("data/config.json")
 
         try:
             with open(filepath, "r") as f:
