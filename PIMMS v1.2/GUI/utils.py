@@ -50,3 +50,20 @@ def setup_user_folders():
     """
     os.makedirs(get_app_path("Raw data"), exist_ok=True)
     os.makedirs(get_app_path("PIMMS output"), exist_ok=True)
+
+
+def format_display_path(full_path):
+    """
+    Formats a long temporary path for user-friendly display.
+    Shows '...' followed by the last two parts of the path.
+    """
+    try:
+        # os.path.normpath cleans up slashes for consistency
+        parts = os.path.normpath(full_path).split(os.sep)
+        # For example, show ".../Import libraries/file.csv"
+        if len(parts) > 2:
+            return f"...{os.sep}{parts[-2]}{os.sep}{parts[-1]}"
+        else:
+            return full_path  # Return as is if path is already short
+    except Exception:
+        return full_path  # Fallback in case of an error

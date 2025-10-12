@@ -8,13 +8,15 @@ from tkinter import messagebox, ttk
 from PIMMS_Configuration import Config
 from PIMMS_Workflow_Logic import run_pimms_workflow
 
+from GUI.utils import resource_path  # Make sure this import exists
+
 # --- GUI Component Imports ---
 from .Tabs.files_tab import FilesTab
+from .Tabs.isotopic_analysis_tab import IsotopicAnalysisTab  # <-- 1. ADD THIS IMPORT
 from .Tabs.mapping_tab import MappingTab
 from .Tabs.params_tab import ParamsTab
 from .Tabs.run_tab import RunTab
 from .Tabs.visualizations_tab import VisualizationsTab
-from .Tabs.isotopic_analysis_tab import IsotopicAnalysisTab  # <-- 1. ADD THIS IMPORT
 
 
 class PimmsGUI(tk.Tk):
@@ -22,7 +24,16 @@ class PimmsGUI(tk.Tk):
         super().__init__()
         self.title("PIMMS v1.2")
         self.geometry("1200x800")
-
+        # --- THIS IS THE NEW CODE TO ADD ---
+        try:
+            # Set the window icon using the resource_path helper
+            icon_path = resource_path("Icon/PIMMS_icon.ico")
+            self.iconbitmap(icon_path)
+        except tk.TclError:
+            print(
+                "[WARNING] Could not load application icon. The .ico file may be missing."
+            )
+        # --- END OF NEW CODE ---
         # The Config object acts as the central data model
         self.config = Config()
 
