@@ -25,12 +25,12 @@ class Config:
         # All paths for bundled data files have had the "PIMMS v1.2/" prefix removed.
         # The resource_path() function handles finding the correct base directory.
 
-        self.raw_data_input_location = resource_path("D")
+        self.raw_data_input_location = resource_path("")
         self.standards_file = resource_path(
             "Import libraries/Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
         )
         self.level_2_library = resource_path(
-            "Import libraries/Level 2 LibraryBaker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "Import libraries/Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
         self.level_5_library = resource_path(
             "Import libraries/Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
@@ -40,9 +40,7 @@ class Config:
             "Import libraries/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
 
-        # CORRECT: The output path is for WRITING a file, so it should NOT use
-        # resource_path. It will be created in the same folder as the .exe.
-        self.output_path = "PIMMS output\PIMMS report.csv"
+        self.output_path = resource_path("")
 
         # --- (The rest of the __init__ method is unchanged) ---
         # --- Column Mappings ---
