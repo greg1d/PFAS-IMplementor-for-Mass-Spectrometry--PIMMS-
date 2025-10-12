@@ -1,17 +1,15 @@
 import json
 import os
 
-# Assuming you have created 'utils.py' in your 'GUI' folder.
-# This import path works if this Config file is in the project root.
+# Import both helper functions from your utils file.
 try:
-    from GUI.utils import resource_path
+    from GUI.utils import get_app_path, resource_path
 except ImportError:
     # Fallback for different execution contexts
-    print(
-        "[WARNING] Could not import 'resource_path' helper. Default paths may not work in a packaged app."
-    )
-    # Define a dummy function so the app doesn't crash if the import fails
+    print("[WARNING] Could not import helper functions. Paths may not work correctly.")
+    # Define dummy functions so the app doesn't crash if the import fails
     resource_path = lambda x: x
+    get_app_path = lambda x: x
 
 
 class Config:
@@ -22,25 +20,31 @@ class Config:
 
     def __init__(self):
         # --- File and Directory Paths (CORRECTED) ---
-        # All paths for bundled data files have had the "PIMMS v1.2/" prefix removed.
-        # The resource_path() function handles finding the correct base directory.
 
-        self.raw_data_input_location = resource_path("")
+        # Use resource_path() for BUNDLED LIBRARIES that are read-only.
+        # These paths are relative to the project root.
         self.standards_file = resource_path(
-            "Import libraries/Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
+            "PIMMS v1.2/Import libraries/Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
         )
         self.level_2_library = resource_path(
-            "Import libraries/Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "PIMMS v1.2/Import libraries/Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
         self.level_5_library = resource_path(
-            "Import libraries/Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
+            "PIMMS v1.2/Import libraries/Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
         )
-        self.experimental_filepath = resource_path("")
+        # Assuming this is the same as the level 2 library for default purposes
         self.library_filepath = resource_path(
-            "Import libraries/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "PIMMS v1.2/Import libraries/Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
 
-        self.output_path = resource_path("")
+        # Use get_app_path() for USER-FACING files that are read from or written to.
+        # These paths will be in folders next to the final .exe.
+        # It's best to start with these empty and let the user select them.
+        self.raw_data_input_location = ""
+        self.experimental_filepath = ""
+
+        # The default output path should be in the user's output folder.
+        self.output_path = get_app_path("PIMMS v1.2/PIMMS output/PIMMS_output.csv")
 
         # --- (The rest of the __init__ method is unchanged) ---
         # --- Column Mappings ---
@@ -97,11 +101,11 @@ class Config:
 
     def load_from_json(self, filepath=None):
         """
-        Loads configuration settings from a JSON file.
-        The path is now resolved using the resource_path helper correctly.
+        Loads configuration settings from a JSON file that is bundled with the app.
         """
         if filepath is None:
-            filepath = resource_path("modules/config.json")
+            # The config file is bundled inside the app, so use resource_path.
+            filepath = resource_path("PIMMS v1.2/modules/config.json")
 
         try:
             with open(filepath, "r") as f:

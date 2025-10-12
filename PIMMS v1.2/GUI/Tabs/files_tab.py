@@ -1,9 +1,12 @@
 # gui/tabs/files_tab.py
 
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import filedialog, ttk
 
-# --- NEW: Import the Tooltip class ---
+from ..utils import format_display_path
+
+# --- SECTION 1: MODIFIED ---
+# Import the new formatting function alongside the tooltip
 from ..widgets.tooltip import Tooltip
 
 
@@ -24,7 +27,6 @@ class FilesTab(ttk.Frame):
             "Output Report Path": "output_path",
         }
 
-        # --- NEW: Define help texts for each entry ---
         help_texts = {
             "raw_data_input_location": "CSV file containing the feature list you wish to process. This file should include columns for row ID, m/z, RT, ID, CCS, and intensity. Column mappings selected on the 'Column Mappings' tab.",
             "standards_file": "Select a CSV file that lists the internal standards (e.g., by name or mass) that should be removed during processing.",
@@ -33,13 +35,10 @@ class FilesTab(ttk.Frame):
             "output_path": "Specify the location and name for the final output report file. This will be created or overwritten.",
         }
 
-        # --- MODIFIED: Loop now also gets the help text ---
         for i, (text, key) in enumerate(file_options.items()):
             help_text = help_texts.get(key, "No details available.")
-            # Pass the help_text to the creation function
             self._create_file_input(self, text, key, i, help_text)
 
-    # --- MODIFIED: Method now accepts 'help_text' ---
     def _create_file_input(self, parent, label_text, config_key, row, help_text):
         """Helper to create a label, entry, browse button, and help icon row."""
         ttk.Label(parent, text=label_text + ":").grid(
@@ -47,10 +46,15 @@ class FilesTab(ttk.Frame):
         )
         entry = ttk.Entry(parent, width=70)
 
+        # --- SECTION 2: MODIFIED ---
+        # Get the full path from the config, but format it for display.
         default_val = getattr(self.config, config_key, "")
         if isinstance(default_val, list):
             default_val = default_val[0] if default_val else ""
-        entry.insert(0, default_val)
+
+        display_val = format_display_path(default_val)
+        entry.insert(0, display_val)
+        # --- End of modification ---
 
         entry.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
         self.file_path_entries[config_key] = entry
@@ -62,12 +66,10 @@ class FilesTab(ttk.Frame):
         )
         browse_button.grid(row=row, column=2, padx=5, pady=5)
 
-        # --- NEW: Add a help icon with a tooltip ---
         help_label = ttk.Label(parent, text=" (?) ", cursor="question_arrow")
         help_label.grid(row=row, column=3, padx=(0, 5), pady=5, sticky="w")
-        Tooltip(help_label, text=help_text)  # Attach the tooltip to this label
+        Tooltip(help_label, text=help_text)
 
-        # Configure the column containing the entry to expand
         parent.grid_columnconfigure(1, weight=1)
 
     def _browse_file(self, entry, key):
@@ -86,4 +88,10 @@ class FilesTab(ttk.Frame):
     def update_config(self, config_obj):
         """Updates the main config object with values from this tab."""
         for key, entry in self.file_path_entries.items():
-            setattr(config_obj, key, entry.get())
+            path_from_entry = entry.get()
+            # If the path in the widget starts with "...", it's our formatted
+            # display path. This means the user hasn't changed it, so we should
+            # NOT update the config object, as it already holds the correct full path.
+            # We only update the config if the path is a new, user-selected one.
+            if not path_from_entry.startswith("..."):
+                setattr(config_obj, key, path_from_entry)
