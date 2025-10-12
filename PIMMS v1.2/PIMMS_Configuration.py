@@ -22,19 +22,20 @@ class Config:
         # --- File and Directory Paths (CORRECTED) ---
 
         # Use resource_path() for BUNDLED LIBRARIES that are read-only.
-        # These paths are relative to the project root.
+        # These paths are relative to the project root and use raw strings (r"...")
+        # to handle backslashes correctly.
         self.standards_file = resource_path(
-            "PIMMS v1.2/Import libraries/Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
+            r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
         )
         self.level_2_library = resource_path(
-            "PIMMS v1.2/Import libraries/Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            r"Import libraries\Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
         self.level_5_library = resource_path(
-            "PIMMS v1.2/Import libraries/Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
+            r"Import libraries\Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
         )
         # Assuming this is the same as the level 2 library for default purposes
         self.library_filepath = resource_path(
-            "PIMMS v1.2/Import libraries/Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            r"Import libraries\Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
 
         # Use get_app_path() for USER-FACING files that are read from or written to.
@@ -43,8 +44,8 @@ class Config:
         self.raw_data_input_location = ""
         self.experimental_filepath = ""
 
-        # The default output path should be in the user's output folder.
-        self.output_path = get_app_path("PIMMS v1.2/PIMMS output/PIMMS_output.csv")
+        # The default output path should be a full path in the user's output folder.
+        self.output_path = get_app_path(r"PIMMS output\PIMMS_output.csv")
 
         # --- (The rest of the __init__ method is unchanged) ---
         # --- Column Mappings ---
@@ -104,8 +105,9 @@ class Config:
         Loads configuration settings from a JSON file that is bundled with the app.
         """
         if filepath is None:
-            # The config file is bundled inside the app, so use resource_path.
-            filepath = resource_path("PIMMS v1.2/modules/config.json")
+            # The config file is bundled, so use resource_path with a raw string.
+            # The "PIMMS v1.2" prefix has been correctly removed.
+            filepath = resource_path(r"modules\config.json")
 
         try:
             with open(filepath, "r") as f:
