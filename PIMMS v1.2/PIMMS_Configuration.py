@@ -25,22 +25,24 @@ class Config:
         # All paths for bundled data files have had the "PIMMS v1.2/" prefix removed.
         # The resource_path() function handles finding the correct base directory.
 
-        self.raw_data_input_location = resource_path(
-            "data/Dummy test blank subtracted data.csv"
+        self.raw_data_input_location = resource_path("D")
+        self.standards_file = resource_path(
+            "Import libraries/Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
         )
-        self.standards_file = resource_path("data/MPFAC HIF ES SIL peaks.csv")
         self.level_2_library = resource_path(
-            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "Import libraries/Level 2 LibraryBaker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
-        self.level_5_library = resource_path("data/NORMAN_PFAS_Negative_ESI.csv")
-        self.experimental_filepath = resource_path("data/250918_SealsPIMMS.csv")
+        self.level_5_library = resource_path(
+            "Import libraries/Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
+        )
+        self.experimental_filepath = resource_path("")
         self.library_filepath = resource_path(
-            "data/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            "Import libraries/Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
         )
 
         # CORRECT: The output path is for WRITING a file, so it should NOT use
         # resource_path. It will be created in the same folder as the .exe.
-        self.output_path = "PIMMS_output.csv"
+        self.output_path = "PIMMS output\PIMMS report.csv"
 
         # --- (The rest of the __init__ method is unchanged) ---
         # --- Column Mappings ---
@@ -51,10 +53,10 @@ class Config:
             "CCS": "D",
             "m/z": "E",
         }
-        self.control_start_col = "I"
-        self.control_end_col = "K"
-        self.experimental_start_col = "F"
-        self.experimental_end_col = "H"
+        self.control_start_col = ""
+        self.control_end_col = ""
+        self.experimental_start_col = ""
+        self.experimental_end_col = ""
         self.level_2_library_mapping = {
             "Name": "B",
             "Adduct": "D",
@@ -101,9 +103,7 @@ class Config:
         The path is now resolved using the resource_path helper correctly.
         """
         if filepath is None:
-            # CORRECTED: Assumes config.json is in the 'data' folder.
-            # The "PIMMS v1.2/" prefix has been removed.
-            filepath = resource_path("data/config.json")
+            filepath = resource_path("modules/config.json")
 
         try:
             with open(filepath, "r") as f:
