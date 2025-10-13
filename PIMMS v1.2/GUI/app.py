@@ -3,6 +3,7 @@
 import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
+import os
 
 # --- Project Imports ---
 from PIMMS_Configuration import Config
@@ -26,13 +27,10 @@ class PimmsGUI(tk.Tk):
         self.geometry("1200x800")
         # --- THIS IS THE NEW CODE TO ADD ---
         try:
-            # Set the window icon using the resource_path helper
-            icon_path = resource_path("Icon/PIMMS_icon.ico")
-            self.iconbitmap(icon_path)
-        except tk.TclError:
-            print(
-                "[WARNING] Could not load application icon. The .ico file may be missing."
-            )
+            icon_path = resource_path(os.path.join("Icon", "PIMMS_icon.ico"))
+            self.iconbitmap(default=icon_path)
+        except Exception:
+            print("[WARNING] Could not load window icon.")
         # --- END OF NEW CODE ---
         # The Config object acts as the central data model
         self.config = Config()
