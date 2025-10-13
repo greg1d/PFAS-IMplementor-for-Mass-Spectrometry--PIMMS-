@@ -29,14 +29,18 @@ class Config:
         self.import_libraries_folder = os.path.join(self.pimms_root, "Import libraries")
         self.output_folder = os.path.join(self.pimms_root, "PIMMS output")
         self.cef_data_folder = os.path.join(self.pimms_root, "CEF_data")
+        self.training_cef_folder = os.path.join(
+            self.cef_data_folder, "Training CEF data"
+        )
 
         # === Create the Folder Structure ===
         os.makedirs(self.raw_data_folder, exist_ok=True)
         os.makedirs(self.import_libraries_folder, exist_ok=True)
         os.makedirs(self.output_folder, exist_ok=True)
         os.makedirs(self.cef_data_folder, exist_ok=True)
+        os.makedirs(self.training_cef_folder, exist_ok=True)
 
-        # === Define Bundled Library Sources (use resource_path for bundled resources) ===
+        # === Copy default library CSV files to Import libraries ===
         bundled_files = {
             "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv": resource_path(
                 r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
@@ -49,7 +53,6 @@ class Config:
             ),
         }
 
-        # === Copy Default Library Files to Documents\PIMMS\Import libraries if missing ===
         for filename, src_path in bundled_files.items():
             dest_path = os.path.join(self.import_libraries_folder, filename)
             try:
@@ -66,7 +69,7 @@ class Config:
             except Exception as e:
                 print(f"[WARNING] Failed to copy {filename}: {e}")
 
-        # === Copy bundled .cef files into Documents\PIMMS\CEF_data if missing ===
+        # === Copy .CEF files to Training CEF data folder ===
         try:
             bundled_cef_dir = resource_path(r"CEF_reading")
         except Exception:
@@ -77,29 +80,40 @@ class Config:
             and os.path.exists(bundled_cef_dir)
             and os.path.isdir(bundled_cef_dir)
         ):
-            try:
-                for fname in os.listdir(bundled_cef_dir):
-                    if fname.lower().endswith(".cef"):
-                        src = os.path.join(bundled_cef_dir, fname)
-                        dest = os.path.join(self.cef_data_folder, fname)
-                        try:
-                            if os.path.isfile(src) and not os.path.exists(dest):
-                                shutil.copy2(src, dest)
-                                print(f"[INFO] Copied CEF: '{fname}' → {dest}")
-                            elif os.path.exists(dest):
-                                print(
-                                    f"[INFO] CEF already present: '{fname}' — not overwritten."
-                                )
-                        except Exception as e:
-                            print(f"[WARNING] Could not copy CEF file '{fname}': {e}")
-            except Exception as e:
-                print(
-                    f"[WARNING] Could not enumerate bundled CEF directory '{bundled_cef_dir}': {e}"
-                )
+            for fname in os.listdir(bundled_cef_dir):
+                if fname.lower().endswith(".cef"):
+                    src = os.path.join(bundled_cef_dir, fname)
+                    dest = os.path.join(self.training_cef_folder, fname)
+                    try:
+                        if os.path.isfile(src) and not os.path.exists(dest):
+                            shutil.copy2(src, dest)
+                            print(f"[INFO] Copied CEF: '{fname}' → {dest}")
+                        elif os.path.exists(dest):
+                            print(
+                                f"[INFO] CEF already present: '{fname}' — not overwritten."
+                            )
+                    except Exception as e:
+                        print(f"[WARNING] Could not copy CEF file '{fname}': {e}")
         else:
             print(
                 f"[INFO] No bundled CEF_reading directory found at: {bundled_cef_dir}"
             )
+
+        # === Copy NIST SRM raw data to Raw Data folder ===
+        try:
+            nist_src = resource_path(r"Raw data\NIST_SRM_Profiler_raw_data.csv")
+            nist_dest = os.path.join(
+                self.raw_data_folder, "Training raw data (NIST SRM 1957).csv"
+            )
+            if os.path.exists(nist_src) and not os.path.exists(nist_dest):
+                shutil.copy2(nist_src, nist_dest)
+                print(f"[INFO] Copied NIST SRM raw data → {nist_dest}")
+            else:
+                print(
+                    f"[INFO] NIST SRM raw data already exists or source missing → {nist_dest}"
+                )
+        except Exception as e:
+            print(f"[WARNING] Could not copy NIST SRM raw data: {e}")
 
         # === ALWAYS point to the user's copies for imports ===
         self.standards_file = os.path.join(
@@ -115,7 +129,7 @@ class Config:
         )
         self.library_filepath = self.level_2_library  # Default import target
 
-        # === Input / Output Paths (now empty by default) ===
+        # === Input / Output Paths (empty by default) ===
         self.raw_data_input_location = ""
         self.experimental_filepath = ""
         self.output_path = ""
