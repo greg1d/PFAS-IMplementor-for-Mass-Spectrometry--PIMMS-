@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from tkinter import filedialog, ttk
-
+import os
 from ..utils import format_display_path
 
 # --- SECTION 1: MODIFIED ---
@@ -74,24 +74,23 @@ class FilesTab(ttk.Frame):
 
     def _browse_file(self, entry, key):
         """Handles the file dialog logic for the browse buttons."""
+        # Default browse location: user's Documents folder
+        user_documents = os.path.join(os.path.expanduser("~"), "Documents", "PIMMS")
+
         if "output" in key:
             filename = filedialog.asksaveasfilename(
-                defaultextension=".csv", filetypes=[("CSV files", "*.csv")]
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv")],
+                initialdir=user_documents,
+                title="Select output file location",
             )
         else:
-            filename = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+            filename = filedialog.askopenfilename(
+                filetypes=[("CSV files", "*.csv")],
+                initialdir=user_documents,
+                title="Select input file",
+            )
 
         if filename:
             entry.delete(0, tk.END)
             entry.insert(0, filename)
-
-    def update_config(self, config_obj):
-        """Updates the main config object with values from this tab."""
-        for key, entry in self.file_path_entries.items():
-            path_from_entry = entry.get()
-            # If the path in the widget starts with "...", it's our formatted
-            # display path. This means the user hasn't changed it, so we should
-            # NOT update the config object, as it already holds the correct full path.
-            # We only update the config if the path is a new, user-selected one.
-            if not path_from_entry.startswith("..."):
-                setattr(config_obj, key, path_from_entry)

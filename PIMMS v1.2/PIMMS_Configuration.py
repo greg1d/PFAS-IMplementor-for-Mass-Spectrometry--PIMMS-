@@ -14,8 +14,8 @@ except ImportError:
 class Config:
     """
     Central configuration for PIMMS workflow.
-    Automatically sets up a Documents/PIMMS directory structure on first run
-    and copies default library files there for user access.
+    Automatically sets up a Documents/PIMMS directory structure on first run,
+    copies default library files there for user access, and reads from them by default.
     """
 
     def __init__(self):
@@ -27,13 +27,15 @@ class Config:
         self.raw_data_folder = os.path.join(self.pimms_root, "Raw Data")
         self.import_libraries_folder = os.path.join(self.pimms_root, "Import libraries")
         self.output_folder = os.path.join(self.pimms_root, "PIMMS output")
+        self.cef_data_folder = os.path.join(self.pimms_root, "CEF_data")  # NEW FOLDER
 
         # === Create the Folder Structure ===
         os.makedirs(self.raw_data_folder, exist_ok=True)
         os.makedirs(self.import_libraries_folder, exist_ok=True)
         os.makedirs(self.output_folder, exist_ok=True)
+        os.makedirs(self.cef_data_folder, exist_ok=True)  # CREATE NEW FOLDER
 
-        # === Define Bundled (read-only) Library Source Files ===
+        # === Define Bundled Library Sources ===
         bundled_files = {
             "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv": resource_path(
                 r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
@@ -46,21 +48,19 @@ class Config:
             ),
         }
 
-        # === Copy Files to User's Import libraries Folder if Missing ===
+        # === Copy Default Library Files to Documents\PIMMS ===
         for filename, src_path in bundled_files.items():
             dest_path = os.path.join(self.import_libraries_folder, filename)
             try:
                 if not os.path.exists(dest_path):
                     shutil.copy2(src_path, dest_path)
-                    print(
-                        f"[INFO] Copied '{filename}' to {self.import_libraries_folder}"
-                    )
+                    print(f"[INFO] Copied '{filename}' → {dest_path}")
                 else:
-                    print(f"[INFO] '{filename}' already exists — not overwritten.")
+                    print(f"[INFO] '{filename}' already exists — using user copy.")
             except Exception as e:
                 print(f"[WARNING] Failed to copy {filename}: {e}")
 
-        # === Now point the Config paths to the user's copies ===
+        # === ALWAYS point to the user's copies for imports ===
         self.standards_file = os.path.join(
             self.import_libraries_folder,
             "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv",
@@ -70,10 +70,9 @@ class Config:
             "Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv",
         )
         self.level_5_library = os.path.join(
-            self.import_libraries_folder,
-            "Level 5 Library NORMAN_PFAS_Negative_ESI.csv",
+            self.import_libraries_folder, "Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
         )
-        self.library_filepath = self.level_2_library  # default
+        self.library_filepath = self.level_2_library  # Default import target
 
         # === Input / Output Paths ===
         self.raw_data_input_location = self.raw_data_folder
