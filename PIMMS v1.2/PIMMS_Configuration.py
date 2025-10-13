@@ -1,54 +1,88 @@
 import json
 import os
+import shutil
 
-# Import both helper functions from your utils file.
+# Import helper functions
 try:
     from GUI.utils import get_app_path, resource_path
 except ImportError:
-    # Fallback for different execution contexts
     print("[WARNING] Could not import helper functions. Paths may not work correctly.")
-    # Define dummy functions so the app doesn't crash if the import fails
     resource_path = lambda x: x
     get_app_path = lambda x: x
 
 
 class Config:
     """
-    A centralized configuration class to hold all parameters for the PIMMS workflow.
-    This object is populated by the GUI and passed to the workflow function.
+    Central configuration for PIMMS workflow.
+    Automatically sets up a Documents/PIMMS directory structure on first run
+    and copies default library files there for user access.
     """
 
     def __init__(self):
-        # --- File and Directory Paths (CORRECTED) ---
+        # === Locate User Documents Folder ===
+        self.user_documents = os.path.join(os.path.expanduser("~"), "Documents")
 
-        # Use resource_path() for BUNDLED LIBRARIES that are read-only.
-        # These paths are relative to the project root and use raw strings (r"...")
-        # to handle backslashes correctly.
-        self.standards_file = resource_path(
-            r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
-        )
-        self.level_2_library = resource_path(
-            r"Import libraries\Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-        )
-        self.level_5_library = resource_path(
-            r"Import libraries\Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
-        )
-        # Assuming this is the same as the level 2 library for default purposes
-        self.library_filepath = resource_path(
-            r"Import libraries\Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
-        )
+        # === Define Folder Structure ===
+        self.pimms_root = os.path.join(self.user_documents, "PIMMS")
+        self.raw_data_folder = os.path.join(self.pimms_root, "Raw Data")
+        self.import_libraries_folder = os.path.join(self.pimms_root, "Import libraries")
+        self.output_folder = os.path.join(self.pimms_root, "PIMMS output")
 
-        # Use get_app_path() for USER-FACING files that are read from or written to.
-        # These paths will be in folders next to the final .exe.
-        # It's best to start with these empty and let the user select them.
-        self.raw_data_input_location = ""
-        self.experimental_filepath = ""
+        # === Create the Folder Structure ===
+        os.makedirs(self.raw_data_folder, exist_ok=True)
+        os.makedirs(self.import_libraries_folder, exist_ok=True)
+        os.makedirs(self.output_folder, exist_ok=True)
 
-        # The default output path should be a full path in the user's output folder.
-        self.output_path = get_app_path(r"PIMMS output\PIMMS_output.csv")
+        # === Define Bundled (read-only) Library Source Files ===
+        bundled_files = {
+            "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv": resource_path(
+                r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
+            ),
+            "Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv": resource_path(
+                r"Import libraries\Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+            ),
+            "Level 5 Library NORMAN_PFAS_Negative_ESI.csv": resource_path(
+                r"Import libraries\Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
+            ),
+        }
 
-        # --- (The rest of the __init__ method is unchanged) ---
-        # --- Column Mappings ---
+        # === Copy Files to User's Import libraries Folder if Missing ===
+        for filename, src_path in bundled_files.items():
+            dest_path = os.path.join(self.import_libraries_folder, filename)
+            try:
+                if not os.path.exists(dest_path):
+                    shutil.copy2(src_path, dest_path)
+                    print(
+                        f"[INFO] Copied '{filename}' to {self.import_libraries_folder}"
+                    )
+                else:
+                    print(f"[INFO] '{filename}' already exists — not overwritten.")
+            except Exception as e:
+                print(f"[WARNING] Failed to copy {filename}: {e}")
+
+        # === Now point the Config paths to the user's copies ===
+        self.standards_file = os.path.join(
+            self.import_libraries_folder,
+            "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv",
+        )
+        self.level_2_library = os.path.join(
+            self.import_libraries_folder,
+            "Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv",
+        )
+        self.level_5_library = os.path.join(
+            self.import_libraries_folder,
+            "Level 5 Library NORMAN_PFAS_Negative_ESI.csv",
+        )
+        self.library_filepath = self.level_2_library  # default
+
+        # === Input / Output Paths ===
+        self.raw_data_input_location = self.raw_data_folder
+        self.experimental_filepath = os.path.join(
+            self.raw_data_folder, "Experimental Data.csv"
+        )
+        self.output_path = os.path.join(self.output_folder, "PIMMS_output.csv")
+
+        # === Column Mappings ===
         self.metadata_mapping = {
             "ID": "A",
             "RT": "B",
@@ -69,14 +103,17 @@ class Config:
         }
         self.level_5_library_mapping = {"Name": "B", "m/z": "AD"}
         self.standards_library_mapping = {"m/z": "C", "CCS": "B"}
-        # --- Workflow Parameters ---
+
+        # === Workflow Parameters ===
         self.blank_subtraction_method = "2"
-        # --- Tolerances ---
+
+        # === Tolerances ===
         self.mass_error_ppm = 15.0
         self.ccs_tolerance = 2.0
         self.rt_tolerance = 0.5
         self.include_rt_scoring = False
-        # --- Filter Settings ---
+
+        # === Filter Settings ===
         self.min_intensity = 100
         self.rt_min = 2.0
         self.rt_max = 16.0
@@ -89,8 +126,10 @@ class Config:
         self.ccs_regression_filter = True
         self.repeating_units = {}
 
+        # Load repeating units from JSON config if present
         self.load_from_json()
 
+        # === Experimental & Library Mapping ===
         self.experimental_mapping = {
             "Name": "A",
             "m/z": "H",
@@ -101,12 +140,8 @@ class Config:
         self.library_mapping = {"Name": "B", "m/z": "G", "CCS": "E", "RT": "", "ID": ""}
 
     def load_from_json(self, filepath=None):
-        """
-        Loads configuration settings from a JSON file that is bundled with the app.
-        """
+        """Load repeating units from config.json."""
         if filepath is None:
-            # The config file is bundled, so use resource_path with a raw string.
-            # The "PIMMS v1.2" prefix has been correctly removed.
             filepath = resource_path(r"modules\config.json")
 
         try:
@@ -118,7 +153,7 @@ class Config:
                 )
         except FileNotFoundError:
             print(
-                f"[WARNING] Configuration file '{os.path.basename(filepath)}' not found. Using default values."
+                f"[WARNING] Configuration file '{os.path.basename(filepath)}' not found. Using default repeating units."
             )
             self.repeating_units = {"CF2": 49.9968}
         except Exception as e:
