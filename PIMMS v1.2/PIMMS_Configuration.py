@@ -14,8 +14,9 @@ except ImportError:
 class Config:
     """
     Central configuration for PIMMS workflow.
-    Automatically sets up a Documents/PIMMS directory structure on first run,
-    copies default library files there for user access, and reads from them by default.
+    Sets up Documents\PIMMS folder structure on first run,
+    copies default library .csv files and bundled .cef files into user-accessible locations,
+    and points config attributes to the user's copies by default.
     """
 
     def __init__(self):
@@ -27,15 +28,15 @@ class Config:
         self.raw_data_folder = os.path.join(self.pimms_root, "Raw Data")
         self.import_libraries_folder = os.path.join(self.pimms_root, "Import libraries")
         self.output_folder = os.path.join(self.pimms_root, "PIMMS output")
-        self.cef_data_folder = os.path.join(self.pimms_root, "CEF_data")  # NEW FOLDER
+        self.cef_data_folder = os.path.join(self.pimms_root, "CEF_data")
 
         # === Create the Folder Structure ===
         os.makedirs(self.raw_data_folder, exist_ok=True)
         os.makedirs(self.import_libraries_folder, exist_ok=True)
         os.makedirs(self.output_folder, exist_ok=True)
-        os.makedirs(self.cef_data_folder, exist_ok=True)  # CREATE NEW FOLDER
+        os.makedirs(self.cef_data_folder, exist_ok=True)
 
-        # === Define Bundled Library Sources ===
+        # === Define Bundled Library Sources (use resource_path for bundled resources) ===
         bundled_files = {
             "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv": resource_path(
                 r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
@@ -48,17 +49,57 @@ class Config:
             ),
         }
 
-        # === Copy Default Library Files to Documents\PIMMS ===
+        # === Copy Default Library Files to Documents\PIMMS\Import libraries if missing ===
         for filename, src_path in bundled_files.items():
             dest_path = os.path.join(self.import_libraries_folder, filename)
             try:
                 if not os.path.exists(dest_path):
-                    shutil.copy2(src_path, dest_path)
-                    print(f"[INFO] Copied '{filename}' → {dest_path}")
+                    if os.path.exists(src_path):
+                        shutil.copy2(src_path, dest_path)
+                        print(f"[INFO] Copied '{filename}' → {dest_path}")
+                    else:
+                        print(
+                            f"[WARNING] Bundled file missing: {src_path} (could not copy {filename})."
+                        )
                 else:
                     print(f"[INFO] '{filename}' already exists — using user copy.")
             except Exception as e:
                 print(f"[WARNING] Failed to copy {filename}: {e}")
+
+        # === Copy bundled .cef files into Documents\PIMMS\CEF_data if missing ===
+        try:
+            bundled_cef_dir = resource_path(r"CEF_reading")
+        except Exception:
+            bundled_cef_dir = None
+
+        if (
+            bundled_cef_dir
+            and os.path.exists(bundled_cef_dir)
+            and os.path.isdir(bundled_cef_dir)
+        ):
+            try:
+                for fname in os.listdir(bundled_cef_dir):
+                    if fname.lower().endswith(".cef"):
+                        src = os.path.join(bundled_cef_dir, fname)
+                        dest = os.path.join(self.cef_data_folder, fname)
+                        try:
+                            if os.path.isfile(src) and not os.path.exists(dest):
+                                shutil.copy2(src, dest)
+                                print(f"[INFO] Copied CEF: '{fname}' → {dest}")
+                            elif os.path.exists(dest):
+                                print(
+                                    f"[INFO] CEF already present: '{fname}' — not overwritten."
+                                )
+                        except Exception as e:
+                            print(f"[WARNING] Could not copy CEF file '{fname}': {e}")
+            except Exception as e:
+                print(
+                    f"[WARNING] Could not enumerate bundled CEF directory '{bundled_cef_dir}': {e}"
+                )
+        else:
+            print(
+                f"[INFO] No bundled CEF_reading directory found at: {bundled_cef_dir}"
+            )
 
         # === ALWAYS point to the user's copies for imports ===
         self.standards_file = os.path.join(
@@ -74,12 +115,10 @@ class Config:
         )
         self.library_filepath = self.level_2_library  # Default import target
 
-        # === Input / Output Paths ===
-        self.raw_data_input_location = self.raw_data_folder
-        self.experimental_filepath = os.path.join(
-            self.raw_data_folder, "Experimental Data.csv"
-        )
-        self.output_path = os.path.join(self.output_folder, "PIMMS_output.csv")
+        # === Input / Output Paths (now empty by default) ===
+        self.raw_data_input_location = ""
+        self.experimental_filepath = ""
+        self.output_path = ""
 
         # === Column Mappings ===
         self.metadata_mapping = {
