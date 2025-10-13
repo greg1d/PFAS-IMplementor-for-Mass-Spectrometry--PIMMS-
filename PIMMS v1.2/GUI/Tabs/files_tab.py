@@ -94,3 +94,14 @@ class FilesTab(ttk.Frame):
         if filename:
             entry.delete(0, tk.END)
             entry.insert(0, filename)
+
+    def update_config(self, config_obj):
+        """Updates the main config object with values from this tab."""
+        for key, entry in self.file_path_entries.items():
+            path_from_entry = entry.get()
+            # If the path in the widget starts with "...", it's our formatted
+            # display path. This means the user hasn't changed it, so we should
+            # NOT update the config object, as it already holds the correct full path.
+            # We only update the config if the path is a new, user-selected one.
+            if not path_from_entry.startswith("..."):
+                setattr(config_obj, key, path_from_entry)
