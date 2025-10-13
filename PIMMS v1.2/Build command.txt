@@ -1,0 +1,4 @@
+pyinstaller --onefile --windowed --name "PIMMS" --icon="PIMMS v1.2/Icon/PIMMS_icon.ico" --add-data="PIMMS v1.2/Icon;Icon" --add-data="PIMMS v1.2/GUI/widgets/config.json;GUI/widgets" --add-data="PIMMS v1.2/modules;modules" --paths "PIMMS v1.2" --paths "PIMMS v1.2/GUI" --paths "PIMMS v1.2/GUI/Tabs" --paths "PIMMS v1.2/GUI/widgets" --paths "PIMMS v1.2/modules" "PIMMS v1.2/Main.py"
+^
+| 
+BUILD COMMAND
