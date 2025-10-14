@@ -177,7 +177,7 @@ class ControlsWidget(ttk.Labelframe):
         ttk.Label(params_frame, text="PPM Error:").grid(
             row=1, column=0, sticky="w", padx=5, pady=2
         )
-        self.ppm_error_var = tk.IntVar(value=10)
+        self.ppm_error_var = tk.IntVar(value=15)
         ttk.Spinbox(
             params_frame, from_=1, to=100, textvariable=self.ppm_error_var, width=5
         ).grid(row=1, column=1, sticky="w", padx=5, pady=2)
