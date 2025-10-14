@@ -233,13 +233,7 @@ def run_pimms_workflow(config):
             index=False,
         )
         # --- FIX: The call now passes the prepared 'standards_df' DataFrame ---
-        adjusted_df = remove_standards_library(
-            adjusted_df,
-            standards_df,
-            mass_error_ppm=config.mass_error_ppm,
-            ccs_error_percentage=config.ccs_tolerance,
-            z=1,
-        )
+
         adjusted_df.to_csv(
             "F:/PIMMS_Paper_Scripts/Validation_work/9_debug_after_removing_standards.csv",
             index=False,
@@ -285,6 +279,14 @@ def run_pimms_workflow(config):
         else:
             # Handle the edge case where all processing resulted in empty DataFrames
             adjusted_df = pd.DataFrame()
+
+        adjusted_df = remove_standards_library(
+            adjusted_df,
+            standards_df,
+            mass_error_ppm=config.mass_error_ppm,
+            ccs_error_percentage=config.ccs_tolerance,
+            z=1,
+        )
 
         # --- FINAL ANALYSIS STEPS (Now correctly indented) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
