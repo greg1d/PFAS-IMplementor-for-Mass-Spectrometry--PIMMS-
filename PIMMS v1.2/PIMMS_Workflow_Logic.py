@@ -210,6 +210,10 @@ def run_pimms_workflow(config):
             ccs_tolerance=config.ccs_tolerance,
         )
         adjusted_df = mono_merge(adjusted_df, groups)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/5.5_debug_after_monoisotopic_grouper.csv",
+            index=False,
+        )
         adjusted_df = fluorinated_density_filter(adjusted_df)
         adjusted_df.to_csv(
             "F:/PIMMS_Paper_Scripts/Validation_work/6_debug_after_density_filter.csv",
@@ -285,7 +289,6 @@ def run_pimms_workflow(config):
             standards_df,
             mass_error_ppm=config.mass_error_ppm,
             ccs_error_percentage=config.ccs_tolerance,
-            z=1,
         )
 
         # --- FINAL ANALYSIS STEPS (Now correctly indented) ---
