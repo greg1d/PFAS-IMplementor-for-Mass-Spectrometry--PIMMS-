@@ -101,8 +101,8 @@ class IsotopicAnalysisTab(ttk.Frame):
         help_texts = {
             "pimms_file": "Select the primary input CSV file from the PIMMS processing pipeline. This file should contain the list of all detected features.",
             "cef_folder": "Select any single .cef file from the folder containing all raw data files. The application will automatically use the folder path to find the necessary raw data for isotopic analysis.",
-            "run_pipeline": "1. Processes the PIMMS file to find potential halogenated compounds.\n2. Extracts isotopic profiles from the raw .cef files.\n3. Performs heavy halogen analysis.\n4. Calculates Kauffman plot parameters.\n\nThis can take several minutes to complete.",
-            "launch_plot": "Generates and opens an interactive Kauffman plot in your web browser. This button is enabled only after the main pipeline has been run successfully.",
+            "run_pipeline": "1. Processes the PIMMS file to find potential halogenated compounds.\n2. Extracts isotopic profiles from the raw .cef files.\n3. Performs heavy halogen analysis.\n4. Calculates Kaufmann plot parameters.\n\nThis can take several minutes to complete.",
+            "launch_plot": "Generates and opens an interactive Kaufmann plot in your web browser. This button is enabled only after the main pipeline has been run successfully.",
             "save_results": "Saves the full data table, including all calculated values, to a CSV file. This button is enabled only after the main pipeline has been run successfully.",
             "results_table": "Displays the final results after the analysis is complete, showing key metrics and classification for each identified feature.",
         }
@@ -161,7 +161,7 @@ class IsotopicAnalysisTab(ttk.Frame):
 
         self.plot_button = ttk.Button(
             action_frame,
-            text="2. Generate Kauffman Plot",
+            text="2. Generate Kaufmann Plot",
             command=self._launch_plot,
             state="disabled",
         )

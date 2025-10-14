@@ -308,7 +308,7 @@ def create_interactive_figure(summary_df, contour_boundary_path, grid_data_path)
     )
     # --- 3. FINAL LAYOUT ---
     fig.update_layout(
-        title="Interactive Kauffman Plot of Aligned Features",
+        title="Interactive Kaufmann Plot of Aligned Features",
         xaxis_title="m/C",
         yaxis_title="md/C",
         template="plotly_white",
