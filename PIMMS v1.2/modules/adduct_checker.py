@@ -19,16 +19,17 @@ def find_similar_peaks(array, target_mass, mass_error_ppm):
     return array[j_start:j_end]
 
 
-def find_matching_mass_relationships(df, mass_error_ppm=15):
-    """Finds all relevant mass relationships within ppm bounds and removes matched m/z2 rows."""
+def adduct_removal(df):
+    """Finds all relevant mass relationships within ppm bounds and removes matched m/z2 rows
+    only if Classification Type is 'unmatched' or 'tentative'."""
+
     mz_values = sorted(df["m/z"].dropna().unique())
+    mass_error_ppm = 10
 
     # Offset constants
     offset_h = 1.007825
     offset_na = 21.981945
-    offset_k = 37.9558834
     offset_ammonium = 17.0265478
-    offset_li = 6.0081804
 
     matching_pairs = []
     matched_mz2_set = set()
@@ -39,15 +40,17 @@ def find_matching_mass_relationships(df, mass_error_ppm=15):
 
         # Compute theoretical target masses
         targets = [
-            (mz1 + offset_na, "Δ ≈ Na"),
-            (mz1 + offset_k, "Δ ≈ K"),
-            (mz1 + offset_ammonium, "Δ ≈ NH4+"),
-            (mz1 + offset_li, "Δ ≈ Li"),
             (2 * mz1 + offset_h, "2*m/z1 + H"),
+            (3 * mz1 + 2 * offset_h, "3*m/z1 + 2H"),
+            (mz1 + offset_na - offset_h, "m/z1 + Na - H"),
+            (mz1 + offset_ammonium - offset_h, "m/z1 + NH4 - H"),
             (2 * mz1 + offset_na, "2*m/z1 + Na"),
-            (2 * mz1 + offset_k, "2*m/z1 + K"),
-            (2 * mz1 + offset_ammonium, "2*m/z1 + NH4+"),
-            (2 * mz1 + offset_li, "2*m/z1 + Li"),
+            (3 * mz1 + 2 * offset_ammonium, "3*m/z1 + 2NH4"),
+            (3 * mz1 + 2 * offset_na, "3*m/z1 + 2Na"),
+            (2 * mz1 + offset_ammonium, "2*m/z1 + NH4"),
+            (3 * mz1 + offset_na + offset_ammonium, "3*m/z1 + Na + NH4"),
+            (3 * mz1 + offset_h + offset_ammonium, "3*m/z1 + H + NH4"),
+            (3 * mz1 + offset_h + offset_na, "3*m/z1 + H + Na"),
         ]
 
         for target_mass, label in targets:
@@ -56,7 +59,10 @@ def find_matching_mass_relationships(df, mass_error_ppm=15):
                 matching_pairs.append((mz1, mz2, mz2 - mz1, label))
                 matched_mz2_set.add(mz2)
 
-    # Remove rows from original dataframe with matched m/z 2 values
-    filtered_df = df[~df["m/z"].isin(matched_mz2_set)].reset_index(drop=True)
+    # --- Remove rows only if Classification Type is 'unmatched' or 'tentative' ---
+    to_remove_mask = df["m/z"].isin(matched_mz2_set) & df["Classification Type"].isin(
+        ["unmatched", "tentative"]
+    )
+    filtered_df = df[~to_remove_mask].reset_index(drop=True)
 
     return filtered_df

@@ -10,7 +10,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), "modules"))
 
 # All data processing imports
-from adduct_checker import find_matching_mass_relationships  # type: ignore
+from adduct_checker import adduct_removal  # type: ignore
 from blank_subtraction import (  # type: ignore
     define_and_separate_samples,
     perform_blank_subtraction,
@@ -156,20 +156,37 @@ def run_pimms_workflow(config):
             metadata_cols=metadata_cols,  # Pass the list of metadata columns
             std_devs=config.blank_subtraction_std_dev,
         )
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/1_debug_after_blank_subtraction.csv",
+            index=False,
+        )
         # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
         adjusted_df = apply_min_intensity_filter(
             adjusted_df, metadata_cols, config.min_intensity
         )
 
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/2_debug_after_rt_filter.csv",
+            index=False,
+        )
 
         adjusted_df = apply_mass_filter(adjusted_df, config.mz_min, config.mz_max)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/3_debug_after_mass_filter.csv",
+            index=False,
+        )
 
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/4_debug_after_smearing_filter.csv",
+            index=False,
+        )
+
         groups = branching_analyze(
             adjusted_df,
             mass_error_ppm=config.mass_error_ppm,
@@ -180,6 +197,11 @@ def run_pimms_workflow(config):
         adjusted_df = branching_merge(
             group_dfs=groups, original_df=adjusted_df, metadata_cols=metadata_cols
         )
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/5_debug_after_branching_filter.csv",
+            index=False,
+        )
+
         groups = mono_analyze(
             adjusted_df,
             z_range=range(1, 4),
@@ -189,13 +211,26 @@ def run_pimms_workflow(config):
         )
         adjusted_df = mono_merge(adjusted_df, groups)
         adjusted_df = fluorinated_density_filter(adjusted_df)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/6_debug_after_density_filter.csv",
+            index=False,
+        )
         adjusted_df = mass_defect_filter(
             adjusted_df,
             lower_mass_filter_bound=config.mass_defect_lower_bound,
             upper_mass_filter_bound=config.mass_defect_upper_bound,
         )
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/7_debug_after_mass_defect_filter.csv",
+            index=False,
+        )
+
         adjusted_df = detection_frequency_filter(
             adjusted_df, metadata_cols, config.frequency_threshold
+        )
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/8_debug_after_detection_frequency_filter.csv",
+            index=False,
         )
         # --- FIX: The call now passes the prepared 'standards_df' DataFrame ---
         adjusted_df = remove_standards_library(
@@ -205,7 +240,10 @@ def run_pimms_workflow(config):
             ccs_error_percentage=config.ccs_tolerance,
             z=1,
         )
-
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/9_debug_after_removing_standards.csv",
+            index=False,
+        )
         # Using keyword arguments for clarity and safety
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
             adjusted_df=adjusted_df,
@@ -250,6 +288,11 @@ def run_pimms_workflow(config):
 
         # --- FINAL ANALYSIS STEPS (Now correctly indented) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/10_debug_after_removing_post_source_decay.csv",
+            index=False,
+        )
+
         adjusted_df = produce_filtered_df(
             df=adjusted_df,
             config=config,
@@ -257,11 +300,29 @@ def run_pimms_workflow(config):
             rt_regression_filter=config.rt_regression_filter,
             ccs_regression_filter=config.ccs_regression_filter,
         )
+
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/11_debug_after_regression_analysis_source_decay.csv",
+            index=False,
+        )
+
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )
-        adjusted_df = find_matching_mass_relationships(adjusted_df)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/12_after_single_chromatography.csv",
+            index=False,
+        )
+        adjusted_df = adduct_removal(adjusted_df)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/13_after_adduct_checker.csv",
+            index=False,
+        )
         adjusted_df = find_neutral_loss_matches(adjusted_df)
+        adjusted_df.to_csv(
+            "F:/PIMMS_Paper_Scripts/Validation_work/14_debug_after_neutral_loss_analysis.csv",
+            index=False,
+        )
 
         # --- SAVE OUTPUT (unchanged) ---
         output_dir = os.path.dirname(config.output_path)
