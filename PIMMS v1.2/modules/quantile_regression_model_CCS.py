@@ -115,7 +115,6 @@ def run_CCS_regression_analysis(library_file, column_mappings):
     df["log_mz"] = np.log(df["mz_col"])
 
     # Run KFold cross-validation
-    cross_val_results = run_kfold_cv(df, ccs_col_name)
 
     # Logarithmic Model Equations (5th and 95th Percentiles)
     X = dmatrix("1 + log_mz", df, return_type="dataframe")

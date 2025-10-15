@@ -28,12 +28,6 @@ from detection_frequency_and_abundance import (  # type: ignore
 from detection_frequency_filter import detection_frequency_filter  # type: ignore
 from mass_defect_filter import mass_defect_filter  # type: ignore
 from ML_algorithm_density import fluorinated_density_filter  # type: ignore
-from monoisotopic_grouper import (  # type: ignore
-    analyze_adjusted_df as mono_analyze,
-)
-from monoisotopic_grouper import (  # type: ignore
-    merge_groups_into_adjusted_df as mono_merge,
-)
 from neutral_loss_checker import find_neutral_loss_matches  # type: ignore
 from post_source_decay_filter import remove_post_source_decay  # type: ignore
 from regression_analysis import produce_filtered_df  # type: ignore
@@ -202,18 +196,6 @@ def run_pimms_workflow(config):
             index=False,
         )
 
-        groups = mono_analyze(
-            adjusted_df,
-            z_range=range(1, 4),
-            mass_error_ppm=config.mass_error_ppm,
-            rt_tolerance=config.rt_tolerance,
-            ccs_tolerance=config.ccs_tolerance,
-        )
-        adjusted_df = mono_merge(adjusted_df, groups)
-        adjusted_df.to_csv(
-            "F:/PIMMS_Paper_Scripts/Validation_work/5.5_debug_after_monoisotopic_grouper.csv",
-            index=False,
-        )
         adjusted_df = fluorinated_density_filter(adjusted_df)
         adjusted_df.to_csv(
             "F:/PIMMS_Paper_Scripts/Validation_work/6_debug_after_density_filter.csv",

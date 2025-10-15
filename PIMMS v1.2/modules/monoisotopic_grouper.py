@@ -63,10 +63,10 @@ def expand_group(
 def analyze_adjusted_df(
     adjusted_df,
     z_range=range(1, 4),
-    mass_error_ppm=10,
-    rt_tolerance=0.5,
-    ccs_tolerance=2.0,
 ):
+    mass_error_ppm = 1
+    rt_tolerance = 0.5
+    ccs_tolerance = 0.5
     """
     Iterates through a DataFrame to find and group related isotopic features.
     """
