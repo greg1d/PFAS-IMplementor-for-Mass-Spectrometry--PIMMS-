@@ -1,0 +1,3422 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<CEF version="1.0.0.0">
+  <CompoundList instrumentConfiguration="">
+    <Compound mppid="1" algo="FindByMolecularFeature">
+      <Location m="282.25614" rt="13.866" rts="13.807" rte="14.110" a="65516" y="1830" v="1830" dt="23.1776847839355" ccs="176.274063110352" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="281.24827" y="1830.00" z="1" s="M-H" />
+          <p x="282.25119" y="293.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="2" algo="FindByMolecularFeature">
+      <Location m="284.27228" rt="14.440" rts="14.325" rte="14.646" a="195711" y="5899" v="5899" dt="23.3477935791016" ccs="177.541107177734" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="99.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="283.26449" y="5899.00" z="1" s="M-H" />
+          <p x="284.26762" y="1065.00" z="1" s="M-H+1" />
+          <p x="285.27209" y="83.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="3" algo="FindByMolecularFeature">
+      <Location m="256.24063" rt="13.616" rts="13.557" rte="13.789" a="535862" y="17079" v="17079" dt="22.1735382080078" ccs="169.454177856445" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="99.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="255.23337" y="17079.00" z="1" s="M-H" />
+          <p x="256.23620" y="2686.00" z="1" s="M-H+1" />
+          <p x="257.23853" y="194.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="4" algo="FindByMolecularFeature">
+      <Location m="474.29069" rt="13.905" rts="13.878" rte="13.968" a="4988" y="222" v="222" dt="30.626537322998" ccs="228.576400756836" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="61.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="473.28083" y="222.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="5" algo="FindByMolecularFeature">
+      <Location m="399.94388" rt="8.438" rts="8.377" rte="8.645" a="346322" y="9947" v="9947" dt="20.1084442138672" ccs="150.931457519531" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="398.93617" y="9947.00" z="1" s="M-H" />
+          <p x="399.93793" y="585.00" z="1" s="M-H+1" />
+          <p x="400.93683" y="431.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="6" algo="FindByMolecularFeature">
+      <Location m="499.93700" rt="10.314" rts="10.271" rte="10.396" a="18894" y="736" v="736" dt="22.6354560852051" ccs="168.750778198242" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="498.92704" y="736.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="7" algo="FindByMolecularFeature">
+      <Location m="369.98332" rt="9.407" rts="9.341" rte="9.609" a="228516" y="6888" v="6888" dt="18.5483989715576" ccs="139.609451293945" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="368.97565" y="6888.00" z="1" s="M-H" />
+          <p x="369.97813" y="415.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="8" algo="FindByMolecularFeature">
+      <Location m="312.17609" rt="12.057" rts="11.985" rte="12.235" a="320084" y="6076" v="6076" dt="25.1849040985107" ccs="190.719329833984" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="92.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="311.16843" y="6076.00" z="1" s="M-H" />
+          <p x="312.17133" y="876.00" z="1" s="M-H+1" />
+          <p x="313.16875" y="248.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="9" algo="FindByMolecularFeature">
+      <Location m="326.19160" rt="12.660" rts="12.539" rte="12.682" a="369566" y="7150" v="7150" dt="24.4296455383301" ccs="184.67692565918" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="56.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="325.18427" y="7150.00" z="1" s="M-H" />
+          <p x="326.18662" y="1225.00" z="1" s="M-H+1" />
+          <p x="327.18261" y="292.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="10" algo="FindByMolecularFeature">
+      <Location m="302.95977" rt="5.405" rts="5.358" rte="5.555" a="255242" y="8502" v="8502" dt="17.609920501709" ccs="133.5908203125" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="301.95264" y="8502.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="11" algo="FindByMolecularFeature">
+      <Location m="326.19200" rt="12.598" rts="12.539" rte="12.700" a="319891" y="5237" v="5237" dt="25.7193756103516" ccs="194.414916992188" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="82.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="325.18458" y="5237.00" z="1" s="M-H" />
+          <p x="326.18718" y="843.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="12" algo="FindByMolecularFeature">
+      <Location m="312.17588" rt="12.097" rts="11.985" rte="12.307" a="367224" y="6455" v="6455" dt="23.9080123901367" ccs="181.07421875" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="35.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="311.16864" y="6455.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="13" algo="FindByMolecularFeature">
+      <Location m="340.20703" rt="13.088" rts="12.718" rte="12.789" a="1221" y="69" v="69" dt="25.0083351135254" ccs="188.681533813477" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="45.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="339.19714" y="69.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="14" algo="FindByMolecularFeature">
+      <Location m="368.36495" rt="15.953" rts="15.807" rte="16.289" a="94557" y="1344" v="1344" dt="26.6604461669922" ccs="200.600997924805" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="367.35666" y="1344.00" z="1" s="M-H" />
+          <p x="368.35973" y="270.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="15" algo="FindByMolecularFeature">
+      <Location m="266.15503" rt="11.252" rts="11.200" rte="11.343" a="23876" y="883" v="883" dt="21.7542018890381" ccs="165.946166992188" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="265.14747" y="883.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="16" algo="FindByMolecularFeature">
+      <Location m="340.33402" rt="15.444" rts="15.521" rte="15.628" a="2342" y="113" v="113" dt="25.6382274627686" ccs="193.446624755859" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="35.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="339.32597" y="113.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="17" algo="FindByMolecularFeature">
+      <Location m="534.46419" rt="13.619" rts="13.593" rte="13.682" a="5815" y="255" v="255" dt="32.8709297180176" ccs="244.536712646484" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="99.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="533.45570" y="255.00" z="1" s="M-H" />
+          <p x="534.45903" y="82.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="18" algo="FindByMolecularFeature">
+      <Location m="298.15974" rt="11.441" rts="11.378" rte="11.521" a="73770" y="2054" v="2054" dt="24.4570274353027" ccs="185.587982177734" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="66.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="297.15202" y="2054.00" z="1" s="M-H" />
+          <p x="298.15532" y="321.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="19" algo="FindByMolecularFeature">
+      <Location m="481.97636" rt="10.374" rts="10.325" rte="10.521" a="187796" y="3451" v="3451" dt="20.874195098877" ccs="155.791732788086" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="99.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="480.96825" y="3451.00" z="1" s="M-H" />
+          <p x="481.97041" y="234.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="20" algo="FindByMolecularFeature">
+      <Location m="717.53262" rt="15.643" rts="15.539" rte="15.753" a="34946" y="592" v="592" dt="36.1479644775391" ccs="267.137603759766" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="82.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="716.52342" y="592.00" z="1" s="M-H" />
+          <p x="717.52664" y="248.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="21" algo="FindByMolecularFeature">
+      <Location m="298.16004" rt="11.541" rts="11.503" rte="11.646" a="55141" y="2127" v="2127" dt="23.5035953521729" ccs="178.348251342773" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="77.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="297.15244" y="2127.00" z="1" s="M-H" />
+          <p x="298.15498" y="343.00" z="1" s="M-H+1" />
+          <p x="299.15037" y="96.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="22" algo="FindByMolecularFeature">
+      <Location m="375.25209" rt="9.052" rts="8.984" rte="9.145" a="70031" y="1833" v="1833" dt="28.8274116516113" ccs="216.746520996094" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="374.24416" y="1833.00" z="1" s="M-H" />
+          <p x="375.24680" y="452.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="23" algo="FindByMolecularFeature">
+      <Location m="340.20769" rt="13.126" rts="13.021" rte="13.218" a="69168" y="2508" v="2508" dt="25.7200889587402" ccs="194.09977722168" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="52.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="339.19975" y="2508.00" z="1" s="M-H" />
+          <p x="340.20233" y="521.00" z="1" s="M-H+1" />
+          <p x="341.19908" y="113.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="24" algo="FindByMolecularFeature">
+      <Location m="377.00614" rt="9.405" rts="9.359" rte="9.502" a="49203" y="1864" v="1864" dt="18.5619926452637" ccs="139.619506835938" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="375.99825" y="1864.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="25" algo="FindByMolecularFeature">
+      <Location m="429.98115" rt="9.335" rts="9.288" rte="9.431" a="59952" y="2183" v="2183" dt="22.5240783691406" ccs="168.647674560547" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="428.97324" y="2183.00" z="1" s="M-H" />
+          <p x="429.97602" y="103.00" z="1" s="M-H+1" />
+          <p x="430.96804" y="83.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="26" algo="FindByMolecularFeature">
+      <Location m="306.22211" rt="12.915" rts="12.860" rte="13.021" a="40840" y="831" v="831" dt="24.6620540618896" ccs="186.914611816406" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="92.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="305.21450" y="831.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="27" algo="FindByMolecularFeature">
+      <Location m="340.20698" rt="13.055" rts="13.021" rte="13.200" a="127944" y="3019" v="3019" dt="26.3310623168945" ccs="198.741622924805" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="55.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="339.19957" y="3019.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="28" algo="FindByMolecularFeature">
+      <Location m="312.30209" rt="15.020" rts="14.985" rte="15.182" a="6885" y="253" v="253" dt="24.5030956268311" ccs="185.558883666992" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="76.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="311.29509" y="253.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="29" algo="FindByMolecularFeature">
+      <Location m="329.98717" rt="6.674" rts="6.626" rte="6.769" a="45120" y="1716" v="1716" dt="19.9284038543701" ccs="150.621704101563" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="328.97961" y="1716.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="30" algo="FindByMolecularFeature">
+      <Location m="499.93680" rt="10.087" rts="10.092" rte="10.146" a="1595" y="144" v="144" dt="22.2917213439941" ccs="166.246719360352" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="57.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="498.92859" y="144.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="31" algo="FindByMolecularFeature">
+      <Location m="530.34544" rt="13.279" rts="13.968" rte="14.360" a="17929" y="175" v="175" dt="30.6090316772461" ccs="227.673431396484" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="56.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="529.33428" y="175.00" z="1" s="M-H" />
+          <p x="530.33280" y="69.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="32" algo="FindByMolecularFeature">
+      <Location m="338.31836" rt="15.092" rts="15.057" rte="15.128" a="3266" y="180" v="180" dt="25.3113479614258" ccs="191.045028686523" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="337.31026" y="180.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="33" algo="FindByMolecularFeature">
+      <Location m="596.50214" rt="14.546" rts="14.235" rte="14.360" a="3029" y="100" v="100" dt="34.1590156555176" ccs="253.468872070313" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="67.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="595.49295" y="100.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="34" algo="FindByMolecularFeature">
+      <Location m="422.23380" rt="12.512" rts="12.468" rte="12.610" a="13854" y="511" v="511" dt="27.5894603729248" ccs="206.641174316406" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="421.22559" y="511.00" z="1" s="M-H" />
+          <p x="422.22868" y="106.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="35" algo="FindByMolecularFeature">
+      <Location m="219.03813" rt="13.872" rts="13.771" rte="13.914" a="65629" y="1322" v="1322" dt="17.4835186004639" ccs="134.764099121094" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="36.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="218.03115" y="1322.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="36" algo="FindByMolecularFeature">
+      <Location m="292.20677" rt="12.440" rts="12.378" rte="12.521" a="82375" y="1871" v="1871" dt="24.0122051239014" ccs="182.363067626953" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="291.19958" y="1871.00" z="1" s="M-H" />
+          <p x="292.20252" y="225.00" z="1" s="M-H+1" />
+          <p x="293.19860" y="71.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="37" algo="FindByMolecularFeature">
+      <Location m="322.99610" rt="8.301" rts="8.269" rte="8.377" a="12957" y="634" v="634" dt="17.5167140960693" ccs="132.533538818359" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="321.98813" y="634.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="38" algo="FindByMolecularFeature">
+      <Location m="278.19114" rt="11.891" rts="11.825" rte="11.968" a="68916" y="1791" v="1791" dt="23.3673248291016" ccs="177.864654541016" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="277.18371" y="1791.00" z="1" s="M-H" />
+          <p x="278.18670" y="181.00" z="1" s="M-H+1" />
+          <p x="279.18180" y="80.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="39" algo="FindByMolecularFeature">
+      <Location m="298.15995" rt="11.474" rts="11.396" rte="11.521" a="39913" y="1571" v="1571" dt="23.8476886749268" ccs="180.98747253418" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="297.15244" y="1571.00" z="1" s="M-H" />
+          <p x="298.15507" y="245.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="40" algo="FindByMolecularFeature">
+      <Location m="529.97497" rt="11.025" rts="10.986" rte="11.093" a="39240" y="1290" v="1290" dt="25.0603199005127" ccs="186.522872924805" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="528.96710" y="1290.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="41" algo="FindByMolecularFeature">
+      <Location m="428.00621" rt="10.298" rts="10.253" rte="10.396" a="30684" y="1154" v="1154" dt="19.6594638824463" ccs="147.248001098633" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="426.99763" y="1154.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="42" algo="FindByMolecularFeature">
+      <Location m="294.18521" rt="12.488" rts="12.450" rte="12.575" a="22296" y="865" v="865" dt="22.876293182373" ccs="173.695465087891" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="293.17787" y="865.00" z="1" s="M-H" />
+          <p x="294.18007" y="153.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="43" algo="FindByMolecularFeature">
+      <Location m="219.03804" rt="13.617" rts="13.628" rte="13.771" a="58636" y="1173" v="1173" dt="17.4870853424072" ccs="134.804641723633" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="35.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="218.03098" y="1173.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="44" algo="FindByMolecularFeature">
+      <Location m="399.94213" rt="8.185" rts="8.091" rte="8.323" a="28647" y="718" v="718" dt="19.8392944335938" ccs="148.914215087891" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="398.93431" y="718.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="45" algo="FindByMolecularFeature">
+      <Location m="419.97919" rt="10.299" rts="10.271" rte="10.342" a="2879" y="188" v="188" dt="19.6451377868652" ccs="147.227584838867" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="83.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="418.97147" y="188.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="46" algo="FindByMolecularFeature">
+      <Location m="474.99226" rt="11.046" rts="11.003" rte="11.110" a="22387" y="916" v="916" dt="20.852388381958" ccs="155.692337036133" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="473.98420" y="916.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="47" algo="FindByMolecularFeature">
+      <Location m="565.54426" rt="15.981" rts="15.878" rte="16.164" a="47227" y="710" v="710" dt="33.8975410461426" ccs="251.785659790039" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="82.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="564.53666" y="710.00" z="1" s="M-H" />
+          <p x="565.53922" y="256.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="48" algo="FindByMolecularFeature">
+      <Location m="320.23799" rt="13.332" rts="13.307" rte="13.432" a="3666" y="188" v="188" dt="25.2741775512695" ccs="191.178497314453" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="53.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="319.23011" y="188.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="49" algo="FindByMolecularFeature">
+      <Location m="292.20649" rt="12.559" rts="12.521" rte="12.700" a="35446" y="816" v="816" dt="23.2018203735352" ccs="176.216094970703" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="71.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="291.19916" y="816.00" z="1" s="M-H" />
+          <p x="292.20196" y="129.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="50" algo="FindByMolecularFeature">
+      <Location m="406.29297" rt="15.328" rts="14.753" rte="15.539" a="308198" y="2019" v="2019" dt="26.9967174530029" ccs="202.449356079102" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="67.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="405.28559" y="2019.00" z="1" s="M-H" />
+          <p x="406.28752" y="551.00" z="1" s="M-H+1" />
+          <p x="407.28477" y="200.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="51" algo="FindByMolecularFeature">
+      <Location m="338.24370" rt="13.618" rts="13.593" rte="13.700" a="12772" y="488" v="488" dt="25.3245525360107" ccs="191.162414550781" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="92.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="337.23634" y="488.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="52" algo="FindByMolecularFeature">
+      <Location m="436.21753" rt="12.990" rts="12.968" rte="13.075" a="11336" y="505" v="505" dt="27.9681987762451" ccs="209.264953613281" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="90.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="435.20962" y="505.00" z="1" s="M-H" />
+          <p x="436.21346" y="108.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="53" algo="FindByMolecularFeature">
+      <Location m="217.99517" rt="8.390" rts="8.323" rte="8.519" a="26397" y="1018" v="1018" dt="15.6907205581665" ccs="121.018211364746" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="216.98825" y="1018.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="54" algo="FindByMolecularFeature">
+      <Location m="292.08540" rt="8.254" rts="8.216" rte="8.394" a="14737" y="524" v="524" dt="21.8223686218262" ccs="165.755615234375" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="291.07815" y="524.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="55" algo="FindByMolecularFeature">
+      <Location m="368.36452" rt="15.632" rts="15.468" rte="15.664" a="8835" y="157" v="157" dt="26.445198059082" ccs="198.966766357422" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="34.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="367.35687" y="157.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="56" algo="FindByMolecularFeature">
+      <Location m="310.18064" rt="11.782" rts="11.753" rte="11.843" a="7250" y="361" v="361" dt="23.1844749450684" ccs="175.648162841797" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="309.17364" y="361.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="57" algo="FindByMolecularFeature">
+      <Location m="573.99269" rt="11.361" rts="11.325" rte="11.450" a="13741" y="503" v="503" dt="26.0335254669189" ccs="193.383270263672" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="572.98481" y="503.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="58" algo="FindByMolecularFeature">
+      <Location m="995.94317" rt="14.182" rts="14.146" rte="14.343" a="48986" y="1040" v="1040" dt="30.4996948242188" ccs="224.271987915039" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="73.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="994.93478" y="1040.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="59" algo="FindByMolecularFeature">
+      <Location m="457.26976" rt="13.613" rts="13.628" rte="13.646" a="414" y="53" v="53" dt="27.8262233734131" ccs="207.884216308594" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="53.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="456.26119" y="53.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="60" algo="FindByMolecularFeature">
+      <Location m="326.19061" rt="12.499" rts="12.378" rte="12.539" a="39242" y="723" v="723" dt="24.240535736084" ccs="183.310577392578" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="71.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="325.18343" y="723.00" z="1" s="M-H" />
+          <p x="326.18654" y="155.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="61" algo="FindByMolecularFeature">
+      <Location m="590.01995" rt="11.690" rts="11.664" rte="11.753" a="6427" y="296" v="296" dt="26.5485076904297" ccs="197.079315185547" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="589.01107" y="296.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="62" algo="FindByMolecularFeature">
+      <Location m="338.21183" rt="12.905" rts="12.878" rte="12.985" a="6031" y="269" v="269" dt="24.3168659210205" ccs="183.565460205078" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="46.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="337.20464" y="269.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="63" algo="FindByMolecularFeature">
+      <Location m="263.04314" rt="13.968" rts="13.825" rte="14.039" a="63509" y="778" v="778" dt="18.9473209381104" ccs="144.668914794922" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="33.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="262.03663" y="778.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="64" algo="FindByMolecularFeature">
+      <Location m="481.97635" rt="10.374" rts="10.325" rte="10.450" a="20599" y="583" v="583" dt="21.9499359130859" ccs="163.80908203125" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="97.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="480.96860" y="583.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="65" algo="FindByMolecularFeature">
+      <Location m="945.94729" rt="13.905" rts="13.860" rte="14.039" a="38155" y="990" v="990" dt="29.5458831787109" ccs="217.422439575195" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="99.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="944.93877" y="990.00" z="1" s="M-H" />
+          <p x="945.94205" y="131.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="66" algo="FindByMolecularFeature">
+      <Location m="619.59130" rt="16.232" rts="16.075" rte="16.414" a="19960" y="252" v="252" dt="35.4894943237305" ccs="263.085632324219" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="59.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="618.58325" y="252.00" z="1" s="M-H" />
+          <p x="619.58508" y="132.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="67" algo="FindByMolecularFeature">
+      <Location m="278.19019" rt="12.012" rts="11.968" rte="12.128" a="32240" y="844" v="844" dt="22.7250671386719" ccs="172.995483398438" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="78.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="277.18303" y="844.00" z="1" s="M-H" />
+          <p x="278.18507" y="125.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="68" algo="FindByMolecularFeature">
+      <Location m="444.28835" rt="14.322" rts="14.289" rte="14.378" a="3625" y="185" v="185" dt="27.5272521972656" ccs="205.833404541016" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="69.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="443.27929" y="185.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="69" algo="FindByMolecularFeature">
+      <Location m="219.03818" rt="13.267" rts="13.128" rte="13.628" a="162017" y="970" v="970" dt="17.4848518371582" ccs="134.724746704102" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="218.03184" y="970.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="70" algo="FindByMolecularFeature">
+      <Location m="354.20611" rt="12.042" rts="12.003" rte="12.128" a="8960" y="373" v="373" dt="24.6431846618652" ccs="185.702453613281" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="81.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="353.19916" y="373.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="71" algo="FindByMolecularFeature">
+      <Location m="220.03470" rt="13.991" rts="14.021" rte="14.378" a="102745" y="869" v="869" dt="17.4160957336426" ccs="134.170501708984" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="35.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="219.02770" y="869.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="72" algo="FindByMolecularFeature">
+      <Location m="220.03468" rt="13.190" rts="13.628" rte="13.718" a="30488" y="801" v="801" dt="17.4655914306641" ccs="134.59130859375" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="34.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="219.02823" y="801.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="73" algo="FindByMolecularFeature">
+      <Location m="674.48994" rt="15.723" rts="15.575" rte="15.968" a="129055" y="1308" v="1308" dt="35.0711517333984" ccs="259.497711181641" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="673.48232" y="1308.00" z="1" s="M-H" />
+          <p x="674.48519" y="399.00" z="1" s="M-H+1" />
+          <p x="675.48746" y="100.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="74" algo="FindByMolecularFeature">
+      <Location m="341.20957" rt="13.071" rts="13.039" rte="13.146" a="19225" y="600" v="600" dt="26.372163772583" ccs="198.939804077148" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="89.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="340.20169" y="600.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="75" algo="FindByMolecularFeature">
+      <Location m="845.95338" rt="13.298" rts="13.271" rte="13.414" a="18078" y="601" v="601" dt="27.6520366668701" ccs="203.846160888672" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="81.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="844.94600" y="601.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="76" algo="FindByMolecularFeature">
+      <Location m="819.60036" rt="15.720" rts="15.592" rte="15.968" a="133799" y="1390" v="1390" dt="39.8680152893066" ccs="293.915008544922" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="98.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="818.59261" y="1390.00" z="1" s="M-H" />
+          <p x="819.59589" y="637.00" z="1" s="M-H+1" />
+          <p x="820.59749" y="138.00" z="1" s="M-H+2" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="77" algo="FindByMolecularFeature">
+      <Location m="289.04010" rt="13.585" rts="13.360" rte="13.628" a="75580" y="853" v="853" dt="19.1196060180664" ccs="145.311706542969" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="39.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="288.03367" y="853.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="78" algo="FindByMolecularFeature">
+      <Location m="300.26549" rt="12.175" rts="12.039" rte="12.253" a="9429" y="316" v="316" dt="23.6187305450439" ccs="179.151275634766" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="35.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="299.25814" y="316.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="79" algo="FindByMolecularFeature">
+      <Location m="220.03464" rt="14.467" rts="14.843" rte="14.968" a="8035" y="257" v="257" dt="17.4531745910645" ccs="134.490280151367" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="219.02683" y="257.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="80" algo="FindByMolecularFeature">
+      <Location m="262.04668" rt="13.640" rts="13.718" rte="13.896" a="27644" y="490" v="490" dt="18.9433860778809" ccs="144.632659912109" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="41.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="261.03981" y="490.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="81" algo="FindByMolecularFeature">
+      <Location m="354.34902" rt="15.676" rts="15.539" rte="15.825" a="12263" y="225" v="225" dt="26.1645317077637" ccs="197.133422851563" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="49.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="353.34185" y="225.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="82" algo="FindByMolecularFeature">
+      <Location m="382.38053" rt="16.262" rts="16.075" rte="16.485" a="53463" y="567" v="567" dt="27.1310806274414" ccs="203.887908935547" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="96.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="381.37332" y="567.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="83" algo="FindByMolecularFeature">
+      <Location m="264.03990" rt="13.922" rts="13.610" rte="14.468" a="219812" y="1067" v="1067" dt="18.9207077026367" ccs="144.406494140625" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="44.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="263.03279" y="1067.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="84" algo="FindByMolecularFeature">
+      <Location m="398.23303" rt="12.195" rts="12.164" rte="12.253" a="7244" y="325" v="325" dt="26.1203784942627" ccs="196.032562255859" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="78.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="397.22581" y="325.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="85" algo="FindByMolecularFeature">
+      <Location m="331.98530" rt="7.619" rts="7.572" rte="7.752" a="12043" y="483" v="483" dt="17.5986938476563" ccs="133.008041381836" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="95.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="330.97798" y="483.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="86" algo="FindByMolecularFeature">
+      <Location m="289.03990" rt="13.846" rts="13.628" rte="13.843" a="63811" y="965" v="965" dt="19.1190853118896" ccs="145.328460693359" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="37.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="288.03341" y="965.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="87" algo="FindByMolecularFeature">
+      <Location m="795.95493" rt="12.950" rts="12.914" rte="13.057" a="11868" y="417" v="417" dt="26.7039012908936" ccs="197.060653686523" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="88.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="794.94618" y="417.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="88" algo="FindByMolecularFeature">
+      <Location m="1045.94023" rt="14.475" rts="14.432" rte="14.664" a="25834" y="469" v="469" dt="31.4601268768311" ccs="231.175796508789" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="83.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="1044.93166" y="469.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="89" algo="FindByMolecularFeature">
+      <Location m="536.52846" rt="15.752" rts="15.682" rte="15.842" a="10237" y="254" v="254" dt="33.3238906860352" ccs="247.852783203125" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="71.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="535.52054" y="254.00" z="1" s="M-H" />
+          <p x="536.52344" y="94.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="90" algo="FindByMolecularFeature">
+      <Location m="443.29103" rt="14.323" rts="14.307" rte="14.360" a="1343" y="100" v="100" dt="27.5373992919922" ccs="205.923065185547" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="40.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="442.28123" y="100.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="91" algo="FindByMolecularFeature">
+      <Location m="288.04340" rt="13.607" rts="13.503" rte="13.628" a="30573" y="786" v="786" dt="19.1125431060791" ccs="145.280487060547" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="42.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="287.03643" y="786.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="92" algo="FindByMolecularFeature">
+      <Location m="238.00141" rt="8.388" rts="8.341" rte="8.484" a="7961" y="346" v="346" dt="16.2387161254883" ccs="124.631034851074" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="94.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="236.99450" y="346.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="93" algo="FindByMolecularFeature">
+      <Location m="288.04347" rt="13.856" rts="13.628" rte="14.307" a="131176" y="806" v="806" dt="19.1094646453857" ccs="145.294631958008" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="37.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="287.03652" y="806.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="94" algo="FindByMolecularFeature">
+      <Location m="219.03810" rt="14.103" rts="14.021" rte="14.503" a="122273" y="1143" v="1143" dt="17.4966583251953" ccs="134.869354248047" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="41.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="218.03109" y="1143.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="95" algo="FindByMolecularFeature">
+      <Location m="645.51047" rt="15.331" rts="15.235" rte="15.521" a="39045" y="479" v="479" dt="34.7995758056641" ccs="257.685668945313" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="85.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="644.50292" y="479.00" z="1" s="M-H" />
+          <p x="645.50551" y="185.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="96" algo="FindByMolecularFeature">
+      <Location m="208.01819" rt="3.039" rts="3.018" rte="3.090" a="5337" y="355" v="355" dt="18.5415897369385" ccs="143.368957519531" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="71.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="207.01117" y="355.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="97" algo="FindByMolecularFeature">
+      <Location m="284.11604" rt="9.500" rts="9.467" rte="9.574" a="7418" y="325" v="325" dt="22.7364482879639" ccs="172.871231079102" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="77.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="283.10875" y="325.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="98" algo="FindByMolecularFeature">
+      <Location m="731.95975" rt="12.952" rts="12.914" rte="13.039" a="19231" y="315" v="315" dt="26.8557052612305" ccs="198.491760253906" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="83.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="730.95215" y="315.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="99" algo="FindByMolecularFeature">
+      <Location m="745.56291" rt="15.736" rts="15.592" rte="15.985" a="82674" y="884" v="884" dt="36.958438873291" ccs="272.891357421875" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="89.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="744.55538" y="884.00" z="1" s="M-H" />
+          <p x="745.55869" y="310.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="100" algo="FindByMolecularFeature">
+      <Location m="781.95695" rt="13.300" rts="13.271" rte="13.396" a="11435" y="304" v="304" dt="27.9382705688477" ccs="206.206893920898" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="72.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="780.94862" y="304.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="101" algo="FindByMolecularFeature">
+      <Location m="313.17879" rt="12.094" rts="12.039" rte="12.146" a="24953" y="687" v="687" dt="24.0949802398682" ccs="182.464584350586" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="42.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="312.17111" y="687.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="102" algo="FindByMolecularFeature">
+      <Location m="289.04005" rt="13.071" rts="12.932" rte="13.360" a="100887" y="729" v="729" dt="19.1255416870117" ccs="145.356811523438" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="288.03393" y="729.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="103" algo="FindByMolecularFeature">
+      <Location m="218.04155" rt="14.166" rts="14.110" rte="14.289" a="24627" y="586" v="586" dt="17.4865379333496" ccs="134.826751708984" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="43.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="217.03441" y="586.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="104" algo="FindByMolecularFeature">
+      <Location m="448.14089" rt="9.528" rts="9.484" rte="9.609" a="8278" y="313" v="313" dt="27.8590488433838" ccs="208.296737670898" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="88.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="447.13251" y="313.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="105" algo="FindByMolecularFeature">
+      <Location m="218.04162" rt="12.985" rts="13.182" rte="13.378" a="25971" y="496" v="496" dt="17.4804306030273" ccs="134.757263183594" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="39.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="217.03520" y="496.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="106" algo="FindByMolecularFeature">
+      <Location m="264.04004" rt="12.887" rts="11.968" rte="12.075" a="22709" y="585" v="585" dt="18.9464893341064" ccs="144.597274780273" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="39.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="263.03272" y="585.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="107" algo="FindByMolecularFeature">
+      <Location m="434.24271" rt="13.152" rts="12.896" rte="13.075" a="4869" y="167" v="167" dt="27.1262741088867" ccs="203.015502929688" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="52.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="433.23578" y="167.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="108" algo="FindByMolecularFeature">
+      <Location m="220.03493" rt="13.325" rts="13.343" rte="13.628" a="80898" y="697" v="697" dt="17.4390926361084" ccs="134.358993530273" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="42.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="219.02859" y="697.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="109" algo="FindByMolecularFeature">
+      <Location m="169.99568" rt="9.408" rts="9.377" rte="9.484" a="1874" y="136" v="136" dt="18.4615650177002" ccs="144.63981628418" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="53.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="168.98870" y="136.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="110" algo="FindByMolecularFeature">
+      <Location m="749.53762" rt="15.507" rts="15.396" rte="15.628" a="47982" y="605" v="605" dt="37.1048851013184" ccs="273.924041748047" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="71.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="748.52907" y="605.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="111" algo="FindByMolecularFeature">
+      <Location m="681.96317" rt="12.559" rts="12.521" rte="12.646" a="11772" y="269" v="269" dt="25.7817726135254" ccs="190.80647277832" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="74.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="680.95555" y="269.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="112" algo="FindByMolecularFeature">
+      <Location m="334.13242" rt="10.408" rts="10.378" rte="10.467" a="2274" y="138" v="138" dt="23.4667091369629" ccs="177.223510742188" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="48.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="333.12557" y="138.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="113" algo="FindByMolecularFeature">
+      <Location m="289.03975" rt="14.226" rts="14.039" rte="14.289" a="38999" y="797" v="797" dt="19.1284141540527" ccs="145.33723449707" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="38.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="288.03265" y="797.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="114" algo="FindByMolecularFeature">
+      <Location m="314.24442" rt="10.413" rts="10.432" rte="10.539" a="3771" y="205" v="205" dt="23.9773998260498" ccs="181.516448974609" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="80.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="313.23710" y="205.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="115" algo="FindByMolecularFeature">
+      <Location m="1095.93533" rt="14.810" rts="14.753" rte="15.039" a="19517" y="280" v="280" dt="32.4057655334473" ccs="237.994201660156" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="57.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="1094.92746" y="280.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="116" algo="FindByMolecularFeature">
+      <Location m="398.37535" rt="15.468" rts="15.468" rte="15.557" a="880" y="72" v="72" dt="27.6933498382568" ccs="207.82194519043" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="45.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="397.36761" y="72.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="117" algo="FindByMolecularFeature">
+      <Location m="314.24466" rt="10.216" rts="10.200" rte="10.289" a="2717" y="158" v="158" dt="23.9566955566406" ccs="181.360000610352" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="81.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="313.23667" y="158.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="118" algo="FindByMolecularFeature">
+      <Location m="288.04339" rt="13.193" rts="13.075" rte="13.325" a="55438" y="766" v="766" dt="19.1292839050293" ccs="145.428146362305" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="46.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="287.03607" y="766.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="119" algo="FindByMolecularFeature">
+      <Location m="631.96524" rt="12.118" rts="12.093" rte="12.182" a="11316" y="268" v="268" dt="24.6903648376465" ccs="183.037872314453" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="78.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="630.95758" y="268.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="120" algo="FindByMolecularFeature">
+      <Location m="326.19027" rt="12.365" rts="12.253" rte="12.396" a="3882" y="173" v="173" dt="24.6235008239746" ccs="186.128067016602" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="325.18293" y="173.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="121" algo="FindByMolecularFeature">
+      <Location m="302.17209" rt="12.842" rts="12.807" rte="12.878" a="1285" y="119" v="119" dt="23.1434726715088" ccs="175.503311157227" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="46.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="301.16458" y="119.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="122" algo="FindByMolecularFeature">
+      <Location m="292.20558" rt="12.723" rts="12.700" rte="12.807" a="5760" y="241" v="241" dt="22.9090709686279" ccs="173.993804931641" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="47.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="291.19826" y="241.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="123" algo="FindByMolecularFeature">
+      <Location m="243.18101" rt="6.109" rts="6.108" rte="6.180" a="2298" y="181" v="181" dt="20.9136734008789" ccs="160.22917175293" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="242.17437" y="181.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="124" algo="FindByMolecularFeature">
+      <Location m="280.16967" rt="11.913" rts="11.878" rte="11.985" a="3098" y="194" v="194" dt="22.3172130584717" ccs="169.853744506836" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="73.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="279.16294" y="194.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="125" algo="FindByMolecularFeature">
+      <Location m="288.04344" rt="12.985" rts="13.003" rte="13.075" a="14626" y="651" v="651" dt="19.1217441558838" ccs="145.397491455078" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="41.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="287.03630" y="651.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="126" algo="FindByMolecularFeature">
+      <Location m="767.54770" rt="15.813" rts="15.896" rte="16.200" a="59273" y="666" v="666" dt="37.4041481018066" ccs="276.014801025391" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="100.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="766.53992" y="666.00" z="1" s="M-H" />
+          <p x="767.54310" y="299.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="127" algo="FindByMolecularFeature">
+      <Location m="700.50460" rt="16.189" rts="16.075" rte="16.450" a="60514" y="613" v="613" dt="35.788501739502" ccs="264.524810791016" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="88.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="699.49726" y="613.00" z="1" s="M-H" />
+          <p x="700.50155" y="222.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="128" algo="FindByMolecularFeature">
+      <Location m="298.25036" rt="12.012" rts="11.682" rte="11.860" a="4731" y="153" v="153" dt="23.4574184417725" ccs="177.994003295898" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="40.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="297.24304" y="153.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="129" algo="FindByMolecularFeature">
+      <Location m="218.04184" rt="13.177" rts="13.450" rte="13.503" a="7861" y="506" v="506" dt="17.4929599761963" ccs="134.785827636719" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="30.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="217.03493" y="506.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="130" algo="FindByMolecularFeature">
+      <Location m="245.03360" rt="13.874" rts="13.878" rte="14.128" a="18384" y="347" v="347" dt="17.4213104248047" ccs="133.497161865234" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="42.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="244.02645" y="347.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="131" algo="FindByMolecularFeature">
+      <Location m="407.29508" rt="15.206" rts="14.860" rte="15.200" a="25587" y="332" v="332" dt="27.004919052124" ccs="202.514678955078" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="406.28726" y="332.00" z="1" s="M-H" />
+          <p x="407.28345" y="121.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="132" algo="FindByMolecularFeature">
+      <Location m="498.28586" rt="15.263" rts="15.039" rte="15.450" a="17510" y="226" v="226" dt="29.5802192687988" ccs="220.458282470703" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="70.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="497.27861" y="226.00" z="1" s="M-H" />
+          <p x="498.28147" y="83.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="133" algo="FindByMolecularFeature">
+      <Location m="531.97240" rt="11.038" rts="11.003" rte="11.110" a="8778" y="208" v="208" dt="22.1157913208008" ccs="164.643539428711" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="92.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="530.96548" y="208.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="134" algo="FindByMolecularFeature">
+      <Location m="217.99501" rt="8.388" rts="8.359" rte="8.466" a="2410" y="150" v="150" dt="16.7360668182373" ccs="129.0517578125" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="43.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="216.98848" y="150.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="135" algo="FindByMolecularFeature">
+      <Location m="264.03970" rt="11.337" rts="11.735" rte="11.968" a="43281" y="530" v="530" dt="18.9536933898926" ccs="144.652160644531" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="44.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="263.03316" y="530.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="136" algo="FindByMolecularFeature">
+      <Location m="246.02962" rt="14.084" rts="13.860" rte="13.950" a="4421" y="247" v="247" dt="17.4339790344238" ccs="133.579376220703" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="36.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="245.02163" y="247.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="137" algo="FindByMolecularFeature">
+      <Location m="256.23949" rt="14.417" rts="14.896" rte="15.325" a="17628" y="234" v="234" dt="22.1803169250488" ccs="169.459365844727" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="38.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="255.23224" y="234.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="138" algo="FindByMolecularFeature">
+      <Location m="336.22591" rt="10.473" rts="10.432" rte="10.521" a="1617" y="118" v="118" dt="24.6621627807617" ccs="186.185470581055" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="60.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="335.21942" y="118.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="139" algo="FindByMolecularFeature">
+      <Location m="741.53184" rt="15.013" rts="14.914" rte="15.200" a="18111" y="207" v="207" dt="36.6020202636719" ccs="270.151184082031" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="49.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="740.52342" y="207.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="140" algo="FindByMolecularFeature">
+      <Location m="308.20179" rt="12.991" rts="12.985" rte="13.057" a="2703" y="182" v="182" dt="23.4292221069336" ccs="177.593109130859" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="38.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="307.19440" y="182.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="141" algo="FindByMolecularFeature">
+      <Location m="472.31856" rt="14.959" rts="14.932" rte="15.003" a="2106" y="132" v="132" dt="28.5773525238037" ccs="213.338394165039" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="72.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="471.31099" y="132.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="142" algo="FindByMolecularFeature">
+      <Location m="245.03363" rt="13.587" rts="13.628" rte="13.878" a="17640" y="356" v="356" dt="17.4347591400146" ccs="133.600021362305" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="40.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="244.02583" y="356.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="143" algo="FindByMolecularFeature">
+      <Location m="529.34336" rt="14.596" rts="14.057" rte="14.378" a="15343" y="216" v="216" dt="30.4844799041748" ccs="226.82942199707" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="62.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="528.33624" y="216.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="144" algo="FindByMolecularFeature">
+      <Location m="287.04682" rt="13.837" rts="13.646" rte="13.807" a="11853" y="302" v="302" dt="19.1144771575928" ccs="145.317687988281" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="36.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="286.03962" y="302.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="145" algo="FindByMolecularFeature">
+      <Location m="442.25901" rt="12.305" rts="12.289" rte="12.343" a="1480" y="102" v="102" dt="27.532543182373" ccs="205.991851806641" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="69.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="441.25236" y="102.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="146" algo="FindByMolecularFeature">
+      <Location m="219.99195" rt="9.409" rts="9.395" rte="9.467" a="1237" y="116" v="116" dt="18.4848384857178" ccs="142.4765625" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="57.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="218.98454" y="116.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="147" algo="FindByMolecularFeature">
+      <Location m="1145.93316" rt="15.121" rts="15.057" rte="15.289" a="8599" y="145" v="145" dt="33.3580551147461" ccs="244.823806762695" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="56.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="1144.92545" y="145.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="148" algo="FindByMolecularFeature">
+      <Location m="312.20691" rt="12.850" rts="12.825" rte="12.896" a="2169" y="134" v="134" dt="24.6887722015381" ccs="187.035263061523" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="53.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="311.19964" y="134.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="149" algo="FindByMolecularFeature">
+      <Location m="250.00451" rt="11.644" rts="11.718" rte="11.771" a="2034" y="276" v="276" dt="13.1087808609009" ccs="100.466537475586" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="248.99822" y="276.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="150" algo="FindByMolecularFeature">
+      <Location m="598.35714" rt="16.236" rts="16.128" rte="16.396" a="11508" y="164" v="164" dt="32.8862075805664" ccs="243.986755371094" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="73.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="597.34980" y="164.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="151" algo="FindByMolecularFeature">
+      <Location m="287.04666" rt="13.273" rts="12.646" rte="12.735" a="2895" y="148" v="148" dt="19.1105556488037" ccs="145.308517456055" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="41.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="286.03920" y="148.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="152" algo="FindByMolecularFeature">
+      <Location m="334.13213" rt="10.615" rts="10.592" rte="10.664" a="1740" y="131" v="131" dt="24.0957317352295" ccs="181.930541992188" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="70.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="333.12547" y="131.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="153" algo="FindByMolecularFeature">
+      <Location m="484.27049" rt="15.139" rts="15.057" rte="15.182" a="2489" y="139" v="139" dt="29.152811050415" ccs="217.414398193359" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="41.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="483.26227" y="139.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="154" algo="FindByMolecularFeature">
+      <Location m="420.30859" rt="15.861" rts="16.003" rte="16.289" a="19360" y="230" v="230" dt="27.3535423278809" ccs="204.868255615234" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="34.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="419.30099" y="230.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="155" algo="FindByMolecularFeature">
+      <Location m="234.04950" rt="13.175" rts="13.164" rte="13.289" a="5647" y="222" v="222" dt="18.3219585418701" ccs="140.727294921875" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="233.04236" y="222.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="156" algo="FindByMolecularFeature">
+      <Location m="509.96785" rt="11.024" rts="11.003" rte="11.075" a="1648" y="116" v="116" dt="24.1133346557617" ccs="179.635192871094" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="61.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="508.96122" y="116.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="157" algo="FindByMolecularFeature">
+      <Location m="326.31701" rt="15.220" rts="15.182" rte="15.289" a="1874" y="105" v="105" dt="25.0546779632568" ccs="189.426330566406" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="60.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="325.30823" y="105.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="158" algo="FindByMolecularFeature">
+      <Location m="244.03714" rt="13.574" rts="12.843" rte="13.039" a="12232" y="297" v="297" dt="17.4246616363525" ccs="133.551132202148" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="33.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="243.03030" y="297.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="159" algo="FindByMolecularFeature">
+      <Location m="480.31164" rt="15.567" rts="15.521" rte="15.753" a="6387" y="172" v="172" dt="29.3806915283203" ccs="219.22688293457" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="99.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="479.30459" y="172.00" z="1" s="M-H" />
+          <p x="480.30682" y="66.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="160" algo="FindByMolecularFeature">
+      <Location m="246.02991" rt="13.751" rts="13.771" rte="13.860" a="4955" y="253" v="253" dt="17.4110431671143" ccs="133.463836669922" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="39.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="245.02302" y="253.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="161" algo="FindByMolecularFeature">
+      <Location m="716.58429" rt="15.345" rts="15.253" rte="15.468" a="12205" y="193" v="193" dt="36.789119720459" ccs="271.849487304688" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="74.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="715.57680" y="193.00" z="1" s="M-H" />
+          <p x="716.57917" y="74.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="162" algo="FindByMolecularFeature">
+      <Location m="539.52808" rt="15.098" rts="15.021" rte="15.182" a="8220" y="186" v="186" dt="33.1908569335938" ccs="246.769348144531" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="94.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="538.52038" y="186.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="163" algo="FindByMolecularFeature">
+      <Location m="369.98155" rt="9.649" rts="9.609" rte="9.681" a="2389" y="178" v="178" dt="18.546781539917" ccs="139.587936401367" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="62.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="368.97491" y="178.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="164" algo="FindByMolecularFeature">
+      <Location m="245.03355" rt="13.263" rts="13.396" rte="13.628" a="12934" y="223" v="223" dt="17.4176864624023" ccs="133.571868896484" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="244.02620" y="223.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="165" algo="FindByMolecularFeature">
+      <Location m="471.32165" rt="14.957" rts="14.950" rte="14.985" a="790" y="74" v="74" dt="28.5776176452637" ccs="213.327972412109" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="30.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="470.31217" y="74.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="166" algo="FindByMolecularFeature">
+      <Location m="328.19087" rt="12.598" rts="12.575" rte="12.664" a="5248" y="212" v="212" dt="25.8589572906494" ccs="195.38606262207" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="72.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="327.18422" y="212.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="167" algo="FindByMolecularFeature">
+      <Location m="284.27055" rt="15.659" rts="15.753" rte="15.825" a="1922" y="124" v="124" dt="23.351282119751" ccs="177.543151855469" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="37.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="283.26458" y="124.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="168" algo="FindByMolecularFeature">
+      <Location m="314.17456" rt="12.156" rts="12.128" rte="12.218" a="6549" y="241" v="241" dt="23.8113117218018" ccs="180.218215942383" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="57.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="313.16733" y="241.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="169" algo="FindByMolecularFeature">
+      <Location m="302.05850" rt="13.285" rts="13.110" rte="13.253" a="1233" y="78" v="78" dt="20.0675163269043" ccs="152.23405456543" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="52.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="301.05116" y="78.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="170" algo="FindByMolecularFeature">
+      <Location m="432.21726" rt="11.779" rts="11.753" rte="11.825" a="638" y="74" v="74" dt="27.4472370147705" ccs="205.532241821289" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="36.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="431.21012" y="74.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="171" algo="FindByMolecularFeature">
+      <Location m="486.00513" rt="7.044" rts="7.019" rte="7.090" a="1161" y="91" v="91" dt="28.8518199920654" ccs="215.168579101563" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="47.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="484.99846" y="91.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="172" algo="FindByMolecularFeature">
+      <Location m="256.23970" rt="15.893" rts="15.825" rte="15.914" a="3616" y="184" v="184" dt="22.1585941314697" ccs="169.244323730469" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="33.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="255.23203" y="184.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="173" algo="FindByMolecularFeature">
+      <Location m="530.34107" rt="14.562" rts="14.575" rte="14.950" a="14950" y="154" v="154" dt="30.4875221252441" ccs="226.915512084961" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="36.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="529.33412" y="154.00" z="1" s="M-H" />
+          <p x="530.33140" y="85.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="174" algo="FindByMolecularFeature">
+      <Location m="409.97380" rt="9.335" rts="0.053" rte="16.485" a="222" y="0" v="52" dt="21.8661365509033" ccs="164.001541137695" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="35.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="408.96445" y="52.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="175" algo="FindByMolecularFeature">
+      <Location m="132.01938" rt="12.223" rts="12.271" rte="12.343" a="1501" y="120" v="120" dt="18.8401165008545" ccs="150.624481201172" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="85.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="131.01208" y="120.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="176" algo="FindByMolecularFeature">
+      <Location m="399.94166" rt="8.954" rts="9.127" rte="9.163" a="245" y="51" v="51" dt="20.1053485870361" ccs="150.855255126953" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="30.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="398.93609" y="51.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="177" algo="FindByMolecularFeature">
+      <Location m="132.01962" rt="11.321" rts="11.610" rte="11.718" a="1189" y="73" v="73" dt="18.8515033721924" ccs="150.732788085938" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="72.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="131.01242" y="73.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="178" algo="FindByMolecularFeature">
+      <Location m="521.38360" rt="15.662" rts="15.592" rte="15.735" a="6045" y="156" v="156" dt="30.8621921539307" ccs="229.945343017578" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="520.37466" y="156.00" z="1" s="M-H" />
+          <p x="521.36852" y="83.00" z="1" s="M-H+1" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="179" algo="FindByMolecularFeature">
+      <Location m="340.29501" rt="12.328" rts="12.307" rte="12.360" a="686" y="79" v="79" dt="24.7591781616211" ccs="186.918487548828" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="70.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="339.28735" y="79.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="180" algo="FindByMolecularFeature">
+      <Location m="598.35673" rt="15.880" rts="16.003" rte="16.128" a="2729" y="112" v="112" dt="32.867561340332" ccs="243.911926269531" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="56.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="597.34978" y="112.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="181" algo="FindByMolecularFeature">
+      <Location m="458.24238" rt="13.178" rts="12.789" rte="12.896" a="1856" y="89" v="89" dt="27.8913478851318" ccs="208.431945800781" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="89.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="457.23434" y="89.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="182" algo="FindByMolecularFeature">
+      <Location m="284.27060" rt="15.448" rts="15.414" rte="15.539" a="3547" y="137" v="137" dt="23.3439788818359" ccs="177.468658447266" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="45.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="283.26351" y="137.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="183" algo="FindByMolecularFeature">
+      <Location m="756.49313" rt="15.742" rts="15.718" rte="15.878" a="6565" y="124" v="124" dt="37.5080528259277" ccs="276.97119140625" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="59.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="755.48431" y="124.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="184" algo="FindByMolecularFeature">
+      <Location m="117.97990" rt="3.166" rts="3.448" rte="3.483" a="561" y="133" v="133" dt="21.6284370422363" ccs="174.625183105469" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="116.97288" y="133.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="185" algo="FindByMolecularFeature">
+      <Location m="232.05680" rt="13.806" rts="13.610" rte="13.753" a="3000" y="158" v="158" dt="18.3069438934326" ccs="140.677093505859" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="37.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="231.04880" y="158.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="186" algo="FindByMolecularFeature">
+      <Location m="356.17460" rt="10.677" rts="10.664" rte="10.717" a="733" y="79" v="79" dt="25.5722885131836" ccs="192.609161376953" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="70.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="355.16872" y="79.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="187" algo="FindByMolecularFeature">
+      <Location m="131.02327" rt="11.585" rts="11.485" rte="11.521" a="444" y="68" v="68" dt="18.8348217010498" ccs="150.576690673828" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="30.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="130.01679" y="68.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="188" algo="FindByMolecularFeature">
+      <Location m="320.23717" rt="13.623" rts="13.521" rte="13.610" a="1674" y="101" v="101" dt="24.0261573791504" ccs="181.731903076172" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="37.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="319.22845" y="101.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="189" algo="FindByMolecularFeature">
+      <Location m="246.02965" rt="11.566" rts="11.503" rte="11.610" a="899" y="54" v="54" dt="18.3336582183838" ccs="140.447235107422" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="37.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="245.02308" y="54.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="190" algo="FindByMolecularFeature">
+      <Location m="117.98007" rt="4.278" rts="4.573" rte="4.626" a="302" y="61" v="61" dt="23.37672996521" ccs="188.6806640625" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="30.6" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="116.97288" y="61.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="191" algo="FindByMolecularFeature">
+      <Location m="246.03001" rt="12.495" rts="12.360" rte="12.432" a="1112" y="94" v="94" dt="18.3206462860107" ccs="140.437591552734" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="38.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="245.02417" y="94.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="192" algo="FindByMolecularFeature">
+      <Location m="369.98163" rt="9.763" rts="9.681" rte="9.770" a="1751" y="115" v="115" dt="18.5393543243408" ccs="139.492462158203" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="52.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="368.97557" y="115.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="193" algo="FindByMolecularFeature">
+      <Location m="302.05872" rt="12.325" rts="12.468" rte="12.521" a="632" y="74" v="74" dt="20.0574741363525" ccs="152.109161376953" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="87.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="301.05210" y="74.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="194" algo="FindByMolecularFeature">
+      <Location m="331.05422" rt="12.893" rts="13.182" rte="13.253" a="907" y="77" v="77" dt="21.2379245758057" ccs="160.445007324219" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="36.8" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="330.04673" y="77.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="195" algo="FindByMolecularFeature">
+      <Location m="303.05581" rt="12.148" rts="12.110" rte="12.182" a="1099" y="81" v="81" dt="20.0856037139893" ccs="152.433303833008" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="302.04815" y="81.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="196" algo="FindByMolecularFeature">
+      <Location m="253.00747" rt="7.247" rts="6.930" rte="6.948" a="257" y="51" v="51" dt="18.3694171905518" ccs="140.540496826172" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="33.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="252.00011" y="51.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="197" algo="FindByMolecularFeature">
+      <Location m="581.96772" rt="15.830" rts="15.807" rte="15.842" a="549" y="66" v="66" dt="23.5406913757324" ccs="174.900146484375" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="33.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="580.96136" y="66.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="198" algo="FindByMolecularFeature">
+      <Location m="598.35628" rt="15.351" rts="15.485" rte="15.575" a="2061" y="88" v="88" dt="32.8804740905762" ccs="243.972671508789" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="48.2" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="597.34854" y="88.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="199" algo="FindByMolecularFeature">
+      <Location m="132.01955" rt="10.699" rts="11.236" rte="11.307" a="637" y="62" v="62" dt="18.8543109893799" ccs="150.785934448242" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="71.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="131.01212" y="62.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="200" algo="FindByMolecularFeature">
+      <Location m="302.05918" rt="11.689" rts="11.932" rte="12.021" a="667" y="69" v="69" dt="20.0694446563721" ccs="152.199737548828" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="33.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="301.05321" y="69.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="201" algo="FindByMolecularFeature">
+      <Location m="132.01937" rt="9.112" rts="8.841" rte="8.913" a="630" y="64" v="64" dt="18.8329410552979" ccs="150.594802856445" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="65.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="131.01225" y="64.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="202" algo="FindByMolecularFeature">
+      <Location m="260.93945" rt="16.357" rts="16.414" rte="16.468" a="666" y="80" v="80" dt="13.1568164825439" ccs="100.647270202637" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.3" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="259.93195" y="80.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="203" algo="FindByMolecularFeature">
+      <Location m="512.30112" rt="15.431" rts="15.396" rte="15.503" a="1623" y="82" v="82" dt="29.9797630310059" ccs="223.182540893555" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="43.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="511.29495" y="82.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="204" algo="FindByMolecularFeature">
+      <Location m="276.06330" rt="12.759" rts="13.378" rte="13.432" a="577" y="65" v="65" dt="19.7922859191895" ccs="150.724334716797" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="48.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="275.05639" y="65.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="205" algo="FindByMolecularFeature">
+      <Location m="246.02966" rt="12.804" rts="12.860" rte="12.950" a="1014" y="73" v="73" dt="18.3059272766113" ccs="140.270980834961" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="34.5" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="245.02376" y="73.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="206" algo="FindByMolecularFeature">
+      <Location m="288.04389" rt="12.580" rts="13.200" rte="13.289" a="1150" y="81" v="81" dt="20.469217300415" ccs="155.479553222656" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="46.0" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="287.03767" y="81.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="207" algo="FindByMolecularFeature">
+      <Location m="581.96698" rt="9.053" rts="9.038" rte="9.091" a="995" y="64" v="64" dt="22.5042896270752" ccs="167.156448364258" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="58.9" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="580.95936" y="64.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="208" algo="FindByMolecularFeature">
+      <Location m="260.93849" rt="15.873" rts="15.718" rte="15.860" a="951" y="60" v="60" dt="13.1636199951172" ccs="100.735794067383" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="49.7" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="259.93165" y="60.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="209" algo="FindByMolecularFeature">
+      <Location m="276.06375" rt="13.447" rts="13.646" rte="13.700" a="496" y="61" v="61" dt="19.7962894439697" ccs="150.820846557617" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="32.1" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="275.05714" y="61.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+    <Compound mppid="210" algo="FindByMolecularFeature">
+      <Location m="437.29153" rt="15.363" rts="15.360" rte="15.396" a="383" y="59" v="59" dt="27.9801788330078" ccs="209.264846801758" />
+      <CompoundScores>
+        <CpdScore algo="mfe" score="31.4" />
+      </CompoundScores>
+      <Results>
+        <Molecule />
+      </Results>
+      <Spectrum type="MFE" cpdAlgo="FindByMolecularFeature">
+        <MSDetails p="-" />
+        <Device type="QuadrupoleTimeOfFlight" />
+        <MSPeaks>
+          <p x="436.28560" y="59.00" z="1" s="M-H" />
+        </MSPeaks>
+      </Spectrum>
+    </Compound>
+  </CompoundList>
+</CEF>
