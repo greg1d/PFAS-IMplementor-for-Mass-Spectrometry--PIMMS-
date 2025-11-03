@@ -45,7 +45,7 @@ class Config:
             "Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv": resource_path(
                 r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
             ),
-            "Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv": resource_path(
+            "Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv": resource_path(
                 r"Import libraries\Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
             ),
             "Level 5 Library NORMAN_PFAS_Negative_ESI.csv": resource_path(
@@ -167,7 +167,7 @@ class Config:
 
         # === Filter Settings ===
         self.min_intensity = 100
-        self.rt_min = 2.0
+        self.rt_min = 0.5
         self.rt_max = 16.0
         self.mz_min = 100.0
         self.mz_max = 2000.0
