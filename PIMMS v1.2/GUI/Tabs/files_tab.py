@@ -22,7 +22,7 @@ class FilesTab(ttk.Frame):
         file_options = {
             "Raw Data Input": "raw_data_input_location",
             "Standards for Removal": "standards_file",
-            "Level 2 Library": "level_2_library",
+            "Level 1 Library": "level_2_library",
             "Level 5 Library": "level_5_library",
             "Output Report Path": "output_path",
         }

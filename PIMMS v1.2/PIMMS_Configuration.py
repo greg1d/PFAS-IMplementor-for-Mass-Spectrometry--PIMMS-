@@ -46,7 +46,7 @@ class Config:
                 r"Import libraries\Mass Labeled PFAS Standards (MPFAC HIF ES SIL).csv"
             ),
             "Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv": resource_path(
-                r"Import libraries\Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+                r"Import libraries\Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
             ),
             "Level 5 Library NORMAN_PFAS_Negative_ESI.csv": resource_path(
                 r"Import libraries\Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
@@ -122,7 +122,7 @@ class Config:
         )
         self.level_2_library = os.path.join(
             self.import_libraries_folder,
-            "Level 2 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv",
+            "Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv",
         )
         self.level_5_library = os.path.join(
             self.import_libraries_folder, "Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
