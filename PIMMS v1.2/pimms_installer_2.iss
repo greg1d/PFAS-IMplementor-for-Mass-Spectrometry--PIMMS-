@@ -7,8 +7,6 @@
 #define MyAppExeName "PIMMS.exe"
 
 [Setup]
-; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
-; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{9553FEF2-D9CA-435F-A816-EB99154F214E}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
@@ -24,6 +22,9 @@ SetupIconFile=F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Icon\
 SolidCompression=yes
 WizardStyle=modern
 
+; --- Add license page ---
+LicenseFile=F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\license.txt
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
@@ -31,16 +32,14 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; This section installs your application and guide into Program Files.
+; Install your application and guide into Program Files.
 Source: "F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS Guide.pdf"; DestDir: "{userdocs}\PIMMS"; Flags: ignoreversion
 
-; --- CORRECTED SECTION ---
-; This now installs files into a folder named "PIMMS" in the user's Documents.
+; --- Install supporting files into Documents ---
 Source: "F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Import libraries\*"; DestDir: "{userdocs}\PIMMS\Import libraries"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\CEF_reading\*"; DestDir: "{userdocs}\PIMMS\CEF_data\Training CEF Data"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "F:\PFAS-IMplementor-for-Mass-Spectrometry--PIMMS-\PIMMS v1.2\Raw data\NIST_SRM_Profiler_raw_data.csv"; DestDir: "{userdocs}\PIMMS\Raw data"; Flags: ignoreversion
-; --- END OF CORRECTIONS ---
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
