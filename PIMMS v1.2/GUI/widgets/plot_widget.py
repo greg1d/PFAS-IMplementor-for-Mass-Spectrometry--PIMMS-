@@ -80,9 +80,13 @@ class PlotWidget(ttk.Frame):
                         row["m/z"], row["CCS"], f"({row['m/z']:.2f}, {row['CCS']:.2f})"
                     )
 
-        # -------- Plot highlighted points --------
+                # -------- Plot highlighted points (colored by Classification Type) --------# -------- Plot highlighted points --------
         if highlighted_df is not None and not highlighted_df.empty:
             trend_id = highlighted_df["trend_group"].iloc[0]
+
+            # Assign colors based on 'is_outlier' column
+            def get_point_color(row):
+                return "#2F07AF" if row.get("is_outlier", False) else "#EB8002"
 
             # Split data by Classification Type
             standards_df = highlighted_df[
@@ -92,13 +96,14 @@ class PlotWidget(ttk.Frame):
                 highlighted_df["Classification Type"] != "External Standard"
             ]
 
-            # Non-standards as blue circles
+            # Plot other points (non-standards) with color based on outlier status
             if not other_points_df.empty:
+                colors = other_points_df.apply(get_point_color, axis=1)
                 self.ax.scatter(
                     other_points_df["m/z"],
                     other_points_df["CCS"],
                     marker="o",
-                    color="blue",
+                    color=colors,
                     s=50,
                     label="Sample Feature",
                     zorder=5,
@@ -108,13 +113,14 @@ class PlotWidget(ttk.Frame):
                         row["m/z"], row["CCS"], f"({row['m/z']:.2f}, {row['CCS']:.2f})"
                     )
 
-            # Standards as red X
+            # Standards as green X
             if not standards_df.empty:
+                colors = standards_df.apply(get_point_color, axis=1)
                 self.ax.scatter(
                     standards_df["m/z"],
                     standards_df["CCS"],
                     marker="x",
-                    color="red",
+                    color=colors,
                     s=80,
                     label="External Standard",
                     zorder=10,
@@ -124,22 +130,26 @@ class PlotWidget(ttk.Frame):
                         row["m/z"], row["CCS"], f"({row['m/z']:.2f}, {row['CCS']:.2f})"
                     )
 
-            # Fit trend line
-            model = LinearRegression().fit(
-                highlighted_df[["m/z"]].values, highlighted_df["CCS"].values
-            )
-            x_range = np.linspace(
-                highlighted_df["m/z"].min(), highlighted_df["m/z"].max(), 100
-            )
-            y_pred = model.predict(x_range.reshape(-1, 1))
-            self.ax.plot(
-                x_range,
-                y_pred,
-                linestyle="--",
-                color="black",
-                label=f"Trend {trend_id} Fit",
-                zorder=0,
-            )
+            # Fit trend line (only with non-outlier points)
+            trend_df = highlighted_df[highlighted_df["is_outlier"] == False]
+            if not trend_df.empty and len(trend_df) >= 2:
+                model = LinearRegression().fit(
+                    trend_df[["m/z"]].values, trend_df["CCS"].values
+                )
+                x_range = np.linspace(trend_df["m/z"].min(), trend_df["m/z"].max(), 100)
+                y_pred = model.predict(x_range.reshape(-1, 1))
+                self.ax.plot(
+                    x_range,
+                    y_pred,
+                    linestyle="--",
+                    color="black",
+                    label=f"Trend {trend_id} Fit",
+                    zorder=0,
+                )
+            else:
+                print(
+                    f"[INFO] Trend {trend_id} has insufficient non-outlier points for line fit."
+                )
 
             self.ax.set_title(f"Viewing Trend {trend_id}")
         else:
@@ -157,9 +167,50 @@ class PlotWidget(ttk.Frame):
         self.ax.set_ylabel("CCS ($Å^2$)")
         self.ax.grid(True)
 
-        handles, labels = self.ax.get_legend_handles_labels()
-        if handles:
-            self.ax.legend()
+        # ----- Consistent legend -----
+        from matplotlib.lines import Line2D
+
+        legend_elements = [
+            Line2D(
+                [0],
+                [0],
+                marker="o",
+                color="none",
+                markerfacecolor="#2F07AF",
+                markeredgecolor="none",
+                label="Outlier (Sample)",
+            ),
+            Line2D(
+                [0],
+                [0],
+                marker="o",
+                color="none",
+                markerfacecolor="#F17105",
+                markeredgecolor="none",
+                label="Inlier (Sample)",
+            ),
+            Line2D(
+                [0],
+                [0],
+                marker="x",
+                color="#2F07AF",
+                markersize=8,
+                linestyle="none",
+                label="Outlier (Library)",
+            ),
+            Line2D(
+                [0],
+                [0],
+                marker="x",
+                color="#F17105",
+                markersize=8,
+                linestyle="none",
+                label="Inlier (Library)",
+            ),
+            Line2D([0], [0], linestyle="--", color="black", label="Trend Fit"),
+        ]
+
+        self.ax.legend(handles=legend_elements, loc="best")
 
         self.fig.tight_layout()
         self.canvas.draw()
