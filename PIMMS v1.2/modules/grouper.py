@@ -72,10 +72,73 @@ def flag_duplicates(
     return df
 
 
+def branching_merge(df):
+    """
+    Merge rows based on duplicate_group:
+      - For duplicate_group != -1:
+          - mean of m/z, RT, CCS, DT
+          - max of other numeric columns
+          - first value of categorical columns
+      - Rows with duplicate_group = -1 are unchanged
+    """
+    merged_rows = []
+
+    # Identify numeric and categorical columns
+    numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+    categorical_cols = df.select_dtypes(exclude=np.number).columns.tolist()
+
+    # Columns to take mean
+    mean_cols = ["m/z", "RT", "CCS", "DT"]
+
+    # Columns to take max = all numeric cols except the mean_cols
+    max_cols = [
+        c
+        for c in numeric_cols
+        if c not in mean_cols + ["duplicate_group", "duplicate_flag"]
+    ]
+
+    # Process each duplicate group
+    for group_id in df["duplicate_group"].unique():
+        if group_id == -1:
+            continue
+        group_df = df[df["duplicate_group"] == group_id]
+
+        merged_row = {}
+        # mean columns
+        for col in mean_cols:
+            merged_row[col] = group_df[col].mean()
+        # max columns
+        for col in max_cols:
+            merged_row[col] = group_df[col].max()
+        # categorical columns
+        for col in categorical_cols:
+            merged_row[col] = group_df[col].iloc[0]
+
+        # Set duplicate_flag = True, duplicate_group = group_id
+        merged_row["duplicate_flag"] = True
+        merged_row["duplicate_group"] = group_id
+
+        merged_rows.append(merged_row)
+
+    # Create DataFrame for merged rows
+    merged_df = pd.DataFrame(merged_rows)
+
+    # Include non-duplicate rows unchanged
+    non_duplicates = df[df["duplicate_group"] == -1].copy()
+
+    final_df = pd.concat([non_duplicates, merged_df], ignore_index=True)
+
+    # Optional: sort by original index or any column
+    final_df = final_df.sort_values(by=["duplicate_group", "m/z"], ignore_index=True)
+
+    return final_df
+
+
 def main():
     adjusted_df = pd.read_csv("duplicate row removal testing - Copy.csv")
     flagged_df = flag_duplicates(adjusted_df)
-    print(flagged_df)
+    final_df = branching_merge(flagged_df)
+    final_df.to_csv("duplicate row removal testing output.csv", index=False)
 
 
 if __name__ == "__main__":
