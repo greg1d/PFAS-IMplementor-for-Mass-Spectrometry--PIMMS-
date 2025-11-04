@@ -22,15 +22,25 @@ class PlotWidget(ttk.Frame):
 
     def update_plot(self, context_df, highlighted_df):
         """
-        Clears and redraws the plot, using different markers for library vs. sample points.
+        Clears and redraws the plot, using different markers for library vs. sample points,
+        and overlays (x, y) coordinates above each point, avoiding overlaps.
         """
         self.ax.clear()
+        label_positions = []  # Keep track of previously drawn label positions
+        min_dist = 5  # Minimum distance between labels in data units
 
-        # Plot the full parent group (context) in gray if it exists
+        def can_place_label(x, y):
+            for lx, ly in label_positions:
+                if abs(x - lx) < min_dist and abs(y - ly) < min_dist:
+                    return False
+            label_positions.append((x, y))
+            return True
+
+        # -------- Plot parent group (gray) --------
         if context_df is not None and not context_df.empty:
             gray_df = context_df.copy()
 
-            # Exclude points that are External Standards in highlighted_df
+            # Exclude External Standards that are highlighted
             if highlighted_df is not None and not highlighted_df.empty:
                 standards_df = highlighted_df[
                     highlighted_df["Classification Type"] == "External Standard"
@@ -46,9 +56,23 @@ class PlotWidget(ttk.Frame):
                     color="lightgray",
                     s=30,
                     label=f"_Parent Group {parent_id}",
+                    zorder=1,
                 )
+                # Overlay coordinates for gray points
+                for idx, row in gray_df.iterrows():
+                    x, y = row["m/z"], row["CCS"] + 0.5
+                    if can_place_label(x, y):
+                        self.ax.text(
+                            x,
+                            y,
+                            f"({x:.2f}, {row['CCS']:.2f})",
+                            fontsize=7,
+                            ha="center",
+                            va="bottom",
+                            color="gray",
+                        )
 
-        # Plot the selected trend in color with a line
+        # -------- Plot highlighted points --------
         if highlighted_df is not None and not highlighted_df.empty:
             trend_id = highlighted_df["trend_group"].iloc[0]
 
@@ -60,7 +84,7 @@ class PlotWidget(ttk.Frame):
                 highlighted_df["Classification Type"] != "External Standard"
             ]
 
-            # Plot non-standards as circles (o)
+            # Non-standards as blue circles
             if not other_points_df.empty:
                 self.ax.scatter(
                     other_points_df["m/z"],
@@ -69,9 +93,22 @@ class PlotWidget(ttk.Frame):
                     color="blue",
                     s=50,
                     label="Sample Feature",
+                    zorder=5,
                 )
+                for idx, row in other_points_df.iterrows():
+                    x, y = row["m/z"], row["CCS"] + 0.5
+                    if can_place_label(x, y):
+                        self.ax.text(
+                            x,
+                            y,
+                            f"({x:.2f}, {row['CCS']:.2f})",
+                            fontsize=7,
+                            ha="center",
+                            va="bottom",
+                            color="blue",
+                        )
 
-            # Plot standards as crosses (x) ONLY, no underlying points
+            # Standards as red X
             if not standards_df.empty:
                 self.ax.scatter(
                     standards_df["m/z"],
@@ -80,10 +117,22 @@ class PlotWidget(ttk.Frame):
                     color="red",
                     s=80,
                     label="External Standard",
-                    zorder=5,  # ensure they are on top
+                    zorder=10,  # ensure on top
                 )
+                for idx, row in standards_df.iterrows():
+                    x, y = row["m/z"], row["CCS"] + 0.5
+                    if can_place_label(x, y):
+                        self.ax.text(
+                            x,
+                            y,
+                            f"({x:.2f}, {row['CCS']:.2f})",
+                            fontsize=7,
+                            ha="center",
+                            va="bottom",
+                            color="red",
+                        )
 
-            # Fit a model to the ENTIRE highlighted group and plot the trend line
+            # Fit trend line over all highlighted points
             model = LinearRegression().fit(
                 highlighted_df[["m/z"]].values, highlighted_df["CCS"].values
             )
