@@ -30,7 +30,6 @@ def significant_figures_rounding(df):
     if not isinstance(df, pd.DataFrame) or df.empty:
         return df
 
-    print("df going into the rounding def", df.columns)
     df_rounded = df.copy()
     rounding_rules = {"CCS": 1, "RT": 1, "m/z": 4, "DT": 2}
     for column, places in rounding_rules.items():

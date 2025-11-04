@@ -243,80 +243,76 @@ def validate_ransac_trends(ransac_df, min_well_spaced_points, min_library_points
     """
     Validates the final trend lines produced by RANSAC analysis.
 
-    This function filters trends based on three primary quality criteria:
-    1. The minimum number of points that are well-spaced (m/z difference >= 10).
-    2. The minimum number of external standard points.
-    3. A fixed, internal R-squared threshold of 0.90.
+    This function filters trends based on:
+    1. The minimum number of well-spaced (m/z diff >= 10) non-outlier points.
+    2. The minimum number of external standard non-outlier points.
+    3. A fixed R² threshold (>= 0.90).
 
-    Args:
-        ransac_df (pd.DataFrame): The DataFrame returned by the RANSAC process.
-        min_well_spaced_points (int): The minimum number of points with an m/z spacing
-                                      of at least 10 from the previous point.
-        min_library_points (int): The minimum number of 'External Standard' points
-                                  a trend must have.
-
-    Returns:
-        pd.DataFrame: A fully validated DataFrame containing only high-quality trends.
+    It does not drop points — it only flags entire groups that fail the criteria.
     """
+
     if ransac_df is None or ransac_df.empty:
         return pd.DataFrame()
 
     print("\n[INFO] Starting post-RANSAC validation of trend lines...")
-    print("ransac df", ransac_df.head())
-    # Define the fixed R-squared threshold internally.
-    FIXED_R_SQUARED_THRESHOLD = 0.90
-
-    initial_trends = ransac_df["trend_group"].nunique()
     validated_df = ransac_df.copy()
+    print("[DEBUG] Initial ransac_df head:\n", validated_df.head())
 
-    # --- Filter 1: Minimum well-spaced points per trend ---
+    # --- Filter 1: Minimum well-spaced points (consider only non-outliers) ---
     if min_well_spaced_points > 0:
 
-        def _has_enough_well_spaced_points(group):
-            """Checks if a trend group has enough points with significant m/z spacing."""
-            sorted_group = group.sort_values(by="m/z")
-            well_spaced_count = (sorted_group["m/z"].diff().fillna(10) >= 10).sum()
-            return well_spaced_count >= min_well_spaced_points
+        def _mark_well_spaced_failures(group):
+            non_outliers = group[group["is_outlier"] == False].sort_values(by="m/z")
+            well_spaced_count = (non_outliers["m/z"].diff().fillna(10) >= 10).sum()
+            if well_spaced_count < min_well_spaced_points:
+                print(
+                    f"[DEBUG] trend_group={group['trend_group'].iloc[0]} | "
+                    f"well_spaced_count={well_spaced_count} < required={min_well_spaced_points}"
+                )
+                group["is_outlier"] = True  # mark entire group as outlier trend
+            return group
 
-        validated_df = validated_df.groupby("trend_group").filter(
-            _has_enough_well_spaced_points
+        validated_df = validated_df.groupby("trend_group", group_keys=False).apply(
+            _mark_well_spaced_failures
         )
-        print(
-            f"[INFO] {initial_trends - validated_df['trend_group'].nunique()} trends removed by min_well_spaced_points ({min_well_spaced_points})."
-        )
-        initial_trends = validated_df["trend_group"].nunique()
 
-    # --- Filter 2: Minimum external standard points per trend ---
+    # --- Filter 2: Minimum external standard points (consider only non-outliers) ---
     if min_library_points > 0:
 
-        def _has_min_library_points(group):
-            """Checks if a trend group meets the minimum external standard point requirement."""
-            standard_count = (group["Classification Type"] == "External Standard").sum()
-            return standard_count >= min_library_points
+        def _mark_library_failures(group):
+            non_outliers = group[group["is_outlier"] == False]
+            standard_count = (
+                non_outliers["Classification Type"] == "External Standard"
+            ).sum()
+            if standard_count < min_library_points:
+                print(
+                    f"[DEBUG] trend_group={group['trend_group'].iloc[0]} | "
+                    f"standard_count={standard_count} < required={min_library_points}"
+                )
+                group["is_outlier"] = True
+            return group
 
-        validated_df = validated_df.groupby("trend_group").filter(
-            _has_min_library_points
+        validated_df = validated_df.groupby("trend_group", group_keys=False).apply(
+            _mark_library_failures
         )
-        print(
-            f"[INFO] {initial_trends - validated_df['trend_group'].nunique()} trends removed by min_library_points ({min_library_points})."
-        )
-        initial_trends = validated_df["trend_group"].nunique()
 
-    # --- Filter 3: Fixed R-squared value ---
+    # --- Filter 3: Fixed R-squared threshold ---
     if "r_squared" in validated_df.columns:
 
-        def _has_min_r_squared(group):
-            """Checks if a trend group meets the fixed R-squared requirement."""
-            return group["r_squared"].iloc[0] >= 0.9
+        def _mark_low_r2(group):
+            if group["r_squared"].iloc[0] < 0.9:
+                print(
+                    f"[DEBUG] trend_group={group['trend_group'].iloc[0]} | "
+                    f"r_squared={group['r_squared'].iloc[0]:.3f} < 0.9"
+                )
+                group["is_outlier"] = True
+            return group
 
-        validated_df = validated_df.groupby("trend_group").filter(_has_min_r_squared)
-        print(
-            f"[INFO] {initial_trends - validated_df['trend_group'].nunique()} trends removed by fixed R-squared threshold (>{0.9})."
+        validated_df = validated_df.groupby("trend_group", group_keys=False).apply(
+            _mark_low_r2
         )
 
-    print(
-        f"\n[INFO] Post-RANSAC validation complete. {validated_df['trend_group'].nunique()} trends remain."
-    )
+    print(f"[INFO] Post-RANSAC validation complete. Total points: {len(validated_df)}")
 
     return validated_df
 

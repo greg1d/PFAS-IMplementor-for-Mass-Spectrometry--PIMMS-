@@ -35,17 +35,21 @@ def find_trends_in_group(
     residual_threshold,
     min_trend_samples,
     min_r_squared,
-    random_state=42,  # <---- added this
+    random_state=42,
 ):
-    group_df["subgroup"] = -1
+    """
+    Find trends in a group using RANSAC, marking points that don't fit
+    a trend as outliers, but keeping them in the same trend group.
+    """
+    group_df = group_df.copy()
+    group_df["subgroup"] = -1  # -1 = no trend assigned yet
+    group_df["is_outlier"] = True  # initially mark all points as outliers
     remaining_points = group_df.copy()
     trend_count = 0
 
     print(
         f"\n[INFO] Starting RANSAC trend search in group ({len(remaining_points)} points)..."
     )
-
-    # Ensure numpy’s own RNG is also seeded
     np.random.seed(random_state)
 
     while len(remaining_points) >= min_trend_samples:
@@ -57,7 +61,7 @@ def find_trends_in_group(
             min_samples=2,
             residual_threshold=residual_threshold,
             is_model_valid=is_slope_valid,
-            random_state=random_state,  # <---- added this
+            random_state=random_state,
         )
 
         try:
@@ -84,13 +88,7 @@ def find_trends_in_group(
 
         if score < min_r_squared:
             print(
-                f"  - Trend rejected (R²={score:.3f} < {min_r_squared}) "
-                f"with {num_inliers} inliers. Dropping those and retrying."
-            )
-            rejected_indices = remaining_points.index[inlier_mask]
-            print(
-                "    Rejected inlier m/z values:",
-                remaining_points.loc[rejected_indices, x_col].tolist(),
+                f"  - Trend rejected (R²={score:.3f} < {min_r_squared}) with {num_inliers} inliers. Retrying..."
             )
             remaining_points = remaining_points.iloc[~inlier_mask]
             continue
@@ -103,28 +101,31 @@ def find_trends_in_group(
             f"Slope={slope:.4f}, Intercept={intercept:.4f}"
         )
 
-        print("    Inlier points:")
-        for idx in inlier_indices:
-            print(
-                f"      Index {idx}: m/z={remaining_points.at[idx, x_col]:.4f}, CCS={remaining_points.at[idx, y_col]:.4f}"
-            )
+        # Assign inliers to the current trend and mark as not outliers
+        group_df.loc[inlier_indices, "is_outlier"] = False
 
-        group_df.loc[inlier_indices, "subgroup"] = trend_count
-
+        # Remove inliers from remaining points
         remaining_points = remaining_points.drop(inlier_indices)
         trend_count += 1
 
-    outlier_mask = group_df["subgroup"] == -1
-    outlier_count = outlier_mask.sum()
-
+    # At this point, remaining points are still in the original DataFrame
+    outlier_count = group_df["is_outlier"].sum()
     if outlier_count > 0:
-        print(f"  - Dropping {outlier_count} outlier point(s).")
-        print("    Outlier m/z values:", group_df.loc[outlier_mask, x_col].tolist())
-        print("    Outlier CCS values:", group_df.loc[outlier_mask, y_col].tolist())
+        print(
+            f"  - Found {outlier_count} outlier point(s) within trend groups (kept in group)."
+        )
+        print(
+            "    Outlier m/z values:",
+            group_df.loc[group_df["is_outlier"], x_col].tolist(),
+        )
+        print(
+            "    Outlier CCS values:",
+            group_df.loc[group_df["is_outlier"], y_col].tolist(),
+        )
 
     print(f"[INFO] RANSAC trend search complete: {trend_count} trend(s) found.\n")
 
-    return group_df[group_df["subgroup"] != -1].copy()
+    return group_df
 
 
 # --- UPDATED FUNCTION SIGNATURE ---
