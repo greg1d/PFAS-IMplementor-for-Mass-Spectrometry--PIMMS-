@@ -1,3 +1,9 @@
+import time
+
+
+import numpy as np
+
+
 def smearing_filter(
     experimental_df,
     mz_col="m/z",
@@ -7,38 +13,24 @@ def smearing_filter(
     ccs_tolerance=2,
 ):
     """
-    Filters out artifact peaks caused by smearing or isotopes.
+    Vectorized smearing filter to remove artifact peaks.
 
-    For each peak, it looks for a nearby peak with a slightly lower mass. If that
-    lower-mass peak is significantly stronger (50x) in a given sample, the
-    intensity of the higher-mass peak is set to 0 for that sample.
-
-    Args:
-        experimental_df (pd.DataFrame): DataFrame with metadata and experimental samples.
-        metadata_cols (list): List of metadata column names.
-        mz_col (str): Name of the mass-to-charge ratio column.
-        rt_col (str): Name of the retention time column.
-        ccs_col (str): Name of the collisional cross-section column.
-        rt_tolerance (float): Retention time tolerance for matching peaks.
-        ccs_tolerance (float): CCS tolerance percentage for matching peaks.
-
-    Returns:
-        pd.DataFrame: A new DataFrame with smearing artifacts zeroed out.
+    Looks back at lower-mass peaks within mz-2, RT tolerance, and CCS tolerance,
+    and zeros out higher-mass intensities if lower-mass peaks are >50x stronger.
     """
-    # --- 1. Setup and Validation ---
-    # Create a copy to avoid modifying the original DataFrame
+    start_total = time.perf_counter()
+
     if experimental_df.empty:
         print("[INFO] Input DataFrame is empty. Skipping smearing filter.")
         return experimental_df
 
     df_filtered = experimental_df.copy()
 
-    # Dynamically identify sample columns by excluding metadata
+    # Dynamically identify sample columns (all columns in this example)
     sample_cols = [col for col in df_filtered.columns]
 
-    # Check if required metadata columns exist
-    required_cols = [mz_col, rt_col, ccs_col]
-    for col in required_cols:
+    # Validate required columns
+    for col in [mz_col, rt_col, ccs_col]:
         if col not in df_filtered.columns:
             raise ValueError(f"Required column '{col}' not found in the DataFrame.")
 
@@ -48,36 +40,57 @@ def smearing_filter(
 
     print(f"Applying smearing filter to sample columns: {sample_cols}")
 
-    # Sort by m/z for efficient searching, and reset index
+    # Sort by m/z for efficient look-back search
+    t0_sort = time.perf_counter()
     df_sorted = df_filtered.sort_values(mz_col).reset_index(drop=True)
+    print(f"[TIME] Sorting by m/z: {time.perf_counter() - t0_sort:.4f} seconds")
 
-    # --- 2. Core Filtering Logic ---
-    # Iterate through each row (peak)
-    for i in range(len(df_sorted)):
-        mz1 = df_sorted.loc[i, mz_col]
-        ccs1 = df_sorted.loc[i, ccs_col]
-        rt1 = df_sorted.loc[i, rt_col]
+    # Convert relevant columns to NumPy arrays for speed
+    mz_arr = df_sorted[mz_col].values
+    rt_arr = df_sorted[rt_col].values
+    ccs_arr = df_sorted[ccs_col].values
+    sample_arr = df_sorted[sample_cols].values  # shape (n_rows, n_samples)
 
-        # Find potential artifact sources: peaks with a slightly lower mass but within RT and CCS tolerance
-        potential_matches = df_sorted[
-            (df_sorted[mz_col] >= mz1 - 2)
-            & (df_sorted[mz_col] < mz1)
-            & (abs(df_sorted[ccs_col] - ccs1) / ccs1 * 100 < ccs_tolerance)
-            & (abs(df_sorted[rt_col] - rt1) <= rt_tolerance)
-        ]
+    t0_core = time.perf_counter()
 
-        # If matching lower-mass peaks are found, compare intensities
-        if not potential_matches.empty:
-            for j in potential_matches.index:
-                # Compare each sample column individually
-                for col in sample_cols:
-                    intensity_high_mass = df_sorted.at[i, col]
-                    intensity_low_mass = df_sorted.at[j, col]
+    for i in range(len(mz_arr)):
+        mz1 = mz_arr[i]
+        rt1 = rt_arr[i]
+        ccs1 = ccs_arr[i]
 
-                    # If the lower mass peak is >50x stronger, it's likely the source.
-                    # Zero out the higher mass peak's intensity in this specific sample.
-                    if intensity_low_mass > 50 * intensity_high_mass:
-                        df_sorted.at[i, col] = 0
+        # Look-back window: mz_j in [mz1 - 2, mz1)
+        left_idx = np.searchsorted(mz_arr, mz1 - 2, side="left")
+        candidate_indices = np.arange(left_idx, i)
+        if candidate_indices.size == 0:
+            continue
 
+        # Apply CCS and RT tolerances
+        ccs_mask = (
+            np.abs(ccs_arr[candidate_indices] - ccs1) / ccs1 * 100 < ccs_tolerance
+        )
+        rt_mask = np.abs(rt_arr[candidate_indices] - rt1) <= rt_tolerance
+        valid_idx = candidate_indices[ccs_mask & rt_mask]
+
+        if valid_idx.size == 0:
+            continue
+
+        # Vectorized intensity comparison across sample columns
+        intensities_low = sample_arr[valid_idx, :]  # shape (num_candidates, n_samples)
+        intensities_high = sample_arr[i, :]  # shape (n_samples,)
+        mask_zero = (intensities_low > 50 * intensities_high).any(axis=0)
+        sample_arr[i, mask_zero] = 0
+
+        # Optional: progress tracking every 1000 rows
+        if i > 0 and i % 1000 == 0:
+            print(f"[INFO] Processed {i}/{len(mz_arr)} rows...")
+
+    # Write back vectorized intensities to DataFrame
+    df_sorted[sample_cols] = sample_arr
+
+    print(f"[TIME] Core filtering logic: {time.perf_counter() - t0_core:.4f} seconds")
+    print(
+        f"[TIME] Total smearing filter: {time.perf_counter() - start_total:.4f} seconds"
+    )
     print("✔️ Smearing filter applied.")
+
     return df_sorted
