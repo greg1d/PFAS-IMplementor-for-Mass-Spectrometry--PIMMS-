@@ -189,8 +189,6 @@ def run_pimms_workflow(config):
             adjusted_df, metadata_cols, config.frequency_threshold
         )
 
-        # --- FIX: The call now passes the prepared 'standards_df' DataFrame ---
-
         # Using keyword arguments for clarity and safety
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
             adjusted_df=adjusted_df,

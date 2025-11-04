@@ -135,7 +135,7 @@ def branching_merge(df):
 
 
 def main():
-    adjusted_df = pd.read_csv("duplicate row removal testing - Copy.csv")
+    adjusted_df = pd.read_csv("branching_filter_early_output.csv")
     flagged_df = flag_duplicates(adjusted_df)
     final_df = branching_merge(flagged_df)
     final_df.to_csv("duplicate row removal testing output.csv", index=False)
