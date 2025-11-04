@@ -85,25 +85,48 @@ def mz_repeating_unit_analysis(
     )
     start_time = time.perf_counter()
 
-    # --- Graph building logic remains unchanged ---
+    # --- Enhanced graph-building logic (search multiples of repeating unit) ---
     G = nx.Graph()
     G.add_nodes_from(df.index)
-    # ... (code for iterating and adding edges is unchanged) ...
+
+    # You can configure how many multiples to check (e.g. up to 5 × CF2)
+    MAX_MULTIPLES = 3
+
     for current_idx in range(len(df)):
         current_mz = df.at[current_idx, "m/z"]
+
         for unit_name, M in selected_repeating_units.items():
-            target_mz = current_mz + M
-            ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
-            lower_bound = target_mz - ppm_tolerance
-            upper_bound = target_mz + ppm_tolerance
-            start_slice = bisect.bisect_left(mz_list, lower_bound, lo=current_idx + 1)
-            end_slice = bisect.bisect_right(mz_list, upper_bound, lo=start_slice)
-            candidate_indices = df.index[start_slice:end_slice]
-            if not candidate_indices.empty:
-                best_candidate_idx = (
-                    (df.loc[candidate_indices, "m/z"] - target_mz).abs().idxmin()
+            # Loop over multiples of this repeating unit (1×, 2×, 3×, ...)
+            for mult in range(1, MAX_MULTIPLES + 1):
+                effective_shift = M * mult
+                target_mz = current_mz + effective_shift
+                ppm_tolerance = (mass_error_ppm / 1e6) * target_mz
+
+                lower_bound = target_mz - ppm_tolerance
+                upper_bound = target_mz + ppm_tolerance
+
+                start_slice = bisect.bisect_left(
+                    mz_list, lower_bound, lo=current_idx + 1
                 )
-                G.add_edge(current_idx, best_candidate_idx, unit=unit_name)
+                end_slice = bisect.bisect_right(mz_list, upper_bound, lo=start_slice)
+
+                # We use positional slicing rather than index selection to avoid .empty issues
+                candidate_positions = list(range(start_slice, end_slice))
+                if not candidate_positions:
+                    continue
+
+                best_candidate_pos = min(
+                    candidate_positions,
+                    key=lambda i: abs(df.at[i, "m/z"] - target_mz),
+                )
+
+                # Label the edge with both the base unit and its multiple
+                G.add_edge(
+                    current_idx,
+                    best_candidate_pos,
+                    unit=f"{unit_name}×{mult}",
+                    delta_mass=effective_shift,
+                )
 
     # --- Processing components remains unchanged until the final step in the loop ---
     connected_components = list(nx.connected_components(G))

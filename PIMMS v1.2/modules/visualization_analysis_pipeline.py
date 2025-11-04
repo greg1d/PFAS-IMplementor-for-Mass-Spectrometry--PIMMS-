@@ -187,7 +187,7 @@ def run_analysis_pipeline(
             experimental_data_df["RT"] = pd.NA
 
         stacked_df = stack_library_with_adjusted(experimental_data_df, library_data_df)
-        print("Columns after stacking:", stacked_df.columns)
+        print("stacked_df", stacked_df)
         if stacked_df is None or stacked_df.empty:
             raise ValueError("Data stacking resulted in an empty DataFrame.")
 
@@ -198,10 +198,10 @@ def run_analysis_pipeline(
             selected_repeating_units,
             mass_error_ppm=mass_error_ppm,
         )
+        print("mass_groups:", mass_groups)
         if mass_groups.empty:
             print("[PIPELINE INFO] No initial homologous groups were found.")
             return pd.DataFrame()
-        print("mass groups columns:", mass_groups.columns)
 
         # --- Step 4: Pre-RANSAC Refinement ---
         # This simplified function only checks for well-spaced points.
@@ -213,7 +213,6 @@ def run_analysis_pipeline(
         if refined_groups.empty:
             print("[PIPELINE INFO] No groups remained after pre-RANSAC refinement.")
             return pd.DataFrame()
-        print("refined groups columns:", refined_groups.columns)
         # --- Step 5: Run RANSAC Trend Analysis ---
         print("\n[Step 5] Running RANSAC trend analysis on refined groups...")
         average_ccs = refined_groups["CCS"].mean()
@@ -242,8 +241,7 @@ def run_analysis_pipeline(
             min_well_spaced_points=min_valid_points,  # min_valid_points now applies to the final trends
             min_library_points=min_library_points,
         )
-        print("final_df columns:", final_df.columns)
-        print("\n====== PIPELINE FINISHED SUCCESSFULLY ======")
+
         return final_df
 
     except FileNotFoundError as e:
@@ -253,3 +251,39 @@ def run_analysis_pipeline(
         print(f"[PIPELINE ERROR] An unexpected error occurred: {e}")
         traceback.print_exc()  # Print full error details for debugging
         return None
+
+
+if __name__ == "__main__":
+    print("=== DEBUG MODE: RUNNING MAIN ===")
+
+    # --- Example file paths for local debugging ---
+    experimental_file = "PIMMS v1.2\\modules\\testing on karas data.csv"
+    library_file = "PIMMS v1.2\\Import libraries\\Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
+
+    # --- Example parameters for testing ---
+    results = run_analysis_pipeline(
+        experimental_filepath=experimental_file,
+        library_filepath=library_file,
+        selected_repeating_units={"CF2": 49.9968},  # e.g., CH2, (CH2)2
+        mass_error_ppm=15,
+        min_valid_points=3,
+        min_library_points=0,
+        ransac_threshold_percentage=0.02,
+        min_ransac_samples=3,
+        library_name_col_pos="B",
+        library_mz_col_pos="G",
+        library_ccs_col_pos="E",
+        library_rt_col_pos="F",
+        library_id_col_pos="I",
+        exp_name_col_pos="A",
+        exp_mz_col_pos="H",
+        exp_ccs_col_pos="G",
+        exp_rt_col_pos="E",
+        exp_id_col_pos="D",
+    )
+
+    if results is not None and not results.empty:
+        print("\nDEBUG OUTPUT: Final results preview:")
+        print(results.head())
+    else:
+        print("\nDEBUG OUTPUT: No results returned.")
