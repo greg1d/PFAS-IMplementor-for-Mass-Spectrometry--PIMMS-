@@ -258,7 +258,7 @@ def run_pimms_workflow(config):
         adjusted_df = adduct_removal(adjusted_df)
 
         adjusted_df = find_neutral_loss_matches(adjusted_df)
-
+        adjusted_df.to_csv("duplicate row removal testing.csv", index=False)
         # --- SAVE OUTPUT (unchanged) ---
         output_dir = os.path.dirname(config.output_path)
         if output_dir:
