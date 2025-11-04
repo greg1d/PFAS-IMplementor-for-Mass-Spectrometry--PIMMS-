@@ -28,21 +28,31 @@ class PlotWidget(ttk.Frame):
 
         # Plot the full parent group (context) in gray if it exists
         if context_df is not None and not context_df.empty:
-            parent_id = int(context_df["GroupID"].iloc[0])
-            # Use an underscore in the label to hide it from the final legend
-            self.ax.scatter(
-                context_df["m/z"],
-                context_df["CCS"],
-                color="lightgray",
-                s=30,
-                label=f"_Parent Group {parent_id}",
-            )
+            gray_df = context_df.copy()
+
+            # Exclude points that are External Standards in highlighted_df
+            if highlighted_df is not None and not highlighted_df.empty:
+                standards_df = highlighted_df[
+                    highlighted_df["Classification Type"] == "External Standard"
+                ]
+                if not standards_df.empty:
+                    gray_df = gray_df[~gray_df.index.isin(standards_df.index)]
+
+            if not gray_df.empty:
+                parent_id = int(gray_df["GroupID"].iloc[0])
+                self.ax.scatter(
+                    gray_df["m/z"],
+                    gray_df["CCS"],
+                    color="lightgray",
+                    s=30,
+                    label=f"_Parent Group {parent_id}",
+                )
 
         # Plot the selected trend in color with a line
         if highlighted_df is not None and not highlighted_df.empty:
             trend_id = highlighted_df["trend_group"].iloc[0]
 
-            # --- NEW: Split data by Classification Type ---
+            # Split data by Classification Type
             standards_df = highlighted_df[
                 highlighted_df["Classification Type"] == "External Standard"
             ]
@@ -52,27 +62,26 @@ class PlotWidget(ttk.Frame):
 
             # Plot non-standards as circles (o)
             if not other_points_df.empty:
-                self.ax.plot(
+                self.ax.scatter(
                     other_points_df["m/z"],
                     other_points_df["CCS"],
                     marker="o",
-                    linestyle="",
+                    color="blue",
+                    s=50,
                     label="Sample Feature",
-                    markersize=7,
                 )
 
-            # Plot standards as crosses (x)
+            # Plot standards as crosses (x) ONLY, no underlying points
             if not standards_df.empty:
-                self.ax.plot(
+                self.ax.scatter(
                     standards_df["m/z"],
                     standards_df["CCS"],
                     marker="x",
-                    linestyle="",
-                    label="External Standard",
-                    markersize=8,
                     color="red",
+                    s=80,
+                    label="External Standard",
+                    zorder=5,  # ensure they are on top
                 )
-            # --- END NEW ---
 
             # Fit a model to the ENTIRE highlighted group and plot the trend line
             model = LinearRegression().fit(
@@ -88,6 +97,7 @@ class PlotWidget(ttk.Frame):
                 linestyle="--",
                 color="black",
                 label=f"Trend {trend_id} Fit",
+                zorder=0,
             )
 
             self.ax.set_title(f"Viewing Trend {trend_id}")

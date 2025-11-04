@@ -103,7 +103,7 @@ class MappingTab(ttk.Frame):
 
         # --- Level 2 Library Frame ---
         l2_frame = ttk.LabelFrame(
-            self, text="Level 2 Library Column Letters", padding=(10, 5)
+            self, text="Level 1 Library Column Letters", padding=(10, 5)
         )
         l2_frame.pack(fill="x", padx=10, pady=5)
         for i, (key, val) in enumerate(self.config.level_2_library_mapping.items()):
