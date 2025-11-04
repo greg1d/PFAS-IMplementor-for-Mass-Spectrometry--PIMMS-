@@ -232,7 +232,7 @@ class VisualizationsTab(ttk.Frame):
 
         if has_results:
             trend_ids = sorted(
-                [g for g in self.full_results_df["trend_group"].unique() if g != -1]
+                [g for g in self.full_results_df["GroupID"].unique() if g != -1]
             )
             self.trend_selector["values"] = trend_ids
             self.trend_selector.config(state="readonly" if trend_ids else "disabled")
@@ -253,7 +253,7 @@ class VisualizationsTab(ttk.Frame):
 
         selected_trend_id = float(selected_trend_str)
         selected_trend_df = self.full_results_df[
-            self.full_results_df["trend_group"] == selected_trend_id
+            self.full_results_df["GroupID"] == selected_trend_id
         ]
         if selected_trend_df.empty:
             return

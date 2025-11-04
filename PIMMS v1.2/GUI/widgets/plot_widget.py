@@ -82,7 +82,7 @@ class PlotWidget(ttk.Frame):
 
                 # -------- Plot highlighted points (colored by Classification Type) --------# -------- Plot highlighted points --------
         if highlighted_df is not None and not highlighted_df.empty:
-            trend_id = highlighted_df["trend_group"].iloc[0]
+            trend_id = highlighted_df["GroupID"].iloc[0]
 
             # Assign colors based on 'is_outlier' column
             def get_point_color(row):

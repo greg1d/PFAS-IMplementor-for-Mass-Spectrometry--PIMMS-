@@ -164,7 +164,7 @@ def mz_repeating_unit_analysis(
         # It will preserve the 'Name' column AND all identified sample columns.
         final_group = group_df_rows[cols_to_preserve].copy()
 
-        final_group["GroupID"] = group_counter
+        final_group["GroupID"] = int(group_counter)
         final_group["Repeating Unit"] = list(selected_repeating_units.keys())[0]
         all_groups.append(final_group)
 
@@ -313,7 +313,10 @@ def validate_ransac_trends(ransac_df, min_well_spaced_points, min_library_points
         )
 
     print(f"[INFO] Post-RANSAC validation complete. Total points: {len(validated_df)}")
-
+    if "GroupID" in validated_df.columns:
+        validated_df["trend_group"] = validated_df["GroupID"].astype(float)
+    if "trend_group" in validated_df.columns:
+        validated_df.drop(columns=["trend_group"], inplace=True)
     return validated_df
 
 
