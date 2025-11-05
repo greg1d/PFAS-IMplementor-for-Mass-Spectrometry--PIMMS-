@@ -165,7 +165,7 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-
+        adjusted_df.to_csv("pre branching filter.csv", index=False)
         groups = branching_analyze(
             adjusted_df,
             mass_error_ppm=config.mass_error_ppm,
