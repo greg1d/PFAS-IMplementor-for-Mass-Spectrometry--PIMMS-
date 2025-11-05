@@ -32,6 +32,9 @@ def _flag_duplicates_numba_core(mz, ccs, rt, mass_tols, ccs_tols, rt_tolerance):
     """
     n = len(mz)
     parent = np.arange(n)
+    print("CCS tolerances:", ccs_tols)
+    print("Mass tolerances:", mass_tols)
+    print("RT tolerance:", rt_tolerance)
 
     for i in range(n):
         for j in range(i + 1, n):

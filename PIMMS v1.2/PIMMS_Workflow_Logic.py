@@ -15,7 +15,7 @@ from blank_subtraction import (  # type: ignore
     define_and_separate_samples,
     perform_blank_subtraction,
 )
-
+from M2_identifier import remove_Cl_Br_M2_signal  # type: ignore
 from grouper import flag_and_merge_duplicates  # type: ignore
 from crude_filters import (  # type: ignore
     apply_mass_filter,
@@ -261,6 +261,12 @@ def run_pimms_workflow(config):
         adjusted_df = detection_frequency_calculation(adjusted_df)
         adjusted_df = average_abundance(adjusted_df)
         adjusted_df = significant_figures_rounding(adjusted_df)
+        adjusted_df = remove_Cl_Br_M2_signal(
+            adjusted_df,
+            mass_error_ppm=config.mass_error_ppm,
+            ccs_tolerance_percent=config.ccs_tolerance,
+            rt_tolerance=config.rt_tolerance,
+        )
         adjusted_df.to_csv(config.output_path, index=False)
 
         print(adjusted_df)
