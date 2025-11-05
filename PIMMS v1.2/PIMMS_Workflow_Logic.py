@@ -15,7 +15,8 @@ from blank_subtraction import (  # type: ignore
     define_and_separate_samples,
     perform_blank_subtraction,
 )
-from branching_filter import branching_analyze, branching_merge  # type: ignore
+
+from grouper import flag_and_merge_duplicates  # type: ignore
 from crude_filters import (  # type: ignore
     apply_mass_filter,
     apply_min_intensity_filter,
@@ -165,16 +166,12 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-        adjusted_df.to_csv("pre branching filter.csv", index=False)
-        groups = branching_analyze(
+
+        adjusted_df = flag_and_merge_duplicates(
             adjusted_df,
             mass_error_ppm=config.mass_error_ppm,
-            rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
-        )
-
-        adjusted_df = branching_merge(
-            group_dfs=groups, original_df=adjusted_df, metadata_cols=metadata_cols
+            rt_tolerance=config.rt_tolerance,
         )
 
         adjusted_df = fluorinated_density_filter(adjusted_df)
@@ -256,7 +253,7 @@ def run_pimms_workflow(config):
         adjusted_df = adduct_removal(adjusted_df)
 
         adjusted_df = find_neutral_loss_matches(adjusted_df)
-        adjusted_df.to_csv("duplicate row removal testing.csv", index=False)
+
         # --- SAVE OUTPUT (unchanged) ---
         output_dir = os.path.dirname(config.output_path)
         if output_dir:
