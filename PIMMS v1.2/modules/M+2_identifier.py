@@ -25,8 +25,11 @@ def find_exact_mz_targets(mz, ccs, rt, mz_tol, ccs_tol, rt_tol):
     return flag
 
 
-def flag_two_four_mz_matches(df, mass_tols, ccs_tols, rt_tolerance):
+def remove_Cl_Br_M2_signal(df, mass_tols, ccs_tols, rt_tolerance):
+    # Sort for proper comparison
     df = df.sort_values("m/z").reset_index(drop=True)
+
+    # Flag rows with m/z +2 or +4 matches
     flags = find_exact_mz_targets(
         df["m/z"].values,
         df["CCS"].values,
@@ -35,25 +38,32 @@ def flag_two_four_mz_matches(df, mass_tols, ccs_tols, rt_tolerance):
         ccs_tols,
         rt_tolerance,
     )
+
     df["flag_2_4_mz_match"] = flags
-    return df
+
+    # Remove flagged rows and return
+    return (
+        df[~df["flag_2_4_mz_match"]]
+        .drop(columns=["flag_2_4_mz_match"])
+        .reset_index(drop=True)
+    )
 
 
 def main():
     # --- Define tolerances ---
     mass_tols = 0.005  # m/z tolerance
     ccs_tols = 0.02  # CCS tolerance
-    rt_tolerance = 0.05  # RT tolerance
+    rt_tolerance = 0.5  # RT tolerance
 
+    # --- Load data ---
     df = pd.read_csv("PIMMS v1.2/PIMMS output/testing output.csv")
+    print(len(df))
+    # --- Flag & remove matches ---
+    df_cleaned = remove_Cl_Br_M2_signal(df, mass_tols, ccs_tols, rt_tolerance)
+    print(len(df_cleaned))
 
-    # --- Run matching ---
-    df_flagged = flag_two_four_mz_matches(df, mass_tols, ccs_tols, rt_tolerance)
-
-    print("\n=== Input Data ===")
-    print(df)
-    print("\n=== Flagged Data ===")
-    print(df_flagged[df_flagged["flag_2_4_mz_match"] == True])
+    print("\n=== Cleaned Data ===")
+    print(df_cleaned)
 
 
 if __name__ == "__main__":
