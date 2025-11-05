@@ -53,12 +53,25 @@ def remove_Cl_Br_M2_signal(df, mass_error_ppm, ccs_tolerance_percent, rt_toleran
 
     df["flag_2_4_mz_match"] = flags
 
-    # Remove flagged rows and return
+    # Remove flagged rows
     cleaned_df = (
         df[~df["flag_2_4_mz_match"]]
         .drop(columns=["flag_2_4_mz_match"])
         .reset_index(drop=True)
     )
+
+    # --- Sort by Classification Type order ---
+    sort_order = {"likely": 0, "tentative": 1, "unmatched": 2}
+    if "Classification Type" in cleaned_df.columns:
+        cleaned_df["sort_key"] = (
+            cleaned_df["Classification Type"].map(sort_order).fillna(3)
+        )
+        cleaned_df = (
+            cleaned_df.sort_values("sort_key")
+            .drop(columns=["sort_key"])
+            .reset_index(drop=True)
+        )
+
     return cleaned_df
 
 

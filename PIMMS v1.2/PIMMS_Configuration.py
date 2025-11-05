@@ -48,8 +48,8 @@ class Config:
             "Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv": resource_path(
                 r"Import libraries\Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv"
             ),
-            "Level 5 Library NORMAN_PFAS_Negative_ESI.csv": resource_path(
-                r"Import libraries\Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
+            "M-H Level 5 Library.csv": resource_path(
+                r"Import libraries\M-H Level 5 Library.csv"
             ),
         }
 
@@ -125,7 +125,7 @@ class Config:
             "Level 1 Library Baker_Group_RPLC_DTIMS_MS_PFAS_Library_Negative.csv",
         )
         self.level_5_library = os.path.join(
-            self.import_libraries_folder, "Level 5 Library NORMAN_PFAS_Negative_ESI.csv"
+            self.import_libraries_folder, "M-H Level 5 Library.csv"
         )
         self.library_filepath = self.level_2_library  # Default import target
 
@@ -153,7 +153,7 @@ class Config:
             "RT": "F",
             "m/z": "G",
         }
-        self.level_5_library_mapping = {"Name": "B", "m/z": "AD"}
+        self.level_5_library_mapping = {"Name": "A", "m/z": "E"}
         self.standards_library_mapping = {"m/z": "C", "CCS": "B"}
 
         # === Workflow Parameters ===

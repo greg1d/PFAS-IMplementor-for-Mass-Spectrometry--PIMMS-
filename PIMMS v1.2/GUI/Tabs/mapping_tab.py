@@ -32,11 +32,11 @@ class MappingTab(ttk.Frame):
                 "experimental_end_col": "The ending column letter for your experimental samples.",
             },
             "level_2": {
-                "Name": "The column letter in the Level 2 Library for the compound's name.",
-                "Adduct": "The column letter in the Level 2 Library specifying the adduct type (e.g., M+H, M+Na, M-H, M-).",
-                "m/z": "The column letter in the Level 2 Library for the precursor mass-to-charge ratio (m/z).",
-                "CCS": "The column letter in the Level 2 Library for the Collisional Cross-Section (CCS) value.",
-                "RT": "The column letter in the Level 2 Library for the Retention Time (RT).",
+                "Name": "The column letter in the Level 1 Library for the compound's name.",
+                "Adduct": "The column letter in the Level 1 Library specifying the adduct type (e.g., M+H, M+Na, M-H, M-).",
+                "m/z": "The column letter in the Level 1 Library for the precursor mass-to-charge ratio (m/z).",
+                "CCS": "The column letter in the Level 1 Library for the Collisional Cross-Section (CCS) value.",
+                "RT": "The column letter in the Level 1 Library for the Retention Time (RT).",
             },
             "level_5": {
                 "Name": "The column letter in the Level 5 Library for the compound's name.",
