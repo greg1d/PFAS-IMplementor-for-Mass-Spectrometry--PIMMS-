@@ -42,7 +42,6 @@ def optimize_linear_bounds(pfas_df, lipid_df):
     print(f"  - Upper Intercept (b_upper): {intercept_upper:.6f}")
 
     # --- 6. Create callable lambda functions for the bounds ---
-    # These functions match the 'is_dynamic' structure in your helper functions
     lower_bound_func = lambda x: slope * x + intercept_lower
     upper_bound_func = lambda x: slope * x + intercept_upper
 
@@ -54,10 +53,8 @@ def optimize_linear_bounds(pfas_df, lipid_df):
 
     if performance_results:
         print("\nPerformance Metrics:")
-        [
+        for key, value in performance_results["metrics"].items():
             print(f"  - {key}: {value:.2%}")
-            for key, value in performance_results["metrics"].items()
-        ]
 
         # --- 8. Generate Plot, passing the model parameters ---
         print("\nGenerating performance plot for linear bounds model...")
@@ -78,7 +75,6 @@ def optimize_linear_bounds(pfas_df, lipid_df):
         )
 
 
-# calculate_performance function is unchanged and correct
 def calculate_performance(pfas_df, lipid_df, lower_bound, upper_bound):
     target_col_x = "M-H-"
     target_col_y = "Mass_Defect_from_Integer"
@@ -87,14 +83,17 @@ def calculate_performance(pfas_df, lipid_df, lower_bound, upper_bound):
     pfas_upper = upper_bound(pfas_df[target_col_x]) if is_dynamic else upper_bound
     lipid_lower = lower_bound(lipid_df[target_col_x]) if is_dynamic else lower_bound
     lipid_upper = upper_bound(lipid_df[target_col_x]) if is_dynamic else upper_bound
+
     tp = pfas_df[
         (pfas_df[target_col_y] >= pfas_lower) & (pfas_df[target_col_y] <= pfas_upper)
     ].shape[0]
     fn = pfas_df.shape[0] - tp
+
     tn = lipid_df[
         (lipid_df[target_col_y] < lipid_lower) | (lipid_df[target_col_y] > lipid_upper)
     ].shape[0]
     fp = lipid_df.shape[0] - tn
+
     accuracy = (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) > 0 else 0.0
     sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     selectivity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
@@ -112,27 +111,25 @@ def plot_model_performance(
     pfas_df, lipid_df, lower_bound, upper_bound, results, model_type, model_params=None
 ):
     """
-    Generates a scatter plot visualizing model performance, separating PFAS and Halogenated TPs.
+    Generates a scatter plot visualizing model performance for PFAS vs Lipids.
     """
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, ax = plt.subplots(figsize=(7, 4))
     target_col_x = "M-H-"
     target_col_y = "Mass_Defect_from_Integer"
 
-    # --- Scatter Plotting (MODIFIED SECTION) ---
     is_dynamic = callable(lower_bound)
     pfas_lower = lower_bound(pfas_df[target_col_x]) if is_dynamic else lower_bound
     pfas_upper = upper_bound(pfas_df[target_col_x]) if is_dynamic else upper_bound
 
+    # Identify True Positives (PFAS inside bounds)
     tp_df = pfas_df[
         (pfas_df[target_col_y] >= pfas_lower) & (pfas_df[target_col_y] <= pfas_upper)
     ]
+    # Identify False Negatives (PFAS outside bounds)
     fn_df = pfas_df.drop(tp_df.index)
 
-    # Split True Positives by their origin for distinct plotting
-    tp_pfas_origin_df = tp_df[tp_df["Origin"] == "PFAS"]
-    tp_halo_origin_df = tp_df[tp_df["Origin"] == "Halogenated"]
-
+    # Identify True Negatives (Lipids outside bounds)
     tn_df = lipid_df[
         (
             lipid_df[target_col_y]
@@ -143,9 +140,12 @@ def plot_model_performance(
             > (upper_bound(lipid_df[target_col_x]) if is_dynamic else upper_bound)
         )
     ]
+    # Identify False Positives (Lipids inside bounds)
     fp_df = lipid_df.drop(tn_df.index)
 
-    # Plot True Negatives (Lipids, correct)
+    # --- Plotting ---
+
+    # 1. True Negatives (Lipids, correct)
     ax.scatter(
         tn_df[target_col_x],
         tn_df[target_col_y],
@@ -155,25 +155,17 @@ def plot_model_performance(
         label=f"True Negatives: {len(tn_df)}",
     )
 
-    # Plot the two types of True Positives separately
+    # 2. True Positives (PFAS, correct) - Single group now
     ax.scatter(
-        tp_pfas_origin_df[target_col_x],
-        tp_pfas_origin_df[target_col_y],
+        tp_df[target_col_x],
+        tp_df[target_col_y],
         c="green",
         marker="o",
         alpha=0.6,
-        label=f"TP (PFAS): {len(tp_pfas_origin_df)}",
-    )
-    ax.scatter(
-        tp_halo_origin_df[target_col_x],
-        tp_halo_origin_df[target_col_y],
-        c="#4B0082",
-        marker="o",
-        alpha=0.6,
-        label=f"TP (Halogenated): {len(tp_halo_origin_df)}",
+        label=f"True Positives (PFAS): {len(tp_df)}",
     )
 
-    # Plot False Positives (Lipids, incorrect)
+    # 3. False Positives (Lipids, incorrect)
     ax.scatter(
         fp_df[target_col_x],
         fp_df[target_col_y],
@@ -182,7 +174,8 @@ def plot_model_performance(
         s=50,
         label=f"False Positives: {len(fp_df)}",
     )
-    # Plot False Negatives (PFAS/Halo, incorrect)
+
+    # 4. False Negatives (PFAS, incorrect)
     ax.scatter(
         fn_df[target_col_x],
         fn_df[target_col_y],
@@ -192,7 +185,7 @@ def plot_model_performance(
         label=f"False Negatives: {len(fn_df)}",
     )
 
-    # --- Model Boundary and Equation Plotting (Unchanged) ---
+    # --- Model Boundary Lines ---
     x_range = np.linspace(
         pd.concat([pfas_df[target_col_x], lipid_df[target_col_x]]).min(),
         pd.concat([pfas_df[target_col_x], lipid_df[target_col_x]]).max(),
@@ -205,16 +198,16 @@ def plot_model_performance(
         ax.axhline(lower_bound, color="darkred", linestyle="--")
         ax.axhline(upper_bound, color="darkred", linestyle="--")
 
-    # --- MODIFIED: Add text annotations for the line equations on the RIGHT side ---
-    # Position the text near the right edge of the plot
+    # --- Text Annotations for Equations ---
     text_x_pos = 2000
+    box = dict(boxstyle="round,pad=0.3", fc="wheat", alpha=1)
 
-    if is_dynamic and model_params:  # For Linear/Log models
+    if is_dynamic and model_params:
         m, b_lower, b_upper, log_mode = model_params
         x_var = "log(x)" if log_mode else "x"
         eq_lower = f"$y = {m:.2E} \\cdot {x_var} + {b_lower:.3f}$ (5th percentile)"
         eq_upper = f"$y = {m:.2E} \\cdot {x_var} + {b_upper:.3f}$ (95th percentile)"
-        box = dict(boxstyle="round,pad=0.3", fc="wheat", alpha=1)
+
         ax.text(
             text_x_pos,
             lower_bound(text_x_pos),
@@ -238,11 +231,10 @@ def plot_model_performance(
             bbox=box,
         )
 
-    else:  # For Fixed Bounds model
+    else:
         eq_lower = f"$y = {lower_bound:.3f}$ (5th percentile)"
         eq_upper = f"$y = {upper_bound:.3f}$ (95th percentile)"
-        # Use ha='right' to align the text to the right
-        box = dict(boxstyle="round,pad=0.3", fc="wheat", alpha=1)
+
         ax.text(
             text_x_pos,
             lower_bound,
@@ -263,28 +255,15 @@ def plot_model_performance(
             fontsize=8,
             bbox=box,
         )
-    # --- End of Modification ---
 
-    # The rest of the plotting logic is unchanged
-    pfas_lower = lower_bound(pfas_df[target_col_x]) if is_dynamic else lower_bound
-    pfas_upper = upper_bound(pfas_df[target_col_x]) if is_dynamic else upper_bound
-    tp_df = pfas_df[
-        (pfas_df[target_col_y] >= pfas_lower) & (pfas_df[target_col_y] <= pfas_upper)
-    ]
-    fn_df = pfas_df.drop(tp_df.index)
-    tn_df = lipid_df[
-        (
-            lipid_df[target_col_y]
-            < (lower_bound(lipid_df[target_col_x]) if is_dynamic else lower_bound)
-        )
-        | (
-            lipid_df[target_col_y]
-            > (upper_bound(lipid_df[target_col_x]) if is_dynamic else upper_bound)
-        )
-    ]
-
+    # --- Statistics Box ---
     metrics = results["metrics"]
-    stats_text = f"Accuracy: {metrics['Accuracy']:.2%}\nSensitivity: {metrics['Sensitivity']:.2%}\nSelectivity: {metrics['Selectivity']:.2%}"
+    stats_text = (
+        f"Accuracy: {metrics['Accuracy']:.2%}\n"
+        f"Sensitivity: {metrics['Sensitivity']:.2%}\n"
+        f"Selectivity: {metrics['Selectivity']:.2%}"
+    )
+
     ax.text(
         0.95,
         0.05,
@@ -295,19 +274,22 @@ def plot_model_performance(
         ha="right",
         bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=1),
     )
-    ax.set_title(f"{model_type} Model Performance", fontsize=8, fontweight="bold")
+
+    ax.set_title(
+        f"{model_type} Model Performance (PFAS Only)", fontsize=8, fontweight="bold"
+    )
     ax.set_xlabel("M-H-", fontsize=8)
     ax.set_ylabel("Mass Defect", fontsize=8)
-    ax.legend(fontsize=8, loc="upper right", framealpha=1.0)  # Add legend
+    ax.legend(fontsize=8, loc="upper right", framealpha=1.0)
     ax.tick_params(axis="both", which="major", labelsize=8)
     plt.tight_layout()
 
-    output_path = r"PIMMS v1.2\testing_expanded_library\halogenated_performance\fixed_combined_performance.png"
-    plt.savefig(output_path)
+    # Make sure directory exists before saving
+    # output_path = r"PIMMS v1.2\testing_expanded_library\halogenated_performance\fixed_combined_performance.png"
+    # plt.savefig(output_path)
     plt.show()
 
 
-# --- MODIFIED: optimize_fixed_bounds now passes the equation text ---
 def optimize_fixed_bounds(pfas_df, lipid_df):
     print("\n--- Optimizing FIXED BOUNDS Model (Gradient = 0) ---")
     target_col = "Mass_Defect_from_Integer"
@@ -323,10 +305,9 @@ def optimize_fixed_bounds(pfas_df, lipid_df):
 
     if performance_results:
         print("\nPerformance Metrics:")
-        [
+        for key, value in performance_results["metrics"].items():
             print(f"  - {key}: {value:.2%}")
-            for key, value in performance_results["metrics"].items()
-        ]
+
         print("\nGenerating performance plot for fixed bounds model...")
         plot_model_performance(
             pfas_df,
@@ -338,61 +319,54 @@ def optimize_fixed_bounds(pfas_df, lipid_df):
         )
 
 
-def load_and_merge_data(pfas_path, halogenated_path, lipid_path):
+def load_data(pfas_path, lipid_path):
     """
-    Loads PFAS, Halogenated, and Lipid libraries, and merges the first two
-    into a single "positive" dataframe with an 'Origin' column.
+    Loads only the PFAS and Lipid libraries.
     """
-    print("--- Loading and Merging Data ---")
+    print("--- Loading Data (PFAS Only) ---")
     try:
         pfas_lib = pd.read_csv(pfas_path)
-        halogenated_lib = pd.read_csv(halogenated_path)
         lipid_lib = pd.read_csv(lipid_path)
         print("  - Files loaded successfully.")
     except FileNotFoundError as e:
         print(f"\n[ERROR] File not found during data loading: {e}")
         return None, None
 
-    # Assign the origin before merging
-    pfas_lib["Origin"] = "PFAS"
-    halogenated_lib["Origin"] = "Halogenated"
-
     # Define the essential columns for the model
-    key_cols = ["M-H-", "Mass_Defect_from_Integer", "Origin"]
+    key_cols = ["M-H-", "Mass_Defect_from_Integer"]
 
-    # Ensure both positive libraries have the key columns before concatenating
-    # This prevents errors if columns are missing
+    # Ensure columns exist
     pfas_subset = pfas_lib.reindex(columns=key_cols)
-    halogenated_subset = halogenated_lib.reindex(columns=key_cols)
+    lipid_subset = lipid_lib.reindex(columns=key_cols)
 
-    # Combine the two positive libraries into a single dataframe
-    positive_df = pd.concat([pfas_subset, halogenated_subset], ignore_index=True)
-    print(f"  - Merged {len(positive_df)} positive compounds.")
+    # Filter out any rows that might have NaN in key columns
+    pfas_subset.dropna(subset=key_cols, inplace=True)
+    lipid_subset.dropna(subset=key_cols, inplace=True)
 
-    # Prepare the lipid dataframe (negative class)
-    lipid_df = lipid_lib[["M-H-", "Mass_Defect_from_Integer"]]
+    print(f"  - Loaded {len(pfas_subset)} PFAS compounds.")
+    print(f"  - Loaded {len(lipid_subset)} Lipid compounds.")
 
-    return positive_df, lipid_df
+    return pfas_subset, lipid_subset
 
 
 def main():
-    # Update the FILES dictionary to include the new library path
+    # Update the FILES dictionary - removed halogenated
     FILES = {
-        "pfas": r"PIMMS v1.2\testing_expanded_library\pfas_processed_with_mass_defect.csv",  # <-- IMPORTANT: UPDATE THIS PATH
-        "halogenated": r"PIMMS v1.2\testing_expanded_library\halogenated_processed_with_mass_defect.csv",
+        "pfas": r"PIMMS v1.2\testing_expanded_library\pfas_processed_with_mass_defect.csv",
         "lipids": r"PIMMS v1.2\testing_expanded_library\lipid_processed_with_defect.csv",
     }
 
     try:
-        # Use the new function to load and process all data
-        positive_data, lipid_data = load_and_merge_data(
-            FILES["pfas"], FILES["halogenated"], FILES["lipids"]
-        )
+        # Load only PFAS and Lipids
+        pfas_data, lipid_data = load_data(FILES["pfas"], FILES["lipids"])
 
-        if positive_data is not None:
-            # Pass the combined 'positive_data' dataframe to your models
-            optimize_fixed_bounds(positive_data, lipid_data)
-            # optimize_fixed_bounds(positive_data, lipid_data)
+        if pfas_data is not None:
+            # You can run either model here. Uncomment the one you want to use.
+
+            # 1. Linear Parallel Bounds Model
+
+            # 2. Fixed Bounds Model (Horizontal Lines)
+            optimize_fixed_bounds(pfas_data, lipid_data)
 
     except Exception as e:
         print(f"\n[ERROR] An unexpected error occurred in main: {e}")
