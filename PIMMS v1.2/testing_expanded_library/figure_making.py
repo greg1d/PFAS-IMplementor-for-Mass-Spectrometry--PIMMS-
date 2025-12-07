@@ -1,23 +1,23 @@
-import pandas as pd
 import numpy as np
-from patsy import dmatrix
-from statsmodels.regression.quantile_regression import QuantReg
-from matplotlib import pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 # --- Import your custom functions ---
 # This assumes your other functions are in these files and are correct
 from library_reading import (
-    read_and_clean_csv,
-    extract_pfas_features,
-    extract_halogenated_features,
     calculate_total_mass_defect,
+    extract_halogenated_features,
+    extract_pfas_features,
     filter_by_allowed_elements,
+    read_and_clean_csv,
 )
+from matplotlib import pyplot as plt
+from patsy import dmatrix
 from plotting_relationship import (
-    remove_duplicate_formulas,
     calculate_m_minus_h,
+    remove_duplicate_formulas,
 )
+from statsmodels.regression.quantile_regression import QuantReg
 
 # --- CONSTANTS ---
 ELEMENT_MASSES = {
@@ -63,7 +63,6 @@ def fit_quantile_regression(df, x_col, y_col):
 
 def is_within_bounds(row, x_col, y_col, model_coeffs):
     """Checks if a feature falls within the provided model bounds."""
-    # (This function is unchanged from our previous versions)
     mz_value = row[x_col]
     actual_value = row[y_col]
     if pd.isna(mz_value) or pd.isna(actual_value) or mz_value <= 0:
@@ -80,7 +79,7 @@ def is_within_bounds(row, x_col, y_col, model_coeffs):
     )
 
 
-# --- NEW COMPREHENSIVE PERFORMANCE CALCULATION FUNCTION ---
+# --- COMPREHENSIVE PERFORMANCE CALCULATION FUNCTION ---
 def calculate_comprehensive_performance(
     pfas_df, halogen_df, lipid_df, x_col="M-H-", y_col="Mass_Defect"
 ):
@@ -208,7 +207,9 @@ def plot_fixed_bounds_comparison(
     # Prepare a combined DataFrame for plotting
     pfas_df["Type"] = "PFAS"
     lipid_df["Type"] = "Lipid"
-    combined_df = pd.concat([pfas_df, lipid_df], ignore_index=True)
+    halogen_df["Type"] = "Halogenated"
+
+    combined_df = pd.concat([pfas_df, halogen_df, lipid_df], ignore_index=True)
 
     # Determine classification result for each point
     combined_df["Prediction"] = combined_df.apply(
@@ -269,25 +270,6 @@ def plot_fixed_bounds_comparison(
     plt.show()
 
 
-# --- CONSTANTS ---
-# It's best practice to define constants like this at the top level of the script.
-ELEMENT_MASSES = {
-    "H": 1.007825,
-    "C": 12.000000,
-    "N": 14.003074,
-    "O": 15.994915,
-    "F": 18.998403,
-    "P": 30.973762,
-    "S": 31.972071,
-    "Cl": 34.968853,
-    "Br": 78.918337,
-    "I": 126.904473,
-    "K": 38.963707,
-    "Li": 7.016003,
-    "Mg": 23.985042,
-}
-
-
 # --- MAIN WORKFLOW ---
 def main():
     """Main workflow to load, process, and analyze the data."""
@@ -295,7 +277,7 @@ def main():
     # --- 1. Data Loading ---
     print("--- Loading and Pre-processing Data Files ---")
     file_path = r"PIMMS v1.2\testing_expanded_library\susdat_2025-06-03-092022.csv"
-    lipid_path = r"PIMMS v1.2\testing_expanded_library\Negative_lipid_library.csv"
+    lipid_path = r"PIMMS v1.2\testing_expanded_library\lipid_processed_with_defect.csv"
 
     # Load and clean main experimental data
     main_df = read_and_clean_csv(file_path)
@@ -319,44 +301,26 @@ def main():
     halogen_df = extract_halogenated_features(negative_esi_df)
     print(f"PFAS features count: {len(pfas_df)}")
     print(f"Halogenated features count: {len(halogen_df)}")
-    print("\n--- Calculating 'M-H-' and 'Mass_Defect' Columns ---")
 
-    # List of DataFrames to process
+    # --- 3. Column Calculation ---
+    print("\n--- Calculating 'M-H-' and 'Mass_Defect' Columns ---")
     dfs_to_process = [pfas_df, halogen_df, lipid_df]
 
     for df in dfs_to_process:
         if df.empty or "Molecular_Formula" not in df.columns:
             continue
 
-        # FIX 1: Add 'M-H-' column to ALL dataframes
-        df["M-H-"] = df["Molecular_Formula"].apply(
-            lambda formula: calculate_m_minus_h(formula, ELEMENT_MASSES)
-        )
-        # FIX 2: Pass the required ELEMENT_MASSES dictionary to the calculation
-        df["Mass_Defect"] = df["Molecular_Formula"].apply(
-            lambda formula: calculate_total_mass_defect(formula)
-        )
-
-    """Main workflow to load, process, and analyze the data."""
-    # (Code for loading and preparing main_df, lipid_df unchanged)
-    # (Code for extracting pfas_df, halogen_df unchanged)
-
-    # --- Column Calculation ---
-    print("\n--- Calculating 'M-H-' and 'Mass_Defect' Columns ---")
-    dfs_to_process = [pfas_df, halogen_df, lipid_df]
-    for df in dfs_to_process:
-        if df.empty or "Molecular_Formula" not in df.columns:
-            continue
+        # Calculate M-H- (requires masses dict)
         df["M-H-"] = df["Molecular_Formula"].apply(
             lambda f: calculate_m_minus_h(f, ELEMENT_MASSES)
         )
-        # --- FIX: Pass the required ELEMENT_MASSES dictionary ---
+
+        # Calculate Mass Defect
         df["Mass_Defect"] = df["Molecular_Formula"].apply(
             lambda f: calculate_total_mass_defect(f)
         )
 
-    # --- Data Cleaning for Plotting/Modeling ---
-    # (This is the cleaning block from a previous step, which is still required)
+    # --- 4. Data Cleaning for Plotting/Modeling ---
     print("\n--- Cleaning and Validating Data for Analysis ---")
     for df in dfs_to_process:
         if df.empty:
@@ -369,8 +333,7 @@ def main():
         if "M-H-" in df.columns:
             df.drop(df[df["M-H-"] <= 0].index, inplace=True)
 
-    # --- Performance Analysis ---
-    # This single function call replaces all previous performance calculations
+    # --- 5. Performance Analysis ---
     performance_metrics = calculate_comprehensive_performance(
         pfas_df, halogen_df, lipid_df
     )
@@ -386,7 +349,8 @@ def main():
                 f"  Selectivity (Precision): {metrics['Selectivity (Precision)']:.2%}"
             )
 
-    plot_fixed_bounds_comparison(pfas_df.copy(), lipid_df.copy(), lipid_df.copy())
+    # --- 6. Visual Debugging ---
+    plot_fixed_bounds_comparison(pfas_df.copy(), halogen_df.copy(), lipid_df.copy())
 
 
 if __name__ == "__main__":
