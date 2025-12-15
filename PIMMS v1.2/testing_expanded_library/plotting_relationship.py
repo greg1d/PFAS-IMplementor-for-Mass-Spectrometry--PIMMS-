@@ -1,18 +1,19 @@
-from library_reading import (  # type: ignore
-    read_and_clean_csv,
-    extract_pfas_features,
-    extract_halogenated_features,
-    calculate_total_mass_defect,
-    filter_by_allowed_elements,
-)
 import re
 from collections import defaultdict
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from library_reading import (  # type: ignore
+    calculate_total_mass_defect,
+    extract_halogenated_features,
+    extract_pfas_features,
+    filter_by_allowed_elements,
+    read_and_clean_csv,
+)
 from patsy import dmatrix
 from statsmodels.regression.quantile_regression import QuantReg
+
 # --- 1. The Refactored Quantile Regression Model ---
 
 
@@ -328,7 +329,9 @@ def main():
     }
     # Define the file to be analyzed
     file_path = r"PIMMS v1.2\testing_expanded_library\susdat_2025-06-03-092022.csv"
-    lipid_path = r"PIMMS v1.2\testing_expanded_library\Negative_lipid_library.csv"
+    lipid_path = (
+        r"PIMMS v1.2\testing_expanded_library\Negative_lipid_library_processed.csv"
+    )
 
     lipid_df = read_and_clean_csv(lipid_path)
     lipid_df = remove_duplicate_formulas(lipid_df, formula_col="Molecular_Formula")
@@ -372,13 +375,16 @@ def main():
             halogenated_library[col], errors="coerce"
         )
     lipid_df.to_csv(
-        r"PIMMS v1.2\testing_expanded_library\lipid_processed.csv", index=False
+        r"PIMMS v1.2\testing_expanded_library\Negative_lipid_library_processed.csv",
+        index=False,
     )
     halogenated_library.to_csv(
-        r"PIMMS v1.2\testing_expanded_library\halogenated_processed.csv", index=False
+        r"PIMMS v1.2\testing_expanded_library\halogenated_processed_with_mass_defect.csv",
+        index=False,
     )
     PFAS_library.to_csv(
-        r"PIMMS v1.2\testing_expanded_library\pfas_processed.csv", index=False
+        r"PIMMS v1.2\testing_expanded_library\pfas_processed_with_mass_defect.csv",
+        index=False,
     )
     x_col, y_col = "M-H-", "Mass_Defect"
 
