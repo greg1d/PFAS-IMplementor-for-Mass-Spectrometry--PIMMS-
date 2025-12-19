@@ -15,8 +15,6 @@ from blank_subtraction import (  # type: ignore
     define_and_separate_samples,
     perform_blank_subtraction,
 )
-from M2_identifier import remove_Cl_Br_M2_signal  # type: ignore
-from grouper import flag_and_merge_duplicates  # type: ignore
 from crude_filters import (  # type: ignore
     apply_mass_filter,
     apply_min_intensity_filter,
@@ -27,6 +25,8 @@ from detection_frequency_and_abundance import (  # type: ignore
     detection_frequency_calculation,
 )
 from detection_frequency_filter import detection_frequency_filter  # type: ignore
+from grouper import flag_and_merge_duplicates  # type: ignore
+from M2_identifier import remove_Cl_Br_M2_signal  # type: ignore
 from mass_defect_filter import mass_defect_filter  # type: ignore
 from ML_algorithm_density import fluorinated_density_filter  # type: ignore
 from neutral_loss_checker import find_neutral_loss_matches  # type: ignore
@@ -90,6 +90,8 @@ def run_pimms_workflow(config):
         combined_data = robust_process_and_combine_files(
             [config.raw_data_input_location]
         )
+        print(f"DEBUG: Initial Loaded Features: {len(combined_data)}")  # <--- DEBUG
+
         pfas_library = load_pfas_library(config.level_2_library)
         external_targets_library = load_pfas_library(config.level_5_library)
         standards_df = pd.read_csv(config.standards_file)
@@ -151,21 +153,26 @@ def run_pimms_workflow(config):
             metadata_cols=metadata_cols,  # Pass the list of metadata columns
             std_devs=config.blank_subtraction_std_dev,
         )
+        print(f"DEBUG: After Blank Subtraction: {len(adjusted_df)}")  # <--- DEBUG
 
         # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
         adjusted_df = apply_min_intensity_filter(
             adjusted_df, metadata_cols, config.min_intensity
         )
+        print(f"DEBUG: After Min Intensity Filter: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
+        print(f"DEBUG: After RT Filter: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = apply_mass_filter(adjusted_df, config.mz_min, config.mz_max)
+        print(f"DEBUG: After Mass Filter: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
+        print(f"DEBUG: After Smearing Filter: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = flag_and_merge_duplicates(
             adjusted_df,
@@ -173,18 +180,26 @@ def run_pimms_workflow(config):
             ccs_tolerance=config.ccs_tolerance,
             rt_tolerance=config.rt_tolerance,
         )
+        print(f"DEBUG: After Duplicate Merge: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = fluorinated_density_filter(adjusted_df)
+        print(
+            f"DEBUG: After Fluorinated Density Filter: {len(adjusted_df)}"
+        )  # <--- DEBUG
 
         adjusted_df = mass_defect_filter(
             adjusted_df,
             lower_mass_filter_bound=config.mass_defect_lower_bound,
             upper_mass_filter_bound=config.mass_defect_upper_bound,
         )
+        print(f"DEBUG: After Mass Defect Filter: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = detection_frequency_filter(
             adjusted_df, metadata_cols, config.frequency_threshold
         )
+        print(
+            f"DEBUG: After Detection Frequency Filter: {len(adjusted_df)}"
+        )  # <--- DEBUG
 
         # Using keyword arguments for clarity and safety
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
@@ -196,6 +211,9 @@ def run_pimms_workflow(config):
             rt_tolerance=config.rt_tolerance,
             include_rt_scoring=config.include_rt_scoring,
         )
+        print(
+            f"DEBUG: After L2 Matching - Matched: {len(likely_matched_df)}, Unmatched: {len(likely_unmatched_df)}"
+        )  # <--- DEBUG
 
         # --- 2. Perform Level 5 Library Matching on the remaining features ---
         external_matched_df, external_unmatched_df = level_5_library_matching(
@@ -204,6 +222,9 @@ def run_pimms_workflow(config):
             external_targets_library=external_targets_library,
             mass_error_ppm=config.mass_error_ppm,
         )
+        print(
+            f"DEBUG: After L5 Matching - Matched: {len(external_matched_df)}, Unmatched: {len(external_unmatched_df)}"
+        )  # <--- DEBUG
 
         # --- 3. Consolidate all results into a single DataFrame ---
         # First, define the list of all DataFrames to be combined
@@ -228,15 +249,19 @@ def run_pimms_workflow(config):
             # Handle the edge case where all processing resulted in empty DataFrames
             adjusted_df = pd.DataFrame()
 
+        print(f"DEBUG: After Re-Concatenation: {len(adjusted_df)}")  # <--- DEBUG
+
         adjusted_df = remove_standards_library(
             adjusted_df,
             standards_df,
             mass_error_ppm=config.mass_error_ppm,
             ccs_error_percentage=config.ccs_tolerance,
         )
+        print(f"DEBUG: After Remove Standards: {len(adjusted_df)}")  # <--- DEBUG
 
         # --- FINAL ANALYSIS STEPS (Now correctly indented) ---
         adjusted_df = remove_post_source_decay(adjusted_df)
+        print(f"DEBUG: After Post Source Decay: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = produce_filtered_df(
             df=adjusted_df,
@@ -245,14 +270,20 @@ def run_pimms_workflow(config):
             rt_regression_filter=config.rt_regression_filter,
             ccs_regression_filter=config.ccs_regression_filter,
         )
+        print(f"DEBUG: After Regression Analysis: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )
+        print(
+            f"DEBUG: After Combined Filter Pipeline: {len(adjusted_df)}"
+        )  # <--- DEBUG
 
         adjusted_df = adduct_removal(adjusted_df)
+        print(f"DEBUG: After Adduct Removal: {len(adjusted_df)}")  # <--- DEBUG
 
         adjusted_df = find_neutral_loss_matches(adjusted_df)
+        print(f"DEBUG: After Neutral Loss Matches: {len(adjusted_df)}")  # <--- DEBUG
 
         # --- SAVE OUTPUT (unchanged) ---
         output_dir = os.path.dirname(config.output_path)
@@ -267,6 +298,9 @@ def run_pimms_workflow(config):
             ccs_tolerance_percent=config.ccs_tolerance,
             rt_tolerance=config.rt_tolerance,
         )
+        print(
+            f"DEBUG: Final Count After Cl/Br Removal: {len(adjusted_df)}"
+        )  # <--- DEBUG
 
         adjusted_df.to_csv(config.output_path, index=False)
 
