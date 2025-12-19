@@ -2,7 +2,7 @@
 
 from tkinter import ttk
 
-# --- NEW: Import the Tooltip class ---
+# --- Import the Tooltip class ---
 from ..widgets.tooltip import Tooltip
 
 
@@ -16,7 +16,7 @@ class MappingTab(ttk.Frame):
     def _create_widgets(self):
         """Creates all widgets for the column mappings tab."""
 
-        # --- NEW: Define all help texts in a structured dictionary ---
+        # --- Define all help texts in a structured dictionary ---
         help_texts = {
             "metadata": {
                 "ID": "The column letter in the Raw Data file for the unique identifier (ID) for each feature.",
@@ -64,41 +64,49 @@ class MappingTab(ttk.Frame):
             self, text="Sample Column Ranges (Raw Data)", padding=(10, 5)
         )
         sample_frame.pack(fill="x", padx=10, pady=5)
-        self._create_mapping_input(
-            sample_frame,
-            "Control Start",
-            "control_start_col",
-            self.config.control_start_col,
-            0,
-            0,
-            help_texts["sample_ranges"]["control_start_col"],
-        )
-        self._create_mapping_input(
-            sample_frame,
-            "Control End",
-            "control_end_col",
-            self.config.control_end_col,
-            0,
-            1,
-            help_texts["sample_ranges"]["control_end_col"],
-        )
+
+        # 1. Experimental Start (Row 0, Col 0)
         self._create_mapping_input(
             sample_frame,
             "Experimental Start",
             "experimental_start_col",
             self.config.experimental_start_col,
-            1,
+            0,
             0,
             help_texts["sample_ranges"]["experimental_start_col"],
         )
+
+        # 2. Experimental End (Row 0, Col 1)
         self._create_mapping_input(
             sample_frame,
             "Experimental End",
             "experimental_end_col",
             self.config.experimental_end_col,
-            1,
+            0,
             1,
             help_texts["sample_ranges"]["experimental_end_col"],
+        )
+
+        # 3. Control Start (Row 1, Col 0)
+        self._create_mapping_input(
+            sample_frame,
+            "Control Start",
+            "control_start_col",
+            self.config.control_start_col,
+            1,
+            0,
+            help_texts["sample_ranges"]["control_start_col"],
+        )
+
+        # 4. Control End (Row 1, Col 1)
+        self._create_mapping_input(
+            sample_frame,
+            "Control End",
+            "control_end_col",
+            self.config.control_end_col,
+            1,
+            1,
+            help_texts["sample_ranges"]["control_end_col"],
         )
 
         # --- Level 2 Library Frame ---
@@ -148,7 +156,6 @@ class MappingTab(ttk.Frame):
             help_texts["standards"]["CCS"],
         )
 
-    # --- MODIFIED: Method now accepts 'help_text' ---
     def _create_mapping_input(self, parent, text, key, default, row, col, help_text=""):
         """Helper to create a label, entry, and help icon for a mapping."""
         # The Label and Entry are placed in columns relative to 'col'
@@ -160,7 +167,7 @@ class MappingTab(ttk.Frame):
         entry.grid(row=row, column=col * 3 + 1, padx=5, pady=2, sticky="w")
         self.mapping_entries[key] = entry
 
-        # --- NEW: Add the help icon and attach the tooltip ---
+        # Add the help icon and attach the tooltip
         if help_text:  # Only add an icon if there is help text
             help_label = ttk.Label(parent, text=" (?) ", cursor="question_arrow")
             help_label.grid(
