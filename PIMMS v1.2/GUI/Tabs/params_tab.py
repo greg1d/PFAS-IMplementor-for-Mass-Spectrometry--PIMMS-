@@ -241,40 +241,31 @@ class ParamsTab(ttk.Frame):
         entry_lower = self.param_entries["mass_defect_lower_bound"]
         entry_upper = self.param_entries["mass_defect_upper_bound"]
 
-        if mode == "pfas":
-            # Set values for PFAS Only
-            entry_lower.delete(0, tk.END)
-            entry_lower.insert(0, "-0.075")
-            entry_upper.delete(0, tk.END)
-            entry_upper.insert(0, "0.102")
+        # Temporarily enable to allow updating the text
+        entry_lower.config(state="normal")
+        entry_upper.config(state="normal")
 
-            # Disable user editing
-            entry_lower.config(state="disabled")
-            entry_upper.config(state="disabled")
-
-        elif mode == "halogen":
-            # Set values for PFAS + Halogenoalkane
-            entry_lower.delete(0, tk.END)
-            entry_lower.insert(0, "-0.194")
-            entry_upper.delete(0, tk.END)
-            entry_upper.insert(0, "0.090")
-
-            # Disable user editing
-            entry_lower.config(state="disabled")
-            entry_upper.config(state="disabled")
-
-        else:
-            # Enable user editing for Custom
-            entry_lower.config(state="normal")
-            entry_upper.config(state="normal")
+        if mode == "custom":
             # If switching to Custom (and not just initializing), apply requested defaults
+            # This ensures the user starts with -0.12/0.11 if they switch to Custom
             if not initial_setup:
-                # We check if the box is currently disabled to know if we are coming from a preset
-                # If it was disabled, we clear it and set the custom defaults
                 entry_lower.delete(0, tk.END)
                 entry_lower.insert(0, "-0.12")
                 entry_upper.delete(0, tk.END)
                 entry_upper.insert(0, "0.11")
+            # Leave enabled for editing
+
+        else:
+            # If a preset is selected, we show the Custom Defaults as placeholders
+            # (per your request to show -0.12/0.11 instead of the preset values)
+            entry_lower.delete(0, tk.END)
+            entry_lower.insert(0, "-0.12")
+            entry_upper.delete(0, tk.END)
+            entry_upper.insert(0, "0.11")
+
+            # Disable user editing
+            entry_lower.config(state="disabled")
+            entry_upper.config(state="disabled")
 
     def _toggle_std_dev_entry(self, event=None):
         """Enables or disables the Std Dev entry based on the combobox."""
@@ -285,10 +276,34 @@ class ParamsTab(ttk.Frame):
 
     def update_config(self, config_obj):
         """Updates the main config object with values from this tab."""
+        # 1. Update standard parameters
         for key, entry in self.param_entries.items():
-            # Even if disabled, .get() works in Tkinter
+            # Skip Mass Defect keys here; they are handled separately below
+            if key in ["mass_defect_lower_bound", "mass_defect_upper_bound"]:
+                continue
             setattr(config_obj, key, float(entry.get()))
 
+        # 2. Update Mass Defect parameters based on Radio Button logic
+        # We must use hardcoded values for presets because the UI boxes
+        # now display the placeholder values (-0.12/0.11) instead of real data.
+        mode = self.mdf_mode_var.get()
+
+        if mode == "pfas":
+            config_obj.mass_defect_lower_bound = -0.075
+            config_obj.mass_defect_upper_bound = 0.102
+        elif mode == "halogen":
+            config_obj.mass_defect_lower_bound = -0.194
+            config_obj.mass_defect_upper_bound = 0.090
+        else:
+            # Custom mode: We trust the values in the text boxes
+            config_obj.mass_defect_lower_bound = float(
+                self.param_entries["mass_defect_lower_bound"].get()
+            )
+            config_obj.mass_defect_upper_bound = float(
+                self.param_entries["mass_defect_upper_bound"].get()
+            )
+
+        # 3. Update boolean/choice parameters
         config_obj.blank_subtraction_method = self.bs_method_var.get()
         config_obj.rt_regression_filter = self.rt_reg_var.get()
         config_obj.ccs_regression_filter = self.ccs_reg_var.get()
