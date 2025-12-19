@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-# --- NEW: Import the Tooltip class ---
+# --- Import the Tooltip class ---
 from ..widgets.tooltip import Tooltip
 
 
@@ -79,7 +79,7 @@ class ParamsTab(ttk.Frame):
 
         params_frame.grid_columnconfigure(1, weight=1)
 
-        # --- Mass Defect Filter Frame (MODIFIED) ---
+        # --- Mass Defect Filter Frame ---
         mdf_frame = ttk.LabelFrame(self, text="Mass Defect Filter", padding=(10, 5))
         mdf_frame.pack(fill="x", padx=10, pady=5)
 

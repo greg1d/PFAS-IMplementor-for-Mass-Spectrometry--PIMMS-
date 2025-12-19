@@ -76,7 +76,7 @@ def run_pimms_workflow(config):
     This function contains the complete data processing pipeline.
     """
     try:
-        # --- Pre-run Check (unchanged) ---
+        # --- Pre-run Check ---
         if not config.raw_data_input_location or not os.path.exists(
             config.raw_data_input_location
         ):
@@ -84,17 +84,50 @@ def run_pimms_workflow(config):
                 "Error", f"Input file not found:\n{config.raw_data_input_location}"
             )
             return
-        # ...
 
         # --- DATA LOADING ---
         combined_data = robust_process_and_combine_files(
             [config.raw_data_input_location]
         )
-        print(f"DEBUG: Initial Loaded Features: {len(combined_data)}")  # <--- DEBUG
+        print(f"DEBUG: Initial Loaded Features: {len(combined_data)}")
 
+        # --- SAFE LOAD: Level 2 Library (Critical) ---
+        if not getattr(config, "level_2_library", ""):
+            raise ValueError(
+                "The 'Level 2 Library' file path is missing. This file is required."
+            )
         pfas_library = load_pfas_library(config.level_2_library)
-        external_targets_library = load_pfas_library(config.level_5_library)
-        standards_df = pd.read_csv(config.standards_file)
+
+        # --- SAFE LOAD: Level 5 Library (Optional) ---
+        if getattr(config, "level_5_library", ""):
+            external_targets_library = load_pfas_library(config.level_5_library)
+        else:
+            print(
+                "DEBUG: Level 5 Library path is blank. Proceeding with empty L5 library."
+            )
+            # Create empty DF with expected columns to prevent errors later
+            external_targets_library = pd.DataFrame(
+                columns=["m/z", "Name", "Adduct", "CCS", "RT"]
+            )
+
+        # --- SAFE LOAD: Standards Library (Conditional) ---
+        # 1. Check if user wants to ignore it
+        if getattr(config, "ignore_standards", False):
+            print("DEBUG: Standards Library ignored by user configuration.")
+            standards_df = pd.DataFrame()
+        # 2. Check if path is provided
+        elif getattr(config, "standards_file", ""):
+            try:
+                standards_df = pd.read_csv(config.standards_file)
+            except Exception as e:
+                print(f"[WARNING] Could not load standards file: {e}")
+                standards_df = pd.DataFrame()
+        # 3. Path is blank but 'Ignore' wasn't checked -> Treat as empty/ignored safely
+        else:
+            print(
+                "DEBUG: Standards file path is blank. Proceeding without standards removal."
+            )
+            standards_df = pd.DataFrame()
 
         # --- CENTRALIZED TRANSLATION & RENAMING LOGIC ---
 
@@ -108,18 +141,26 @@ def run_pimms_workflow(config):
             for k, v in config.level_2_library_mapping.items()
             if column_letter_to_index(v) < len(pfas_library.columns)
         }
-        config.clean_l5_map = {
-            k: external_targets_library.columns[column_letter_to_index(v)]
-            for k, v in config.level_5_library_mapping.items()
-            if column_letter_to_index(v) < len(external_targets_library.columns)
-        }
 
-        # --- FIX: Added standardization for Standards Library ---
-        config.clean_standards_map = {
-            k: standards_df.columns[column_letter_to_index(v)]
-            for k, v in config.standards_library_mapping.items()
-            if column_letter_to_index(v) < len(standards_df.columns)
-        }
+        # Only map L5 if it has columns (it might be the empty placeholder)
+        if not external_targets_library.empty:
+            config.clean_l5_map = {
+                k: external_targets_library.columns[column_letter_to_index(v)]
+                for k, v in config.level_5_library_mapping.items()
+                if column_letter_to_index(v) < len(external_targets_library.columns)
+            }
+        else:
+            config.clean_l5_map = {}
+
+        # Only map Standards if it has data
+        if not standards_df.empty:
+            config.clean_standards_map = {
+                k: standards_df.columns[column_letter_to_index(v)]
+                for k, v in config.standards_library_mapping.items()
+                if column_letter_to_index(v) < len(standards_df.columns)
+            }
+        else:
+            config.clean_standards_map = {}
 
         # Rename all DataFrames to use standard keys
         combined_data.rename(
@@ -128,14 +169,19 @@ def run_pimms_workflow(config):
         pfas_library.rename(
             columns={v: k for k, v in config.clean_l2_map.items()}, inplace=True
         )
-        external_targets_library.rename(
-            columns={v: k for k, v in config.clean_l5_map.items()}, inplace=True
-        )
-        standards_df.rename(
-            columns={v: k for k, v in config.clean_standards_map.items()}, inplace=True
-        )
 
-        # --- DATA SEPARATION (unchanged) ---
+        if not external_targets_library.empty:
+            external_targets_library.rename(
+                columns={v: k for k, v in config.clean_l5_map.items()}, inplace=True
+            )
+
+        if not standards_df.empty:
+            standards_df.rename(
+                columns={v: k for k, v in config.clean_standards_map.items()},
+                inplace=True,
+            )
+
+        # --- DATA SEPARATION ---
         _, control_df, experimental_df, metadata_cols = define_and_separate_samples(
             combined_data,
             config.control_start_col,
@@ -144,35 +190,34 @@ def run_pimms_workflow(config):
             config.experimental_end_col,
         )
 
-        # --- BLANK SUBTRACTION (unchanged) ---
-
+        # --- BLANK SUBTRACTION ---
         adjusted_df = perform_blank_subtraction(
             method=config.blank_subtraction_method,
             control_df=control_df,
             experimental_df=experimental_df,
-            metadata_cols=metadata_cols,  # Pass the list of metadata columns
+            metadata_cols=metadata_cols,
             std_devs=config.blank_subtraction_std_dev,
         )
-        print(f"DEBUG: After Blank Subtraction: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Blank Subtraction: {len(adjusted_df)}")
 
-        # --- FULL FILTERING PIPELINE (RESTORED & CORRECTED) ---
+        # --- FULL FILTERING PIPELINE ---
         adjusted_df = apply_min_intensity_filter(
             adjusted_df, metadata_cols, config.min_intensity
         )
-        print(f"DEBUG: After Min Intensity Filter: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Min Intensity Filter: {len(adjusted_df)}")
 
         adjusted_df = apply_rt_filter(adjusted_df, config.rt_min, config.rt_max)
-        print(f"DEBUG: After RT Filter: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After RT Filter: {len(adjusted_df)}")
 
         adjusted_df = apply_mass_filter(adjusted_df, config.mz_min, config.mz_max)
-        print(f"DEBUG: After Mass Filter: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Mass Filter: {len(adjusted_df)}")
 
         adjusted_df = smearing_filter(
             adjusted_df,
             rt_tolerance=config.rt_tolerance,
             ccs_tolerance=config.ccs_tolerance,
         )
-        print(f"DEBUG: After Smearing Filter: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Smearing Filter: {len(adjusted_df)}")
 
         adjusted_df = flag_and_merge_duplicates(
             adjusted_df,
@@ -180,28 +225,24 @@ def run_pimms_workflow(config):
             ccs_tolerance=config.ccs_tolerance,
             rt_tolerance=config.rt_tolerance,
         )
-        print(f"DEBUG: After Duplicate Merge: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Duplicate Merge: {len(adjusted_df)}")
 
         adjusted_df = fluorinated_density_filter(adjusted_df)
-        print(
-            f"DEBUG: After Fluorinated Density Filter: {len(adjusted_df)}"
-        )  # <--- DEBUG
+        print(f"DEBUG: After Fluorinated Density Filter: {len(adjusted_df)}")
 
         adjusted_df = mass_defect_filter(
             adjusted_df,
             lower_mass_filter_bound=config.mass_defect_lower_bound,
             upper_mass_filter_bound=config.mass_defect_upper_bound,
         )
-        print(f"DEBUG: After Mass Defect Filter: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Mass Defect Filter: {len(adjusted_df)}")
 
         adjusted_df = detection_frequency_filter(
             adjusted_df, metadata_cols, config.frequency_threshold
         )
-        print(
-            f"DEBUG: After Detection Frequency Filter: {len(adjusted_df)}"
-        )  # <--- DEBUG
+        print(f"DEBUG: After Detection Frequency Filter: {len(adjusted_df)}")
 
-        # Using keyword arguments for clarity and safety
+        # --- LEVEL 2 MATCHING ---
         likely_matched_df, likely_unmatched_df = level_2_library_matching(
             adjusted_df=adjusted_df,
             metadata_cols=metadata_cols,
@@ -213,55 +254,60 @@ def run_pimms_workflow(config):
         )
         print(
             f"DEBUG: After L2 Matching - Matched: {len(likely_matched_df)}, Unmatched: {len(likely_unmatched_df)}"
-        )  # <--- DEBUG
-
-        # --- 2. Perform Level 5 Library Matching on the remaining features ---
-        external_matched_df, external_unmatched_df = level_5_library_matching(
-            unmatched_df=likely_unmatched_df,
-            metadata_cols=metadata_cols,
-            external_targets_library=external_targets_library,
-            mass_error_ppm=config.mass_error_ppm,
         )
-        print(
-            f"DEBUG: After L5 Matching - Matched: {len(external_matched_df)}, Unmatched: {len(external_unmatched_df)}"
-        )  # <--- DEBUG
 
-        # --- 3. Consolidate all results into a single DataFrame ---
-        # First, define the list of all DataFrames to be combined
+        # --- LEVEL 5 MATCHING ---
+        if not external_targets_library.empty:
+            external_matched_df, external_unmatched_df = level_5_library_matching(
+                unmatched_df=likely_unmatched_df,
+                metadata_cols=metadata_cols,
+                external_targets_library=external_targets_library,
+                mass_error_ppm=config.mass_error_ppm,
+            )
+            print(
+                f"DEBUG: After L5 Matching - Matched: {len(external_matched_df)}, Unmatched: {len(external_unmatched_df)}"
+            )
+        else:
+            # If no L5 library, everything unmatched remains unmatched
+            external_matched_df = pd.DataFrame()
+            external_unmatched_df = likely_unmatched_df
+            print("DEBUG: L5 Library empty, skipping L5 matching.")
+
+        # --- CONSOLIDATE RESULTS ---
         dfs_to_concat = [
             likely_matched_df,
             external_matched_df,
             external_unmatched_df,
         ]
 
-        # Next, create a new list of cleaned DataFrames, removing duplicate columns
         cleaned_dfs = []
         for df in dfs_to_concat:
             if not df.empty:
-                # This keeps the first occurrence of any column name and drops duplicates
                 cleaned_df = df.loc[:, ~df.columns.duplicated(keep="first")]
                 cleaned_dfs.append(cleaned_df)
 
-        # Finally, concatenate the cleaned DataFrames
         if cleaned_dfs:
             adjusted_df = pd.concat(cleaned_dfs, ignore_index=True)
         else:
-            # Handle the edge case where all processing resulted in empty DataFrames
             adjusted_df = pd.DataFrame()
 
-        print(f"DEBUG: After Re-Concatenation: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Re-Concatenation: {len(adjusted_df)}")
 
-        adjusted_df = remove_standards_library(
-            adjusted_df,
-            standards_df,
-            mass_error_ppm=config.mass_error_ppm,
-            ccs_error_percentage=config.ccs_tolerance,
-        )
-        print(f"DEBUG: After Remove Standards: {len(adjusted_df)}")  # <--- DEBUG
+        # --- CONDITIONAL STANDARDS REMOVAL ---
+        if not getattr(config, "ignore_standards", False) and not standards_df.empty:
+            adjusted_df = remove_standards_library(
+                adjusted_df,
+                standards_df,
+                mass_error_ppm=config.mass_error_ppm,
+                ccs_error_percentage=config.ccs_tolerance,
+            )
+            print(f"DEBUG: After Remove Standards: {len(adjusted_df)}")
+        else:
+            print("DEBUG: Skipped Standards Removal (Ignored or Empty Library)")
 
-        # --- FINAL ANALYSIS STEPS (Now correctly indented) ---
+        # --- FINAL ANALYSIS STEPS ---
         adjusted_df = remove_post_source_decay(adjusted_df)
-        print(f"DEBUG: After Post Source Decay: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Post Source Decay: {len(adjusted_df)}")
 
         adjusted_df = produce_filtered_df(
             df=adjusted_df,
@@ -270,22 +316,20 @@ def run_pimms_workflow(config):
             rt_regression_filter=config.rt_regression_filter,
             ccs_regression_filter=config.ccs_regression_filter,
         )
-        print(f"DEBUG: After Regression Analysis: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Regression Analysis: {len(adjusted_df)}")
 
         adjusted_df = combined_filter_pipeline(
             adjusted_df, pfas_library, config.mass_error_ppm
         )
-        print(
-            f"DEBUG: After Combined Filter Pipeline: {len(adjusted_df)}"
-        )  # <--- DEBUG
+        print(f"DEBUG: After Combined Filter Pipeline: {len(adjusted_df)}")
 
         adjusted_df = adduct_removal(adjusted_df)
-        print(f"DEBUG: After Adduct Removal: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Adduct Removal: {len(adjusted_df)}")
 
         adjusted_df = find_neutral_loss_matches(adjusted_df)
-        print(f"DEBUG: After Neutral Loss Matches: {len(adjusted_df)}")  # <--- DEBUG
+        print(f"DEBUG: After Neutral Loss Matches: {len(adjusted_df)}")
 
-        # --- SAVE OUTPUT (unchanged) ---
+        # --- SAVE OUTPUT ---
         output_dir = os.path.dirname(config.output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
@@ -298,9 +342,7 @@ def run_pimms_workflow(config):
             ccs_tolerance_percent=config.ccs_tolerance,
             rt_tolerance=config.rt_tolerance,
         )
-        print(
-            f"DEBUG: Final Count After Cl/Br Removal: {len(adjusted_df)}"
-        )  # <--- DEBUG
+        print(f"DEBUG: Final Count After Cl/Br Removal: {len(adjusted_df)}")
 
         adjusted_df.to_csv(config.output_path, index=False)
 

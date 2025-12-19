@@ -1,12 +1,12 @@
 # gui/tabs/files_tab.py
 
+import os
 import tkinter as tk
 from tkinter import filedialog, ttk
-import os
+
 from ..utils import format_display_path
 
-# --- SECTION 1: MODIFIED ---
-# Import the new formatting function alongside the tooltip
+# Import the Tooltip class
 from ..widgets.tooltip import Tooltip
 
 
@@ -15,6 +15,12 @@ class FilesTab(ttk.Frame):
         super().__init__(parent, *args, **kwargs)
         self.config = config
         self.file_path_entries = {}
+
+        # --- NEW: Initialize the ignore standards variable ---
+        self.ignore_standards_var = tk.BooleanVar(
+            value=getattr(self.config, "ignore_standards", False)
+        )
+
         self._create_widgets()
 
     def _create_widgets(self):
@@ -46,7 +52,6 @@ class FilesTab(ttk.Frame):
         )
         entry = ttk.Entry(parent, width=70)
 
-        # --- SECTION 2: MODIFIED ---
         # Get the full path from the config, but format it for display.
         default_val = getattr(self.config, config_key, "")
         if isinstance(default_val, list):
@@ -54,7 +59,6 @@ class FilesTab(ttk.Frame):
 
         display_val = format_display_path(default_val)
         entry.insert(0, display_val)
-        # --- End of modification ---
 
         entry.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
         self.file_path_entries[config_key] = entry
@@ -70,7 +74,30 @@ class FilesTab(ttk.Frame):
         help_label.grid(row=row, column=3, padx=(0, 5), pady=5, sticky="w")
         Tooltip(help_label, text=help_text)
 
+        # --- NEW: Add Checkbox specifically for Standards File ---
+        if config_key == "standards_file":
+            chk = ttk.Checkbutton(
+                parent,
+                text="Process without standards removal",
+                variable=self.ignore_standards_var,
+                command=self._toggle_standards_entry,
+            )
+            # Place in column 4 (next to help icon)
+            chk.grid(row=row, column=4, padx=5, pady=5, sticky="w")
+
+            # Apply initial state (grey out if checked by default)
+            self._toggle_standards_entry()
+
         parent.grid_columnconfigure(1, weight=1)
+
+    def _toggle_standards_entry(self):
+        """Enables or disables the standards file entry based on the checkbox."""
+        entry = self.file_path_entries.get("standards_file")
+        if entry:
+            if self.ignore_standards_var.get():
+                entry.config(state="disabled")
+            else:
+                entry.config(state="normal")
 
     def _browse_file(self, entry, key):
         """Handles the file dialog logic for the browse buttons."""
@@ -105,3 +132,6 @@ class FilesTab(ttk.Frame):
             # We only update the config if the path is a new, user-selected one.
             if not path_from_entry.startswith("..."):
                 setattr(config_obj, key, path_from_entry)
+
+        # --- NEW: Update the ignore_standards flag ---
+        config_obj.ignore_standards = self.ignore_standards_var.get()
