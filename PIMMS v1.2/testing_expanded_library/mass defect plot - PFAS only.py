@@ -359,7 +359,7 @@ def main():
     try:
         # Load only PFAS and Lipids
         pfas_data, lipid_data = load_data(FILES["pfas"], FILES["lipids"])
-
+        print(pfas_data.head())
         if pfas_data is not None:
             # You can run either model here. Uncomment the one you want to use.
 
