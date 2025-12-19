@@ -59,6 +59,10 @@ def column_letter_to_index(letter):
 # from .helpers import find_similar_peaks
 
 
+# Ensure find_similar_peaks is available, usually imported from .utils or defined nearby
+# from .utils import find_similar_peaks
+
+
 def level_2_library_matching(
     adjusted_df,
     metadata_cols,
@@ -73,9 +77,12 @@ def level_2_library_matching(
     identify sample columns. Assumes 'adjusted_df' contains standardized columns:
     'ID', 'RT', 'm/z', 'CCS', and 'DT'.
     """
+    # --- DEBUG START ---
+    print(f"[DEBUG] L2 Matching Start: adjusted_df shape = {adjusted_df.shape}")
     if adjusted_df.empty:
         print("[INFO] No features to process for Level 2 matching.")
         return pd.DataFrame(), pd.DataFrame()
+    # --- DEBUG END ---
 
     # --- 1. Validate the external library DataFrame ---
     required_lib_cols = {"m/z", "CCS", "RT", "Name", "Adduct"}
@@ -94,11 +101,15 @@ def level_2_library_matching(
     match_source = "CCS Library"
     sorted_pfas_masses = sorted(pfas_library["m/z"].tolist())
 
+    # --- DEBUG: Track iterations ---
+    match_counter = 0
+
     for _, row in adjusted_df.iterrows():
         mz = row["m/z"]
         ccs = row["CCS"]
         rt = row["RT"] if include_rt_scoring else None
 
+        # Note: Ensure find_similar_peaks is imported or available in this scope
         for lib_mz in find_similar_peaks(sorted_pfas_masses, mz, mass_error_ppm):
             lib_row = pfas_library[pfas_library["m/z"] == lib_mz].iloc[0]
 
@@ -118,6 +129,7 @@ def level_2_library_matching(
 
             if ccs_match and rt_match:
                 matched_ids.add(row["ID"])
+                match_counter += 1
 
                 new_row = {
                     "Match": f"{lib_row['Name']} ({lib_row['Adduct']})",
@@ -142,9 +154,18 @@ def level_2_library_matching(
 
                 matched_rows.append(new_row)
 
+    # --- DEBUG START ---
+    print(f"[DEBUG] Total Matches Found: {match_counter}")
+    print(f"[DEBUG] Unique IDs Matched: {len(matched_ids)}")
+    # --- DEBUG END ---
+
     # --- 4. Assemble and Standardize Final DataFrames ---
     matched_df = pd.DataFrame(matched_rows)
+
+    # --- DEBUG: Check unmatched creation ---
     unmatched_df = adjusted_df[~adjusted_df["ID"].isin(matched_ids)].copy()
+    print(f"[DEBUG] Unmatched DF Rows Created: {len(unmatched_df)}")
+    # --- DEBUG END ---
 
     unmatched_df["Match"] = "No Match"
     unmatched_df["Match Source"] = "None"
@@ -178,10 +199,21 @@ def level_2_library_matching(
         unmatched_df["Classification Type"] = "unmatched"
 
     # Re-order and add missing columns to ensure both DataFrames have identical structure
+    # --- DEBUG: Check before reindex ---
+    if not unmatched_df.empty:
+        print(f"[DEBUG] Unmatched Columns Before Reindex: {len(unmatched_df.columns)}")
+    # --- DEBUG END ---
+
     if not matched_df.empty:
         matched_df = matched_df.reindex(columns=final_cols)
     if not unmatched_df.empty:
         unmatched_df = unmatched_df.reindex(columns=final_cols)
+
+    # --- DEBUG START ---
+    print(
+        f"[DEBUG] Final Returning - Matched: {len(matched_df)}, Unmatched: {len(unmatched_df)}"
+    )
+    # --- DEBUG END ---
 
     return matched_df, unmatched_df
 
