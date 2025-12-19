@@ -16,7 +16,7 @@ class FilesTab(ttk.Frame):
         self.config = config
         self.file_path_entries = {}
 
-        # --- NEW: Initialize the ignore standards variable ---
+        # --- Initialize the ignore standards variable ---
         self.ignore_standards_var = tk.BooleanVar(
             value=getattr(self.config, "ignore_standards", False)
         )
@@ -25,11 +25,12 @@ class FilesTab(ttk.Frame):
 
     def _create_widgets(self):
         """Creates all widgets for the file paths tab."""
+        # --- REORDERED LIST ---
         file_options = {
             "Raw Data Input": "raw_data_input_location",
-            "Standards for Removal": "standards_file",
             "Level 1 Library": "level_2_library",
             "Level 5 Library": "level_5_library",
+            "Standards for Removal": "standards_file",
             "Output Report Path": "output_path",
         }
 
@@ -41,9 +42,35 @@ class FilesTab(ttk.Frame):
             "output_path": "Specify the location and name for the final output report file. This will be created or overwritten.",
         }
 
-        for i, (text, key) in enumerate(file_options.items()):
+        # Use a manual row counter so we can insert extra rows (like the checkbox)
+        current_row = 0
+
+        for text, key in file_options.items():
             help_text = help_texts.get(key, "No details available.")
-            self._create_file_input(self, text, key, i, help_text)
+
+            # Create the standard file input row
+            self._create_file_input(self, text, key, current_row, help_text)
+            current_row += 1
+
+            # --- Insert Checkbox immediately after Standards File ---
+            if key == "standards_file":
+                chk = ttk.Checkbutton(
+                    self,
+                    text="Process without standards removal",
+                    variable=self.ignore_standards_var,
+                    command=self._toggle_standards_entry,
+                )
+                # Place it in column 1 (aligned with the entry box)
+                chk.grid(row=current_row, column=1, padx=5, pady=(0, 5), sticky="w")
+
+                # Apply initial state
+                self._toggle_standards_entry()
+
+                # Increment row again so the next file input doesn't overlap
+                current_row += 1
+
+        # Configure column weights
+        self.grid_columnconfigure(1, weight=1)
 
     def _create_file_input(self, parent, label_text, config_key, row, help_text):
         """Helper to create a label, entry, browse button, and help icon row."""
@@ -73,22 +100,6 @@ class FilesTab(ttk.Frame):
         help_label = ttk.Label(parent, text=" (?) ", cursor="question_arrow")
         help_label.grid(row=row, column=3, padx=(0, 5), pady=5, sticky="w")
         Tooltip(help_label, text=help_text)
-
-        # --- NEW: Add Checkbox specifically for Standards File ---
-        if config_key == "standards_file":
-            chk = ttk.Checkbutton(
-                parent,
-                text="Process without standards removal",
-                variable=self.ignore_standards_var,
-                command=self._toggle_standards_entry,
-            )
-            # Place in column 4 (next to help icon)
-            chk.grid(row=row, column=4, padx=5, pady=5, sticky="w")
-
-            # Apply initial state (grey out if checked by default)
-            self._toggle_standards_entry()
-
-        parent.grid_columnconfigure(1, weight=1)
 
     def _toggle_standards_entry(self):
         """Enables or disables the standards file entry based on the checkbox."""
@@ -133,5 +144,5 @@ class FilesTab(ttk.Frame):
             if not path_from_entry.startswith("..."):
                 setattr(config_obj, key, path_from_entry)
 
-        # --- NEW: Update the ignore_standards flag ---
+        # --- Update the ignore_standards flag ---
         config_obj.ignore_standards = self.ignore_standards_var.get()
