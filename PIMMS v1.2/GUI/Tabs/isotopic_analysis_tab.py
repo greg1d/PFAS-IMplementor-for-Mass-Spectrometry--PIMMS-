@@ -209,16 +209,14 @@ class IsotopicAnalysisTab(ttk.Frame):
 
     def _select_cef_folder(self):
         print("[DEBUG] Selecting CEF folder...")
-        filepath = filedialog.askopenfilename(
-            title="Select any .cef file in the target folder",
-            filetypes=[("CEF Files", "*.cef"), ("All files", "*.*")],
-        )
+        # --- MODIFIED: Use askdirectory to select a folder directly ---
+        folder_path = filedialog.askdirectory(title="Select CEF Data Folder")
 
-        if filepath:
-            folder_path = os.path.dirname(filepath)
+        if folder_path:
             print(f"[DEBUG] CEF folder selected: {folder_path}")
             self.cef_folder.set(folder_path)
             self._check_inputs()
+        # --- End of Modification ---
 
     def _check_inputs(self):
         if self.pimms_filepath.get() and self.cef_folder.get():
