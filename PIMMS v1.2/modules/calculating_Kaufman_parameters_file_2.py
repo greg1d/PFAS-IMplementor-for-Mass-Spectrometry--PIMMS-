@@ -5,11 +5,64 @@ import numpy as np
 import pandas as pd
 
 
+# --- 1. Kaufman Calculation (Required for pipeline integration) ---
+def compute_kaufman_constants(cef_data_df):
+    """Computes Kaufman C and extracts intensities for the first 3 peaks."""
+    kaufman_data = []
+    # Ensure we group by file and compound to isolate specific features
+    grouped = cef_data_df.groupby(["SourceFile", "Compound"])
+
+    for (source_file, compound_id), group in grouped:
+        if len(group) < 2:
+            continue
+
+        # Sort by m/z to ensure we get the M, M+1, M+2 peaks in order
+        sorted_group = group.sort_values("Peak_mz").reset_index(drop=True)
+
+        intensity1 = sorted_group.loc[0, "Peak_intensity"]
+        intensity2 = sorted_group.loc[1, "Peak_intensity"]
+        mz1 = sorted_group.loc[0, "Peak_mz"]
+
+        intensity3 = np.nan
+        if len(sorted_group) >= 3:
+            intensity3 = sorted_group.loc[2, "Peak_intensity"]
+
+        if intensity1 == 0:
+            continue
+
+        # Kaufman Calculation: (I2 / I1) * (1 / 0.011145)
+        kaufman_C = (intensity2 / intensity1) * (1 / 0.011145)
+
+        if kaufman_C == 0:
+            continue
+
+        mass_defect = mz1 - round(mz1)
+        sample_name = os.path.splitext(source_file)[0].strip()
+
+        kaufman_data.append(
+            {
+                "Sample": sample_name,
+                "Compound": compound_id,
+                "Peak_mz_1": mz1,
+                "Intensity_1": intensity1,
+                "Peak_mz_2": sorted_group.loc[1, "Peak_mz"],
+                "Intensity_2": intensity2,
+                "Intensity_3": intensity3,
+                "Kaufman_C": kaufman_C,
+                "m_over_C": mz1 / kaufman_C,
+                "mass_defect": mass_defect,
+                "md_over_C": mass_defect / kaufman_C,
+            }
+        )
+    return pd.DataFrame(kaufman_data)
+
+
+# --- 2. Feature Alignment ---
 def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
     if combined_df.empty:
         return pd.DataFrame()
 
-    # --- MODIFIED: Added Kaufman metrics to feature_cols to preserve them ---
+    # MODIFIED: Include Kaufman columns here so they are NOT dropped
     feature_cols = [
         "Sample",
         "Compound",
@@ -20,7 +73,7 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
         "PIMMS_Intensity",
         "DT_PIMMS",
         "RT_PIMMS",
-        # Kaufman & Peak Data
+        # --- NEW COLUMNS PRESERVED ---
         "Kaufman_C",
         "m_over_C",
         "mass_defect",
@@ -32,21 +85,21 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
         "Intensity_3",
     ]
 
-    # Filter to only columns that actually exist in the input DF
-    existing_cols = [c for c in feature_cols if c in combined_df.columns]
-    features_df = combined_df[existing_cols].drop_duplicates().reset_index(drop=True)
+    # Safe Selection: Only select columns that actually exist in the dataframe
+    cols_to_keep = [c for c in feature_cols if c in combined_df.columns]
+    features_df = combined_df[cols_to_keep].drop_duplicates().reset_index(drop=True)
 
     features_df["feature_id"] = list(
         zip(features_df["Sample"], features_df["Compound"])
     )
 
+    # Graph-based alignment logic
     G = nx.Graph()
     G.add_nodes_from(features_df["feature_id"])
 
     features_df_sorted = features_df.sort_values("PIMMS_m/z").reset_index(drop=True)
     mz_array = features_df_sorted["PIMMS_m/z"].values
 
-    # Vectorized search for graph edges
     for i, base in features_df_sorted.iterrows():
         err = base["PIMMS_m/z"] * ppm_tolerance * 1e-6
         min_mz, max_mz = base["PIMMS_m/z"] - err, base["PIMMS_m/z"] + err
@@ -78,11 +131,12 @@ def align_features(combined_df, ppm_tolerance=10, ccs_tolerance=2.0):
     return features_df.drop(columns=["feature_id"])
 
 
+# --- 3. Summary Creation with Statistics ---
 def create_summary_table(final_df):
     if "AlignmentID" not in final_df.columns or final_df["AlignmentID"].isna().all():
         return pd.DataFrame()
 
-    # --- Aggregation Rules ---
+    # Define aggregation rules
     agg_cols = {
         "Match_ID": "first",
         "Classification Type": "first",
@@ -90,7 +144,7 @@ def create_summary_table(final_df):
         "PIMMS_CCS": "mean",
         "DT_PIMMS": "mean",
         "RT_PIMMS": "mean",
-        # Kaufman Averages
+        # Kaufman Metrics
         "Kaufman_C": "mean",
         "m_over_C": "mean",
         "mass_defect": "mean",
@@ -100,34 +154,37 @@ def create_summary_table(final_df):
         "Intensity_2": "mean",
         "Intensity_3": "mean",
     }
+
+    # Filter aggregation dictionary to only include columns present in data
     cols_to_agg = {k: v for k, v in agg_cols.items() if k in final_df.columns}
 
     # 1. Calculate Means
     summary_metrics = final_df.groupby("AlignmentID").agg(cols_to_agg).reset_index()
 
-    # 2. Calculate Standard Deviation for Kaufman C (to track variation)
-    if "Kaufman_C" in final_df.columns:
-        kaufman_std = final_df.groupby("AlignmentID")["Kaufman_C"].std().reset_index()
-        kaufman_std.rename(columns={"Kaufman_C": "Kaufman_C_StdDev"}, inplace=True)
+    # 2. Calculate Standard Deviations for Kaufman Constants (NEW)
+    std_cols = ["Kaufman_C", "m_over_C", "mass_defect"]
+    valid_std_cols = [c for c in std_cols if c in final_df.columns]
+
+    if valid_std_cols:
+        std_df = final_df.groupby("AlignmentID")[valid_std_cols].std().reset_index()
+        # Rename columns to avoid collision (e.g., Kaufman_C_StdDev)
+        std_df = std_df.rename(columns={c: f"{c}_StdDev" for c in valid_std_cols})
         summary_metrics = pd.merge(
-            summary_metrics, kaufman_std, on="AlignmentID", how="left"
+            summary_metrics, std_df, on="AlignmentID", how="left"
         )
 
-    # 3. Pivot for Sample Intensities
+    # 3. Pivot Sample Intensities
     intensity_pivot = final_df.pivot_table(
         index="AlignmentID", columns="Sample", values="PIMMS_Intensity", aggfunc="mean"
     )
 
-    # Intensity Stats (All Samples, treating NaN as 0)
     intensity_filled = intensity_pivot.fillna(0)
-    summary_metrics["Mean_Intensity_All"] = intensity_filled.mean(axis=1).values
-    summary_metrics["StdDev_Intensity_All"] = intensity_filled.std(axis=1).values
+    summary_metrics["Mean_Intensity"] = intensity_filled.mean(axis=1).values
     summary_metrics["Detection_Count"] = intensity_pivot.count(axis=1).values
 
-    # Reset pivot index for merge
     intensity_pivot = intensity_pivot.reset_index().fillna(0)
 
-    # 4. Merge Everything
+    # 4. Merge All
     summary_table = pd.merge(
         summary_metrics, intensity_pivot, on="AlignmentID", how="outer"
     )
@@ -136,82 +193,34 @@ def create_summary_table(final_df):
 
 
 # =============================================================================
-# MAIN EXECUTION BLOCK
+# MAIN BLOCK TO TEST
 # =============================================================================
 if __name__ == "__main__":
-    # Use the file produced in the previous step
-    input_csv = "Diagnostic_Analysis_Output_With_Kaufman.csv"
+    # Load the CSV generated by the matching pipeline
+    input_file = "Diagnostic_Analysis_Output_With_Kaufman.csv"
 
-    if not os.path.exists(input_csv):
-        print(
-            f"[ERROR] Could not find {input_csv}. Please run the previous analysis script first."
-        )
-        exit()
+    if os.path.exists(input_file):
+        print(f"[INFO] Loading {input_file}...")
+        df = pd.read_csv(input_file)
 
-    print(f"[INFO] Loading {input_csv}...")
-    combined_data = pd.read_csv(input_csv)
+        print("[INFO] Aligning features...")
+        aligned = align_features(df)
 
-    # Quick check if Kaufman columns exist
-    if "Kaufman_C" in combined_data.columns:
-        print("[INFO] Kaufman data detected. Proceeding with alignment.")
+        if not aligned.empty:
+            print("[INFO] Creating summary statistics...")
+            summary = create_summary_table(aligned)
+
+            output_file = "Final_Summary_With_Kaufman_Stats.csv"
+            summary.to_csv(output_file, index=False)
+            print(f"[SUCCESS] Summary saved to {output_file}")
+
+            # Print sample of stats
+            if "Kaufman_C" in summary.columns and "Kaufman_C_StdDev" in summary.columns:
+                print("\nSample Data (First 3 rows):")
+                print(summary[["Match_ID", "Kaufman_C", "Kaufman_C_StdDev"]].head(3))
+        else:
+            print("[ERROR] Alignment produced empty dataframe.")
     else:
-        print("[WARNING] 'Kaufman_C' column missing. Averages will not be calculated.")
-
-    print("[INFO] Aligning features across samples...")
-    aligned_df = align_features(combined_data)
-
-    if aligned_df.empty:
-        print("[WARNING] No features aligned.")
-        exit()
-
-    print("[INFO] Creating summary table...")
-    summary = create_summary_table(aligned_df)
-
-    # --- DIAGNOSTIC: Check variations in Kaufman C ---
-    multi_sample_features = summary[summary["Detection_Count"] > 1]
-
-    if not multi_sample_features.empty and "Kaufman_C" in summary.columns:
-        # Pick the feature with the highest detection count to show variation
-        example = multi_sample_features.sort_values(
-            "Detection_Count", ascending=False
-        ).iloc[0]
-        aid = example["AlignmentID"]
-
-        print("\n" + "=" * 60)
-        print(f"KAUFMAN VARIATION REPORT FOR ALIGNMENT ID: {aid}")
-        print("=" * 60)
-        print(f"Match: {example.get('Match_ID', 'N/A')}")
-
-        # Get raw values from aligned df
-        raw_rows = aligned_df[aligned_df["AlignmentID"] == aid]
-
-        print(f"\nRaw Kaufman C values across {len(raw_rows)} samples:")
-        k_values = []
-        for _, row in raw_rows.iterrows():
-            k_val = row.get("Kaufman_C", np.nan)
-            k_values.append(k_val)
-            print(f"  - Sample: {row['Sample']:<30} Kaufman C: {k_val:.4f}")
-
-        print("-" * 30)
-        print("CALCULATED AGGREGATES:")
-        print(f"  Mean Kaufman C:       {example['Kaufman_C']:.4f}")
-        print(f"  StdDev Kaufman C:     {example.get('Kaufman_C_StdDev', 0):.4f}")
-        print("-" * 30)
-
-        # Manual Verify
-        import statistics
-
-        valid_k = [x for x in k_values if pd.notna(x)]
-        if len(valid_k) > 1:
-            manual_mean = statistics.mean(valid_k)
-            if abs(manual_mean - example["Kaufman_C"]) < 0.0001:
-                print("[SUCCESS] Mean calculation verified.")
-            else:
-                print(
-                    f"[WARNING] Mean mismatch! Manual: {manual_mean:.4f} vs Auto: {example['Kaufman_C']:.4f}"
-                )
-
-    # Save output
-    output_file = "Final_Statistical_Summary.csv"
-    summary.to_csv(output_file, index=False)
-    print(f"\n[INFO] Full summary saved to: {os.path.abspath(output_file)}")
+        print(
+            f"[ERROR] Input file '{input_file}' not found. Run the matching pipeline first."
+        )
