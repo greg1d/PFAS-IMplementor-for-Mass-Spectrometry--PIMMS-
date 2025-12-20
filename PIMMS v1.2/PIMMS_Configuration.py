@@ -101,19 +101,19 @@ class Config:
 
         # === Copy NIST SRM raw data to Raw Data folder ===
         try:
-            nist_src = resource_path(r"Raw data\NIST_SRM_Profiler_raw_data.csv")
+            nist_src = resource_path(r"Raw data\Training data set raw feature list.csv")
             nist_dest = os.path.join(
-                self.raw_data_folder, "Training raw data (NIST SRM 1957).csv"
+                self.raw_data_folder, "Training raw data set raw feature list.csv"
             )
             if os.path.exists(nist_src) and not os.path.exists(nist_dest):
                 shutil.copy2(nist_src, nist_dest)
-                print(f"[INFO] Copied NIST SRM raw data → {nist_dest}")
+                print(f"[INFO] Copied Training data set raw feature list → {nist_dest}")
             else:
                 print(
-                    f"[INFO] NIST SRM raw data already exists or source missing → {nist_dest}"
+                    f"[INFO] Training data set raw feature list already exists or source missing → {nist_dest}"
                 )
         except Exception as e:
-            print(f"[WARNING] Could not copy NIST SRM raw data: {e}")
+            print(f"[WARNING] Could not copy Training data set raw feature list: {e}")
 
         # === ALWAYS point to the user's copies for imports ===
         self.standards_file = os.path.join(
