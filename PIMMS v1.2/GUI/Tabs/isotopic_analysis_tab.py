@@ -87,6 +87,7 @@ TABLE_DISPLAY_CONFIG = {
 
 class IsotopicAnalysisTab(ttk.Frame):
     def __init__(self, parent, config):
+        print("[DEBUG] IsotopicAnalysisTab initializing...")
         super().__init__(parent)
         self.config = config
         self.pimms_filepath = tk.StringVar()
@@ -95,9 +96,10 @@ class IsotopicAnalysisTab(ttk.Frame):
 
         self._create_widgets()
         self._load_defaults()
+        print("[DEBUG] IsotopicAnalysisTab initialization complete.")
 
     def _create_widgets(self):
-        # --- NEW: Define all help texts in one place for easy editing ---
+        # --- Define all help texts in one place for easy editing ---
         help_texts = {
             "pimms_file": "Select the primary input CSV file from the PIMMS processing pipeline. This file should contain the list of all detected features.",
             "cef_folder": "Select any single .cef file from the folder containing all raw data files. The application will automatically use the folder path to find the necessary raw data for isotopic analysis.",
@@ -114,7 +116,7 @@ class IsotopicAnalysisTab(ttk.Frame):
         table_frame = ttk.Labelframe(self, text="Analysis Results", padding="10")
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
-        # --- MODIFIED: Added help icons to Input Widgets ---
+        # --- Input Widgets ---
         ttk.Label(control_frame, text="PIMMS File:").grid(
             row=0, column=0, sticky="w", padx=5, pady=2
         )
@@ -124,7 +126,7 @@ class IsotopicAnalysisTab(ttk.Frame):
         ttk.Button(
             control_frame, text="Browse...", command=self._select_pimms_file
         ).grid(row=0, column=2, padx=5)
-        # NEW: Help icon for PIMMS File
+
         help_pimms = ttk.Label(control_frame, text=" (?) ", cursor="question_arrow")
         help_pimms.grid(row=0, column=3, sticky="w")
         Tooltip(help_pimms, text=help_texts["pimms_file"])
@@ -138,12 +140,12 @@ class IsotopicAnalysisTab(ttk.Frame):
         ttk.Button(
             control_frame, text="Browse...", command=self._select_cef_folder
         ).grid(row=1, column=2, padx=5)
-        # NEW: Help icon for CEF Folder
+
         help_cef = ttk.Label(control_frame, text=" (?) ", cursor="question_arrow")
         help_cef.grid(row=1, column=3, sticky="w")
         Tooltip(help_cef, text=help_texts["cef_folder"])
 
-        # --- MODIFIED: Action Buttons now use grid for better layout with icons ---
+        # --- Action Buttons ---
         action_frame = ttk.Frame(self)
         action_frame.pack(fill=tk.X, padx=10, pady=5)
 
@@ -154,7 +156,7 @@ class IsotopicAnalysisTab(ttk.Frame):
             state="disabled",
         )
         self.run_button.grid(row=0, column=0, padx=(0, 2))
-        # NEW: Help icon for Run button
+
         help_run = ttk.Label(action_frame, text=" (?) ", cursor="question_arrow")
         help_run.grid(row=0, column=1, padx=(0, 10))
         Tooltip(help_run, text=help_texts["run_pipeline"])
@@ -166,7 +168,7 @@ class IsotopicAnalysisTab(ttk.Frame):
             state="disabled",
         )
         self.plot_button.grid(row=0, column=2, padx=(0, 2))
-        # NEW: Help icon for Plot button
+
         help_plot = ttk.Label(action_frame, text=" (?) ", cursor="question_arrow")
         help_plot.grid(row=0, column=3, padx=(0, 10))
         Tooltip(help_plot, text=help_texts["launch_plot"])
@@ -178,15 +180,15 @@ class IsotopicAnalysisTab(ttk.Frame):
             state="disabled",
         )
         self.save_button.grid(row=0, column=4, padx=(0, 2))
-        # NEW: Help icon for Save button
+
         help_save = ttk.Label(action_frame, text=" (?) ", cursor="question_arrow")
         help_save.grid(row=0, column=5, padx=(0, 10))
         Tooltip(help_save, text=help_texts["save_results"])
 
-        # --- MODIFIED: Added a help icon to the results table frame ---
+        # --- Results Table ---
         self.table = ScrollableTable(table_frame)
         self.table.pack(fill="both", expand=True)
-        # NEW: Help icon for the table itself
+
         help_table = ttk.Label(table_frame, text=" (?) ", cursor="question_arrow")
         help_table.place(relx=1.0, rely=0.0, x=-5, y=-8, anchor="ne")
         Tooltip(help_table, text=help_texts["results_table"])
@@ -196,39 +198,35 @@ class IsotopicAnalysisTab(ttk.Frame):
         pass
 
     def _select_pimms_file(self):
+        print("[DEBUG] Selecting PIMMS file...")
         path = filedialog.askopenfilename(
             title="Select PIMMS CSV", filetypes=[("CSV Files", "*.csv")]
         )
         if path:
+            print(f"[DEBUG] PIMMS file selected: {path}")
             self.pimms_filepath.set(path)
             self._check_inputs()
 
     def _select_cef_folder(self):
-        """
-        Opens a file dialog to select any .cef file, then extracts the
-        parent folder path from it.
-        """
-        filepath = filedialog.askopenfilename(
-            title="Select any .cef file in the target folder",
-            filetypes=[("CEF Files", "*.cef"), ("All files", "*.*")],
-        )
+        print("[DEBUG] Selecting CEF folder...")
+        # --- MODIFIED: Use askdirectory to select a folder directly ---
+        folder_path = filedialog.askdirectory(title="Select CEF Data Folder")
 
-        if filepath:
-            # The pipeline needs the folder, not the file.
-            # os.path.dirname() extracts the directory path from a full file path.
-            folder_path = os.path.dirname(filepath)
+        if folder_path:
+            print(f"[DEBUG] CEF folder selected: {folder_path}")
             self.cef_folder.set(folder_path)
             self._check_inputs()
-
-    # --- End of Modification ---
+        # --- End of Modification ---
 
     def _check_inputs(self):
         if self.pimms_filepath.get() and self.cef_folder.get():
             self.run_button.config(state="normal")
+            print("[DEBUG] Inputs valid. Run button enabled.")
         else:
             self.run_button.config(state="disabled")
 
     def _run_pipeline_thread(self):
+        print("[DEBUG] Starting pipeline thread...")
         self.run_button.config(state="disabled")
         self.plot_button.config(state="disabled")
         self.save_button.config(state="disabled")
@@ -237,15 +235,27 @@ class IsotopicAnalysisTab(ttk.Frame):
         thread.start()
 
     def _pipeline_target(self):
+        print("[DEBUG] Inside pipeline thread.")
         try:
 
             def status_update(message):
-                print(message)
+                print(f"[PIPELINE STATUS] {message}")
 
-            # Step 1: Run the full PIMMS-CEF pipeline to generate the summary table
+            # Step 1: Run the full PIMMS-CEF pipeline
+            print("[DEBUG] Calling run_full_pipeline...")
             summary_table = run_full_pipeline(
                 self.pimms_filepath.get(), self.cef_folder.get(), status_update
             )
+
+            if summary_table is None:
+                print("[DEBUG] run_full_pipeline returned None.")
+            elif summary_table.empty:
+                print("[DEBUG] run_full_pipeline returned EMPTY DataFrame.")
+            else:
+                print(
+                    f"[DEBUG] run_full_pipeline returned DataFrame with shape: {summary_table.shape}"
+                )
+
             if summary_table is None or summary_table.empty:
                 messagebox.showinfo(
                     "Complete", "Pipeline ran, but no matching features were found."
@@ -254,46 +264,77 @@ class IsotopicAnalysisTab(ttk.Frame):
 
             # Step 2: Run heavy halogen analysis
             status_update("Running heavy halogen analysis...")
+            print("[DEBUG] Calling heavy_halogen_hunter...")
             analysis_df = heavy_halogen_hunter(summary_table)
+            print(f"[DEBUG] heavy_halogen_hunter complete. Shape: {analysis_df.shape}")
 
             # Step 3: Calculate the Predicted C/F ratio
             status_update("Calculating Predicted C/F ratio...")
             grid_path = resource_path("modules/kaufman_grid_data.npz")
+            print(f"[DEBUG] Loading grid data from: {grid_path}")
+
             self.results_df = calculate_and_classify_ratio(analysis_df, grid_path)
 
-            # Now, self.results_df contains ALL the data
-            self._update_table(self.results_df)
+            if self.results_df is not None:
+                print(
+                    f"[DEBUG] Ratio classification complete. Results DF shape: {self.results_df.shape}"
+                )
 
-            # Re-enable buttons on success
-            self.plot_button.config(state="normal")
-            self.save_button.config(state="normal")
-            messagebox.showinfo(
-                "Success", "Full analysis complete! Results are in the table."
-            )
+                # Check column existence
+                if "Predicted C/F ratio" in self.results_df.columns:
+                    print("[DEBUG] 'Predicted C/F ratio' column present.")
+                else:
+                    print("[DEBUG] ERROR: 'Predicted C/F ratio' column MISSING.")
+
+                # Now, self.results_df contains ALL the data
+                self._update_table(self.results_df)
+
+                # Re-enable buttons on success
+                self.plot_button.config(state="normal")
+                self.save_button.config(state="normal")
+                messagebox.showinfo(
+                    "Success", "Full analysis complete! Results are in the table."
+                )
+            else:
+                print("[DEBUG] calculate_and_classify_ratio returned None.")
+                messagebox.showerror("Error", "Ratio calculation failed (check logs).")
+
         except Exception as e:
+            print(f"[DEBUG] Pipeline Exception: {e}")
+            import traceback
+
+            traceback.print_exc()
             messagebox.showerror("Pipeline Error", f"An error occurred:\n{e}")
         finally:
             self.run_button.config(state="normal")
+            print("[DEBUG] Pipeline thread exiting.")
 
-    # --- MODIFIED: This function is now much simpler ---
     def _launch_plot(self):
+        print("[DEBUG] _launch_plot called.")
         if self.results_df is None or self.results_df.empty:
+            print("[DEBUG] No results to plot.")
             return
         try:
-            # The results_df is already fully processed, so we can use it directly
+            print("[DEBUG] Generating interactive figure...")
             fig = create_interactive_figure(
                 self.results_df,
                 resource_path("modules/kaufman_contour_boundaries_SMOOTH.csv"),
                 resource_path("modules/kaufman_grid_data.npz"),
             )
             if fig:
+                print("[DEBUG] Figure created. Saving to temp file...")
                 with tempfile.NamedTemporaryFile(
                     "w", delete=False, suffix=".html", encoding="utf-8"
                 ) as f:
                     fig.write_html(f)
                     file_path = f.name
+
+                print(f"[DEBUG] Opening browser: {file_path}")
                 webbrowser.open("file://" + os.path.realpath(file_path))
+            else:
+                print("[DEBUG] create_interactive_figure returned None.")
         except Exception as e:
+            print(f"[DEBUG] Plotting Exception: {e}")
             messagebox.showerror("Plotting Error", f"Failed to generate plot:\n{e}")
 
     def _format_df_for_display(self, df):
@@ -301,15 +342,19 @@ class IsotopicAnalysisTab(ttk.Frame):
         Applies rounding, formatting, reordering, and hiding of columns.
         Now dynamically rounds sample intensity columns.
         """
+        print(f"[DEBUG] _format_df_for_display called. Input shape: {df.shape}")
         df_display = df.copy()
         max_len = 35
+
         if "Match_ID" in df_display.columns:
             df_display["Match_ID"] = (
                 df_display["Match_ID"]
                 .astype(str)
                 .apply(lambda x: (x[: max_len - 3] + "...") if len(x) > max_len else x)
             )
+
         # 1. Apply rounding for specifically configured columns
+        print("[DEBUG] Applying specific column rounding...")
         for col, decimals in TABLE_DISPLAY_CONFIG["round"].items():
             if col in df_display.columns:
                 df_display[col] = pd.to_numeric(df_display[col], errors="coerce").round(
@@ -321,11 +366,11 @@ class IsotopicAnalysisTab(ttk.Frame):
             TABLE_DISPLAY_CONFIG["relabel"].keys()
         )
 
-        # 3. Identify sample columns by finding what's NOT in the non_sample_cols set
+        # 3. Identify sample columns
         sample_cols = sorted([col for col in df.columns if col not in non_sample_cols])
+        print(f"[DEBUG] Identified {len(sample_cols)} sample columns to format.")
 
-        # --- NEW: Dynamically apply integer rounding and formatting to all sample columns ---
-        print(f"DEBUG: Formatting sample columns: {sample_cols}")
+        # Dynamically apply integer rounding and formatting to all sample columns
         for col in sample_cols:
             if col in df_display.columns:
                 numeric_col = pd.to_numeric(df_display[col], errors="coerce")
@@ -333,9 +378,9 @@ class IsotopicAnalysisTab(ttk.Frame):
                 df_display[col] = numeric_col.apply(
                     lambda x: f"{x:,.0f}" if pd.notna(x) else ""
                 )
-        # --- End of New Code ---
 
-        # 4. Relabel the columns for a user-friendly display
+        # 4. Relabel the columns
+        print("[DEBUG] Relabeling columns...")
         df_display.rename(columns=TABLE_DISPLAY_CONFIG["relabel"], inplace=True)
 
         # 5. Construct the final column order
@@ -346,10 +391,11 @@ class IsotopicAnalysisTab(ttk.Frame):
             col for col in final_order if col in df_display.columns
         ]
 
+        print(f"[DEBUG] Final columns for display: {existing_cols_to_show}")
         return df_display[existing_cols_to_show]
 
-    # --- NEW: Method to save the results to a user-chosen location ---
     def _save_results(self):
+        print("[DEBUG] _save_results called.")
         if self.results_df is None:
             return
         save_path = filedialog.asksaveasfilename(
@@ -361,20 +407,25 @@ class IsotopicAnalysisTab(ttk.Frame):
         if not save_path:
             return
         try:
-            # The results_df is already fully processed, so we can save it directly
+            print(f"[DEBUG] Saving results to: {save_path}")
             self.results_df.to_csv(save_path, index=False)
             messagebox.showinfo(
                 "Success",
                 f"Results successfully saved to:\n{os.path.basename(save_path)}",
             )
         except Exception as e:
+            print(f"[DEBUG] Save Exception: {e}")
             messagebox.showerror("Save Error", f"Failed to save file:\n{e}")
 
-    # --- MODIFIED: This function now uses the formatter ---
     def _update_table(self, df):
         """Formats the DataFrame and then passes it to the ScrollableTable widget."""
+        print("[DEBUG] _update_table called.")
         if df is None or df.empty:
+            print("[DEBUG] Table DF is empty/None.")
             self.table.update_table(pd.DataFrame())
             return
+
+        print("[DEBUG] Formatting dataframe for display...")
         df_for_display = self._format_df_for_display(df)
+        print(f"[DEBUG] Updating table widget with {len(df_for_display)} rows.")
         self.table.update_table(df_for_display)
