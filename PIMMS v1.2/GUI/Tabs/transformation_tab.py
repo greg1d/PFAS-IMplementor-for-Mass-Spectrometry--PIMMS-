@@ -5,7 +5,6 @@ import pandas as pd
 import traceback
 
 # Import the logic engine
-# Ensure 'modules' folder has an __init__.py or is in the path
 try:
     from modules.transformation_checker import run_transformation_checker
 except ImportError:
@@ -17,7 +16,8 @@ from GUI.widgets.scrollable_table_widget import ScrollableTable
 class TransformationTab(ttk.Frame):
     def __init__(self, parent, config):
         super().__init__(parent)
-        self.config = config
+        # RENAMED: Use app_config to avoid overwriting Tkinter's self.config() method
+        self.app_config = config
 
         # --- Modular Unit Definitions ---
         self.available_units = {
@@ -30,7 +30,7 @@ class TransformationTab(ttk.Frame):
         }
 
         # --- 1. Load Defaults from Config ---
-        default_excl_path = getattr(self.config, "exclusion_library", None)
+        default_excl_path = getattr(self.app_config, "exclusion_library", None)
 
         self.paths = {
             "experimental": None,
@@ -40,7 +40,7 @@ class TransformationTab(ttk.Frame):
 
         self.mapping_vars = {
             "experimental": {"mz": None},
-            "suspect": {"mz": None},
+            "suspect": {"mz": None, "name": None},  # Added 'name' here
             "exclusion": {"mz": None},
         }
 
@@ -56,15 +56,15 @@ class TransformationTab(ttk.Frame):
             input_frame, "Experimental File", "experimental", default_mz="H"
         )
 
-        # 2. Suspect Library
+        # 2. Suspect Library (Now includes Name Column)
         self._build_file_section(
-            input_frame, "Suspect Library", "suspect", default_mz="G"
+            input_frame, "Suspect Library", "suspect", default_mz="G", include_name=True
         )
 
-        # 3. Exclusion Library (Loads default m/z from config)
+        # 3. Exclusion Library
         excl_mz_def = "G"
-        if hasattr(self.config, "exclusion_mapping"):
-            excl_mz_def = self.config.exclusion_mapping.get("m/z", "G")
+        if hasattr(self.app_config, "exclusion_mapping"):
+            excl_mz_def = self.app_config.exclusion_mapping.get("m/z", "G")
 
         self._build_file_section(
             input_frame, "Exclusion Library", "exclusion", default_mz=excl_mz_def
@@ -78,7 +78,7 @@ class TransformationTab(ttk.Frame):
         builder_frame = ttk.Frame(config_frame)
         builder_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        # Row 0: PPM (Integer steps)
+        # Row 0: PPM
         ttk.Label(builder_frame, text="Global Mass Error (ppm):").grid(
             row=0, column=0, sticky="w", pady=2
         )
@@ -167,10 +167,9 @@ class TransformationTab(ttk.Frame):
         self.table = ScrollableTable(table_frame)
         self.table.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-    def _build_file_section(self, parent, btn_text, key, default_mz=""):
-        """
-        Creates a single-line file loader with inline mapping.
-        """
+    def _build_file_section(
+        self, parent, btn_text, key, default_mz="", include_name=False
+    ):
         row = ttk.Frame(parent)
         row.pack(fill=tk.X, padx=5, pady=2)
 
@@ -181,27 +180,36 @@ class TransformationTab(ttk.Frame):
 
         # 2. Filename Label
         current_path = self.paths.get(key)
-        if current_path:
-            initial_label = os.path.basename(current_path)
-        else:
-            initial_label = "No file loaded"
+        initial_label = (
+            os.path.basename(current_path) if current_path else "No file loaded"
+        )
 
         path_var = tk.StringVar(value=initial_label)
         setattr(self, f"{key}_path_var", path_var)
 
-        # Black text for loaded files
         lbl = ttk.Label(row, textvariable=path_var, foreground="black", width=40)
         lbl.pack(side=tk.LEFT, padx=(10, 5))
 
         # 3. Mapping Section
         ttk.Label(row, text="|").pack(side=tk.LEFT, padx=5)
-        ttk.Label(row, text="m/z col:").pack(side=tk.LEFT)
 
+        # m/z Input
+        ttk.Label(row, text="m/z col:").pack(side=tk.LEFT)
         mz_var = tk.StringVar(value=default_mz)
         self.mapping_vars[key]["mz"] = mz_var
+        ttk.Entry(row, textvariable=mz_var, width=5, justify="center").pack(
+            side=tk.LEFT, padx=(2, 5)
+        )
 
-        entry = ttk.Entry(row, textvariable=mz_var, width=5, justify="center")
-        entry.pack(side=tk.LEFT, padx=(2, 0))
+        # Optional Name Input
+        if include_name:
+            ttk.Label(row, text="Name col:").pack(side=tk.LEFT)
+            # Default to "B" for name if not specified, usually standard
+            name_var = tk.StringVar(value="B")
+            self.mapping_vars[key]["name"] = name_var
+            ttk.Entry(row, textvariable=name_var, width=5, justify="center").pack(
+                side=tk.LEFT, padx=(2, 0)
+            )
 
     def _browse_file(self, key):
         path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
@@ -230,7 +238,6 @@ class TransformationTab(ttk.Frame):
             self.unit_tree.delete(item)
 
     def _on_run_clicked(self):
-        # 0. Check Import
         if run_transformation_checker is None:
             messagebox.showerror(
                 "Configuration Error",
@@ -238,17 +245,21 @@ class TransformationTab(ttk.Frame):
             )
             return
 
-        # 1. Validation
         if not self.paths["experimental"]:
             messagebox.showwarning("Error", "Experimental file required.")
             return
 
-        # 2. Extract Mappings
+        # Extract Mappings (Now including Suspect Name)
         mappings = {
             "experimental": self.mapping_vars["experimental"]["mz"].get(),
             "suspect": self.mapping_vars["suspect"]["mz"].get(),
+            "suspect_name": None,  # Default
             "exclusion": self.mapping_vars["exclusion"]["mz"].get(),
         }
+
+        # Handle the new Name column if available
+        if self.mapping_vars["suspect"].get("name"):
+            mappings["suspect_name"] = self.mapping_vars["suspect"]["name"].get()
 
         if not mappings["experimental"]:
             messagebox.showwarning(
@@ -256,7 +267,6 @@ class TransformationTab(ttk.Frame):
             )
             return
 
-        # 3. Build Units
         units = []
         for item in self.unit_tree.get_children():
             v = self.unit_tree.item(item)["values"]
@@ -272,7 +282,6 @@ class TransformationTab(ttk.Frame):
             messagebox.showwarning("Error", "Add at least one unit.")
             return
 
-        # 4. Construct Params
         try:
             ppm = float(self.ppm_spin.get())
         except ValueError:
@@ -288,17 +297,14 @@ class TransformationTab(ttk.Frame):
 
         print(f"[UI] Running Analysis with: {params}")
 
-        # 5. Execute Logic
         try:
-            self.config(cursor="watch")
+            self.configure(cursor="watch")
             self.update_idletasks()
 
-            # Run the logic function
             results_df = run_transformation_checker(params)
 
-            self.config(cursor="")
+            self.configure(cursor="")
 
-            # Handle Results
             if results_df is None:
                 messagebox.showerror("Error", "No data returned.")
                 return
@@ -312,7 +318,6 @@ class TransformationTab(ttk.Frame):
                 messagebox.showinfo("Info", results_df.iloc[0]["Status"])
                 return
 
-            # Success
             if not results_df.empty:
                 self.table.update_table(results_df)
                 messagebox.showinfo(
@@ -323,6 +328,6 @@ class TransformationTab(ttk.Frame):
                 messagebox.showinfo("No Results", "No matching pairs found.")
 
         except Exception as e:
-            self.config(cursor="")
+            self.configure(cursor="")
             traceback.print_exc()
             messagebox.showerror("Critical Error", f"An error occurred:\n{e}")

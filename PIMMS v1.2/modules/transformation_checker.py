@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 
 
 def run_transformation_checker(params):
@@ -9,7 +10,7 @@ def run_transformation_checker(params):
     Args:
         params (dict): Dictionary containing:
             - paths: {experimental, suspect, exclusion}
-            - mappings: {experimental: 'A', suspect: 'B', exclusion: 'C'}
+            - mappings: {experimental: 'A', suspect: 'B', exclusion: 'C', suspect_name: 'A'}
             - ppm: float (e.g., 5.0)
             - units: list of dicts [{'name': 'CF2', 'mass': 49.99, 'min': -1, 'max': 3}, ...]
 
@@ -135,9 +136,18 @@ def run_transformation_checker(params):
             suspect_df = _load_and_map(
                 params["paths"]["suspect"], params["mappings"]["suspect"], "Suspect"
             )
-            results_df = _match_suspects(results_df, suspect_df, params["ppm"])
+
+            # Retrieve the optional name mapping
+            suspect_name_col = params["mappings"].get("suspect_name")
+
+            results_df = _match_suspects(
+                results_df, suspect_df, params["ppm"], name_mapping=suspect_name_col
+            )
         except Exception as e:
             print(f"[WARNING] Suspect matching failed: {e}")
+            # Even if suspect matching fails, return the mass results with a warning note
+            if "Suspect Match" not in results_df.columns:
+                results_df["Suspect Match"] = "Error Checking Library"
 
     print(f"--- Analysis Complete. Found {len(results_df)} relationships. ---")
     return results_df
@@ -153,17 +163,11 @@ def _load_and_map(filepath, mz_col, label):
 
     df = pd.read_csv(filepath)
 
-    # 1. Identify the column name from the letter (e.g. "A" -> "Column 0")
-    if len(mz_col) == 1 and mz_col.isalpha():
-        col_idx = ord(mz_col.upper()) - 65  # 'A' is 65
-        if col_idx >= len(df.columns):
-            raise ValueError(f"Column {mz_col} out of range for {label}")
-        target_col = df.columns[col_idx]
-    else:
-        # Assume it's a header name
-        if mz_col not in df.columns:
-            raise ValueError(f"Column '{mz_col}' not found in {label}")
-        target_col = mz_col
+    # Use helper to resolve column name from "A", "B", "AD" or actual header
+    target_col = _resolve_column_name(df, mz_col)
+
+    if not target_col:
+        raise ValueError(f"Column '{mz_col}' not found in {label}")
 
     # 2. Rename to standardized 'm/z'
     df = df.rename(columns={target_col: "m/z"})
@@ -175,11 +179,37 @@ def _load_and_map(filepath, mz_col, label):
     return df
 
 
+def _resolve_column_name(df, mapping):
+    """
+    Returns the actual column header name based on a mapping.
+    Handles single letters ('A'), multi-letters ('AD'), or direct header names.
+    """
+    if not mapping:
+        return None
+
+    mapping_str = str(mapping).strip()
+
+    # 1. Check if it looks like an Excel column letter (A, Z, AA, AD...)
+    # Using regex to ensure it's strictly alphabetical
+    if re.fullmatch(r"[A-Za-z]+", mapping_str):
+        # Convert Excel column string to 0-based index
+        col_idx = 0
+        for char in mapping_str.upper():
+            col_idx = col_idx * 26 + (ord(char) - ord("A") + 1)
+        col_idx -= 1  # Adjust to 0-based
+
+        if 0 <= col_idx < len(df.columns):
+            return df.columns[col_idx]
+
+    # 2. Check if it is a literal header name
+    if mapping_str in df.columns:
+        return mapping_str
+
+    return None
+
+
 def _remove_excluded_features(exp_df, excl_df, ppm):
     """Removes rows from exp_df that match any mass in excl_df."""
-    # This is a brute-force filter. For huge files, a KDTree is faster,
-    # but this is safer for general compatibility.
-
     keep_indices = []
     excl_masses = excl_df["m/z"].values
 
@@ -188,7 +218,6 @@ def _remove_excluded_features(exp_df, excl_df, ppm):
         tol = mass * (ppm / 1e6)
 
         # Check if this mass exists in exclusion list
-        # (True if ANY exclusion mass is within tolerance)
         is_excluded = np.any(np.abs(excl_masses - mass) <= tol)
 
         if not is_excluded:
@@ -197,17 +226,32 @@ def _remove_excluded_features(exp_df, excl_df, ppm):
     return exp_df.loc[keep_indices].reset_index(drop=True)
 
 
-def _match_suspects(results_df, suspect_df, ppm):
+def _match_suspects(results_df, suspect_df, ppm, name_mapping=None):
     """Annotates the results DataFrame with Suspect Library matches."""
     results_df["Suspect Match"] = None  # Default column
 
     suspect_masses = suspect_df["m/z"].values
-    # Try to find a Name column, otherwise use "Unknown"
-    name_col = next((c for c in suspect_df.columns if "name" in c.lower()), None)
-    suspect_names = (
-        suspect_df[name_col].values if name_col else ["Unknown"] * len(suspect_df)
-    )
 
+    # --- Resolve Name Column ---
+    target_name_col = None
+
+    # 1. Try explicit mapping provided by user
+    if name_mapping:
+        target_name_col = _resolve_column_name(suspect_df, name_mapping)
+
+    # 2. Fallback: Search for "name" in headers if no mapping or invalid mapping
+    if not target_name_col:
+        target_name_col = next(
+            (c for c in suspect_df.columns if "name" in c.lower()), None
+        )
+
+    # 3. Extract names
+    if target_name_col:
+        suspect_names = suspect_df[target_name_col].fillna("Unknown").astype(str).values
+    else:
+        suspect_names = ["Unknown"] * len(suspect_df)
+
+    # --- Perform Matching ---
     for idx, row in results_df.iterrows():
         product_mass = row["Product m/z"]
         tol = product_mass * (ppm / 1e6)
@@ -218,6 +262,8 @@ def _match_suspects(results_df, suspect_df, ppm):
         if len(match_indices) > 0:
             # Join all matching names (e.g., "PFOS; PFOA")
             matches = [str(suspect_names[i]) for i in match_indices]
-            results_df.at[idx, "Suspect Match"] = "; ".join(matches)
+            # Use a set to avoid duplicates if multiple rows have same name
+            unique_matches = sorted(list(set(matches)))
+            results_df.at[idx, "Suspect Match"] = "; ".join(unique_matches)
 
     return results_df
