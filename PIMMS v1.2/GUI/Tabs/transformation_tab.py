@@ -1,6 +1,16 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import os  # Added for path handling
+import os
+import pandas as pd
+import traceback
+
+# Import the logic engine
+# Ensure 'modules' folder has an __init__.py or is in the path
+try:
+    from modules.transformation_checker import run_transformation_checker
+except ImportError:
+    run_transformation_checker = None
+
 from GUI.widgets.scrollable_table_widget import ScrollableTable
 
 
@@ -20,7 +30,6 @@ class TransformationTab(ttk.Frame):
         }
 
         # --- 1. Load Defaults from Config ---
-        # We pre-fill the exclusion path if it exists in the config object
         default_excl_path = getattr(self.config, "exclusion_library", None)
 
         self.paths = {
@@ -29,7 +38,6 @@ class TransformationTab(ttk.Frame):
             "exclusion": default_excl_path,
         }
 
-        # We store the actual Tkinter StringVars here so we can read them later
         self.mapping_vars = {
             "experimental": {"mz": None},
             "suspect": {"mz": None},
@@ -43,18 +51,17 @@ class TransformationTab(ttk.Frame):
         input_frame = ttk.Labelframe(self, text="Input Files & Column Mapping")
         input_frame.pack(fill=tk.X, padx=10, pady=5)
 
-        # 1. Experimental (No default)
+        # 1. Experimental
         self._build_file_section(
             input_frame, "Experimental File", "experimental", default_mz="H"
         )
 
-        # 2. Suspect Library (No default in this snippet, but could be added similarly)
+        # 2. Suspect Library
         self._build_file_section(
             input_frame, "Suspect Library", "suspect", default_mz="G"
         )
 
         # 3. Exclusion Library (Loads default m/z from config)
-        # Fetch default mapping from config, fallback to "G" if missing
         excl_mz_def = "G"
         if hasattr(self.config, "exclusion_mapping"):
             excl_mz_def = self.config.exclusion_mapping.get("m/z", "G")
@@ -71,12 +78,14 @@ class TransformationTab(ttk.Frame):
         builder_frame = ttk.Frame(config_frame)
         builder_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        # Row 0: PPM
+        # Row 0: PPM (Integer steps)
         ttk.Label(builder_frame, text="Global Mass Error (ppm):").grid(
             row=0, column=0, sticky="w", pady=2
         )
-        self.ppm_spin = ttk.Spinbox(builder_frame, from_=0.1, to=50, width=6)
-        self.ppm_spin.set(5.0)
+        self.ppm_spin = ttk.Spinbox(
+            builder_frame, from_=0, to=100, increment=1, width=6
+        )
+        self.ppm_spin.set(15)
         self.ppm_spin.grid(row=0, column=1, sticky="w", pady=2)
 
         # Row 1: Unit Dropdown
@@ -171,10 +180,8 @@ class TransformationTab(ttk.Frame):
         ).pack(side=tk.LEFT)
 
         # 2. Filename Label
-        # Check if we already have a path loaded from Config
         current_path = self.paths.get(key)
         if current_path:
-            # If path exists, show filename
             initial_label = os.path.basename(current_path)
         else:
             initial_label = "No file loaded"
@@ -182,6 +189,7 @@ class TransformationTab(ttk.Frame):
         path_var = tk.StringVar(value=initial_label)
         setattr(self, f"{key}_path_var", path_var)
 
+        # Black text for loaded files
         lbl = ttk.Label(row, textvariable=path_var, foreground="black", width=40)
         lbl.pack(side=tk.LEFT, padx=(10, 5))
 
@@ -222,6 +230,14 @@ class TransformationTab(ttk.Frame):
             self.unit_tree.delete(item)
 
     def _on_run_clicked(self):
+        # 0. Check Import
+        if run_transformation_checker is None:
+            messagebox.showerror(
+                "Configuration Error",
+                "Could not import 'run_transformation_checker' from modules.",
+            )
+            return
+
         # 1. Validation
         if not self.paths["experimental"]:
             messagebox.showwarning("Error", "Experimental file required.")
@@ -234,25 +250,79 @@ class TransformationTab(ttk.Frame):
             "exclusion": self.mapping_vars["exclusion"]["mz"].get(),
         }
 
+        if not mappings["experimental"]:
+            messagebox.showwarning(
+                "Missing Mapping", "Please enter m/z column for Experimental file."
+            )
+            return
+
         # 3. Build Units
         units = []
         for item in self.unit_tree.get_children():
             v = self.unit_tree.item(item)["values"]
-            r_min, r_max = map(int, v[2].split(" to "))
-            units.append(
-                {"name": v[0], "mass": float(v[1]), "min": r_min, "max": r_max}
-            )
+            try:
+                r_min, r_max = map(int, v[2].split(" to "))
+                units.append(
+                    {"name": v[0], "mass": float(v[1]), "min": r_min, "max": r_max}
+                )
+            except ValueError:
+                continue
 
         if not units:
             messagebox.showwarning("Error", "Add at least one unit.")
             return
 
         # 4. Construct Params
+        try:
+            ppm = float(self.ppm_spin.get())
+        except ValueError:
+            messagebox.showerror("Error", "Invalid PPM value.")
+            return
+
         params = {
-            "ppm": float(self.ppm_spin.get()),
+            "ppm": ppm,
             "paths": self.paths,
             "mappings": mappings,
             "units": units,
         }
 
-        print(f"Running with: {params}")
+        print(f"[UI] Running Analysis with: {params}")
+
+        # 5. Execute Logic
+        try:
+            self.config(cursor="watch")
+            self.update_idletasks()
+
+            # Run the logic function
+            results_df = run_transformation_checker(params)
+
+            self.config(cursor="")
+
+            # Handle Results
+            if results_df is None:
+                messagebox.showerror("Error", "No data returned.")
+                return
+
+            if "Error" in results_df.columns:
+                messagebox.showerror("Analysis Error", results_df.iloc[0]["Error"])
+                return
+
+            if "Status" in results_df.columns:
+                self.table.update_table(pd.DataFrame())
+                messagebox.showinfo("Info", results_df.iloc[0]["Status"])
+                return
+
+            # Success
+            if not results_df.empty:
+                self.table.update_table(results_df)
+                messagebox.showinfo(
+                    "Success", f"Found {len(results_df)} transformation pairs."
+                )
+            else:
+                self.table.update_table(pd.DataFrame())
+                messagebox.showinfo("No Results", "No matching pairs found.")
+
+        except Exception as e:
+            self.config(cursor="")
+            traceback.print_exc()
+            messagebox.showerror("Critical Error", f"An error occurred:\n{e}")
