@@ -129,6 +129,9 @@ class Config:
         )
         self.library_filepath = self.level_2_library  # Default import target
 
+        # --- UPDATED: Default Exclusion Library to match Level 1 ---
+        self.exclusion_library = self.level_2_library
+
         # === Input / Output Paths (empty by default) ===
         self.raw_data_input_location = ""
         self.experimental_filepath = ""
@@ -146,6 +149,7 @@ class Config:
         self.control_end_col = ""
         self.experimental_start_col = ""
         self.experimental_end_col = ""
+
         self.level_2_library_mapping = {
             "Name": "B",
             "Adduct": "D",
@@ -153,6 +157,10 @@ class Config:
             "RT": "F",
             "m/z": "G",
         }
+
+        # --- UPDATED: Default Exclusion Mapping matches Level 1 ---
+        self.exclusion_mapping = self.level_2_library_mapping.copy()
+
         self.level_5_library_mapping = {"Name": "A", "m/z": "E"}
         self.standards_library_mapping = {"m/z": "C", "CCS": "B"}
 
