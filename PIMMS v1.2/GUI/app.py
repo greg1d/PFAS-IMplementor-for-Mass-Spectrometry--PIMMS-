@@ -18,6 +18,7 @@ from .Tabs.mapping_tab import MappingTab
 from .Tabs.params_tab import ParamsTab
 from .Tabs.run_tab import RunTab
 from .Tabs.visualizations_tab import VisualizationsTab
+from .Tabs.transformation_tab import TransformationTab
 
 
 class PimmsGUI(tk.Tk):
@@ -44,7 +45,7 @@ class PimmsGUI(tk.Tk):
         self.files_tab = FilesTab(notebook, self.config)
         self.mapping_tab = MappingTab(notebook, self.config)
         self.params_tab = ParamsTab(notebook, self.config)
-
+        self.transformation_tab = TransformationTab(notebook, self.config)
         # The RunTab is given a "callback" function to execute when its button is pressed.
         self.run_tab = RunTab(notebook, self.run_workflow_thread)
         self.visualizations_tab = VisualizationsTab(notebook, self.config)
@@ -58,9 +59,8 @@ class PimmsGUI(tk.Tk):
         notebook.add(self.params_tab, text="Parameters")
         notebook.add(self.run_tab, text="Run Workflow")
         notebook.add(self.visualizations_tab, text="CCS vs m/z Analysis")
-        notebook.add(
-            self.isotopic_analysis_tab, text="Isotopic Analysis"
-        )  # <-- 3. FIX THIS LINE
+        notebook.add(self.transformation_tab, text="Transformation Checker")
+        notebook.add(self.isotopic_analysis_tab, text="Isotopic Analysis")
 
     def run_workflow_thread(self):
         """Orchestrates data collection from tabs and runs the workflow."""
